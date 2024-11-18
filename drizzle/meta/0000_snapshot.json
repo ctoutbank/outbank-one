@@ -1,0 +1,203 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.transactions": {
+      "name": "transactions",
+      "schema": "",
+      "columns": {
+        "slug": {
+          "name": "slug",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dt_insert": {
+          "name": "dt_insert",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dt_update": {
+          "name": "dt_update",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slug_authorizer": {
+          "name": "slug_authorizer",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slug_terminal": {
+          "name": "slug_terminal",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slug_merchant": {
+          "name": "slug_merchant",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "merchant_type": {
+          "name": "merchant_type",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "merchant_name": {
+          "name": "merchant_name",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "merchant_corporate_name": {
+          "name": "merchant_corporate_name",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slug_customer": {
+          "name": "slug_customer",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customer_name": {
+          "name": "customer_name",
+          "type": "varchar(250)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sales_channel": {
+          "name": "sales_channel",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "authorizer_merchant_id": {
+          "name": "authorizer_merchant_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "muid": {
+          "name": "muid",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_amount": {
+          "name": "total_amount",
+          "type": "numeric(15, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_status": {
+          "name": "transaction_status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_type": {
+          "name": "product_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rrn": {
+          "name": "rrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_digits": {
+          "name": "first_digits",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastdigits": {
+          "name": "lastdigits",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "productorissuer": {
+          "name": "productorissuer",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "settlementmanagementtype": {
+          "name": "settlementmanagementtype",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "method_type": {
+          "name": "method_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand": {
+          "name": "brand",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelling": {
+          "name": "cancelling",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "split_type": {
+          "name": "split_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}
