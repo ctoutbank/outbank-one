@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
+import ThemeSwitcher from "../theme-switcher";
 
 export type BreadcrumbItem = {
   title: string;
@@ -22,7 +23,7 @@ const BaseHeader = ({
   breadcrumbItems: BreadcrumbItem[];
 }) => {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6 justify-between">
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-6" />
       <div className="flex flex-1 items-center justify-between">
@@ -45,6 +46,7 @@ const BaseHeader = ({
           </BreadcrumbList>
         </Breadcrumb>
       </div>
+      <ThemeSwitcher />
     </header>
   );
 };

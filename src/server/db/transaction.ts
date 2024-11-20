@@ -53,7 +53,10 @@ export async function getTotalTransactions(dateFrom: Date, dateTo: Date) {
   return totals[0];
 }
 
-export async function getTotalTransactionsByMonth(year: number) {
+export async function getTotalTransactionsByMonth(
+  dateFrom: Date,
+  dateTo: Date
+) {
   const result = await db
     .select({
       sum: sum(transactions.totalAmount),
@@ -63,8 +66,8 @@ export async function getTotalTransactionsByMonth(year: number) {
     .from(transactions)
     .where(
       and(
-        gte(transactions.dtInsert, `${year}-01-01`),
-        lte(transactions.dtInsert, `${year}-12-31`)
+        gte(transactions.dtInsert, dateFrom.toISOString()),
+        lte(transactions.dtInsert, dateTo.toISOString())
       )
     )
     .groupBy(sql`DATE(dt_update::TIMESTAMP)`)

@@ -121,7 +121,12 @@ export function BarChartCustom({ chartData }: { chartData: any[] }) {
               }
             />
             <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-            <Bar dataKey="lucro" fill="hsl(var(--chart-3))" />
+
+            {activeChart === "lucro" ? (
+              <Bar dataKey="count" fill="hsl(var(--chart-3))" />
+            ) : (
+              <Bar dataKey="lucro" fill="hsl(var(--chart-3))" />
+            )}
           </BarChart>
         </ChartContainer>
       </CardContent>

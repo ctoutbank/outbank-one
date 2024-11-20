@@ -17,13 +17,14 @@ export default async function SalesDashboard({
   const viewMode = searchParams.viewMode || "semana";
   const dateFrom = searchParams.dateFrom
     ? new Date(searchParams.dateFrom)
-    : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    : new Date();
   const dateTo = searchParams.dateTo
     ? new Date(searchParams.dateTo)
-    : new Date();
+    : new Date(new Date().setHours(23, 59, 0, 0));
   const totalTransactions = await getTotalTransactions(dateFrom, dateTo);
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
-    dateFrom.getFullYear()
+    dateFrom,
+    dateTo
   );
   return (
     <>
@@ -39,10 +40,10 @@ export default async function SalesDashboard({
           }}
         />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
           <CardValue
             title={`Bruto total `}
-            description={`Total bruto das transações realizadas`}
+            description={`Total bruto das transações`}
             value={totalTransactions?.sum}
             percentage={10}
             valueType="currency"
@@ -61,8 +62,15 @@ export default async function SalesDashboard({
             percentage={10}
             valueType="number"
           />
+          <CardValue
+            title={`Estabelecimentos Cadastrados`}
+            description={`Total de estabelecimentos cadastrados`}
+            value={65}
+            percentage={10}
+            valueType="number"
+          />
         </div>
-        <div className="mt-4">
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
           <BarChartCustom chartData={totalTransactionsByMonth} />
         </div>
       </BaseBody>

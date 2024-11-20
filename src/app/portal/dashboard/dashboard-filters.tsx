@@ -30,6 +30,20 @@ export default function DashboardFilters({
       />
       <ToggleGroup type="single" onValueChange={handleFilterChange}>
         <ToggleGroupItem
+          value="ontem"
+          aria-label="Toggle ontem"
+          className="border bg-primary text-primary-foreground"
+        >
+          Ontem
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="hoje"
+          aria-label="Toggle hoje"
+          className="border bg-primary text-primary-foreground"
+        >
+          Hoje
+        </ToggleGroupItem>
+        <ToggleGroupItem
           value="semana"
           aria-label="Toggle semana"
           className="border"
@@ -39,6 +53,7 @@ export default function DashboardFilters({
         <ToggleGroupItem value="mes" aria-label="Toggle mês" className="border">
           Mês
         </ToggleGroupItem>
+
         <ToggleGroupItem value="ano" aria-label="Toggle ano" className="border">
           Ano
         </ToggleGroupItem>
