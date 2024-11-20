@@ -18,13 +18,26 @@ export default async function SalesDashboard({
 }) {
   const viewMode = searchParams.viewMode || "today";
 
-  const { from, to } = gateDateByViewMode(viewMode);
+  const { period, previousPeriod } = gateDateByViewMode(viewMode);
+  console.log("period", period);
+  console.log("previousPeriod", previousPeriod);
 
-  const totalTransactions = await getTotalTransactions(from!, to!);
+  const totalTransactions = await getTotalTransactions(
+    period.from!,
+    period.to!
+  );
+  const totalTransactionsPreviousPeriod = await getTotalTransactions(
+    previousPeriod?.from!,
+    previousPeriod?.to!
+  );
+  console.log(
+    "totalTransactionsPreviousPeriod",
+    totalTransactionsPreviousPeriod
+  );
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
-    from!,
-    to!
+    period.from!,
+    period.to!
   );
 
   return (
@@ -35,8 +48,8 @@ export default async function SalesDashboard({
       <BaseBody title="Sales Dashboard" subtitle={`Visão geral das vendas`}>
         <DashboardFilters
           dateRange={{
-            from: from!,
-            to: to!,
+            from: period.from,
+            to: period.to,
           }}
         />
         <Suspense fallback={<div>Loading...</div>}>
@@ -45,28 +58,47 @@ export default async function SalesDashboard({
               title={`Bruto total `}
               description={`Total bruto das transações`}
               value={totalTransactions?.sum}
-              percentage={10}
+              percentage={(
+                ((totalTransactions?.sum -
+                  totalTransactionsPreviousPeriod?.sum) /
+                  totalTransactionsPreviousPeriod?.sum) *
+                100
+              ).toFixed(2)}
+              previousValue={totalTransactionsPreviousPeriod?.sum}
               valueType="currency"
             />
             <CardValue
               title={`Lucro total `}
               description={`Total de lucro realizado`}
-              value={totalTransactions?.sum * 0.08}
-              percentage={-5}
+              value={totalTransactions?.revenue}
+              percentage={(
+                ((totalTransactions?.revenue -
+                  totalTransactionsPreviousPeriod?.revenue) /
+                  totalTransactionsPreviousPeriod?.revenue) *
+                100
+              ).toFixed(2)}
+              previousValue={totalTransactionsPreviousPeriod?.revenue}
               valueType="currency"
             />
             <CardValue
               title={`Transações realizadas `}
               description={`Total de transações realizadas`}
               value={totalTransactions?.count}
-              percentage={10}
+              percentage={(
+                ((totalTransactions?.count -
+                  totalTransactionsPreviousPeriod?.count) /
+                  totalTransactionsPreviousPeriod?.count) *
+                100
+              ).toFixed(2)}
+              previousValue={totalTransactionsPreviousPeriod?.count}
               valueType="number"
             />
             <CardValue
               title={`Estabelecimentos Cadastrados`}
               description={`Total de estabelecimentos cadastrados`}
               value={65}
-              percentage={10}
+              percentage={"-50"}
+              previousValue={30}
               valueType="number"
             />
           </div>

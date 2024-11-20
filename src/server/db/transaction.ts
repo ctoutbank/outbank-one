@@ -26,6 +26,7 @@ export async function getTransactions(page: number = 1, limit: number = 100) {
 export type GetTotalTransactionsResult = {
   sum: number;
   count: number;
+  revenue: number;
 };
 export type GetTotalTransactionsByMonthResult = {
   bruto: number;
@@ -48,6 +49,7 @@ export async function getTotalTransactions(dateFrom: Date, dateTo: Date) {
   const totals: GetTotalTransactionsResult[] = result.map((item) => ({
     sum: item.sum ? parseFloat(item.sum) : 0,
     count: item.count,
+    revenue: item.sum ? parseFloat(item.sum) * 0.08 : 0,
   }));
 
   return totals[0];
