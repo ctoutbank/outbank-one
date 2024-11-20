@@ -1,0 +1,25 @@
+"use server";
+import { GetTransactionsResponse, Transaction } from "./dock-types";
+export async function getTransactions(
+  startDate: string,
+  endDate: string
+): Promise<Transaction[]> {
+  console.log("DOCK_API_KEY", process.env.DOCK_API_KEY);
+  console.log("DOCK_API_URL", process.env.DOCK_API_URL);
+  const url = new URL(`${process.env.DOCK_API_URL}/v1/financial_transactions`);
+  url.searchParams.append("dtInsert__goe", startDate);
+  url.searchParams.append("dtInsert__loe", endDate);
+  url.searchParams.append("limit", "1000");
+  url.searchParams.append("transactionStatus", "AUTHORIZED");
+
+  const transaction = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `${process.env.DOCK_API_KEY}`,
+    },
+  });
+  const data: GetTransactionsResponse = await transaction.json();
+  console.log(data);
+  return data.objects;
+}
