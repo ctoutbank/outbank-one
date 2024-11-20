@@ -46,7 +46,7 @@ export function BarChartCustom({
       bruto: chartData.reduce((acc, curr) => acc + curr.bruto, 0),
       lucro: chartData.reduce((acc, curr) => acc + curr.lucro, 0),
     }),
-    []
+    [chartData]
   );
 
   return (
