@@ -33,7 +33,6 @@ export default async function SalesDashboard({
       />
       <BaseBody title="Sales Dashboard" subtitle={`Visão geral das vendas`}>
         <DashboardFilters
-          viewMode={viewMode}
           dateRange={{
             from: dateFrom,
             to: dateTo,

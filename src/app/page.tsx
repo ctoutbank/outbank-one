@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
-import { SignInButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import {
   ArrowRight,
   CheckCircle,

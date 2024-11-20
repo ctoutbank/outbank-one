@@ -16,6 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { GetTotalTransactionsByMonthResult } from "@/server/db/transaction";
 
 const chartConfig = {
   count: {
@@ -31,7 +32,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function BarChartCustom({ chartData }: { chartData: any[] }) {
+export function BarChartCustom({
+  chartData,
+}: {
+  chartData: GetTotalTransactionsByMonthResult[];
+}) {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("bruto");
 

@@ -5,15 +5,12 @@ import { useRouter } from "next/navigation";
 import { DateRange } from "react-day-picker";
 
 interface DashboardFiltersProps {
-  viewMode: string;
   dateRange: DateRange;
 }
 
-export default function DashboardFilters({
-  viewMode,
-  dateRange,
-}: DashboardFiltersProps) {
+export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   const router = useRouter();
+
   const handleFilterChange = (filter: string) => {
     router.push(`/portal/dashboard?viewMode=${filter}`);
   };
