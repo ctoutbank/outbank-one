@@ -1,5 +1,5 @@
 "use server";
-import { GetTransactionsResponse, Transaction } from "./dock-types";
+import { GetTransactionsResponse, Transaction } from "./dock-transactions-type";
 export async function getTransactions(
   startDate: string,
   endDate: string

@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getMerchants } from "@/server/integrations/dock-merchants";
+import { getMerchants } from "@/server/integrations/dock/dock-merchants";
 
 export default async function Merchants() {
   const merchants = await getMerchants();

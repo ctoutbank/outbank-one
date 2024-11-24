@@ -6,6 +6,7 @@ import {
   ChartArea,
   DollarSign,
   DollarSignIcon,
+  HomeIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -43,11 +44,11 @@ const data = {
     {
       title: "Estabelecimentos",
       url: "/portal/merchants",
-      icon: Building,
+      icon: HomeIcon,
     },
     {
       title: "Terminais",
-      url: "#",
+      url: "/portal/terminals",
       icon: Calculator,
     },
   ],
