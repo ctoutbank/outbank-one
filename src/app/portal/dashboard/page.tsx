@@ -2,12 +2,12 @@ import CardValue from "@/components/dashboard/cardValue";
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import DashboardFilters from "./dashboard-filters";
+import DashboardFilters from "./_components/dashboard-filters";
 import {
   getTotalTransactions,
   getTotalTransactionsByMonth,
 } from "@/server/db/transaction";
-import { BarChartCustom } from "./barChart";
+import { BarChartCustom } from "./_components/barChart";
 import { gateDateByViewMode } from "@/lib/utils";
 import { Suspense } from "react";
 

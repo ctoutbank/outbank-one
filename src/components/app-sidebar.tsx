@@ -32,17 +32,17 @@ const data = {
   navMain: [
     {
       title: "Dashboard Geral",
-      url: "/dashboard",
+      url: "/portal/dashboard",
       icon: ChartArea,
     },
     {
       title: "Vendas",
-      url: "/transactions",
+      url: "/portal/transactions",
       icon: DollarSign,
     },
     {
       title: "Estabelecimentos",
-      url: "/dashboard/estabelecimentos",
+      url: "/portal/merchants",
       icon: Building,
     },
     {
