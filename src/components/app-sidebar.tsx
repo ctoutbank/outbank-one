@@ -6,6 +6,7 @@ import {
   ChartArea,
   DollarSign,
   DollarSignIcon,
+  HomeIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -32,22 +33,22 @@ const data = {
   navMain: [
     {
       title: "Dashboard Geral",
-      url: "/dashboard",
+      url: "/portal/dashboard",
       icon: ChartArea,
     },
     {
       title: "Vendas",
-      url: "/transactions",
+      url: "/portal/transactions",
       icon: DollarSign,
     },
     {
       title: "Estabelecimentos",
-      url: "/dashboard/estabelecimentos",
-      icon: Building,
+      url: "/portal/merchants",
+      icon: HomeIcon,
     },
     {
       title: "Terminais",
-      url: "#",
+      url: "/portal/terminals",
       icon: Calculator,
     },
   ],

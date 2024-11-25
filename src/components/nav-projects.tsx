@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 export function NavProjects({
   menuItems,
@@ -19,12 +20,14 @@ export function NavProjects({
     icon: LucideIcon;
   }[];
 }) {
+  const activeUrl = usePathname();
+  console.log(activeUrl);
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarMenu>
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={activeUrl === item.url}>
               <a href={item.url}>
                 <item.icon />
                 <span>{item.title}</span>
