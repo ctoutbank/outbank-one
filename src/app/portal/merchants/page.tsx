@@ -27,7 +27,7 @@ export default async function MerchantsPage({
       <BaseHeader
         breadcrumbItems={[{ title: "Merchants", url: "/portal/merchants" }]}
       />
-    <div>  <Building2  /> 
+      
       <BaseBody
       
         title="Estabelecimentos"
@@ -37,7 +37,7 @@ export default async function MerchantsPage({
         
             <MerchantList list={merchants}  />
       </BaseBody>
-      </div>
+     
     </>
   );
 }

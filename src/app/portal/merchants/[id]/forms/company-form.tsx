@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch"
 
 export function CompanyForm() {
   return (
+    
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader className="flex flex-row items-center space-x-2">

@@ -17,6 +17,7 @@ export default async function MerchantDetail({
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-4">
         {/* Breadcrumb */}
+        
         <nav className="flex items-center space-x-2 mb-6 text-sm">
           <Home className="w-4 h-4" />
           <span>/</span>

@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Merchantlist } from '@/server/db/merchant'
 import router from 'next/router'
+import Link from 'next/link'
+
 
 
 
@@ -45,11 +47,8 @@ export default function MerchantList({list}:{list:Merchantlist}) {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-2 mb-8">
-        
-        <h1 className="text-2xl font-bold">Lista de Estabelecimentos</h1>
-      </div>
+    <div >
+     
 
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1">
@@ -80,11 +79,15 @@ export default function MerchantList({list}:{list:Merchantlist}) {
           Exportar
         </Button>
         <Button 
-          className="gap-2 bg-black text-white hover:bg-black/90"
-          onClick={() => router.push('/portal/merchants/0')}
+        
+          
+         
         >
+          <Link href="/portal/merchants/0
+          "className="flex gap-2 items-center  ">
           <Plus className="h-4 w-4" />
           Novo Estabelecimento
+          </Link>
         </Button>
       </div>
 
