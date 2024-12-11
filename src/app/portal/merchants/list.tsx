@@ -145,7 +145,7 @@ export default function MerchantList({list}:{list:Merchantlist}) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {list.merchants.map((merchant, i) => (
+            {filteredAndSortedMer.map((merchant, i) => (
               <TableRow key={merchant.id}>
                 <TableCell>
                   <Checkbox 
