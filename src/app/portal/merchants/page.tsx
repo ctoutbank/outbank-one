@@ -22,6 +22,8 @@ export default async function MerchantsPage({
   const page = 1; // Altere conforme necessário
   const limit = 20;
   const merchants = await getMerchants(page, limit);
+
+  console.log(merchants);
   return (
     <>
       <BaseHeader

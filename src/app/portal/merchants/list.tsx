@@ -30,10 +30,10 @@ export default function MerchantList({list}:{list:Merchantlist}) {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((merchant) => {
-        const fullName = `${merchant.name ?? ""} ${merchant.cnpj ?? ""}`.toLowerCase();
+        const Name = `${merchant.name ?? ""} ${merchant.cnpj ?? ""}`.toLowerCase();
         const email = merchant.email?.toLowerCase() ?? "";
         const phoneNumber = merchant.phone_type?.toLowerCase() ?? "";
-        return fullName.includes(query) || email.includes(query) || phoneNumber.includes(query);
+        return Name.includes(query) || email.includes(query) || phoneNumber.includes(query);
       });
     }
     return result;
@@ -170,19 +170,25 @@ export default function MerchantList({list}:{list:Merchantlist}) {
                 </Badge>
                 </TableCell>
                 <TableCell>
-                {merchant.anticipationRiskFactorCp}
+               <Badge variant={merchant.lockCpAnticipationOrder ? 'destructive' : 'success'} >
+                {merchant.lockCpAnticipationOrder ? 'INACTIVE' : 'ACTIVE'}
+               </Badge>
 </TableCell>
                 <TableCell>
-                {merchant.anticipationRiskFactorCnp}
+                <Badge variant={merchant.lockCnpAnticipationOrder ? 'destructive' : 'success'} >
+                {merchant.lockCnpAnticipationOrder ? 'BLOCKED' : 'INATIVO'}
+                </Badge>
                 </TableCell>
                 <TableCell>{merchant.sales_agent}</TableCell>
                 <TableCell> <Badge variant={merchant.active ? 'success' : 'destructive'}>
-                  {merchant.active ? 'ATIVO' : 'INATIVO'}
+                  {merchant.active ? 'INATIVO' : 'ATIVO'}
                 </Badge></TableCell>
                 <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => handleRowClick(merchant.id)}>
+                  <Link href="/portal/merchants/[id]" as={`/portal/merchants/${merchant.id}`}>
+                    <Button variant="ghost" size="icon" >
                     <MoreVertical className="h-4 w-4" />
                       </Button>
+                  </Link>
                    
                   
                 </TableCell>

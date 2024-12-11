@@ -1,6 +1,6 @@
 
 import { db } from "./index";
-import { addresses, categories, merchants, salesAgents } from "../../../drizzle/schema";
+import { addresses, categories, configurations, merchants, salesAgents } from "../../../drizzle/schema";
 import { count,desc,eq } from "drizzle-orm";
 
 
@@ -18,8 +18,9 @@ export interface Merchantlist  {
     id_category: number;
     kic_status: string;
     addressname: string;
-    anticipationRiskFactorCp: number;
-    anticipationRiskFactorCnp: number;
+    
+    lockCpAnticipationOrder: boolean;
+    lockCnpAnticipationOrder: boolean;
 
     
     sales_agent: string;
@@ -52,8 +53,10 @@ export async function getMerchants(page: number = 1, limit: number = 50): Promis
       salesAgents: salesAgents.firstName,
       addresses: addresses.state,
       document: merchants.idDocument,
-      anticipationRiskFactorCp: categories.anticipationRiskFactorCp,
-      anticipationRiskFactorCnp: categories.anticipationRiskFactorCnp,
+      lockCpAnticipationOrder:configurations.lockCpAnticipationOrder,
+      lockCnpAnticipationOrder:configurations.lockCnpAnticipationOrder,
+
+ 
       
       
       
@@ -62,7 +65,8 @@ export async function getMerchants(page: number = 1, limit: number = 50): Promis
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id)) 
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
     .limit(limit);
@@ -89,8 +93,9 @@ export async function getMerchants(page: number = 1, limit: number = 50): Promis
       dtinsert: merchant.dtinsert ? merchant.dtinsert.toString() : "N/A",
       state: merchant.addresses ?? "N/A",
       cnpj: merchant.document ?? "N/A",
-      anticipationRiskFactorCp: merchant.anticipationRiskFactorCp ?? 0,
-      anticipationRiskFactorCnp: merchant.anticipationRiskFactorCnp ?? 0,
+      lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
+      lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
+    
 
       sales_agent: merchant.salesAgents ?? "N/A",
       
@@ -99,6 +104,9 @@ export async function getMerchants(page: number = 1, limit: number = 50): Promis
     totalCount,
   };
 }
+
+
+
 
 
 
