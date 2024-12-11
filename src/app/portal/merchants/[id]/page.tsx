@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CompanyForm } from './forms/company-form'
 import { AddressForm } from './forms/address-form'
 import { getMerchantById } from '@/server/db/merchant';
+import MerchantForm from './merchant-form';
 
 
 
@@ -50,6 +51,9 @@ export default async function MerchantDetail({
           </TabsContent>
           <TabsContent value="address">
             <AddressForm />
+          </TabsContent>
+          <TabsContent value="contact">
+            <MerchantForm />
           </TabsContent>
         </Tabs>
       </div>

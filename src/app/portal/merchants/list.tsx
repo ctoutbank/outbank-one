@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState,useMemo } from 'react'
 import { Building2, Filter, Search, Trash2, Download, Plus, MoreVertical, ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,11 +17,28 @@ import { Badge } from "@/components/ui/badge"
 import { Merchantlist } from '@/server/db/merchant'
 import router from 'next/router'
 import Link from 'next/link'
+import { SearchBar } from './[id]/search-bar'
 
 
 
 
 export default function MerchantList({list}:{list:Merchantlist}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const filteredAndSortedMer = useMemo(() => {
+    let result = [...list.merchants];
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((merchant) => {
+        const fullName = `${merchant.name ?? ""} ${merchant.cnpj ?? ""}`.toLowerCase();
+        const email = merchant.email?.toLowerCase() ?? "";
+        const phoneNumber = merchant.phone_type?.toLowerCase() ?? "";
+        return fullName.includes(query) || email.includes(query) || phoneNumber.includes(query);
+      });
+    }
+    return result;
+  }, [list.merchants, searchQuery]);
+
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
 
   const toggleSelection = (index: number) => {
@@ -46,17 +63,21 @@ export default function MerchantList({list}:{list:Merchantlist}) {
     )
   }
 
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+
   return (
     <div >
      
 
       <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar estabelecimentos..." 
-            className="pl-10"
-          />
+        <div className="relative flex-1 max-w-[850px] ">
+        <SearchBar  
+         value={searchQuery} onChange={handleSearchChange} />
+         
         </div>
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
@@ -117,7 +138,7 @@ export default function MerchantList({list}:{list:Merchantlist}) {
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
-                Ativo desde
+                Ativo 
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead></TableHead>
@@ -132,24 +153,32 @@ export default function MerchantList({list}:{list:Merchantlist}) {
                     onCheckedChange={() => toggleSelection(i)}
                   />
                 </TableCell>
-                <TableCell>{merchant.name}</TableCell>
-                <TableCell>{merchant.addressname}</TableCell>
                 <TableCell>
-                <Badge className={`bg-${merchant.kic_status === 'Aprovado' ? 'emerald' : 'red'}-500`}>
+                  {merchant.name}
+                    <div className="text-sm text-muted-foreground">
+                    {merchant.cnpj.slice(0, 11) + '-' + merchant.cnpj.slice(11)}
+                    </div>
+                </TableCell>
+                <TableCell>{merchant.addressname}
+                  <div className="text-sm text-muted-foreground">
+                    {merchant.state}
+                  </div>
+                </TableCell>
+                <TableCell>
+                <Badge className={`bg-${merchant.kic_status === 'APPROVED' ? 'emerald' : 'red'}-500`}>
                     {merchant.kic_status}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                    Ativo
-                  </div>
-                </TableCell>
+                {merchant.anticipationRiskFactorCp}
+</TableCell>
                 <TableCell>
-                  <Badge className="bg-red-500 hover:bg-red-600">{merchant.active}</Badge>
+                {merchant.anticipationRiskFactorCnp}
                 </TableCell>
-                <TableCell>{merchant.kic_status}</TableCell>
-                <TableCell>{merchant.phone_type}</TableCell>
+                <TableCell>{merchant.sales_agent}</TableCell>
+                <TableCell> <Badge variant={merchant.active ? 'success' : 'destructive'}>
+                  {merchant.active ? 'ATIVO' : 'INATIVO'}
+                </Badge></TableCell>
                 <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => handleRowClick(merchant.id)}>
                     <MoreVertical className="h-4 w-4" />
