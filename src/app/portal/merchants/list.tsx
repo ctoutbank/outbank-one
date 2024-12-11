@@ -165,9 +165,9 @@ export default function MerchantList({list}:{list:Merchantlist}) {
                   </div>
                 </TableCell>
                 <TableCell>
-                <Badge className={`bg-${merchant.kic_status === 'APPROVED' ? 'emerald' : 'red'}-500`}>
-                    {merchant.kic_status}
-                  </Badge>
+                <Badge variant={merchant.kic_status === 'APPROVED' ? 'success' : 'destructive'}>
+                  {merchant.kic_status}
+                </Badge>
                 </TableCell>
                 <TableCell>
                 {merchant.anticipationRiskFactorCp}

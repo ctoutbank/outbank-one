@@ -52,9 +52,8 @@ export default async function MerchantDetail({
           <TabsContent value="address">
             <AddressForm />
           </TabsContent>
-          <TabsContent value="contact">
-            <MerchantForm />
-          </TabsContent>
+         
+         
         </Tabs>
       </div>
     </div>
