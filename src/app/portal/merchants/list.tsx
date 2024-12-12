@@ -39,89 +39,59 @@ export default function MerchantList({list}:{list:Merchantlist}) {
     return result;
   }, [list.merchants, searchQuery]);
 
-  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
-
-  const toggleSelection = (index: number) => {
-    setSelectedItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
-      return newSet
-    })
-  }
+  
 
   const handleRowClick = (id: bigint) => {
     router.push(`/portal/merchant/"+ ${id}"`);
   };
 
-  const toggleAllSelection = () => {
-    setSelectedItems(prev => 
-      prev.size === list.merchants.length ? new Set() : new Set(list.merchants.map((_, i) => i))
-    )
-  }
+  
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
   };
-
+const exportToExccelButton = (props: any) => {
+}
 
   return (
     <div >
      
 
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-[850px] ">
-        <SearchBar  
-         value={searchQuery} onChange={handleSearchChange} />
-         
-        </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="h-4 w-4" />
-          Filtros
-        </Button>
-        <Button 
-          variant="outline" 
-          className="gap-2" 
-          disabled={selectedItems.size === 0}
-        >
-          <Trash2 className="h-4 w-4" />
-          Deletar
-        </Button>
-        <Button 
-          variant="outline" 
-          className="gap-2" 
-          disabled={selectedItems.size === 0}
-        >
-          <Download className="h-4 w-4" />
-          Exportar
-        </Button>
-        <Button 
-        
-          
-         
-        >
-          <Link href="/portal/merchants/0
-          "className="flex gap-2 items-center  ">
-          <Plus className="h-4 w-4" />
-          Novo Estabelecimento
-          </Link>
-        </Button>
-      </div>
+     <div className="grid grid-cols-2 gap-4 mb-6">
+  {/* Coluna da Barra de Busca */}
+  <div className="max-w-[850px]">
+    <SearchBar value={searchQuery} onChange={handleSearchChange} />
+  </div>
+
+  {/* Coluna dos Botões */}
+  <div className="flex justify-end items-center">
+    <Button 
+      variant="outline" 
+      className="gap-2 mr-2" 
+      
+      onClick={exportToExccelButton}
+    >
+      <Download className="h-4 w-4" />
+      Exportar
+    </Button>
+    <Button>
+      <Link href="/portal/merchants/0" className="flex gap-2 items-center">
+        <Plus className="h-4 w-4" />
+        Novo Estabelecimento
+      </Link>
+    </Button>
+  </div>
+</div>
+
+
+
 
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
-                <Checkbox 
-                  checked={selectedItems.size === list.merchants.length}
-                  onCheckedChange={toggleAllSelection}
-                />
-              </TableHead>
+              
               <TableHead>
                 Nome Fantasia
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
@@ -147,12 +117,7 @@ export default function MerchantList({list}:{list:Merchantlist}) {
           <TableBody>
             {filteredAndSortedMer.map((merchant, i) => (
               <TableRow key={merchant.id}>
-                <TableCell>
-                  <Checkbox 
-                    checked={selectedItems.has(i)}
-                    onCheckedChange={() => toggleSelection(i)}
-                  />
-                </TableCell>
+               
                 <TableCell>
                   {merchant.name}
                     <div className="text-sm text-muted-foreground">
