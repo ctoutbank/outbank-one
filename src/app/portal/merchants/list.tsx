@@ -1,5 +1,6 @@
 "use client";
 
+import exportToExccelButton from "@/components/export-Excel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Merchantlist } from "@/server/db/merchant";
-import router from "next/router";
+import { ChevronDown, Download, MoreVertical, Plus } from "lucide-react";
 import Link from "next/link";
+import router from "next/router";
+import { useMemo, useState } from "react";
 import { SearchBar } from "./[id]/search-bar";
-import exportToExccelButton from "@/components/export-Excel";
 
 export default function MerchantList({ list }: { list: Merchantlist }) {
   const [searchQuery, setSearchQuery] = useState("");
