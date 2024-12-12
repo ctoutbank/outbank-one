@@ -1,6 +1,5 @@
 "use client";
 
-import exportToExccelButton from "@/components/export-Excel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import exportExcel from "@/lib/export-xlsx";
 import { Merchantlist } from "@/server/db/merchant";
 import { ChevronDown, Download, MoreVertical, Plus } from "lucide-react";
 import Link from "next/link";
@@ -50,6 +50,21 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     setCurrentPage(1);
   };
 
+  const onGetExporMerchants = async () => {
+    // Check if the action result contains data and if it's an array
+    if (list.merchants && Array.isArray(list.merchants)) {
+      const dataToExport = list.merchants.map((merchant: any) => ({
+        Nome: merchant.name,
+        CNPJ: merchant.cnpj,
+        Email: merchant.email,
+        Telefone: merchant.phone_type,
+        Status: merchant.kic_status,
+      }));
+      // Create Excel workbook and worksheet
+      exportExcel("Estabelecimentos", "Estabelecimentos", dataToExport);
+    }
+  };
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -64,7 +79,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
             variant="outline"
             className="gap-2 mr-2"
             onClick={() => {
-              exportToExccelButton(list.merchants);
+              onGetExporMerchants();
             }}
           >
             <Download className="h-4 w-4" />
