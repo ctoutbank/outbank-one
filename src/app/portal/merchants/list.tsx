@@ -18,6 +18,7 @@ import { Merchantlist } from '@/server/db/merchant'
 import router from 'next/router'
 import Link from 'next/link'
 import { SearchBar } from './[id]/search-bar'
+import exportToExccelButton from '@/components/export-Excel'
 
 
 
@@ -51,8 +52,9 @@ export default function MerchantList({list}:{list:Merchantlist}) {
     setSearchQuery(value);
     setCurrentPage(1);
   };
-const exportToExccelButton = (props: any) => {
-}
+
+
+  
 
   return (
     <div >
@@ -70,7 +72,7 @@ const exportToExccelButton = (props: any) => {
       variant="outline" 
       className="gap-2 mr-2" 
       
-      onClick={exportToExccelButton}
+      onClick={() => {exportToExccelButton(list.merchants)}}
     >
       <Download className="h-4 w-4" />
       Exportar
