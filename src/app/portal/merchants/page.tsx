@@ -8,38 +8,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getMerchants } from "@/server/integrations/dock/dock-merchants";
 
-export default async function Merchants() {
-  const merchants = await getMerchants();
+import MerchantList from "./list";
+
+import { Building2 } from "lucide-react";
+import { getMerchants } from "@/server/db/merchant";
+
+
+
+export default async function MerchantsPage({
+  searchParams,
+}:{searchParams:any}) {
+  const page = 1; // Altere conforme necessário
+  const limit = 20;
+  const merchants = await getMerchants(page, limit);
+
+  console.log(merchants);
   return (
     <>
       <BaseHeader
         breadcrumbItems={[{ title: "Merchants", url: "/portal/merchants" }]}
       />
+      
       <BaseBody
+      
         title="Estabelecimentos"
         subtitle={`visualização de todos os estabelecimentos`}
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {merchants.map((merchant) => (
-              <TableRow key={merchant.slug}>
-                <TableCell>{merchant.name}</TableCell>
-                <TableCell>{merchant.slug}</TableCell>
-                <TableCell>{merchant.active ? "Ativo" : "Inativo"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    
+        
+            <MerchantList list={merchants}  />
       </BaseBody>
+     
     </>
   );
 }
