@@ -10,12 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Merchantlist } from "@/server/db/merchant";
-import { ChevronDown, Download, MoreVertical, Plus } from "lucide-react";
-import Link from "next/link";
 import router from "next/router";
-import { useMemo, useState } from "react";
+import Link from "next/link";
 import { SearchBar } from "./[id]/search-bar";
+import exportToExccelButton from "@/components/export-Excel";
 
 export default function MerchantList({ list }: { list: Merchantlist }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,7 +49,6 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     setSearchQuery(value);
     setCurrentPage(1);
   };
-  const exportToExccelButton = (props: any) => {};
 
   return (
     <div>
@@ -63,7 +63,9 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
           <Button
             variant="outline"
             className="gap-2 mr-2"
-            onClick={exportToExccelButton}
+            onClick={() => {
+              exportToExccelButton(list.merchants);
+            }}
           >
             <Download className="h-4 w-4" />
             Exportar
