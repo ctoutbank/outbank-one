@@ -19,7 +19,7 @@ export default async function TerminalsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <TableHead>Terminal</TableHead>
               <TableHead>Número Lógico</TableHead>
               <TableHead>Modelo</TableHead>
               <TableHead>Fabricante</TableHead>
