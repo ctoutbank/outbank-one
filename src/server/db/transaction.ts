@@ -3,9 +3,11 @@ import { transactions } from "../../../drizzle/schema";
 import { db } from "./index";
 
 export type TransactionList = {
-  transactions: (typeof transactions.$inferSelect)[];
+  transactions: Transaction[];
   totalCount: number;
 };
+
+export type Transaction = typeof transactions.$inferSelect;
 
 export async function getTransactions(page: number = 1, limit: number = 100) {
   const result = await db

@@ -1,16 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import {
-  Breadcrumb,
-  BreadcrumbLink,
-  BreadcrumbItem,
-  BreadcrumbSeparator,
-  BreadcrumbPage,
-  BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import {
   Table,
   TableBody,
   TableCell,
@@ -19,10 +9,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getTransactions } from "@/server/db/transaction";
+import TransactionsExport from "./transactions-export";
 
 export default async function Transactions() {
   const transactionList = await getTransactions();
-  const { transactions, totalCount } = transactionList;
+
   return (
     <>
       <BaseHeader breadcrumbItems={[]} />
@@ -30,6 +21,7 @@ export default async function Transactions() {
         title="Transações"
         subtitle={`visualização de todas as transações`}
       >
+        <TransactionsExport transactions={transactionList.transactions} />
         <Table>
           <TableHeader>
             <TableRow>
@@ -40,7 +32,7 @@ export default async function Transactions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
+            {transactionList.transactions.map((transaction) => (
               <TableRow key={transaction.slug}>
                 <TableCell>
                   {transaction.dtInsert
