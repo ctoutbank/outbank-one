@@ -6,7 +6,9 @@ import {
   ChartArea,
   DollarSign,
   DollarSignIcon,
+  Grid,
   HomeIcon,
+  User,
 } from "lucide-react";
 import * as React from "react";
 
@@ -51,6 +53,23 @@ const data = {
       url: "/portal/terminals",
       icon: Calculator,
     },
+    {
+      title: "Consultores",
+      url: "/portal/salesAgents",
+      icon: User,
+
+    },
+    {
+      title: "Natureza Jurídica",
+      url: "/portal/legalNatures",
+      icon: Building,
+    },
+    {
+      title: "Categorias",
+      url: "/portal/categories",
+      icon: Grid,
+    }
+
   ],
 };
 

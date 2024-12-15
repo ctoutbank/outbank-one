@@ -1,7 +1,7 @@
 
 import { db } from "./index";
 import { addresses, categories, configurations, merchants, salesAgents } from "../../../drizzle/schema";
-import { count,desc,eq } from "drizzle-orm";
+import { count,desc,eq,ilike,or } from "drizzle-orm";
 
 
 
@@ -32,8 +32,8 @@ export interface Merchantlist  {
 
 
 
-export async function getMerchants(page: number = 1, limit: number = 50): Promise<Merchantlist> {
-  const offset = (page - 1) * limit;
+export async function getMerchants(search:string, page: number , pageSize: number ): Promise<Merchantlist> {
+  const offset = (page - 1) * pageSize;
 
   const result = await db
     .select({
@@ -55,21 +55,26 @@ export async function getMerchants(page: number = 1, limit: number = 50): Promis
       document: merchants.idDocument,
       lockCpAnticipationOrder:configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder:configurations.lockCnpAnticipationOrder,
+      cnpj: merchants.idDocument,
+      
 
- 
-      
-      
-      
-      
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id)) 
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .where(
+                or(
+                    ilike(merchants.name, `%${search}%`),
+                    ilike(merchants.email, `%${search}%`),
+                    ilike(merchants.idDocument, `%${search}%`),
+                    
+                )
+            )
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
-    .limit(limit);
+    .limit(pageSize);
 
   const totalCount = await db
     .select({ count: count() })

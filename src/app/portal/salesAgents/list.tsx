@@ -1,0 +1,82 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { SalesAgentsList } from "@/server/db/salesAgent";
+
+import { ChevronDown, MoreVertical, Plus } from "lucide-react";
+import Link from "next/link";
+
+
+
+
+export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgentsList }) {
+
+    return (
+        <div>
+       
+    
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    Nome 
+                    <ChevronDown className="ml-2 h-4 w-4 inline" />
+                  </TableHead>
+                  <TableHead>
+                    Email
+                    <ChevronDown className="ml-2 h-4 w-4 inline" />
+                  </TableHead>
+                 
+                  <TableHead>
+                    Ativo
+                    <ChevronDown className="ml-2 h-4 w-4 inline" />
+                  </TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+            {SalesAgents.salesAgents.map((agent) => (
+              <TableRow key={agent.id}>
+                <TableCell>
+                  {agent.firstName} {agent.lastName}
+                 
+                </TableCell>
+                <TableCell>
+                  {agent.email}
+                
+                </TableCell>
+               
+                <TableCell>
+                  {" "}
+                  <Badge variant={agent.active ? "success" : "destructive"}>
+                    {agent.active ? "INATIVO" : "ATIVO"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href="/portal/merchants/[id]"
+                    as={`/portal/salesAgents/${agent.id}`}
+                  >
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
