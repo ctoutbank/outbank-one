@@ -1,5 +1,9 @@
+import { generateSlug } from "@/lib/utils";
 import { db } from "."
-import { salesAgents } from "../../../drizzle/schema"
+import { salesAgents } from "../../../drizzle/schema";
+
+// Ensure the salesAgents schema includes the slug property
+
 import { eq, count,desc, like,or } from "drizzle-orm"
 
 
@@ -22,6 +26,18 @@ export interface SalesAgentsList {
     totalCount: number
 }
 
+export type SalesAgent = {
+    id: number
+    slug: string | null
+    firstName: string | null
+    lastName: string | null
+    email: string | null
+    active: boolean | null
+    dtinsert: string | null
+    dtupdate: string | null
+    documentId: string | null
+    slugCustomer: string | null
+}
 
 
 
@@ -80,3 +96,77 @@ export async function getSalesAgents(search:string, page:number , pageSize:numbe
 
     };
 }
+
+
+
+export async function createdOrUpdateSalesAgents(
+    salesAgent: SalesAgent
+  ): Promise<SalesAgent> {
+    if (!salesAgent.id || salesAgent.id === 0) {
+       
+      const [insertedAgent] = await db.insert(salesAgents).values(salesAgent)
+        
+        .returning(); 
+  
+      return {
+        ...salesAgent,
+        id: insertedAgent.id, 
+      };
+    } else {
+      // Atualização
+      await db
+        .update(salesAgents)
+        .set({
+          
+          firstName: salesAgent.firstName,
+          lastName: salesAgent.lastName,
+          email: salesAgent.email,
+          active: salesAgent.active,
+          dtupdate: new Date().toISOString(), // Atualiza o campo de última modificação
+          documentId: salesAgent.documentId,
+          slugCustomer: salesAgent.slugCustomer,
+        })
+        .where(eq(salesAgents.id, salesAgent.id));
+  
+      return salesAgent; // Retorna o agente atualizado
+    }
+  }
+
+
+  export async function getSalesAgentById(id: number): Promise<SalesAgent | null> {
+    const result = await db
+      .select({
+        id: salesAgents.id,
+        slug: salesAgents.slug,
+        firstName: salesAgents.firstName,
+        lastName: salesAgents.lastName,
+        email: salesAgents.email,
+        active: salesAgents.active,
+        dtinsert: salesAgents.dtinsert,
+        dtupdate: salesAgents.dtupdate,
+        documentId: salesAgents.documentId,
+        slug_customer: salesAgents.slugCustomer,
+      })
+      .from(salesAgents)
+      .where(eq(salesAgents.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const salesAgent = result[0];
+
+    return {
+      id: salesAgent.id,
+      slug: salesAgent.slug || "",
+      firstName: salesAgent.firstName || "",
+      lastName: salesAgent.lastName || "",
+      email: salesAgent.email || "",
+      active: salesAgent.active || null,
+      dtinsert: salesAgent.dtinsert ,
+      dtupdate: salesAgent.dtupdate ,
+      documentId: typeof salesAgent.documentId === 'number' ? salesAgent.documentId : null,
+      slugCustomer: salesAgent.slug_customer || "",
+    };
+  }

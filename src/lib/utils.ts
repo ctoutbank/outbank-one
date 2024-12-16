@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
+import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -98,4 +99,14 @@ export function gateDateByViewMode(viewMode: string): Period {
         },
       };
   }
+}
+
+
+
+
+
+
+
+export function generateSlug(): string {
+  return crypto.randomBytes(16).toString("hex").toUpperCase();
 }

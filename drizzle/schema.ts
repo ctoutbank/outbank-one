@@ -6,7 +6,7 @@ import { sql } from "drizzle-orm"
 export const salesAgents = pgTable("sales_agents", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
+	slug: varchar({ length: 50 } ) ,
 	active: boolean(),
 	dtinsert: timestamp({ mode: 'string' }),
 	dtupdate: timestamp({ mode: 'string' }),
@@ -16,6 +16,7 @@ export const salesAgents = pgTable("sales_agents", {
 	email: varchar({ length: 255 }),
 	slugCustomer: varchar("slug_customer", { length: 50 }),
 });
+
 
 export const configurations = pgTable("configurations", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
