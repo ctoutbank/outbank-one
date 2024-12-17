@@ -1,43 +1,27 @@
-import { generateSlug } from "@/lib/utils";
-import { db } from "."
+"use server";
+
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { db } from ".";
 import { salesAgents } from "../../../drizzle/schema";
 
 // Ensure the salesAgents schema includes the slug property
 
-import { eq, count,desc, like,or } from "drizzle-orm"
+import { count, desc, eq, like, or } from "drizzle-orm";
+import { z } from "zod";
 
 
-
+export type SalesAgentFull = typeof salesAgents.$inferSelect;
+export type SalesAgentInsert = typeof salesAgents.$inferInsert;
+export const salesAgentSchema = createInsertSchema(salesAgents);
+export const salesAgentFullSchema = createSelectSchema(salesAgents);
+export type SalesAgentSchema = z.infer<typeof salesAgentSchema>;
+export type SalesAgentFullSchema = z.infer<typeof salesAgentFullSchema>;
 
 export interface SalesAgentsList {
-    salesAgents: {
-        id: number
-        slug: string | null
-        firstName: string | null
-        lastName: string | null
-        email: string | null
-        active: boolean | null
-        dtinsert: Date | null
-        dtupdate: Date | null
-        documentId: string | null
-        slugCustomer: string | null
-        
-    }[];
+    salesAgents: SalesAgentFull[];
     totalCount: number
 }
 
-export type SalesAgent = {
-    id: number
-    slug: string | null
-    firstName: string | null
-    lastName: string | null
-    email: string | null
-    active: boolean | null
-    dtinsert: string | null
-    dtupdate: string | null
-    documentId: string | null
-    slugCustomer: string | null
-}
 
 
 
@@ -47,19 +31,8 @@ export type SalesAgent = {
 export async function getSalesAgents(search:string, page:number , pageSize:number): Promise<SalesAgentsList> {
     const offset = (page - 1) * pageSize;
 
-    const result = await db
-        .select({
-            id: salesAgents.id,
-            slug: salesAgents.slug,
-            firstName: salesAgents.firstName,
-            lastName: salesAgents.lastName,
-            email: salesAgents.email,
-            active: salesAgents.active,
-            dtinsert: salesAgents.dtinsert,
-            dtupdate: salesAgents.dtupdate,
-            documentId: salesAgents.documentId,
-            slug_customer: salesAgents.slugCustomer,
-        })
+    const result: SalesAgentFull[]  = await db
+        .select()
 
         .from(salesAgents)
         .where(
@@ -78,30 +51,20 @@ export async function getSalesAgents(search:string, page:number , pageSize:numbe
         .from(salesAgents);
     const totalCount = totalCountResult[0]?.count || 0;
 
-    return {
-        salesAgents: result.map((salesAgent) => ({
-            id: salesAgent.id,
-            slug: salesAgent.slug || "",
-            firstName: salesAgent.firstName || "",
-            lastName: salesAgent.lastName || "",
-            email: salesAgent.email || "",
-            active: salesAgent.active || null,
-            dtinsert: salesAgent.dtinsert ? new Date(salesAgent.dtinsert) : null,
-            dtupdate: salesAgent.dtupdate ? new Date(salesAgent.dtupdate) : null,
-            documentId: typeof salesAgent.documentId === 'number' ? salesAgent.documentId : null,
-            slugCustomer: salesAgent.slug_customer || "",
-            totalcontent: 0, // or any appropriate value
-        })),
-        totalCount,
+    
+      const salesAgentsList : SalesAgentsList = {
+        salesAgents: result ,
+        totalCount: totalCount,
+      };
 
-    };
+    return salesAgentsList;
 }
 
 
 
 export async function createdOrUpdateSalesAgents(
-    salesAgent: SalesAgent
-  ): Promise<SalesAgent> {
+    salesAgent: SalesAgentFull
+  ): Promise<SalesAgentFull> {
     if (!salesAgent.id || salesAgent.id === 0) {
        
       const [insertedAgent] = await db.insert(salesAgents).values(salesAgent)
@@ -133,7 +96,19 @@ export async function createdOrUpdateSalesAgents(
   }
 
 
-  export async function getSalesAgentById(id: number): Promise<SalesAgent | null> {
+  export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
+    const [insertedAgent] = await db
+      .insert(salesAgents)
+      .values(salesAgent)
+      .returning();
+  
+    return {
+      id: insertedAgent.id,
+    };
+  }
+
+
+  export async function getSalesAgentById(id: number): Promise<SalesAgentFull | null> {
     const result = await db
       .select({
         id: salesAgents.id,

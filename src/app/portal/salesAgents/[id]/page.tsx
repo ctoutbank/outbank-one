@@ -1,6 +1,4 @@
-import { getSalesAgentById, SalesAgent } from "@/server/db/salesAgent";
-import { salesAgents } from "../../../../../drizzle/schema";
-import { db} from "@/server/db";
+import { getSalesAgentById } from "@/server/db/salesAgent";
 import SalesAgentsForm from "./form";
 
 

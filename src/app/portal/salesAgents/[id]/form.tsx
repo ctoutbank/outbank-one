@@ -1,56 +1,28 @@
 "use client";
 
-import { createdOrUpdateSalesAgents, SalesAgent } from "@/server/db/salesAgent";
-import { z } from "zod";
-import { SalesAgentSchema } from "./schema";
-import { Form, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { createdOrUpdateSalesAgents, SalesAgentFull, salesAgentFullSchema, SalesAgentFullSchema } from "@/server/db/salesAgent";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, useForm } from "react-hook-form";
 
 
 interface SalesAgentsFormProps {
-    salesAgent: SalesAgent | null;
+    salesAgent: SalesAgentFull | null;
 
 }
 
 
-const SalesAgentsForm: React.FC<SalesAgentsFormProps> = ({ salesAgent }) => {
-    const form = useForm<z.infer<typeof SalesAgentSchema>>({
-        resolver: zodResolver(SalesAgentSchema),
-        
-        defaultValues: {
-            id: salesAgent?.id || 0,
-            slug: salesAgent?.slug || "",
-            firstName: salesAgent?.firstName || "",
-            lastName: salesAgent?.lastName || "",
-            dtinsert: salesAgent?.dtinsert ? new Date(salesAgent.dtinsert) : new Date(),
-            dtupdate: salesAgent?.dtupdate ? new Date(salesAgent.dtupdate) : new Date(),
-            documentId: salesAgent?.documentId || "",
-            slugCustomer: salesAgent?.slugCustomer || "",
-            email: salesAgent?.email || "",
-            active: salesAgent?.active || false,
-        },
-        
-    });  
-    const onSubmit = (data: z.infer<typeof SalesAgentSchema>) => {
-        const currentSalesAgent: SalesAgent = {
-            id: data.id ? data.id : salesAgent?.id || 0,
-            slug: data.slug ? data.slug : salesAgent?.slug || "",
-            firstName: data.firstName ? data.firstName : salesAgent?.firstName || "",
-            lastName: data.lastName ? data.lastName : salesAgent?.lastName || "",
-            dtinsert: data.dtinsert ? data.dtinsert.toString() : new Date().toString(),
-            dtupdate: data.dtupdate ? data.dtupdate.toString() : new Date().toString(),
-            documentId: data.documentId ? data.documentId : salesAgent?.documentId || "",
-            slugCustomer: data.slugCustomer ? data.slugCustomer : salesAgent?.slugCustomer || "",
-            email: data.email ? data.email : salesAgent?.email || "",
-            active: data.active ? data.active : salesAgent?.active || false,
-        };
+export default function SalesAgentsForm({ salesAgent } : SalesAgentsFormProps) {
 
-        createdOrUpdateSalesAgents(currentSalesAgent);
+    const form = useForm<SalesAgentFullSchema>({
+        resolver: zodResolver(salesAgentFullSchema)
+    });
+    const onSubmit = (data: SalesAgentFullSchema) => {
+        createdOrUpdateSalesAgents(data);
 
-};
+    }
 
 return(
 <Form {...form}>
@@ -99,14 +71,10 @@ return(
       )}
     ></FormField>
 
-    
+
 <Button type="submit">Save</Button>
   </div>
 </form>
 </Form>
 );
 };
-
-
-
-export default SalesAgentsForm;
