@@ -45,14 +45,14 @@ export default function ListFilter(props: ListFilterProps)
       <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         type="search"
-        placeholder="Search..."
+        placeholder="Pesquisa..."
         className="w-full rounded-lg bg-background pl-8 md:w-[30px] lg:w-[500px] max-w-[850px]"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <Button onClick={handleFilter}>Search</Button>
+      <Button onClick={handleFilter}>Pesquisa</Button>
       <Button variant={"secondary"} onClick={handleClearFilter}>
-        Clear
+       Limpar
       </Button>
     </div>
     <div id="row2" className="flex gap-4 justify-end">

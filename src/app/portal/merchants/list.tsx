@@ -126,16 +126,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                     {merchant.active ? "ATIVO" : "INATIVO"}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <Link
-                    href="/portal/merchants/[id]"
-                    as={`/portal/merchants/${merchant.id}`}
-                  >
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
+               
               </TableRow>
             ))}
           </TableBody>

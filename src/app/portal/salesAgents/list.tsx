@@ -45,7 +45,7 @@ export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgen
                     Ativo
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
-                  <TableHead></TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -74,16 +74,7 @@ export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgen
                     {agent.active ? "INATIVO" : "ATIVO"}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <Link
-                    href="/portal/merchants/[id]"
-                    as={`/portal/salesAgents/${agent.id}`}
-                  >
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>

@@ -30,7 +30,7 @@ export default function LegalNaturelist({ LegalNatures }: { LegalNatures: LegalN
                     Ativo
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
-                  <TableHead></TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -56,16 +56,7 @@ export default function LegalNaturelist({ LegalNatures }: { LegalNatures: LegalN
                     {legalNature.active ? "ATIVO" : "INATIVO"}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <Link
-                    href="/portal/LegalNatures/[id]"
-                    as={`/portal/legalNatures/${legalNature.id}`}
-                  >
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>

@@ -35,7 +35,7 @@ export default function Categorylist({ Categories }: { Categories: CategoryList 
                     Ativo
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
-                  <TableHead></TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -62,19 +62,10 @@ export default function Categorylist({ Categories }: { Categories: CategoryList 
                 <TableCell>
                   {" "}
                   <Badge variant={categories.active ? "success" : "destructive"}>
-                    {categories.active ? "INATIVO" : "ATIVO"}
+                    {categories.active ? "ATIVO" : "INATIVO"}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <Link
-                    href="/portal/caterogies/[id]"
-                    as={`/portal/categories/${categories.id}`}
-                  >
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>
