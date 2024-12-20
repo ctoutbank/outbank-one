@@ -5,6 +5,7 @@ import { getCategories } from "@/server/db/category";
 import Categorylist from "./list";
 import PaginationRecords from "@/components/pagination-Records";
 
+export const revalidate = 0;
 
 type CategoryProps = {
     page:string

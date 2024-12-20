@@ -5,6 +5,7 @@ import LegalNaturelist from "./list";
 import PaginationRecords from "@/components/pagination-Records";
 import ListFilter from "@/components/filter";
 
+export const revalidate = 0;
 
 type LegalNatureProps = {
     page:string

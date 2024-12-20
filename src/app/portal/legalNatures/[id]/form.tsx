@@ -1,14 +1,15 @@
 "use client";
 
-import { insertLegalNature, LegalNatureDetail, LegalNatureInsert } from "@/server/db/legalNature";
-import { useForm } from "react-hook-form";
-import { schemaLegalNature } from "./schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { generateSlug } from "@/lib/utils";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage  } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { generateSlug } from "@/lib/utils";
+import { insertLegalNature, LegalNatureDetail, LegalNatureInsert, updateLegalNature } from "@/server/db/legalNature";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { schemaLegalNature } from "./schema";
+import { useRouter } from "next/navigation";
 
 interface LegalNatureProps {
     legalNature: LegalNatureDetail | null;
@@ -16,29 +17,45 @@ interface LegalNatureProps {
 
 
 const LegalNatureForm: React.FC<LegalNatureProps> = ({ legalNature }) => {
+  const router = useRouter();
     const form = useForm<z.infer<typeof schemaLegalNature>>({
         resolver: zodResolver(schemaLegalNature),
         defaultValues: {
             slug: legalNature?.slug || "",
             name: legalNature?.name || "",
             code: legalNature?.code || "",
-            active: legalNature?.active || false,
+            active: legalNature?.active || true,
             dtinsert: legalNature?.dtinsert ? new Date(legalNature.dtinsert) : new Date(),
             dtupdate: legalNature?.dtupdate ? new Date(legalNature.dtupdate) : new Date(),
         },
     });
 
     const onSubmit = (data: z.infer<typeof schemaLegalNature>) => {
+      
         const currentLegalNature: LegalNatureInsert = {
-            slug: generateSlug(),
+            slug:data.slug ? data.slug : "",
             name: data.name ? data.name : legalNature?.name || "",
             code: data.code ? data.code : legalNature?.code || "",
-            active: data.active ? data.active : legalNature?.active || false,
-            dtinsert: data.dtinsert ? data.dtinsert.toString() : new Date().toString(),
-            dtupdate: data.dtupdate ? data.dtupdate.toString() : new Date().toString(),
+            active: data.active ? data.active : legalNature?.active || true,
+            dtinsert: data.dtinsert ? data.dtinsert.toISOString() : new Date().toISOString(),
+            dtupdate: data.dtupdate ? data.dtupdate.toISOString() : new Date().toISOString(),
         };
+        if(legalNature){
+          legalNature.name = currentLegalNature.name!;
+          legalNature.code = currentLegalNature.code!;
+        }
+        console.log(legalNature, "currentLegalNature");
+        
+        if (legalNature?.id) {
+          updateLegalNature(legalNature );
+            
+        }
+        else{
 
         insertLegalNature(currentLegalNature);
+        }
+        router.refresh();
+        
     };
 
     return (
@@ -62,7 +79,7 @@ const LegalNatureForm: React.FC<LegalNatureProps> = ({ legalNature }) => {
             control={form.control}
             name="code"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="mt-2">
                 <FormLabel>Code</FormLabel>
                 <FormControl>
                   <Input {...field} value={field.value ?? ""} />

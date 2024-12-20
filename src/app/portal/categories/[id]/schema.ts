@@ -10,8 +10,8 @@ export const schemaCategories = z.object({
     dtupdate: z.date().nullable(),
     mcc: z.string().nullable(),
     cnae: z.string().nullable(),
-    anticipation_risk_factor_cp: z.number().nullable(),
-    anticipation_risk_factor_cnp: z.number().nullable(),
-    waiting_period_cp: z.number().nullable(),
-    waiting_period_cnp: z.number().nullable(),
+    anticipation_risk_factor_cp: z.string().nullable(),
+    anticipation_risk_factor_cnp: z.string().nullable(),
+    waiting_period_cp: z.string().nullable(),
+    waiting_period_cnp: z.string().nullable(),
 });

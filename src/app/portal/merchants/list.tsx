@@ -67,11 +67,16 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
           <TableBody>
             {list.merchants.map((merchant, i) => (
               <TableRow key={merchant.id}>
-                <TableCell>
+                <TableCell><Link
+                    className="text-primary underline"
+                    href="/portal/merchants/[id]"
+                    as={`/portal/merchants/${merchant.id}`}
+                  >
                   {merchant.name}
                   <div className="text-sm text-muted-foreground">
                     {merchant.cnpj.slice(0, 11) + "-" + merchant.cnpj.slice(11)}
                   </div>
+                  </Link>
                 </TableCell>
                 <TableCell>
                   {merchant.addressname}
@@ -80,13 +85,15 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge
+                    <Badge
                     variant={
                       merchant.kic_status === "APPROVED"
-                        ? "success"
-                        : "destructive"
+                      ? "success"
+                      : merchant.kic_status === "PENDING"
+                      ? "pending"
+                      : "destructive"
                     }
-                  >
+                    >
                     {merchant.kic_status}
                   </Badge>
                 </TableCell>
@@ -116,7 +123,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                 <TableCell>
                   {" "}
                   <Badge variant={merchant.active ? "success" : "destructive"}>
-                    {merchant.active ? "INATIVO" : "ATIVO"}
+                    {merchant.active ? "ATIVO" : "INATIVO"}
                   </Badge>
                 </TableCell>
                 <TableCell>

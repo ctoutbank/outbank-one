@@ -1,16 +1,11 @@
 "use server";
 
-<<<<<<< HEAD
-=======
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
->>>>>>> 803634a475f1dbcb3ca74373f28de918a0490187
 import { db } from ".";
 import { salesAgents } from "../../../drizzle/schema";
 
 
 // Ensure the salesAgents schema includes the slug property
 
-<<<<<<< HEAD
 import { count, desc, eq, like, or,asc } from "drizzle-orm";
 
 export type SalesAgentFull = {
@@ -29,20 +24,6 @@ export type SalesAgentFull = {
 
 
 export interface SalesAgentsList {  
-=======
-import { count, desc, eq, like, or } from "drizzle-orm";
-import { z } from "zod";
-
-
-export type SalesAgentFull = typeof salesAgents.$inferSelect;
-export type SalesAgentInsert = typeof salesAgents.$inferInsert;
-export const salesAgentSchema = createInsertSchema(salesAgents);
-export const salesAgentFullSchema = createSelectSchema(salesAgents);
-export type SalesAgentSchema = z.infer<typeof salesAgentSchema>;
-export type SalesAgentFullSchema = z.infer<typeof salesAgentFullSchema>;
-
-export interface SalesAgentsList {
->>>>>>> 803634a475f1dbcb3ca74373f28de918a0490187
     salesAgents: SalesAgentFull[];
     totalCount: number
 }
@@ -80,7 +61,6 @@ export async function getSalesAgents(
     .from(salesAgents);
   const totalCount = totalCountResult[0]?.count || 0;
 
-<<<<<<< HEAD
   return {
     salesAgents: result.map((salesAgent) => ({
       id: salesAgent.id,
@@ -96,35 +76,6 @@ export async function getSalesAgents(
     })),
     totalCount,
   };
-=======
-    const result: SalesAgentFull[]  = await db
-        .select()
-
-        .from(salesAgents)
-        .where(
-            or(
-                like(salesAgents.firstName, `%${search}%`),
-                like(salesAgents.lastName, `%${search}%`),
-                like(salesAgents.email, `%${search}%`)
-            )
-        )
-        .orderBy(desc(salesAgents.id))
-        .limit(pageSize)
-        .offset(offset);
-
-    const totalCountResult = await db
-        .select({ count: count() })
-        .from(salesAgents);
-    const totalCount = totalCountResult[0]?.count || 0;
-
-    
-      const salesAgentsList : SalesAgentsList = {
-        salesAgents: result ,
-        totalCount: totalCount,
-      };
-
-    return salesAgentsList;
->>>>>>> 803634a475f1dbcb3ca74373f28de918a0490187
 }
 
 
@@ -163,7 +114,7 @@ export async function createdOrUpdateSalesAgents(
   }
 
 
-  export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
+  export async function insertSalesAgent(salesAgent: any ): Promise<{ id: number }> {
     const [insertedAgent] = await db
       .insert(salesAgents)
       .values(salesAgent)

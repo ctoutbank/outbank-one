@@ -12,7 +12,7 @@ interface CategoryCardFrops {
 const CategoryCard: React.FC<CategoryCardFrops> = ({ category }) => {
     return (
         <main>
-        <div className="card">
+        <div>
          <Card> <CardHeader className="px-7">
               <CardTitle>{category?.name}</CardTitle>
               <CardDescription>ID:{category?.id}</CardDescription>

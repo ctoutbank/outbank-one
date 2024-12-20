@@ -5,6 +5,8 @@ import PaginationRecords from "@/components/pagination-Records";
 import { getSalesAgents, SalesAgentFull } from "@/server/db/salesAgent";
 import SalesAgentlist from "./list";
 
+export const revalidate = 0;
+
 type SalesAgentProps = {
     page: string;
     pageSize: string;

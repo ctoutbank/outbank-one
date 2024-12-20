@@ -42,7 +42,13 @@ export default function Categorylist({ Categories }: { Categories: CategoryList 
             {Categories.categories.map((categories) => (
               <TableRow key={categories.id}>
                 <TableCell>
-                  {categories.name}                  
+                <Link
+                    className="text-primary underline"
+                    href="/portal/caterogies/[id]"
+                    as={`/portal/categories/${categories.id}`}
+                  >
+                  {categories.name}      
+                  </Link>            
                 </TableCell>
                 <TableCell>
                   {categories.mcc}

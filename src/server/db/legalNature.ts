@@ -82,7 +82,7 @@ export async function getLegalNatureById(id: number): Promise<LegalNatureDetail 
     return result[0] || null;
 }
 
-export async function insertLegalNature(legalNature: LegalNatureInsert): Promise<number> {
+export async function insertLegalNature(legalNature: LegalNatureInsert) {
     const result = await db
         .insert(legalNatures)
         .values(legalNature)
@@ -93,10 +93,11 @@ export async function insertLegalNature(legalNature: LegalNatureInsert): Promise
     return result[0].id;
 }
 
+
 export async function updateLegalNature(legalNature: LegalNatureDetail): Promise<void> {
     await db
         .update(legalNatures)
-        .set(legalNature)
+        .set({ name: legalNature.name})
         .where(eq(legalNatures.id, legalNature.id));
 }
 

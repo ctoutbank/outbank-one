@@ -108,7 +108,7 @@ export async function insertCategory(category: CategoryInsert): Promise<{ id: nu
     };
 }
 
-export async function updateCategory(category: CategoryDetail): Promise<CategoryDetail> {
+export async function updateCategory(category: CategoryDetail ,) {
     await db
         .update(categories)
         .set(category)

@@ -53,7 +53,7 @@ export default function LegalNaturelist({ LegalNatures }: { LegalNatures: LegalN
                 <TableCell>
                   {" "}
                   <Badge variant={legalNature.active ? "success" : "destructive"}>
-                    {legalNature.active ? "INATIVO" : "ATIVO"}
+                    {legalNature.active ? "ATIVO" : "INATIVO"}
                   </Badge>
                 </TableCell>
                 <TableCell>

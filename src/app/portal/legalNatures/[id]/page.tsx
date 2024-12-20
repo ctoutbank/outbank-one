@@ -4,7 +4,7 @@ import { getLegalNatureById } from "@/server/db/legalNature";
 import LegalNatureCard from "./cardform";
 
 
-
+export const revalidate = 0;
 
 export default async function LegalNaturesDetail({
     params,
