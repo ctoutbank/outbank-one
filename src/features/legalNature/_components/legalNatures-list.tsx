@@ -1,0 +1,70 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { LegalNatureList } from "@/server/db/legalNature";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+
+export default function LegalNaturelist({
+  LegalNatures,
+}: {
+  LegalNatures: LegalNatureList;
+}) {
+  return (
+    <div>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                Nome
+                <ChevronDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead>
+                Codigo
+                <ChevronDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+
+              <TableHead>
+                Ativo
+                <ChevronDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {LegalNatures.legalNatures.map((legalNature) => (
+              <TableRow key={legalNature.id}>
+                <TableCell>
+                  <Link
+                    className="text-primary underline"
+                    href="/portal/LegalNatures/[id]"
+                    as={`/portal/legalNatures/${legalNature.id}`}
+                  >
+                    {legalNature.name}
+                  </Link>
+                </TableCell>
+                <TableCell>{legalNature.code}</TableCell>
+
+                <TableCell>
+                  <Badge
+                    variant={legalNature.active ? "success" : "destructive"}
+                  >
+                    {legalNature.active ? "ATIVO" : "INATIVO"}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
