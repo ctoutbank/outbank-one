@@ -1,4 +1,4 @@
-
+"use server";
 import { db } from "./index";
 import { addresses, categories, configurations, merchants, salesAgents } from "../../../drizzle/schema";
 import { count,desc,eq,ilike,or } from "drizzle-orm";

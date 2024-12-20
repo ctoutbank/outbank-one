@@ -1,3 +1,5 @@
+"use client"; 
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,8 +37,13 @@ export default function LegalNaturelist({ LegalNatures }: { LegalNatures: LegalN
             {LegalNatures.legalNatures.map((legalNature) => (
               <TableRow key={legalNature.id}>
                 <TableCell>
+                <Link
+                className="text-primary underline"
+                    href="/portal/LegalNatures/[id]"
+                    as={`/portal/legalNatures/${legalNature.id}`}
+                  >
                   {legalNature.name} 
-                 
+                 </Link>
                 </TableCell>
                 <TableCell>
                   {legalNature.code}

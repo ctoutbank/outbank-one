@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCell,
+  TableCell,  
   TableHead,
   TableHeader,
   TableRow,
@@ -36,6 +36,10 @@ export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgen
                     Email
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
+                  <TableHead>
+                   Registro
+                    <ChevronDown className="ml-2 h-4 w-4 inline" />
+                  </TableHead>
                  
                   <TableHead>
                     Ativo
@@ -48,11 +52,19 @@ export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgen
             {SalesAgents.salesAgents.map((agent) => (
               <TableRow key={agent.id}>
                 <TableCell>
-                  {agent.firstName} {agent.lastName}
-                 
+                <Link
+                className="text-primary underline"
+                href={"/portal/salesAgents/" + agent.id}
+              >
+                {agent.firstName} {agent.lastName}
+              </Link>
                 </TableCell>
                 <TableCell>
                   {agent.email}
+                
+                </TableCell>
+                <TableCell>
+                  {agent.documentId}
                 
                 </TableCell>
                

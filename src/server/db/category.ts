@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from ".";
 import { categories } from "../../../drizzle/schema"
 import { eq, count,desc, ilike,or } from "drizzle-orm"
@@ -80,3 +82,59 @@ export async function getCategories(search:string, page:number , pageSize:number
         totalCount,
     };
 }
+
+
+
+export type CategoryInsert = typeof categories.$inferInsert;
+export type CategoryDetail = typeof categories.$inferSelect;
+
+export async function getCategoryById(id: number): Promise<CategoryDetail | null> {
+    const result = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.id, id));
+
+    return result[0] || null;
+}
+
+export async function insertCategory(category: CategoryInsert): Promise<{ id: number }> {
+    const [insertedCategory] = await db
+        .insert(categories)
+        .values(category)
+        .returning();
+
+    return {
+        id: insertedCategory.id,
+    };
+}
+
+export async function updateCategory(category: CategoryDetail): Promise<CategoryDetail> {
+    await db
+        .update(categories)
+        .set(category)
+        .where(eq(categories.id, category.id));
+
+    return category;
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+    await db
+        .delete(categories)
+        .where(eq(categories.id, id));
+}
+
+export async function getCategoriesOptions(): Promise<{ value: number; label: string }[]> {
+    const result = await db
+        .select({
+            value: categories.id,
+            label: categories.name,
+        })
+        .from(categories)
+        .orderBy(categories.name);
+
+    return result.map((category) => ({
+        value: category.value,
+        label: category.label || "",
+    }));
+}
+

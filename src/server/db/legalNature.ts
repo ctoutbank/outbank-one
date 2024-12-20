@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from ".";
 import { legalNatures } from "../../../drizzle/schema"
 import { eq, count,desc, ilike,or } from "drizzle-orm"
@@ -16,6 +18,9 @@ export interface LegalNatureList {
     }[];
     totalCount: number
 }
+
+export type LegalNatureDetail = typeof legalNatures.$inferSelect;
+export type LegalNatureInsert = typeof legalNatures.$inferInsert;
 
 
 export async function getLegalNatures(search:string, page:number , pageSize:number): Promise<LegalNatureList> {
@@ -64,4 +69,39 @@ export async function getLegalNatures(search:string, page:number , pageSize:numb
         })),
         totalCount,
     };
+}
+
+
+export async function getLegalNatureById(id: number): Promise<LegalNatureDetail | null> {
+    const result = await db
+        .select()
+        .from(legalNatures)
+        .where(eq(legalNatures.id, id))
+        .limit(1);
+
+    return result[0] || null;
+}
+
+export async function insertLegalNature(legalNature: LegalNatureInsert): Promise<number> {
+    const result = await db
+        .insert(legalNatures)
+        .values(legalNature)
+        .returning({
+            id: legalNatures.id
+        });
+
+    return result[0].id;
+}
+
+export async function updateLegalNature(legalNature: LegalNatureDetail): Promise<void> {
+    await db
+        .update(legalNatures)
+        .set(legalNature)
+        .where(eq(legalNatures.id, legalNature.id));
+}
+
+export async function deleteLegalNature(id: number): Promise<void> {
+    await db
+        .delete(legalNatures)
+        .where(eq(legalNatures.id, id));
 }

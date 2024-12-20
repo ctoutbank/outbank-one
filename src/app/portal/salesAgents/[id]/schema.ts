@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const SalesAgentSchema = z.object({
-    id: z.number(),
+    
     slug: z.string().nullable().optional(),
     firstName: z.string().nullable().optional(),
     lastName: z.string().nullable().optional(),
