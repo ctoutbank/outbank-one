@@ -17,7 +17,6 @@ export const salesAgents = pgTable("sales_agents", {
 	slugCustomer: varchar("slug_customer", { length: 50 }),
 });
 
-
 export const configurations = pgTable("configurations", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "configurations_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -205,8 +204,6 @@ export const merchants = pgTable("merchants", {
 		}),
 	}
 });
-
-
 
 export const addresses = pgTable("addresses", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
