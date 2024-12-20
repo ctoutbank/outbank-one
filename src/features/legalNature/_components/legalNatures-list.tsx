@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LegalNatureList } from "@/server/db/legalNature";
+import { LegalNatureList } from "@/features/legalNature/server/legalNature";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 

@@ -45,8 +45,8 @@ export default function LegalNatureForm({ legalNature }: LegalNatureProps) {
   };
 
   return (
-    <Card className="pt-6">
-      <CardContent>
+    <Card>
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div id="main">
