@@ -20,8 +20,9 @@ export default async function LegalNaturesDetail({
         ]}
       />
       <BaseBody
-        title="New Naturezas Jurídicas"
-        subtitle={`Adicionar ou editar Naturezas Jurídicas`}
+        title="Natureza Jurídica"
+       
+      subtitle={legalNature?.id ? "Editar Natureza Jurídica" : "Adicionar Natureza Jurídica"}
       >
         <LegalNatureForm
           legalNature={{

@@ -2,8 +2,8 @@ import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
-import { getSalesAgents, SalesAgentFull } from "@/server/db/salesAgent";
-import SalesAgentlist from "./list";
+import { getSalesAgents, SalesAgentFull } from "@/features/salesAgents/server/salesAgent";
+import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
 
 export const revalidate = 0;
 
@@ -11,8 +11,7 @@ type SalesAgentProps = {
     page: string;
     pageSize: string;
     search: string;
-    sortField: string;
-    sortOrder: string;
+    
 };
 
 export default async function SalesAgentsPage({
@@ -24,17 +23,10 @@ export default async function SalesAgentsPage({
     const pageSize = parseInt(searchParams.pageSize || "5");
     const search = searchParams.search || "";
 
-    const validSortFields = ["id", "firstName", "lastName", "email", "active", "dtinsert", "dtupdate", "documentId", "slugCustomer"];
+    
 
-    const sortField: keyof SalesAgentFull = validSortFields.includes(searchParams.sortField as keyof SalesAgentFull)
-        ? (searchParams.sortField as keyof SalesAgentFull)
-        : "id";
-
-    const sortOrder: "asc" | "desc" = searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-        ? searchParams.sortOrder
-        : "desc";
-
-    const salesAgents = await getSalesAgents(search, page, pageSize, sortField, sortOrder);
+   
+    const salesAgents = await getSalesAgents(search, page, pageSize);
     const totalRecords = salesAgents.totalCount;
 
     console.log(salesAgents);

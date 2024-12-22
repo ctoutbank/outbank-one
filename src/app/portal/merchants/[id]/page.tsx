@@ -1,7 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMerchantById } from '@/server/db/merchant';
+import { CompanyyForm } from "@/features/merchant/_components/merchant-form";
+import { getMerchantById } from "@/features/merchant/server/merchant";
 import { Building2, Home } from 'lucide-react';
-import { CompanyyForm } from './merchant-form';
+
 
 
 

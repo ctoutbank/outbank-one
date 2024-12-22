@@ -1,17 +1,17 @@
 "use client";
 
 
-import { schemaCategories } from "./schema";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { CategoryDetail, CategoryInsert, insertCategory, updateCategory } from "@/server/db/category";
+import { useForm } from "react-hook-form";
+import { CategoriesSchema, schemaCategories } from "../schema/schema";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { generateSlug } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { insertCategoryFormAction, updateCategoryFormAction } from "../_actions/categories-formActions";
 
 
 
@@ -20,76 +20,33 @@ import { toast } from "@/hooks/use-toast";
 
 
 interface CategoriesProps {
-    categories: CategoryDetail | null;
+    categories: CategoriesSchema ;
     }
 
-const Categoriesform: React.FC<CategoriesProps> = ({ categories }) => {
-    
-    const form = useForm<z.infer<typeof schemaCategories>>({
+  export default function Categoriesform({ categories }: CategoriesProps) {
+
+    const router = useRouter();
+    const form = useForm<CategoriesSchema>({
       resolver: zodResolver(schemaCategories),
-      defaultValues:{
-        slug: categories?.slug ?? "",
-        name: categories?.name ?? null,
-        active: categories?.active ?? null,
-        dtinsert: categories?.dtinsert ? new Date(categories.dtinsert) : null,
-        dtupdate: categories?.dtupdate ? new Date(categories.dtupdate) : null,
-        mcc: categories?.mcc ?? null,
-        cnae: categories?.cnae ?? null,
-        anticipation_risk_factor_cp: categories?.anticipationRiskFactorCp ? String(categories.anticipationRiskFactorCp) : null,
-        anticipation_risk_factor_cnp: categories?.anticipationRiskFactorCnp ? String(categories.anticipationRiskFactorCnp) : null,
-        waiting_period_cp: categories?.waitingPeriodCp ? String(categories.waitingPeriodCp) : null,
-        waiting_period_cnp: categories?.waitingPeriodCnp ? String(categories.waitingPeriodCnp) : null
-      }
-    });
-
-    const onSubmit = (data: z.infer<typeof schemaCategories>) => {
-        const currentCategories: CategoryInsert = {
-            
-            name: data.name,
-            slug: generateSlug(),
-            active: data.active ? data.active : true,
-            dtinsert: data.dtinsert ? data.dtinsert.toISOString() : new Date().toISOString(),
-            dtupdate: data.dtupdate ? data.dtupdate.toISOString() : new Date().toISOString(),
-            mcc: data.mcc,
-            cnae: data.cnae,
-            anticipationRiskFactorCp: data.anticipation_risk_factor_cp ? Number(data.anticipation_risk_factor_cp) : null,
-            anticipationRiskFactorCnp: data.anticipation_risk_factor_cnp ? Number(data.anticipation_risk_factor_cnp) : null,
-            waitingPeriodCp: data.waiting_period_cp ? Number(data.waiting_period_cp) : null,
-            waitingPeriodCnp: data.waiting_period_cnp ? Number(data.waiting_period_cnp) : null
-        };
+      defaultValues: categories,
        
-        if(categories?.id ){
-          const updatecategory: CategoryDetail = {
-            id: categories.id,
-            slug: currentCategories.slug || "",
-            name: currentCategories.name || "",
-            active: currentCategories.active || true,
-            dtinsert:  new Date().toISOString(),
-            dtupdate: new Date().toISOString(),
-            mcc: currentCategories.mcc || "",
-            cnae: currentCategories.cnae || "",
-            anticipationRiskFactorCp: currentCategories.anticipationRiskFactorCp ? Number(currentCategories.anticipationRiskFactorCp) : null,
-            anticipationRiskFactorCnp: currentCategories.anticipationRiskFactorCnp ? Number(currentCategories.anticipationRiskFactorCnp) : null,
-            waitingPeriodCp: currentCategories.waitingPeriodCp ? Number(currentCategories.waitingPeriodCp) : null,
-            waitingPeriodCnp: currentCategories.waitingPeriodCnp ? Number(currentCategories.waitingPeriodCnp) : null
-          };
-          updateCategory( updatecategory);
-           
-         
-                
-        
-        
-        }
-        else{
-        insertCategory(currentCategories);
-        
+      
+    });
+    
+    const onSubmit = async (data: CategoriesSchema) => {
+      if (data?.id) {
+        await updateCategoryFormAction(data);
+        router.refresh();
+      } else {
+        const newId = await insertCategoryFormAction(data);
+        router.push(`/portal/categories/${newId}`);
+      }
+    };
 
-    }
-    console.log(categories,"aqui2")
-    }
-   
 
 return(
+  <Card>
+      <CardContent className="pt-6">
     <Form  {...form}>
     <form  onSubmit={form.handleSubmit(onSubmit) } className="space-y-4">
       <div id="main">
@@ -207,8 +164,9 @@ return(
     </div>
   </form>
 </Form>
+</CardContent>
+</Card>
 );
 }
 
-export default Categoriesform;
-        
+  

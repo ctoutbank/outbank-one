@@ -1,9 +1,11 @@
-import { getSalesAgentById } from "@/server/db/salesAgent";
-import SalesAgentsForm from "./form";
-import SalesAgentCard from "./cardform";
+import { getSalesAgentById } from "@/features/salesAgents/server/salesAgent";
+import SalesAgentsForm from "../../../../features/salesAgents/_components/salesAgents-form";
+
 import BaseHeader from "@/components/layout/base-header";
 import BaseBody from "@/components/layout/base-body";
 
+
+export const revalidate = 0;
 
 export default async function SalesAgentsDetail({
     params,
@@ -16,11 +18,26 @@ export default async function SalesAgentsDetail({
         breadcrumbItems={[{ title: "Consultores", url: "/portal/salesAgents" }]}
         />
          <BaseBody
-                title="Consultores"
-                subtitle={`visualização de todos os Consultores`}   >
+                title="Consultor"
+                subtitle={agent?.id ? "Editar Consultor" : "Adicionar Consultor"}     >
            
            
-           <SalesAgentCard salesAgent={agent} /> 
+            
+            <SalesAgentsForm salesAgent={{
+                id: agent?.id,
+                firstName: agent?.firstName || "",
+                lastName: agent?.lastName || "",
+                email: agent?.email || "",
+                active: agent?.active ?? true,
+                dtinsert: agent?.dtinsert
+                    ? new Date(agent.dtinsert)
+                    : new Date(),
+                dtupdate: agent?.dtupdate
+                    ? new Date(agent.dtupdate)
+                    : new Date(),
+                documentId: agent?.documentId || "",
+                slugCustomer: agent?.slugCustomer || "",
+            }} />
       
 
       

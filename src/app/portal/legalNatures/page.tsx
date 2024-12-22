@@ -34,7 +34,7 @@ export default async function LegalNaturesPage({
 
       <BaseBody
         title="Natureza Jurídica"
-        subtitle={`visualização de todos os Natureza Jurídica`}
+        subtitle={`visualização de todas Natureza Jurídica`}
       >
         <ListFilter
           pageName="portal/legalNatures"

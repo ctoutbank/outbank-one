@@ -1,9 +1,10 @@
 import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { getCategories } from "@/server/db/category";
-import Categorylist from "./list";
+
+import Categorylist from "../../../features/categories/_components/categories-list";
 import PaginationRecords from "@/components/pagination-Records";
+import { getCategories } from "@/features/categories/server/category";
 
 export const revalidate = 0;
 
