@@ -4,6 +4,8 @@ import { db } from "@/server/db";
 import { eq, count, desc, ilike, or } from "drizzle-orm";
 import { categories } from "../../../../drizzle/schema";
 import { id } from "date-fns/locale";
+import { toast } from "@/components/use-toast";
+
 
 export interface CategoryList {
   categories: {
@@ -103,6 +105,9 @@ export async function insertCategory(category: CategoryInsert) {
     .values(category)
     .returning({ id: categories.id });
 
+
+   
+
   return result[0].id;
 }
 
@@ -121,6 +126,7 @@ export async function updateCategory(category: CategoryDetail): Promise<void> {
       waitingPeriodCnp: category.waitingPeriodCnp,
     })
     .where(eq(categories.id, category.id));
+   
 }
 
 export async function deleteCategory(id: number): Promise<void> {

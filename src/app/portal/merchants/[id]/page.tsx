@@ -1,3 +1,5 @@
+import BaseBody from "@/components/layout/base-body";
+import BaseHeader from "@/components/layout/base-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanyyForm } from "@/features/merchant/_components/merchant-form";
 import { getMerchantById } from "@/features/merchant/server/merchant";
@@ -15,26 +17,19 @@ export default async function MerchantDetail({
   const merchantdetalil = await getMerchantById(BigInt(params.id));
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
-      <div className="container mx-auto p-4 w-full">
-      {/* Breadcrumb */}
-      
-      <nav className="flex items-center space-x-2 mb-6 text-sm">
-        <Home className="w-4 h-4" />
-        <span>/</span>
-        <Building2 className="w-4 h-4" />
-        <span>Estabelecimentos</span>
-        <span>/</span>
-        <span>Cadastrar</span>
-      </nav>
+    <>
+    <BaseHeader
+        breadcrumbItems={[{ title: "Estabelecimentos", url: "/portal/salesAgents" }]}
+        />
+  
+        <BaseBody       
+                        title="Estabelecimento"
+                        subtitle={merchantdetalil?.id ? "Editar Estabelecimento" : "Adicionar Estabelecimento"}     >
+    <div className="">
+     
+     
 
-      {/* Title */}
-      <div className="flex items-center space-x-2 mb-6">
-        <Building2 className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">Cadastro de Estabelecimento</h1>
-      </div>
-
-      {/* Tabs */}
+     
       <Tabs defaultValue="company" className="space-y-4 w-full">
         
         <TabsContent value="company">
@@ -45,7 +40,9 @@ export default async function MerchantDetail({
        
       </Tabs>
       </div>
-    </div>
+    
+    </BaseBody>
+    </>
   )
 }
 

@@ -1,3 +1,6 @@
+
+
+import { toast } from "@/components/use-toast";
 import { CategoriesSchema } from "../schema/schema";
 import {
   CategoryDetail,
@@ -22,6 +25,13 @@ export async function insertCategoryFormAction(data: CategoriesSchema) {
   };
 
   const newId = await insertCategory(categoryInsert);
+  toast({
+    title: "sucesso",
+    description: "Categoria cadastrada com sucesso",  
+    
+    variant: "destructive",
+  });
+  
   return newId;
 }
 
@@ -44,4 +54,10 @@ export async function updateCategoryFormAction(data: CategoriesSchema) {
     slug: data.slug || "",
   };
   await updateCategory(categoryUpdate);
+  toast({
+    title: "Success",
+    description: "Category updated successfully",
+    variant: "destructive",
+  });
+ 
 }

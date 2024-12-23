@@ -45,7 +45,7 @@ interface CategoriesProps {
 
 
 return(
-  <Card>
+  <Card >
       <CardContent className="pt-6">
     <Form  {...form}>
     <form  onSubmit={form.handleSubmit(onSubmit) } className="space-y-4">
@@ -68,7 +68,7 @@ return(
             control={form.control}
             name="active"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="mt-2">
                 <FormLabel className="block mb-1 mt-3">Ativo</FormLabel>
                 <FormControl>
                   <Checkbox onCheckedChange={field.onChange} checked={field.value ?? undefined} value={field.value?.toString()} className="w-4" />
@@ -158,7 +158,7 @@ return(
           </FormItem>
         )}
       />
-      <div className="flex justify-end mt-3">
+      <div className="flex justify-end mt-4">
               <Button type="submit">Salvar</Button>
             </div>
     </div>

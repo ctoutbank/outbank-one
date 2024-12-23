@@ -80,10 +80,9 @@ export async function insertSalesAgent(salesAgent: SalesAgentesInsert) {
     id: salesAgents.id,
   });
 
-  return {
-    id: result[0].id,
+ return result[0].id;
   };
-}
+
 
 export async function getSalesAgentById(
   id: number
