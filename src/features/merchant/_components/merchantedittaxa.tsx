@@ -229,16 +229,16 @@ export default function TransactionFees() {
                 {feeData.map((item, index) => (
                   <tr key={item.method}>
                     <td className="py-2 px-4">
-                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                         <Image
-                          src={item.logo}
+                          src={`/placeholder.svg?height=24&width=40`}
                           alt={item.method}
                           width={40}
                           height={24}
                           className="object-contain"
                         />
                         <span className="text-sm">{item.method}</span>
-                      </div>
+                        </div>
                     </td>
                     <td className="py-2 px-4">
                       {isEditing ? (
