@@ -1,12 +1,15 @@
 "use server";
-import { db } from "./index";
-import { addresses, categories, configurations, merchants, salesAgents } from "../../../drizzle/schema";
-import { count,desc,eq,ilike,or } from "drizzle-orm";
 
+import { db } from "@/server/db";
+import { count, desc, eq, ilike, or } from "drizzle-orm";
+import {
+  addresses,
+  configurations,
+  merchants,
+  salesAgents,
+} from "../../../../drizzle/schema";
 
-
-
-export interface Merchantlist  {
+export interface Merchantlist {
   merchants: {
     id: bigint;
     slug: string;
@@ -18,21 +21,22 @@ export interface Merchantlist  {
     id_category: number;
     kic_status: string;
     addressname: string;
-    
+
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
 
-    
     sales_agent: string;
     state: string;
     cnpj: string;
   }[];
   totalCount: number;
-};
+}
 
-
-
-export async function getMerchants(search:string, page: number , pageSize: number ): Promise<Merchantlist> {
+export async function getMerchants(
+  search: string,
+  page: number,
+  pageSize: number
+): Promise<Merchantlist> {
   const offset = (page - 1) * pageSize;
 
   const result = await db
@@ -53,25 +57,22 @@ export async function getMerchants(search:string, page: number , pageSize: numbe
       salesAgents: salesAgents.firstName,
       addresses: addresses.state,
       document: merchants.idDocument,
-      lockCpAnticipationOrder:configurations.lockCpAnticipationOrder,
-      lockCnpAnticipationOrder:configurations.lockCnpAnticipationOrder,
+      lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
+      lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
       cnpj: merchants.idDocument,
-      
-
     })
     .from(merchants)
-    .leftJoin(addresses, eq(merchants.idAddress, addresses.id)) 
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-    
+
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
     .where(
-                or(
-                    ilike(merchants.name, `%${search}%`),
-                    ilike(merchants.email, `%${search}%`),
-                    ilike(merchants.idDocument, `%${search}%`),
-                    
-                )
-            )
+      or(
+        ilike(merchants.name, `%${search}%`),
+        ilike(merchants.email, `%${search}%`),
+        ilike(merchants.idDocument, `%${search}%`)
+      )
+    )
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
     .limit(pageSize);
@@ -89,7 +90,10 @@ export async function getMerchants(search:string, page: number , pageSize: numbe
       name: merchant.name ?? "Não informado",
       email: merchant.email ?? "N/A",
       phone_type: merchant.phone_type ?? "N/A",
-      revenue: typeof merchant.revenue === 'string' ? parseFloat(merchant.revenue) : merchant.revenue ?? 0,
+      revenue:
+        typeof merchant.revenue === "string"
+          ? parseFloat(merchant.revenue)
+          : merchant.revenue ?? 0,
       id_category: merchant.id_category ?? 0,
       kic_status: merchant.kic_status ?? "N/A",
       corporate_name: merchant.corporate_name ?? "Não informado",
@@ -100,67 +104,55 @@ export async function getMerchants(search:string, page: number , pageSize: numbe
       cnpj: merchant.document ?? "N/A",
       lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
       lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
-    
 
       sales_agent: merchant.salesAgents ?? "N/A",
-      
-      
     })),
     totalCount,
   };
 }
 
-
-
-
-
-
-
-
-
 export type Merchant = {
-    id: bigint;
-    slug: string;
-    active: boolean;
-    dtinsert: Date;
-    dtupdate: Date;
-    id_merchant: string;
-    name: string;
-    id_document: string;
-    corporate_name: string;
-    email: string;
-    area_code: string;
-    number: string;
-    phone_type: string;
-    language: string;
-    timezone: string;
-    slug_customer: string;
-    risk_analysis_status: string;
-    risk_analysis_status_justification: string;
-    legal_person: string;
-    opening_date: Date;
-    inclusion: string;
-    opening_days: string;
-    opening_hour: string;
-    closing_hour: string;
-    municipal_registration: string;
-    state_subcription: string;
-    has_tef: boolean;
-    has_pix: boolean;
-    has_top: boolean;
-    establishment_format: string;
-    revenue: number;
-    id_category: number;
-    slug_category: string;
-    id_legal_nature: number;
-    slug_legal_nature: string;
-    id_sales_agent: number;
-    slug_sales_agent: string;
-    id_configuration: number;
-    slug_configuration: string;
-    id_address: number;
-}
-
+  id: bigint;
+  slug: string;
+  active: boolean;
+  dtinsert: Date;
+  dtupdate: Date;
+  id_merchant: string;
+  name: string;
+  id_document: string;
+  corporate_name: string;
+  email: string;
+  area_code: string;
+  number: string;
+  phone_type: string;
+  language: string;
+  timezone: string;
+  slug_customer: string;
+  risk_analysis_status: string;
+  risk_analysis_status_justification: string;
+  legal_person: string;
+  opening_date: Date;
+  inclusion: string;
+  opening_days: string;
+  opening_hour: string;
+  closing_hour: string;
+  municipal_registration: string;
+  state_subcription: string;
+  has_tef: boolean;
+  has_pix: boolean;
+  has_top: boolean;
+  establishment_format: string;
+  revenue: number;
+  id_category: number;
+  slug_category: string;
+  id_legal_nature: number;
+  slug_legal_nature: string;
+  id_sales_agent: number;
+  slug_sales_agent: string;
+  id_configuration: number;
+  slug_configuration: string;
+  id_address: number;
+};
 
 export async function getMerchantById(id: bigint): Promise<Merchant | null> {
   const result = await db
@@ -182,7 +174,8 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
       timezone: merchants.timezone,
       slug_customer: merchants.slugCustomer,
       risk_analysis_status: merchants.riskAnalysisStatus,
-      risk_analysis_status_justification: merchants.riskAnalysisStatusJustification,
+      risk_analysis_status_justification:
+        merchants.riskAnalysisStatusJustification,
       legal_person: merchants.legalPerson,
       opening_date: merchants.openingDate,
       inclusion: merchants.inclusion,
@@ -209,13 +202,13 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     .from(merchants)
     .where(eq(merchants.id, Number(id)))
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-      .limit(1);
-  
-    if (result.length === 0) {
-      return null;
-    }
-  
-    const merchant = result[0];
+    .limit(1);
+
+  if (result.length === 0) {
+    return null;
+  }
+
+  const merchant = result[0];
 
   if (!result) {
     return null;
@@ -225,8 +218,14 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     id: BigInt(merchant.id),
     slug: merchant.slug ?? "N/A",
     active: merchant.active ?? false,
-    dtinsert: typeof merchant.dtinsert === 'string' ? new Date(merchant.dtinsert) : merchant.dtinsert ?? new Date(),
-    dtupdate: typeof merchant.dtupdate === 'string' ? new Date(merchant.dtupdate) : merchant.dtupdate ?? new Date(),
+    dtinsert:
+      typeof merchant.dtinsert === "string"
+        ? new Date(merchant.dtinsert)
+        : merchant.dtinsert ?? new Date(),
+    dtupdate:
+      typeof merchant.dtupdate === "string"
+        ? new Date(merchant.dtupdate)
+        : merchant.dtupdate ?? new Date(),
     id_merchant: merchant.id_merchant ?? "N/A",
     name: merchant.name ?? "N/A",
     id_document: merchant.id_document ?? "N/A",
@@ -239,9 +238,13 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     timezone: merchant.timezone ?? "N/A",
     slug_customer: merchant.slug_customer ?? "N/A",
     risk_analysis_status: merchant.risk_analysis_status ?? "N/A",
-    risk_analysis_status_justification: merchant.risk_analysis_status_justification ?? "N/A",
+    risk_analysis_status_justification:
+      merchant.risk_analysis_status_justification ?? "N/A",
     legal_person: merchant.legal_person ?? "N/A",
-    opening_date: typeof merchant.opening_date === 'string' ? new Date(merchant.opening_date) : merchant.opening_date ?? new Date(),
+    opening_date:
+      typeof merchant.opening_date === "string"
+        ? new Date(merchant.opening_date)
+        : merchant.opening_date ?? new Date(),
     inclusion: merchant.inclusion ?? "N/A",
     opening_days: merchant.opening_days ?? "N/A",
     opening_hour: merchant.opening_hour ?? "N/A",
@@ -252,7 +255,10 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     has_pix: merchant.has_pix ?? false,
     has_top: merchant.has_top ?? false,
     establishment_format: merchant.establishment_format ?? "N/A",
-    revenue: typeof merchant.revenue === 'string' ? parseFloat(merchant.revenue) : merchant.revenue ?? 0,
+    revenue:
+      typeof merchant.revenue === "string"
+        ? parseFloat(merchant.revenue)
+        : merchant.revenue ?? 0,
     id_category: merchant.id_category ?? 0,
     slug_category: merchant.slug_category ?? "N/A",
     id_legal_nature: merchant.id_legal_nature ?? 0,
@@ -262,7 +268,5 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     id_configuration: merchant.id_configuration ?? 0,
     slug_configuration: merchant.slug_configuration ?? "N/A",
     id_address: merchant.id_address ?? 0,
-
-  
-}
+  };
 }

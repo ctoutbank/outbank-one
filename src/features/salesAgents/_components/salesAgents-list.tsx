@@ -1,14 +1,24 @@
 "use client";
-import Link from "next/link";
-import { CategoryList } from "@/server/db/category";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, MoreVertical } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { SalesAgentsList } from "@/features/salesAgents/server/salesAgent";
+
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 
 
-export default function Categorylist({ Categories }: { Categories: CategoryList }) {
-    
+
+
+export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgentsList }) {
+
     return (
         <div>
        
@@ -22,15 +32,14 @@ export default function Categorylist({ Categories }: { Categories: CategoryList 
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
                   <TableHead>
-                 Mcc
+                    Email
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
                   <TableHead>
-                  Cnae
+                   Registro
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
                   </TableHead>
-                  
-                  
+                 
                   <TableHead>
                     Ativo
                     <ChevronDown className="ml-2 h-4 w-4 inline" />
@@ -39,30 +48,29 @@ export default function Categorylist({ Categories }: { Categories: CategoryList 
                 </TableRow>
               </TableHeader>
               <TableBody>
-            {Categories.categories.map((categories) => (
-              <TableRow key={categories.id}>
+            {SalesAgents.salesAgents.map((agent) => (
+              <TableRow key={agent.id}>
                 <TableCell>
                 <Link
-                    className="text-primary underline"
-                    href="/portal/caterogies/[id]"
-                    as={`/portal/categories/${categories.id}`}
-                  >
-                  {categories.name}      
-                  </Link>            
+                className="text-primary underline"
+                href={"/portal/salesAgents/" + agent.id}
+              >
+                {agent.firstName} {agent.lastName}
+              </Link>
                 </TableCell>
                 <TableCell>
-                  {categories.mcc}
+                  {agent.email}
                 
                 </TableCell>
                 <TableCell>
-                  {categories.cnae}
+                  {agent.documentId}
                 
                 </TableCell>
                
                 <TableCell>
                   {" "}
-                  <Badge variant={categories.active ? "success" : "destructive"}>
-                    {categories.active ? "ATIVO" : "INATIVO"}
+                  <Badge variant={agent.active ? "success" : "destructive"}>
+                    {agent.active ? "INATIVO" : "ATIVO"}
                   </Badge>
                 </TableCell>
                 

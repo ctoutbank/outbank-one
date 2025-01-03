@@ -1,10 +1,11 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
-import MerchantList from "./list";
+import MerchantList from "../../../features/merchant/_components/merchant-list";
 
-import { getMerchants } from "@/server/db/merchant";
+
 import ListFilter from "@/components/filter";
+import { getMerchants } from "@/features/merchant/server/merchant";
 
 type MerchantProps = {
 page:string

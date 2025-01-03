@@ -22,7 +22,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { merchants } from '../../../../../drizzle/schema'
+import { merchants } from '../../../../drizzle/schema'
+import TransactionFees from './merchantedittaxa'
+
 
 export function CompanyyForm() {
   const [formData, setFormData] = useState({
@@ -114,10 +116,11 @@ export function CompanyyForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto ">
-     <Tabs defaultValue="company" className="">
+     <Tabs defaultValue="company" className="mb-6">
         <TabsList >
           <TabsTrigger value="company">Empresa</TabsTrigger>
           <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
+          <TabsTrigger value="transaction">Transações</TabsTrigger>
         </TabsList>
         
         <TabsContent value="company" className="space-y-6">
@@ -598,6 +601,14 @@ export function CompanyyForm() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="transaction" className="space-y-6">
+        <Card className="w-full">
+          
+          <TransactionFees />
+          
+        </Card>
+        </TabsContent>
+
       </Tabs>
 
       <div className="flex justify-end mt-6">

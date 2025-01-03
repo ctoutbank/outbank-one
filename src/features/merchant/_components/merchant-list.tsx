@@ -11,9 +11,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import exportExcel from "@/lib/export-xlsx";
-import { Merchantlist } from "@/server/db/merchant";
+
 import { ChevronDown, Download, MoreVertical, Plus } from "lucide-react";
 import Link from "next/link";
+import { Merchantlist } from "../server/merchant";
 
 
 export default function MerchantList({ list }: { list: Merchantlist }) {

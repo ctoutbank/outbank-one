@@ -41,12 +41,14 @@ const PaginationCustom: React.FC<PaginationProps> = ({
     <>
       <Pagination className="mt-4">
         <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
+            {currentPage > 1 && (
+            <PaginationItem>
+              <PaginationPrevious
               className="cursor-pointer"
               onClick={() => handlePageChange(currentPage - 1)}
-            />
-          </PaginationItem>
+              />
+            </PaginationItem>
+            )}
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .slice(Math.max(currentPage - 3, 0), currentPage + 3)
             .map((page) => (
