@@ -29,16 +29,21 @@ export default async function ConfigurationsPage({
       <Suspense fallback={<div>Loading...</div>}>
         <ConfigurationsDataTable
           columns={columns}
-          data={configurations}
-          onSearch={(value) => {
-            // Handle search
-          }}
+          data={configurations.map((config) => ({
+            ...config,
+            url: config.url ?? undefined,
+            slug: config.slug ?? undefined,
+            active: config.active ?? undefined,
+            lockCpAnticipationOrder:
+              config.lockCpAnticipationOrder ?? undefined,
+            lockCnpAnticipationOrder:
+              config.lockCnpAnticipationOrder ?? undefined,
+            dtinsert: config.dtinsert ?? undefined,
+            dtupdate: config.dtupdate ?? undefined,
+          }))}
           totalCount={totalCount}
           pageSize={pageSize}
           page={page}
-          onPageChange={(newPage) => {
-            // Handle page change
-          }}
         />
       </Suspense>
     </div>

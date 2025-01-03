@@ -20,7 +20,25 @@ export default async function EditConfigurationPage({
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-6">Edit Configuration</h1>
-      <ConfigurationForm initialData={configuration} isEditing />
+      <ConfigurationForm
+        initialData={{
+          id: configuration.id,
+          url: configuration.url || undefined,
+          slug: configuration.slug || undefined,
+          active: configuration.active || undefined,
+          dtinsert: configuration.dtinsert
+            ? new Date(configuration.dtinsert)
+            : undefined,
+          dtupdate: configuration.dtupdate
+            ? new Date(configuration.dtupdate)
+            : undefined,
+          lockCpAnticipationOrder:
+            configuration.lockCpAnticipationOrder || undefined,
+          lockCnpAnticipationOrder:
+            configuration.lockCnpAnticipationOrder || undefined,
+        }}
+        isEditing
+      />
     </div>
   );
 }
