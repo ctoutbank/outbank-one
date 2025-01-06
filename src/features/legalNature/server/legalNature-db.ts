@@ -23,7 +23,9 @@ export type LegalNatureInsert = typeof legalNatures.$inferInsert;
 export async function getLegalNatures(
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sortField: keyof typeof legalNatures.$inferSelect = 'id',
+  sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<LegalNatureList> {
   const offset = (page - 1) * pageSize;
 
@@ -37,7 +39,6 @@ export async function getLegalNatures(
       dtupdate: legalNatures.dtupdate,
       code: legalNatures.code,
     })
-
     .from(legalNatures)
     .where(
       or(
@@ -45,7 +46,7 @@ export async function getLegalNatures(
         ilike(legalNatures.code, `%${search}%`)
       )
     )
-    .orderBy(desc(legalNatures.id))
+    .orderBy(sortOrder === 'desc' ? desc(legalNatures[sortField]) : legalNatures[sortField])
     .limit(pageSize)
     .offset(offset);
 

@@ -1,9 +1,10 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { getLegalNatures } from "@/features/legalNature/server/legalNature";
+
 import PaginationRecords from "@/components/pagination-Records";
 import ListFilter from "@/components/filter";
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
+import { getLegalNatures } from "@/features/legalNature/server/legalNature-db";
 
 export const revalidate = 0;
 

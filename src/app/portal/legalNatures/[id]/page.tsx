@@ -1,7 +1,8 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { getLegalNatureById } from "@/features/legalNature/server/legalNature";
+
 import LegalNatureForm from "@/features/legalNature/_components/legalNature-form";
+import { getLegalNatureById } from "@/features/legalNature/server/legalNature-db";
 
 export const revalidate = 0;
 

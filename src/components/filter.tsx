@@ -22,7 +22,7 @@ export default function ListFilter(props: ListFilterProps)
     const [linkHref, setLinkHref] = React.useState<string | null>(props.linkHref || null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams || "");
 
   const handleFilter = () => {
     params.set("search", search);
