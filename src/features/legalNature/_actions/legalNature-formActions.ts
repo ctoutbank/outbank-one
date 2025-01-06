@@ -4,7 +4,7 @@ import {
   updateLegalNature,
   LegalNatureInsert,
   insertLegalNature,
-} from "../server/legalNature";
+} from "../server/legalNature-db";
 
 export async function insertLegalNatureFormAction(data: LegalNatureSchema) {
   const legalNatureInsert: LegalNatureInsert = {
