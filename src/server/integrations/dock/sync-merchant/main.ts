@@ -1,8 +1,9 @@
 "use server";
-import pool from "./db";
+
+import { db } from "@/server/db";
 import { insertMerchantAndRelations } from "./merchan";
 
-import { Merchantdock } from "./types";
+import { Merchant } from "./types";
 
 
 
@@ -20,15 +21,15 @@ async function fetchMerchants() {
   return data;
 }
 
-async function main() {
+export async function main() {
   try {
     console.log("Buscando merchants...");
     
     const response = await fetchMerchants(); // Obtém a resposta inicial
-    const merchants: Merchantdock[] = response.objects || []; // Extraindo merchants de 'objects'
+    const merchants: Merchant[] = response.objects || []; // Extraindo merchants de 'objects'
 
     console.log(`Total de merchants encontrados: ${merchants.length}`);
-    pool.query(
+    db.execute(
       "TRUNCATE TABLE contacts, merchantpixaccount, merchants, addresses, categories, legal_natures, sales_agents, configurations CASCADE;"
     );
 
@@ -38,7 +39,7 @@ async function main() {
   } catch (error) {
     console.error("Erro ao processar merchants:", error);
   } finally {
-    pool.end();
+      
   }
 }
 

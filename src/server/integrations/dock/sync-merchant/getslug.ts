@@ -1,3 +1,5 @@
+import { db } from "@/server/db";
+import { sql } from "drizzle-orm";
 
 
 export async function getIdBySlug(
@@ -6,12 +8,11 @@ export async function getIdBySlug(
 ): Promise<number | null> {
   console.log(`Buscando ID na tabela ${tableName} para slug ${slug}`);
   try {
-    const result = await pool.query(
-      `SELECT id FROM ${tableName} WHERE slug = $1`,
-      [slug]
-    );
+    const result = await db.execute(sql.raw(
+      `SELECT id FROM ${tableName} WHERE slug = ${slug}`
+    ));
     console.log(`Resultado da busca: ${result.rows[0]?.id}`);
-    return result.rows[0]?.id || null;
+    return Number(result.rows[0]?.id) || null;
   } catch (error) {
     console.error(
       `Erro ao buscar ID na tabela ${tableName} para slug ${slug}:`,

@@ -1,16 +1,20 @@
 "use server";
+import { db } from "@/server/db";
 import { insertAddress } from "./address";
 import { getOrCreateCategory } from "./category";
 import { getOrCreateCofiguration } from "./configuration";
 import { insertContact } from "./contact";
-import pool from "./db";
+
 import { getIdBySlug } from "./getslug";
 import { getOrCreateLegalNature } from "./legalNature";
 import { insertmerchantPixAccount } from "./merchantPixAccount";
 import { getOrCreateSaleAgent } from "./salesAgent";
-import { Merchantdock } from "./types";
+import { Merchant } from "./types";
+import { sql } from "drizzle-orm";
 
-export async function insertMerchantAndRelations(merchant: Merchantdock) {
+
+
+export async function insertMerchantAndRelations(merchant: Merchant) {
   console.log("Inserting merchant:", merchant);
   try {
     // Obter slugs das tabelas relacionadas
@@ -55,15 +59,15 @@ export async function insertMerchantAndRelations(merchant: Merchantdock) {
     await insertMerchant(
       merchant,
       addressId || null,
-      categoryslug || null,
-      configurationslug || null,
-      legalnatureslug || null,
-      saleagentslug || null,
+      categoryslug?.toString() || null,
+      configurationslug?.toString() || null,
+      legalnatureslug?.toString() || null,
+      saleagentslug?.toString() || null,
       categoryId || null,
       legalNatureId || null,
       saleAgentId || null,
       configurationId || null
-    );
+  );
     console.log("Merchant inserted successfully.");
     //inserir contatos
     if (merchant.contacts) {
@@ -81,7 +85,7 @@ export async function insertMerchantAndRelations(merchant: Merchantdock) {
 }
 
 async function insertMerchant(
-  merchant: Merchantdock,
+  merchant: Merchant,
   addressId: number | null,
   categoryslug: string | null,
   configurationslug: string | null,
@@ -98,7 +102,7 @@ async function insertMerchant(
     const dtInsert = merchant.dtInsert ? new Date(merchant.dtInsert) : null;
     const dtUpdate = merchant.dtUpdate ? new Date(merchant.dtUpdate) : null;
 
-    await pool.query(
+    await db.execute(sql.raw(
       `INSERT INTO merchants (
             slug, active, dtinsert, dtupdate, id_merchant, name, id_document,
             corporate_name, email, area_code, number, phone_type, language, timezone,
@@ -109,54 +113,10 @@ async function insertMerchant(
             slug_configuration, slug_category, slug_legal_nature, id_category, 
             id_legal_nature, id_sales_agent, id_configuration
           ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7,
-            $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22,
-            $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35,
-            $36, $37, $38
+          ${merchant.slug}, ${merchant.active}, ${dtInsert}, ${dtUpdate}, ${merchant.merchantId}, ${merchant.name}, ${merchant.documentId}, ${merchant.corporateName}, ${merchant.email}, ${merchant.areaCode}, ${merchant.number}, ${merchant.phoneType}, ${merchant.language}, ${merchant.timezone}, ${merchant.riskAnalysisStatus}, ${merchant.riskAnalysisStatusJustification}, ${merchant.legalPerson}, ${merchant.openingDate ? new Date(merchant.openingDate) : null}, ${merchant.inclusion}, ${merchant.openingDays}, ${merchant.openingHour}, ${merchant.closingHour}, ${merchant.municipalRegistration || null}, ${merchant.stateSubcription || null}, ${merchant.hasTef}, ${merchant.hasPix}, ${merchant.hasTop}, ${merchant.establishmentFormat}, ${merchant.revenue}, ${addressId}, ${saleagentslug}, ${configurationslug}, ${categoryslug}, ${legalnatureslug}, ${categoryId}, ${legalNatureId}, ${saleAgentId}, ${configurationId}
           )
           `,
-      [
-        merchant.slug,
-        merchant.active,
-        dtInsert,
-        dtUpdate,
-        merchant.merchantId,
-        merchant.name,
-        merchant.documentId,
-        merchant.corporateName,
-        merchant.email,
-        merchant.areaCode,
-        merchant.number,
-        merchant.phoneType,
-        merchant.language,
-        merchant.timezone,
-        merchant.riskAnalysisStatus,
-        merchant.riskAnalysisStatusJustification,
-        merchant.legalPerson,
-        merchant.openingDate ? new Date(merchant.openingDate) : null,
-        merchant.inclusion,
-        merchant.openingDays,
-        merchant.openingHour,
-        merchant.closingHour,
-        merchant.municipalRegistration || null,
-        merchant.stateSubcription || null,
-        merchant.hasTef,
-        merchant.hasPix,
-        merchant.hasTop,
-        merchant.establishmentFormat,
-        merchant.revenue,
-        addressId,
-        saleagentslug,
-        configurationslug,
-        categoryslug,
-        legalnatureslug,
-        categoryId,
-        legalNatureId,
-        saleAgentId,
-        configurationId,
-      ]
-    );
+    ));
 
     console.log("Merchant inserted successfully.");
   } catch (error) {

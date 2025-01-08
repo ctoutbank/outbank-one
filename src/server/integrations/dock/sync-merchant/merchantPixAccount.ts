@@ -1,12 +1,14 @@
+"use server";
 
-import pool from "./db";
+import { db } from "@/server/db";
 import { getIdBySlug } from "./getslug";
-import { merchantPixAccountdock } from "./types";
-import { Merchantdock } from "./types";
+import { merchantPixAccount } from "./types";
+import { Merchant } from "./types";
+import { sql } from "drizzle-orm";
 
 export async function insertmerchantPixAccount(
-  merchantPixAccount: merchantPixAccountdock,
-  merchant: Merchantdock
+  merchantPixAccount: merchantPixAccount,
+  merchant: Merchant
 ) {
   try {
     const id_merchant = await getIdBySlug("merchants", merchant.slug);
@@ -15,33 +17,14 @@ export async function insertmerchantPixAccount(
 
     console.log(merchantSlug);
 
-    await pool.query(
+    await db.execute(sql.raw(
       `INSERT INTO merchantpixaccount (slug, active, dtinsert, dtupdate, id_registration, id_account, bank_number, bank_branch_number, bank_branch_digit, bank_account_number, bank_account_digit, bank_account_type,bank_account_status	,onboarding_pix_status,message,bank_name,id_merchant,slug_merchant)			
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16 ,$17,$18)
+         VALUES (${merchantPixAccount.slug}, ${merchantPixAccount.active}, ${merchantPixAccount.dtInsert}, ${merchantPixAccount.dtUpdate}, ${merchantPixAccount.idRegistration}, ${merchantPixAccount.idAccount}, ${merchantPixAccount.bankNumber}, ${merchantPixAccount.bankBranchNumber}, ${merchantPixAccount.bankBranchDigit}, ${merchantPixAccount.bankAccountNumber}, ${merchantPixAccount.bankAccountDigit}, ${merchantPixAccount.bankAccountType}, ${merchantPixAccount.bankAccountStatus}, ${merchantPixAccount.onboardingPixStatus}, ${merchantPixAccount.message}, ${merchantPixAccount.bankName}, ${id_merchant}, ${merchantSlug})
         
          
             `,
-      [
-        merchantPixAccount.slug,
-        merchantPixAccount.active,
-        merchantPixAccount.dtInsert,
-        merchantPixAccount.dtUpdate,
-        merchantPixAccount.idRegistration,
-        merchantPixAccount.idAccount,
-        merchantPixAccount.bankNumber,
-        merchantPixAccount.bankBranchNumber,
-        merchantPixAccount.bankBranchDigit,
-        merchantPixAccount.bankAccountNumber,
-        merchantPixAccount.bankAccountDigit,
-        merchantPixAccount.bankAccountType,
-        merchantPixAccount.bankAccountStatus,
-        merchantPixAccount.onboardingPixStatus,
-        merchantPixAccount.message,
-        merchantPixAccount.bankName,
-        id_merchant,
-        merchantSlug,
-      ]
-    );
+     
+    ));
     const slug = merchantPixAccount.slug;
     console.log("Merchant pix account inserted successfully.");
     return slug;
@@ -51,13 +34,13 @@ export async function insertmerchantPixAccount(
 }
 
 export async function getOrCreateMerchantPixAccount(
-  merchantPixAccount: merchantPixAccountdock,
-  merchant: Merchantdock
+  merchantPixAccount: merchantPixAccount,
+  merchant: Merchant
 ) {
   try {
-    const result = await pool.query(
-      `SELECT slug FROM merchantpixaccount WHERE slug = $1`,
-      [merchantPixAccount.slug]
+    const result = await db.execute(sql
+      `SELECT slug FROM merchantpixaccount WHERE slug = ${merchantPixAccount.slug}
+      `
     );
 
     if (result.rows.length > 0) {

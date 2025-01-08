@@ -1,13 +1,15 @@
 "use server";
-import { Addressdock, contactsdock, Merchantdock } from "./types";
+import { Address, contacts, Merchant } from "./types";
 import { insertAddress } from "./address";
 import { getIdBySlug } from "./getslug";
-import pool from "../../db";
+import { db } from "@/server/db";
+import { sql } from "drizzle-orm";
+
 
 export async function insertContact(
-  contact: contactsdock,
-  merchant: Merchantdock,
-  address: Addressdock | undefined
+  contact: contacts,
+  merchant: Merchant,
+  address: Address | undefined
 ) {
   let id_address = null;
   try {
@@ -36,41 +38,26 @@ export async function insertContact(
   }
 }
 async function insertContactRelations(
-  contact: contactsdock,
+  contact: contacts,
   id_address: number | null,
   id_merchant: number,
   slug_merchant: string
 ) {
   try {
     console.log("insertingcontacts final", contact);
-    const result = await pool.query(
+    const result = await db.execute(sql.raw(
       `
             INSERT INTO contacts (
                name, id_document, email, area_code, number, phone_type, id_address,
               birth_date, mothers_name, is_partner_contact, is_pep, id_merchant, slug_merchant
             )
             VALUES (
-              $1, $2, $3, $4, $5, $6, $7,
-              $8, $9, $10, $11, $12, $13
+              ${contact.name}, ${contact.documentId}, ${contact.email}, ${contact.areaCode}, ${contact.number}, ${contact.phoneType}, ${id_address},
+              ${contact.birthDate}, ${contact.mothersName}, ${contact.isPartnerContact}, ${contact.isPep}, ${id_merchant}, ${slug_merchant}
             )
             RETURNING id
         `,
-      [
-        contact.name,
-        contact.documentId,
-        contact.email,
-        contact.areaCode,
-        contact.number,
-        contact.phoneType,
-        id_address,
-        contact.birthDate,
-        contact.mothersName,
-        contact.isPartnerContact,
-        contact.isPep,
-        id_merchant,
-        slug_merchant,
-      ]
-    );
+    ));
 
     if (result.rows.length === 0) {
       throw new Error(
@@ -81,19 +68,21 @@ async function insertContactRelations(
     console.log("Contacts inserted successfully. ID:", id);
     return id;
   } catch (error) {
-    console.error("Error inserting contacts:", error);
+      console.error("Error inserting contacts:", error);
     throw error;
   }
 }
+    
 
 export async function getOrCreateContact(
-  contact: contactsdock,
-  merchant: Merchantdock
+  contact: contacts,
+  merchant: Merchant
 ) {
   try {
-    const result = await pool.query(`SELECT id FROM contacts WHERE id = $1`, [
-      contact.id,
-    ]);
+    const result = await db.execute(sql.raw(
+      `SELECT id FROM contacts WHERE id = ${contact.id}
+      `
+    ));
 
     if (result.rows.length > 0) {
       return result.rows[0].id;

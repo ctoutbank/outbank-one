@@ -1,3 +1,5 @@
+"use server";
+
 import { LegalNatureSchema } from "@/features/legalNature/schema/legalNatures-schema";
 import {
   LegalNatureDetail,

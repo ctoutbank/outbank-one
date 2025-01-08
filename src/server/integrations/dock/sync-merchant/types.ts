@@ -1,4 +1,4 @@
-export type Merchantdock = {
+export type Merchant = {
     objects: never[];
     slug: string;
     active: boolean;
@@ -14,13 +14,13 @@ export type Merchantdock = {
     phoneType?: "C" | "F"; // "C" para celular, "F" para fixo
     language?: string;
     timezone?: string;
-    contacts?: contactsdock[];
-    address?: Addressdock;
+    contacts?: contacts[];
+    address?: Address;
   
     slugCustomer?: string;
-    category?: categorydock;
-    legalNature?: LegalNaturedock;
-    saleAgent?: saleAgentdock;
+    category?: category;
+    legalNature?: LegalNature;
+    saleAgent?: saleAgent;
   
     riskAnalysisStatus?: string;
     riskAnalysisStatusJustification?: string;
@@ -32,16 +32,16 @@ export type Merchantdock = {
     closingHour?: string;
     municipalRegistration?: string;
     stateSubcription?: string;
-    configuration?: configurationsdock;
+    configuration?: configurations;
     hasTef: boolean;
     hasPix: boolean;
     hasTop: boolean;
     establishmentFormat?: string;
     revenue?: number;
-    merchantPixAccount?: merchantPixAccountdock;
+    merchantPixAccount?: merchantPixAccount;
   };
   
-  export type Addressdock = {
+  export type Address = {
     id: number;
     streetAddress?: string;
     streetNumber?: string;
@@ -53,7 +53,7 @@ export type Merchantdock = {
     zipCode?: string;
   };
   
-  export type contactsdock = {
+  export type contacts = {
     id: number;
     name?: string;
     documentId?: string;
@@ -65,10 +65,10 @@ export type Merchantdock = {
     mothersName?: string;
     isPartnerContact: boolean;
     isPep: boolean;
-    address?: Addressdock;
+    address?: Address;
   };
   
-  export type categorydock = {
+  export type category = {
     slug: string;
     active: boolean;
     dtInsert: Date;
@@ -82,7 +82,7 @@ export type Merchantdock = {
     waitingPeriodCnp?: number;
   };
   
-  export type LegalNaturedock = {
+  export type LegalNature = {
     slug: string;
     active: boolean;
     dtInsert: Date;
@@ -91,7 +91,7 @@ export type Merchantdock = {
     code?: string;
   };
   
-  export type saleAgentdock = {
+  export type saleAgent= {
     slug: string;
     active: boolean;
     dtInsert: Date;
@@ -103,7 +103,7 @@ export type Merchantdock = {
     slugCustomer?: string;
   };
   
-  export type configurationsdock = {
+  export type configurations = {
     slug: string;
     active: boolean;
     dtInsert: Date;
@@ -113,7 +113,7 @@ export type Merchantdock = {
     url?: string;
   };
   
-  export type merchantPixAccountdock = {
+  export type merchantPixAccount = {
     slug: string;
     active: boolean;
     dtInsert: Date;
