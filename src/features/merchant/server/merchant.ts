@@ -9,6 +9,9 @@ import {
   salesAgents,
 } from "../../../../drizzle/schema";
 
+export type MerchantInsert = typeof merchants.$inferInsert;
+export type MerchantSelect = typeof merchants.$inferSelect;
+
 export interface Merchantlist {
   merchants: {
     id: bigint;

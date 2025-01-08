@@ -1,12 +1,14 @@
-import pool from "../../db";
-import { configurationsdock } from "./types";
+"use server";
+import { db } from "@/server/db";
+import { configurations } from "./types";
+import { sql } from "drizzle-orm";
 
-export async function getOrCreateCofiguration(configuration: configurationsdock) {
+export async function getOrCreateCofiguration(configuration: configurations) {
   try {
-    const result = await pool.query(
-      `SELECT slug FROM configurations WHERE slug = $1`,
-      [configuration.slug]
-    );
+    const result = await db.execute(sql.raw(
+      `SELECT slug FROM configurations WHERE slug = ${configuration.slug}
+      `
+    ));
 
     if (result.rows.length > 0) {
       return result.rows[0].slug;
@@ -19,22 +21,13 @@ export async function getOrCreateCofiguration(configuration: configurationsdock)
   }
 }
 
-async function insertConfiguration(configuration: configurationsdock) {
+async function insertConfiguration(configuration: configurations) {
   try {
-    await pool.query(
+    await db.execute(sql.raw(
       `INSERT INTO configurations (slug, active, dtinsert,dtUpdate ,lock_cp_anticipation_order,lock_cnp_anticipation_order, url)
-         VALUES ($1, $2, $3, $4, $5, $6 , $7)
+         VALUES (${configuration.slug}, ${configuration.active}, ${configuration.dtInsert}, ${configuration.dtUpdate}, ${configuration.lockCpAnticipationOrder}, ${configuration.lockCnpAnticipationOrder}, ${configuration.url})
          `,
-      [
-        configuration.slug,
-        configuration.active,
-        configuration.dtInsert,
-        configuration.dtUpdate,
-        configuration.lockCpAnticipationOrder,
-        configuration.lockCnpAnticipationOrder,
-        configuration.url,
-      ]
-    );
+    ));
     const slug = configuration.slug;
 
     return slug;

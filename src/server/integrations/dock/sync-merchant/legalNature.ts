@@ -1,32 +1,27 @@
-import { LegalNaturedock } from "./types";
-import pool from "../../db";
+"use server";
 
-async function insertLegalNature(legalNature: LegalNaturedock) {
+import { db } from "@/server/db";
+import { LegalNature } from "./types";
+import { sql } from "drizzle-orm";
+
+
+async function insertLegalNature(legalNature: LegalNature) {
   try {
-    await pool.query(
+    await db.execute(sql.raw(
       `INSERT INTO legal_natures (slug, active, dtinsert, dtupdate, name, code)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         `,
-      [
-        legalNature.slug,
-        legalNature.active,
-        legalNature.dtInsert,
-        legalNature.dtUpdate,
-        legalNature.name,
-        legalNature.code,
-      ]
-    );
+         VALUES (${legalNature.slug}, ${legalNature.active}, ${legalNature.dtInsert}, ${legalNature.dtUpdate}, ${legalNature.name}, ${legalNature.code})
+         `
+    ));
   } catch (error) {
     console.error("Error inserting legal nature:", error);
   }
 }
 
-export async function getOrCreateLegalNature(legalNature: LegalNaturedock) {
+export async function getOrCreateLegalNature(legalNature: LegalNature) {
   try {
-    const result = await pool.query(
-      `SELECT slug FROM legal_natures WHERE slug = $1`,
-      [legalNature.slug]
-    );
+    const result = await db.execute(sql.raw(
+      `SELECT slug FROM legal_natures WHERE slug = ${legalNature.slug}`
+    ));
 
     if (result.rows.length > 0) {
       return result.rows[0].slug;

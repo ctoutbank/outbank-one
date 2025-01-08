@@ -1,10 +1,8 @@
 "use server";
 
 import { db } from "@/server/db";
-import { categorydock } from "./types";
-import { eq } from 'drizzle-orm';
-import { categories } from "../../../../../drizzle/schema";
-
+import { sql } from "drizzle-orm";
+import { category } from "./types";
 
 
 export type newCategory = {
@@ -22,40 +20,32 @@ export type newCategory = {
   slugMerchant?: string;
 };
 
-async function insertCategory(category: categorydock) {
+async function insertCategory(category: category) {
   try {
-    await db.insert(categories).values({
-      slug: category.slug,
-      active: category.active,
-      dtinsert: category.dtInsert ? category.dtInsert.toISOString() : null,
-      dtupdate: category.dtUpdate ? category.dtUpdate.toISOString() : null,
-      name: category.name || "",
-      mcc: category.mcc || null,
-      cnae: category.cnae || null,
-      anticipationRiskFactorCp: category.anticipationRiskFactorCp || null,
-      anticipationRiskFactorCnp: category.anticipationRiskFactorCnp || null,
-      waitingPeriodCp: category.waitingPeriodCp || null,
-      waitingPeriodCnp: category.waitingPeriodCnp || null
-    });
+    await db.execute(sql.raw(
+      `INSERT INTO categories (slug, active, dtinsert, dtupdate, name, mcc, cnae, anticipation_risk_factor_cp	, anticipation_risk_factor_cnp, waiting_period_cp, waiting_period_cnp)
+             VALUES (${category.slug}, ${category.active}, ${category.dtInsert}, ${category.dtUpdate}, ${category.name}, ${category.mcc}, ${category.cnae}, ${category.anticipationRiskFactorCp}, ${category.anticipationRiskFactorCnp}, ${category.waitingPeriodCp}, ${category.waitingPeriodCnp})
+             `,
+     
+    ));
   } catch (error) {
-    throw new Error(`Erro ao inserir categoria: ${error}`);
+    console.error("Error inserting category:", error);
   }
 }
 
-export async function getOrCreateCategory(category: categorydock) {
+export async function getOrCreateCategory(category: category ) {
   try {
-    const result = await db.select()
-      .from(categories)
-      .where(eq(categories.slug, category.slug));
+    const result = await db.execute(sql.raw(
+      `SELECT slug FROM categories WHERE slug = ${category.slug}`,
+    ));
 
-    if (result.length > 0) {
-      return result[0].slug;
+    if (result.rows.length > 0) {
+      return result.rows[0].slug;
     } else {
       await insertCategory(category);
       return category.slug;
     }
   } catch (error) {
     console.error("Error getting or creating category:", error);
-    throw error;
   }
 }
