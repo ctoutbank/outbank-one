@@ -6,6 +6,7 @@ import { getOrCreateLegalNature } from "./legalNature-test";
 import { db } from "@/server/db";
 import { merchants } from "../../../../../../drizzle/schema";
 import { getIdBySlug } from "../getslug";
+import { eq } from "drizzle-orm";
 
 
 
@@ -43,16 +44,14 @@ async function insertMerchant(
   legalNatureId: number | null,
   
 ) {
+  
   try {
-    // Verificar se o merchant já existe
-    const existingMerchant = await db
-      .select({ slug: merchants.slug })
-      .from(merchants)
-      .where(sql`${merchants.slug} = ${merchant.slug}`);
+    
+    const existing = await db.select().from(merchants).where(eq(merchants.slug, merchant.slug));
 
-    if (existingMerchant.length > 0) {
-      console.log(`Merchant ${merchant.slug} já existe, pulando inserção.`);
-      return;
+    if (existing.length > 0) {
+     
+      return; 
     }
 
     console.log("Inserting merchant:", merchant);

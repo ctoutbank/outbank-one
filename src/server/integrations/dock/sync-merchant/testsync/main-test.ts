@@ -45,6 +45,6 @@ export async function main2() {
   }
 }
 
-main2();
+
 
 

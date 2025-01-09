@@ -16,8 +16,17 @@ async function insertLegalNaturee(legalNature: LegalNature) {
       return; // Não realiza o insert
     }
 
+    const DtInsert = legalNature.dtInsert ? new Date(legalNature.dtInsert).toISOString() : null;
+    const DtUpdate = legalNature.dtUpdate ? new Date(legalNature.dtUpdate).toISOString() : null;
 
-    await db.insert(legalNatures).values(legalNature);
+    await db.insert(legalNatures).values({
+      slug: legalNature.slug,
+      active: legalNature.active,
+      dtinsert: DtInsert,
+      dtupdate: DtUpdate,
+      name: legalNature.name,
+      code: legalNature.code,
+    });
   } catch (error) {
     console.error("Error inserting legal nature:", error);
           }

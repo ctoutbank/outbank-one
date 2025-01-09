@@ -8,9 +8,9 @@ export async function getIdBySlug(
 ): Promise<number | null> {
   console.log(`Buscando ID na tabela ${tableName} para slug ${slug}`);
   try {
-    const result = await db.execute(sql.raw(
-      `SELECT id FROM ${tableName} WHERE slug = ${slug}`
-    ));
+    const result = await db.execute(
+      sql`SELECT id FROM ${sql.identifier(tableName)} WHERE slug = ${slug}`
+    );
     console.log(`Resultado da busca: ${result.rows[0]?.id}`);
     return Number(result.rows[0]?.id) || null;
   } catch (error) {

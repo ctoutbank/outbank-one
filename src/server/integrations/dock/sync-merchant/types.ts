@@ -85,8 +85,8 @@ export type Merchant = {
   export type LegalNature = {
     slug: string;
     active: boolean;
-    dtInsert: Date;
-    dtUpdate: Date;
+    dtInsert: Date | string;
+    dtUpdate: Date | string;
     name?: string;
     code?: string;
   };
