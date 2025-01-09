@@ -1,9 +1,9 @@
-// pages/sync.tsx
-"use client"; // Indica que este é um componente de cliente
 
-import { useState } from 'react';
+"use client"; 
+
 import { Button } from '@/components/ui/button';
-import { main } from '@/server/integrations/dock/sync-merchant/main';
+import { main2 } from '@/server/integrations/dock/sync-merchant/testsync/main-test';
+import { useState } from 'react';
 
 export default function AsyncButtonsPage() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function AsyncButtonsPage() {
     setSuccess(null);
 
     try {
-      await main();
+      await main2();
       setSuccess('Sincronização realizada com sucesso!');
     } catch (err) {
       setError('Erro ao realizar a sincronização.');
@@ -26,25 +26,27 @@ export default function AsyncButtonsPage() {
     }
   };
 
+ 
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Sincronização</h1>
       
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Button 
-          onClick={() => console.log('Usuários')}
+        {/* <Button 
+         
           disabled={false}
           className="bg-blue-500 hover:bg-blue-600"
         >
-          Usuários
-        </Button>
+          
+        </Button> */}
 
         <Button 
           onClick={handleSync}
           disabled={loading}
           className={`bg-green-500 hover:bg-green-600 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {loading ? 'Sincronizando...' : 'Sincronizar'}
+          Merchant {loading ? 'Sincronizando...' : 'Sincronizar'}
         </Button>
       </div>
 
