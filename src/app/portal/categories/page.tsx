@@ -9,51 +9,49 @@ import { getCategories } from "@/features/categories/server/category";
 export const revalidate = 0;
 
 type CategoryProps = {
-    page:string
-    pageSize:string
-    search:string
-    }
-    
-    export default async function CategoriesPage({
-    searchParams,
-    }: {
-    searchParams: CategoryProps;
-    }) {
-    const page=parseInt(searchParams.page || "1");
-    const pageSize=parseInt(searchParams.pageSize || "5");
-    const search=searchParams.search || "";
-    const categories = await getCategories(search,page, pageSize);
-    const totalRecords = categories.totalCount;
-    
-    
-    
-    return(
-        <>
-        <BaseHeader
+  page: string;
+  pageSize: string;
+  search: string;
+};
+
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  searchParams: CategoryProps;
+}) {
+  const page = parseInt(searchParams.page || "1");
+  const pageSize = parseInt(searchParams.pageSize || "5");
+  const search = searchParams.search || "";
+  const categories = await getCategories(search, page, pageSize);
+  const totalRecords = categories.totalCount;
+
+  return (
+    <>
+      <BaseHeader
         breadcrumbItems={[{ title: "Categorias", url: "/portal/categories" }]}
-        />
-    
-        <BaseBody
+      />
+
+      <BaseBody
         title="Categorias"
         subtitle={`visualização de todos os Categorias`}
-        >
-        
+      >
         <ListFilter
-        pageName="portal/categories" search={search} linkHref={"/portal/categories/0"  } linkText={"Nova Categoria"} />
-        
+          pageName="portal/categories"
+          search={search}
+          linkHref={"/portal/categories/0"}
+          linkText={"Nova Categoria"}
+        />
+
         <Categorylist Categories={categories} />
         {totalRecords > 0 && (
-            <PaginationRecords
+          <PaginationRecords
             totalRecords={totalRecords}
             currentPage={page}
             pageSize={pageSize}
-            pageName="portal/categories" >
-            </PaginationRecords>
+            pageName="portal/categories"
+          ></PaginationRecords>
         )}
-        
-        </BaseBody>
-    
-        </>
-        
-    );
+      </BaseBody>
+    </>
+  );
 }
