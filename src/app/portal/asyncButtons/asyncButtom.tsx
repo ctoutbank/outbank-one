@@ -2,7 +2,7 @@
 "use client"; 
 
 import { Button } from '@/components/ui/button';
-import { main2 } from '@/server/integrations/dock/sync-merchant/testsync/main-test';
+import { main } from '@/server/integrations/dock/sync-merchant/main';
 import { useState } from 'react';
 
 export default function AsyncButtonsPage() {
@@ -16,7 +16,7 @@ export default function AsyncButtonsPage() {
     setSuccess(null);
 
     try {
-      await main2();
+      await main();
       setSuccess('Sincronização realizada com sucesso!');
     } catch (err) {
       setError('Erro ao realizar a sincronização.');

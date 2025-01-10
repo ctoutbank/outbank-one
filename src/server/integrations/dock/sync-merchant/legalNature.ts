@@ -1,30 +1,46 @@
 "use server";
 
 import { db } from "@/server/db";
-import { LegalNature } from "./types";
 import { sql } from "drizzle-orm";
 
+import { eq } from "drizzle-orm";
 
-async function insertLegalNature(legalNature: LegalNature) {
+import { legalNatures } from "../../../../../drizzle/schema";
+import { LegalNature } from "./types";
+
+
+async function insertLegalNature(legalNature: LegalNature ) {
   try {
-    await db.execute(sql.raw(
-      `INSERT INTO legal_natures (slug, active, dtinsert, dtupdate, name, code)
-         VALUES (${legalNature.slug}, ${legalNature.active}, ${legalNature.dtInsert}, ${legalNature.dtUpdate}, ${legalNature.name}, ${legalNature.code})
-         `
-    ));
+    const existing = await db.select().from(legalNatures).where(eq(legalNatures.slug, legalNature.slug));
+
+    if (existing.length > 0) {
+      console.log("LegalNature with this slug already exists. Skipping insert.");
+      return; // Não realiza o insert
+    }
+
+    const DtInsert = legalNature.dtInsert ? new Date(legalNature.dtInsert).toISOString() : null;
+    const DtUpdate = legalNature.dtUpdate ? new Date(legalNature.dtUpdate).toISOString() : null;
+
+    await db.insert(legalNatures).values({
+      slug: legalNature.slug,
+      active: legalNature.active,
+      dtinsert: DtInsert,
+      dtupdate: DtUpdate,
+      name: legalNature.name,
+      code: legalNature.code,
+    });
   } catch (error) {
     console.error("Error inserting legal nature:", error);
-  }
+          }
 }
 
 export async function getOrCreateLegalNature(legalNature: LegalNature) {
   try {
-    const result = await db.execute(sql.raw(
-      `SELECT slug FROM legal_natures WHERE slug = ${legalNature.slug}`
-    ));
-
-    if (result.rows.length > 0) {
-      return result.rows[0].slug;
+    const result = await db.select({ slug: legalNatures.slug })
+      .from(legalNatures)
+      .where(sql`${legalNatures.slug} = ${legalNature.slug}`);
+    if (result.length > 0) {
+      return result[0].slug;
     } else {
       await insertLegalNature(legalNature);
       return legalNature.slug;

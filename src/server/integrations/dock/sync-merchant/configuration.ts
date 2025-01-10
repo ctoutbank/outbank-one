@@ -1,37 +1,51 @@
 "use server";
+
 import { db } from "@/server/db";
-import { configurations } from "./types";
-import { sql } from "drizzle-orm";
 
-export async function getOrCreateCofiguration(configuration: configurations) {
+import { eq, sql } from "drizzle-orm";
+import { configuration } from "./types";
+import { configurations } from "../../../../../drizzle/schema";
+
+
+async function insertConfiguration(configuration: configuration) {
   try {
-    const result = await db.execute(sql.raw(
-      `SELECT slug FROM configurations WHERE slug = ${configuration.slug}
-      `
-    ));
 
-    if (result.rows.length > 0) {
-      return result.rows[0].slug;
+    const existing = await db.select().from(configurations).where(eq(configurations.slug, configuration.slug));
+
+    if (existing.length > 0) {
+      console.log("Configuration with this slug already exists. Skipping insert.");
+      return; // Não realiza o insert
+    }
+
+    const DtInsert = configuration.dtInsert ? new Date(configuration.dtInsert).toISOString() : null;
+    const DtUpdate = configuration.dtUpdate ? new Date(configuration.dtUpdate).toISOString() : null;
+
+    await db.insert(configurations).values({
+      slug: configuration.slug,
+      active: configuration.active,
+      dtinsert: DtInsert,
+      dtupdate: DtUpdate,
+      lockCpAnticipationOrder: configuration.lockCpAnticipationOrder,
+      lockCnpAnticipationOrder: configuration.lockCnpAnticipationOrder,
+      url: configuration.url,
+    });
+  } catch (error) {
+    console.error("Error inserting configuration:", error);
+  }
+}
+
+export async function getOrCreateConfiguration(configuration: configuration) {
+  try {
+    const result = await db.select({ slug: configurations.slug })
+      .from(configurations)
+      .where(sql`${configurations.slug} = ${configuration.slug}`);
+    if (result.length > 0) {
+      return result[0].slug;
     } else {
       await insertConfiguration(configuration);
       return configuration.slug;
     }
   } catch (error) {
     console.error("Error getting or creating configuration:", error);
-  }
-}
-
-async function insertConfiguration(configuration: configurations) {
-  try {
-    await db.execute(sql.raw(
-      `INSERT INTO configurations (slug, active, dtinsert,dtUpdate ,lock_cp_anticipation_order,lock_cnp_anticipation_order, url)
-         VALUES (${configuration.slug}, ${configuration.active}, ${configuration.dtInsert}, ${configuration.dtUpdate}, ${configuration.lockCpAnticipationOrder}, ${configuration.lockCnpAnticipationOrder}, ${configuration.url})
-         `,
-    ));
-    const slug = configuration.slug;
-
-    return slug;
-  } catch (error) {
-    console.error("Error inserting configuration:", error);
   }
 }
