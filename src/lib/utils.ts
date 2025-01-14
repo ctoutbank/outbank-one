@@ -103,10 +103,21 @@ export function gateDateByViewMode(viewMode: string): Period {
 
 
 
+export function FormatDate(date: Date): string {
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
 
+  return `${day}/${month}/${year}`;
+}
 
+export function currencyFormat(number: number): string {
+  return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+}
 
 
 export function generateSlug(): string {
   return crypto.randomBytes(16).toString("hex").toUpperCase();
 }
+
+

@@ -22,6 +22,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
+import build from "next/dist/build";
 
 // This is sample data.
 const data = {
@@ -57,7 +58,6 @@ const data = {
       title: "Consultores",
       url: "/portal/salesAgents",
       icon: User,
-
     },
     {
       title: "Natureza Jurídica",
@@ -68,8 +68,17 @@ const data = {
       title: "Categorias",
       url: "/portal/categories",
       icon: Grid,
-    }
-
+    },
+    {
+      title: "Histórico de Liquidação",
+      url: "/portal/settlements/history",
+      icon: Grid,
+    },
+    {
+      title: "Liquidação",
+      url: "/portal/settlements",
+      icon: Grid,
+    },
   ],
 };
 
