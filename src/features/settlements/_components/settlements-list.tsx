@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,9 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
-// Mock data structure matching the image
 const mockSettlements = {
   merchant_settlements: [
     {
@@ -35,34 +34,12 @@ const mockSettlements = {
           agency: "0710",
           accountNumber: "35455",
           accountType: "Checking",
-          amount: 3626.40,
+          amount: 3626.4,
           effectivePaymentDate: "2025-01-16",
           paymentNumber: "202501150000561154288",
-          status: "PAID"
+          status: "PAID",
         },
-        {
-          receivableUnit: "VISA Credit",
-          bank: "Bco cooperativo sicredi s.a.",
-          agency: "0710",
-          accountNumber: "35455",
-          accountType: "Checking",
-          amount: 3812.39,
-          effectivePaymentDate: "2025-01-16",
-          paymentNumber: "202501150000561154289",
-          status: "PAID"
-        },
-        {
-          receivableUnit: "ELO Credit",
-          bank: "Bco cooperativo sicredi s.a.",
-          agency: "0710",
-          accountNumber: "35455",
-          accountType: "Checking",
-          amount: 138.73,
-          effectivePaymentDate: "2025-01-16",
-          paymentNumber: "202501150000561154290",
-          status: "PAID"
-        }
-      ]
+      ],
     },
     {
       id: "2",
@@ -73,7 +50,7 @@ const mockSettlements = {
       pendingRestitutionAmount: 0,
       totalSettlementAmount: 16096.23,
       status: "SETTLED",
-      transactions: []
+      transactions: [],
     },
     {
       id: "3",
@@ -84,109 +61,140 @@ const mockSettlements = {
       pendingRestitutionAmount: 0,
       totalSettlementAmount: 9715.61,
       status: "SETTLED",
-      transactions: []
-    }
-  ]
-}
+      transactions: [],
+    },
+  ],
+};
 
 export default function SettlementsList() {
   function getStatusColor(status: string): string {
     switch (status) {
       case "PENDING":
-        return "bg-yellow-500 text-white hover:bg-yellow-600"
+        return "bg-yellow-500 text-white hover:bg-yellow-600";
       case "PROCESSING":
-        return "bg-yellow-300 text-black hover:bg-yellow-400"
+        return "bg-yellow-300 text-black hover:bg-yellow-400";
       case "FAILED":
-        return "bg-red-500 text-white hover:bg-red-600"
+        return "bg-red-500 text-white hover:bg-red-600";
       case "SETTLED":
-        return "bg-green-500 text-white hover:bg-green-600"
+        return "bg-green-500 text-white hover:bg-green-600";
       case "PAID":
-        return "bg-green-500 text-white hover:bg-green-600"
+        return "bg-green-500 text-white hover:bg-green-600";
       case "PRE_APPROVED":
-        return "bg-blue-400 text-white hover:bg-blue-500"
+        return "bg-blue-400 text-white hover:bg-blue-500";
       case "APPROVED":
-        return "bg-blue-700 text-white hover:bg-blue-800"
+        return "bg-blue-700 text-white hover:bg-blue-800";
       default:
-        return "bg-gray-400 text-white hover:bg-gray-500"
+        return "bg-gray-400 text-white hover:bg-gray-500";
     }
   }
 
+  function formatCurrency(value: number): string {
+    return `R$ ${value.toFixed(2)}`;
+  }
+
   return (
-    <Accordion type="single" collapsible className="w-full">
-      {mockSettlements.merchant_settlements.map((settlement) => (
-        <AccordionItem key={settlement.id} value={settlement.id}>
-          <AccordionTrigger className="hover:no-underline">
-            <div className="w-full">
-              <Table>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">
+    <div className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="flex">
+              <div className="w-[250px]">Merchant</div>
+              <div className="w-[250px]">Gross Sales Amount</div>
+              <div className="w-[250px]">Net Anticipations Amount</div>
+              <div className="w-[150px]">Adjustment</div>
+              <div className="w-[250px]">Pending Restitution Amount</div>
+              <div className="w-[150px]">Settlement Amount</div>
+              <div className="w-[100px]">Status</div>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {mockSettlements.merchant_settlements.map((settlement) => (
+            <Accordion
+              key={settlement.id}
+              type="single"
+              collapsible
+              className="w-full"
+            >
+              <AccordionItem value={settlement.id} className="border-0">
+                <AccordionTrigger className="hover:no-underline w-full [&[data-state=open]>div>table>tbody>tr]:bg-gray-100/50">
+                  <TableRow className="hover:bg-gray-100/50 w-full">
+                    <TableCell className="font-medium w-[250px]">
                       {settlement.merchant}
                     </TableCell>
-                    <TableCell>
-                      R$ {settlement.batchAmount.toFixed(2)}
+                    <TableCell className="text-right w-[250px]">
+                      {formatCurrency(settlement.batchAmount)}
                     </TableCell>
-                    <TableCell>
-                      R$ {settlement.totalAnticipationAmount.toFixed(2)}
+                    <TableCell className="text-right w-[250px]">
+                      {formatCurrency(settlement.totalAnticipationAmount)}
                     </TableCell>
-                    <TableCell>
-                      R$ {settlement.pendingFinancialAdjustmentAmount.toFixed(2)}
+                    <TableCell className="text-right w-[150px]">
+                      {formatCurrency(
+                        settlement.pendingFinancialAdjustmentAmount
+                      )}
                     </TableCell>
-                    <TableCell>
-                      R$ {settlement.pendingRestitutionAmount.toFixed(2)}
+                    <TableCell className="text-right w-[250px]">
+                      {formatCurrency(settlement.pendingRestitutionAmount)}
                     </TableCell>
-                    <TableCell>
-                      R$ {settlement.totalSettlementAmount.toFixed(2)}
+                    <TableCell className="text-right w-[150px]">
+                      {formatCurrency(settlement.totalSettlementAmount)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center w-[100px]">
                       <Badge className={getStatusColor(settlement.status)}>
                         {settlement.status}
                       </Badge>
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Receivable Unit</TableHead>
-                  <TableHead>Bank</TableHead>
-                  <TableHead>Agency</TableHead>
-                  <TableHead>Account Number</TableHead>
-                  <TableHead>Account Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Effective Payment Date</TableHead>
-                  <TableHead>Payment Number</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {settlement.transactions.map((transaction, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{transaction.receivableUnit}</TableCell>
-                    <TableCell>{transaction.bank}</TableCell>
-                    <TableCell>{transaction.agency}</TableCell>
-                    <TableCell>{transaction.accountNumber}</TableCell>
-                    <TableCell>{transaction.accountType}</TableCell>
-                    <TableCell>R$ {transaction.amount.toFixed(2)}</TableCell>
-                    <TableCell>{transaction.effectivePaymentDate}</TableCell>
-                    <TableCell>{transaction.paymentNumber}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(transaction.status)}>
-                        {transaction.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </AccordionContent>
-        </AccordionItem>
-      ))}
-    </Accordion>
-  )
+                </AccordionTrigger>
+                <AccordionContent className="border-t">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Receivable Unit</TableHead>
+                        <TableHead>Bank</TableHead>
+                        <TableHead>Agency</TableHead>
+                        <TableHead>Account Number</TableHead>
+                        <TableHead>Account Type</TableHead>
+                        <TableCell className="text-right font-medium">
+                          Amount
+                        </TableCell>
+                        <TableHead>Effective Payment Date</TableHead>
+                        <TableHead>Payment Number</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {settlement.transactions.map((transaction, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{transaction.receivableUnit}</TableCell>
+                          <TableCell>{transaction.bank}</TableCell>
+                          <TableCell>{transaction.agency}</TableCell>
+                          <TableCell>{transaction.accountNumber}</TableCell>
+                          <TableCell>{transaction.accountType}</TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(transaction.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {transaction.effectivePaymentDate}
+                          </TableCell>
+                          <TableCell>{transaction.paymentNumber}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              className={getStatusColor(transaction.status)}
+                            >
+                              {transaction.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 }
-
