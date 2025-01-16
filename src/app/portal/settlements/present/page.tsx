@@ -38,7 +38,7 @@ export default async function SettlementsPage({
       >
         <ListFilter pageName="portal/settlements/present" search={search} />
 
-        <SettlementList MerchantSettlements={settlements} />
+        <SettlementList />
         {totalRecords > 0 && (
           <PaginationRecords
             totalRecords={totalRecords}
