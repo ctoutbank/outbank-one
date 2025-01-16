@@ -2,12 +2,13 @@
 
 import { db } from "@/server/db";
 import { getIdBySlug } from "./getslug";
-import { merchantPixAccount } from "./types";
+import { merchantPixAccounts } from "./types";
 import { Merchant } from "./types";
+import { merchantpixaccount } from "../../../../../drizzle/schema";
 import { sql } from "drizzle-orm";
 
 export async function insertmerchantPixAccount(
-  merchantPixAccount: merchantPixAccount,
+  merchantPixAccount: merchantPixAccounts,
   merchant: Merchant
 ) {
   try {
@@ -17,15 +18,34 @@ export async function insertmerchantPixAccount(
 
     console.log(merchantSlug);
 
-    await db.execute(sql.raw(
-      `INSERT INTO merchantpixaccount (slug, active, dtinsert, dtupdate, id_registration, id_account, bank_number, bank_branch_number, bank_branch_digit, bank_account_number, bank_account_digit, bank_account_type,bank_account_status	,onboarding_pix_status,message,bank_name,id_merchant,slug_merchant)			
-         VALUES (${merchantPixAccount.slug}, ${merchantPixAccount.active}, ${merchantPixAccount.dtInsert}, ${merchantPixAccount.dtUpdate}, ${merchantPixAccount.idRegistration}, ${merchantPixAccount.idAccount}, ${merchantPixAccount.bankNumber}, ${merchantPixAccount.bankBranchNumber}, ${merchantPixAccount.bankBranchDigit}, ${merchantPixAccount.bankAccountNumber}, ${merchantPixAccount.bankAccountDigit}, ${merchantPixAccount.bankAccountType}, ${merchantPixAccount.bankAccountStatus}, ${merchantPixAccount.onboardingPixStatus}, ${merchantPixAccount.message}, ${merchantPixAccount.bankName}, ${id_merchant}, ${merchantSlug})
-        
-         
-            `,
-     
-    ));
-    const slug = merchantPixAccount.slug;
+    const result = await db.insert(merchantpixaccount).values({
+      slug: merchantPixAccount.slug,
+      active: merchantPixAccount.active,
+      dtinsert: merchantPixAccount.dtInsert ? new Date(merchantPixAccount.dtInsert).toISOString() : null,
+      dtupdate: merchantPixAccount.dtUpdate ? new Date(merchantPixAccount.dtUpdate).toISOString() : null,
+      idRegistration: merchantPixAccount.idRegistration,
+      idAccount: merchantPixAccount.idAccount,
+      bankNumber: merchantPixAccount.bankNumber,
+      bankBranchNumber: merchantPixAccount.bankBranchNumber,
+      bankBranchDigit: merchantPixAccount.bankBranchDigit,
+      bankAccountNumber: merchantPixAccount.bankAccountNumber,
+      bankAccountDigit: merchantPixAccount.bankAccountDigit,
+      bankAccountType: merchantPixAccount.bankAccountType,
+      bankAccountStatus: merchantPixAccount.bankAccountStatus,
+      onboardingPixStatus: merchantPixAccount.onboardingPixStatus,
+      message: merchantPixAccount.message,
+      bankName: merchantPixAccount.bankName,
+      idMerchant: id_merchant,
+      slugMerchant: merchantSlug
+    }).returning({ slug: merchantpixaccount.slug });
+    
+    if (result.length === 0) {
+      throw new Error(
+        "Insert failed: No slug returned for the inserted contact."
+      );
+    }
+
+    const slug = result[0].slug as string;
     console.log("Merchant pix account inserted successfully.");
     return slug;
   } catch (error) {
@@ -34,17 +54,16 @@ export async function insertmerchantPixAccount(
 }
 
 export async function getOrCreateMerchantPixAccount(
-  merchantPixAccount: merchantPixAccount,
+  merchantPixAccount: merchantPixAccounts,
   merchant: Merchant
 ) {
   try {
-    const result = await db.execute(sql
-      `SELECT slug FROM merchantpixaccount WHERE slug = ${merchantPixAccount.slug}
-      `
-    );
+    const result = await db.select({ slug: merchantpixaccount.slug })
+      .from(merchantpixaccount)
+      .where(sql`${merchantpixaccount.slug} = ${merchantPixAccount.slug}`);
 
-    if (result.rows.length > 0) {
-      return result.rows[0].slug;
+    if (result.length > 0) {
+      return result[0].slug;
     } else {
       await insertmerchantPixAccount(merchantPixAccount, merchant);
       return merchantPixAccount.slug;
@@ -53,3 +72,5 @@ export async function getOrCreateMerchantPixAccount(
     console.error("Error getting or creating merchant pix account:", error);
   }
 }
+
+ 

@@ -14,7 +14,7 @@ export type Merchant = {
     phoneType?: "C" | "F"; // "C" para celular, "F" para fixo
     language?: string;
     timezone?: string;
-    contacts?: contacts[];
+    contacts?: contact[];
     address?: Address;
   
     slugCustomer?: string;
@@ -32,13 +32,13 @@ export type Merchant = {
     closingHour?: string;
     municipalRegistration?: string;
     stateSubcription?: string;
-    configuration?: configurations;
+    configuration?: configuration;
     hasTef: boolean;
     hasPix: boolean;
     hasTop: boolean;
     establishmentFormat?: string;
     revenue?: number;
-    merchantPixAccount?: merchantPixAccount;
+    merchantPixAccount?: merchantPixAccounts;
   };
   
   export type Address = {
@@ -53,7 +53,7 @@ export type Merchant = {
     zipCode?: string;
   };
   
-  export type contacts = {
+  export type contact = {
     id: number;
     name?: string;
     documentId?: string;
@@ -85,8 +85,8 @@ export type Merchant = {
   export type LegalNature = {
     slug: string;
     active: boolean;
-    dtInsert: Date | string;
-    dtUpdate: Date | string;
+    dtInsert: Date 
+    dtUpdate: Date 
     name?: string;
     code?: string;
   };
@@ -98,12 +98,12 @@ export type Merchant = {
     dtUpdate: Date;
     firstName: string;
     lastName: string;
-    documentId?: number;
+    documentId?: string;
     email?: string;
     slugCustomer?: string;
   };
   
-  export type configurations = {
+  export type configuration = {
     slug: string;
     active: boolean;
     dtInsert: Date;
@@ -113,7 +113,7 @@ export type Merchant = {
     url?: string;
   };
   
-  export type merchantPixAccount = {
+  export type merchantPixAccounts = {
     slug: string;
     active: boolean;
     dtInsert: Date;

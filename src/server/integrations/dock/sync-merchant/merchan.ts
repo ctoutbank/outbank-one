@@ -1,122 +1,169 @@
 "use server";
-import { db } from "@/server/db";
-import { insertAddress } from "./address";
-import { getOrCreateCategory } from "./category";
-import { getOrCreateCofiguration } from "./configuration";
-import { insertContact } from "./contact";
 
+import { db } from "@/server/db";
+
+
+import { eq } from "drizzle-orm";
+import { merchants } from "../../../../../drizzle/schema";
 import { getIdBySlug } from "./getslug";
 import { getOrCreateLegalNature } from "./legalNature";
-import { insertmerchantPixAccount } from "./merchantPixAccount";
-import { getOrCreateSaleAgent } from "./salesAgent";
 import { Merchant } from "./types";
-import { sql } from "drizzle-orm";
+import { getOrCreateCategory } from "./category";
+import { getOrCreateSaleAgent } from "./salesAgent";
+import { getOrCreateConfiguration } from "./configuration";
+import { insertAddress } from "./address";
+import { insertContact } from "./contact";
+import { insertmerchantPixAccount } from "./merchantPixAccount";
 
 
 
 export async function insertMerchantAndRelations(merchant: Merchant) {
   console.log("Inserting merchant:", merchant);
   try {
-    // Obter slugs das tabelas relacionadas
+
     const categoryslug = merchant.category
-      ? await getOrCreateCategory (merchant.category)
+      ? await getOrCreateCategory(merchant.category)
       : null;
-    console.log("categoryslug", categoryslug);
     const legalnatureslug = merchant.legalNature
       ? await getOrCreateLegalNature(merchant.legalNature)
       : null;
-    console.log("legalnatureslug", legalnatureslug);
+
     const saleagentslug = merchant.saleAgent
       ? await getOrCreateSaleAgent(merchant.saleAgent)
       : null;
-    console.log("saleagentslug", saleagentslug);
+
     const configurationslug = merchant.configuration
-      ? await getOrCreateCofiguration(merchant.configuration)
-      : null;
-    console.log("configurationslug", configurationslug);
+      ? await getOrCreateConfiguration(merchant.configuration)
+      : null; 
+
     const addressId = merchant.address
       ? await insertAddress(merchant.address)
       : null;
-    console.log("addressId", addressId);
-    // Obter IDs das tabelas relacionadas
+
     const categoryId = merchant.category
       ? await getIdBySlug("categories", merchant.category.slug)
       : null;
-    console.log("categoryId", categoryId);
+
     const legalNatureId = merchant.legalNature
       ? await getIdBySlug("legal_natures", merchant.legalNature.slug)
       : null;
     console.log("legalNatureId", legalNatureId);
+
     const saleAgentId = merchant.saleAgent
       ? await getIdBySlug("sales_agents", merchant.saleAgent.slug)
       : null;
-    console.log("saleAgentId", saleAgentId);
+
     const configurationId = merchant.configuration
       ? await getIdBySlug("configurations", merchant.configuration.slug)
       : null;
-    console.log("configurationId", configurationId);
+    
     // Inserir o merchant com os IDs e slugs obtidos
     await insertMerchant(
       merchant,
       addressId || null,
       categoryslug?.toString() || null,
-      configurationslug?.toString() || null,
       legalnatureslug?.toString() || null,
       saleagentslug?.toString() || null,
+      configurationslug?.toString() || null,
       categoryId || null,
       legalNatureId || null,
       saleAgentId || null,
       configurationId || null
+      
+
   );
-    console.log("Merchant inserted successfully.");
-    //inserir contatos
-    if (merchant.contacts) {
-      for (const contact of merchant.contacts) {
-        console.log("inserting contacts", contact);
-        await insertContact(contact, merchant, contact.address);
-      }
-    }
-    if (merchant.merchantPixAccount) {
-      await insertmerchantPixAccount(merchant.merchantPixAccount, merchant);
-    }
-  } catch (error) {
+
+  if (merchant.contacts) {
+    for (const contact of merchant.contacts) {
+      await insertContact(contact,merchant,contact.address);
+  }
+    
+  }if (merchant.merchantPixAccount) {
+    
+      await insertmerchantPixAccount(merchant.merchantPixAccount,merchant);
+  }
+  }
+
+   catch (error) {
     console.error(`Erro ao processar merchant ${merchant.slug}:`, error);
   }
 }
+
 
 async function insertMerchant(
   merchant: Merchant,
   addressId: number | null,
   categoryslug: string | null,
-  configurationslug: string | null,
   legalnatureslug: string | null,
   saleagentslug: string | null,
+  configurationslug: string | null,
   categoryId: number | null,
   legalNatureId: number | null,
   saleAgentId: number | null,
   configurationId: number | null
+
+  
+  
 ) {
+  
   try {
+    
+    const existing = await db.select().from(merchants).where(eq(merchants.slug, merchant.slug));
+
+    if (existing.length > 0) {
+
+      
+     
+      return; 
+    }
+
     console.log("Inserting merchant:", merchant);
 
-    const dtInsert = merchant.dtInsert ? new Date(merchant.dtInsert) : null;
-    const dtUpdate = merchant.dtUpdate ? new Date(merchant.dtUpdate) : null;
+    const DtInsert = merchant.dtInsert ? new Date(merchant.dtInsert).toISOString() : null;
+    const DtUpdate = merchant.dtUpdate ? new Date(merchant.dtUpdate).toISOString() : null;
 
-    await db.execute(sql.raw(
-      `INSERT INTO merchants (
-            slug, active, dtinsert, dtupdate, id_merchant, name, id_document,
-            corporate_name, email, area_code, number, phone_type, language, timezone,
-            risk_analysis_status, risk_analysis_status_justification, legal_person,
-            opening_date, inclusion, opening_days, opening_hour, closing_hour,
-            municipal_registration, state_subcription, has_tef, has_pix, has_top,
-            establishment_format, revenue, id_address,  slug_sales_agent, 
-            slug_configuration, slug_category, slug_legal_nature, id_category, 
-            id_legal_nature, id_sales_agent, id_configuration
-          ) VALUES (
-          ${merchant.slug}, ${merchant.active}, ${dtInsert}, ${dtUpdate}, ${merchant.merchantId}, ${merchant.name}, ${merchant.documentId}, ${merchant.corporateName}, ${merchant.email}, ${merchant.areaCode}, ${merchant.number}, ${merchant.phoneType}, ${merchant.language}, ${merchant.timezone}, ${merchant.riskAnalysisStatus}, ${merchant.riskAnalysisStatusJustification}, ${merchant.legalPerson}, ${merchant.openingDate ? new Date(merchant.openingDate) : null}, ${merchant.inclusion}, ${merchant.openingDays}, ${merchant.openingHour}, ${merchant.closingHour}, ${merchant.municipalRegistration || null}, ${merchant.stateSubcription || null}, ${merchant.hasTef}, ${merchant.hasPix}, ${merchant.hasTop}, ${merchant.establishmentFormat}, ${merchant.revenue}, ${addressId}, ${saleagentslug}, ${configurationslug}, ${categoryslug}, ${legalnatureslug}, ${categoryId}, ${legalNatureId}, ${saleAgentId}, ${configurationId}
-          )
-          `,
-    ));
+    await db.insert(merchants).values({
+      slug: merchant.slug || null,
+      active: merchant.active,
+      dtinsert: DtInsert,
+      dtupdate: DtUpdate,
+      idMerchant: merchant.merchantId,
+      name: merchant.name,
+      idDocument: merchant.documentId,
+      corporateName: merchant.corporateName || null,
+      email: merchant.email || null,
+      areaCode: merchant.areaCode || null,
+      number: merchant.number || null,
+      phoneType: merchant.phoneType || null,
+      language: merchant.language || null,
+      timezone: merchant.timezone || null,
+      slugCustomer: merchant.slugCustomer || null,
+      riskAnalysisStatus: merchant.riskAnalysisStatus || null,
+      riskAnalysisStatusJustification: merchant.riskAnalysisStatusJustification || null,
+      legalPerson: merchant.legalPerson || null,
+      openingDate: merchant.openingDate ? new Date(merchant.openingDate).toISOString() : null, // Corrigido
+      inclusion: merchant.inclusion || null,
+      openingDays: merchant.openingDays || null,
+      openingHour: merchant.openingHour || null,
+      closingHour: merchant.closingHour || null,
+      municipalRegistration: merchant.municipalRegistration || null,
+      stateSubcription: merchant.stateSubcription || null,
+      hasTef: merchant.hasTef,
+      hasPix: merchant.hasPix,
+      hasTop: merchant.hasTop,
+      establishmentFormat: merchant.establishmentFormat || null,
+      revenue: merchant.revenue?.toString() || null,
+      idCategory: categoryId,
+      slugCategory: categoryslug,
+      idLegalNature: legalNatureId,
+      slugLegalNature: legalnatureslug,
+      idSalesAgent: saleAgentId,
+      slugSalesAgent: saleagentslug,
+      idConfiguration: configurationId,
+      slugConfiguration: configurationslug,
+      idAddress: addressId
+    });
+
 
     console.log("Merchant inserted successfully.");
   } catch (error) {

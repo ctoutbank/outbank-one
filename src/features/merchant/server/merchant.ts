@@ -273,3 +273,138 @@ export async function getMerchantById(id: bigint): Promise<Merchant | null> {
     id_address: merchant.id_address ?? 0,
   };
 }
+
+// Interface para o MerchantDetail
+export interface MerchantDetail {
+  id: number;
+  slug: string;
+  name: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  idMerchant?: string;
+  idDocument?: string;
+  corporateName?: string;
+  email?: string;
+  areaCode?: string;
+  number?: string;
+  phoneType?: string;
+  language?: string;
+  timezone?: string;
+  slugCustomer?: string;
+  riskAnalysisStatus?: string;
+  riskAnalysisStatusJustification?: string;
+  legalPerson?: string;
+  openingDate?: Date;
+  inclusion?: string;
+  openingDays?: string;
+  openingHour?: string;
+  closingHour?: string;
+  municipalRegistration?: string;
+  stateSubcription?: string;
+  hasTef?: boolean;
+  hasPix?: boolean;
+  hasTop?: boolean;
+  establishmentFormat?: string;
+  revenue?: number;
+  idCategory?: number;
+  slugCategory?: string;
+  idConfiguration?: number;
+  slugConfiguration?: string;
+  idAddress?: number;
+}
+
+// Função para inserir um novo merchant
+export async function insertMerchant(
+  merchant: MerchantInsert
+): Promise<number> {
+  const result = await db
+    .insert(merchants)
+    .values({
+      slug: merchant.slug,
+      name: merchant.name,
+      active: merchant.active,
+      dtinsert: new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+      idMerchant: merchant.idMerchant,
+      idDocument: merchant.idDocument,
+      corporateName: merchant.corporateName,
+      email: merchant.email,
+      areaCode: merchant.areaCode,
+      number: merchant.number,
+      phoneType: merchant.phoneType,
+      language: merchant.language,
+      timezone: merchant.timezone,
+      slugCustomer: merchant.slugCustomer,
+      riskAnalysisStatus: merchant.riskAnalysisStatus,
+      riskAnalysisStatusJustification: merchant.riskAnalysisStatusJustification,
+      legalPerson: merchant.legalPerson,
+      openingDate: merchant.openingDate
+        ? new Date(merchant.openingDate).toISOString()
+        : null,
+      inclusion: merchant.inclusion,
+      openingDays: merchant.openingDays,
+      openingHour: merchant.openingHour,
+      closingHour: merchant.closingHour,
+      municipalRegistration: merchant.municipalRegistration,
+      stateSubcription: merchant.stateSubcription,
+      hasTef: merchant.hasTef,
+      hasPix: merchant.hasPix,
+      hasTop: merchant.hasTop,
+      establishmentFormat: merchant.establishmentFormat,
+      revenue: merchant.revenue,
+      idCategory: merchant.idCategory,
+      slugCategory: merchant.slugCategory,
+      idConfiguration: merchant.idConfiguration,
+      slugConfiguration: merchant.slugConfiguration,
+      idAddress: merchant.idAddress,
+    })
+    .returning({ id: merchants.id });
+
+  return result[0].id;
+}
+
+// Função para atualizar um merchant existente
+export async function updateMerchant(merchant: MerchantDetail): Promise<void> {
+  await db
+    .update(merchants)
+    .set({
+      slug: merchant.slug,
+      name: merchant.name,
+      active: merchant.active,
+      dtupdate: new Date().toISOString(),
+      idMerchant: merchant.idMerchant,
+      idDocument: merchant.idDocument,
+      corporateName: merchant.corporateName,
+      email: merchant.email,
+      areaCode: merchant.areaCode,
+      number: merchant.number,
+      phoneType: merchant.phoneType,
+      language: merchant.language,
+      timezone: merchant.timezone,
+      slugCustomer: merchant.slugCustomer,
+      riskAnalysisStatus: merchant.riskAnalysisStatus,
+      riskAnalysisStatusJustification: merchant.riskAnalysisStatusJustification,
+      legalPerson: merchant.legalPerson,
+      openingDate: merchant.openingDate
+        ? new Date(merchant.openingDate).toISOString()
+        : null,
+      inclusion: merchant.inclusion,
+      openingDays: merchant.openingDays,
+      openingHour: merchant.openingHour,
+      closingHour: merchant.closingHour,
+      municipalRegistration: merchant.municipalRegistration,
+      stateSubcription: merchant.stateSubcription,
+      hasTef: merchant.hasTef,
+      hasPix: merchant.hasPix,
+      hasTop: merchant.hasTop,
+      establishmentFormat: merchant.establishmentFormat,
+      revenue: merchant.revenue?.toString(),
+      idCategory: merchant.idCategory,
+      slugCategory: merchant.slugCategory,
+      idConfiguration: merchant.idConfiguration,
+      slugConfiguration: merchant.slugConfiguration,
+      idAddress: merchant.idAddress,
+    })
+    .where(eq(merchants.id, merchant.id));
+}
