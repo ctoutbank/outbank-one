@@ -11,7 +11,8 @@ import {
 } from "./types";
 import { insertSettlementAndRelations } from "./settlements";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
-import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
+import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders copy";
+import { insertPixMerchantSettlementOrdersAndRelations } from "./pixMerchantSettlementOrders";
 
 async function fetchSettlements() {
   let offset = 0;
@@ -145,11 +146,19 @@ async function fetchPixMerchantSettlementsOrders() {
   return allData;
 }
 
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    result.push(array.slice(i, i + chunkSize));
+  }
+  return result;
+}
+
 export async function main() {
   try {
     console.log("Buscando customer...");
 
-    const response = await fetchSettlements(); // Obtém a resposta inicial
+    /* const response = await fetchSettlements(); // Obtém a resposta inicial
     const settlements: Settlement[] = response || []; // Extraindo Settlements de 'objects'
 
     console.log(`Total de Settlements encontrados: ${settlements.length}`);
@@ -159,28 +168,38 @@ export async function main() {
     }
 
     const reponseMerchantSettlement = await fetchMerchantSettlements();
-    const merchantSettlements : SettlementObject[] =
+    const merchantSettlements: SettlementObject[] =
       reponseMerchantSettlement || [];
 
-  for (const merchantsettlement of merchantSettlements ) {
-    await insertMerchantSettlementAndRelations(merchantsettlement)
-  }
-  
-  const responseMerchantSettlementsOrders = await fetchMerchantSettlementsOrders()
-  const merchantSettlementsOrders : MerchantSettlementsOrders[] = responseMerchantSettlementsOrders || []
+    for (const merchantsettlement of merchantSettlements) {
+      await insertMerchantSettlementAndRelations(merchantsettlement);
+    }*/
 
-  for (const merchantSettlementsOrder of merchantSettlementsOrders ) {
-    await  insertMerchantSettlementOrdersAndRelations(merchantSettlementsOrder)
-  }
+    const responseMerchantSettlementsOrders =
+      await fetchMerchantSettlementsOrders();
+    const merchantSettlementsOrders: MerchantSettlementsOrders[] =
+      responseMerchantSettlementsOrders || [];
 
- const responsePixMerchantSettlementsOrders = await fetchPixMerchantSettlementsOrders()
- const pixMerchantSettlementOrders : PixMerchantSettlementOrders[] = responsePixMerchantSettlementsOrders || []
+    // Divida a lista em pedaços de 1000 itens
+    const chunkedOrders = chunkArray(merchantSettlementsOrders, 1000);
 
- for (const pixMerchantSettlementOrder of pixMerchantSettlementOrders) {
-  await insertPixMerchantSettlementOrdersAndRelation(pixMerchantSettlementOrder)
+    // Envie cada pedaço para a função insertMerchantSettlementOrdersAndRelations
+    for (const chunk of chunkedOrders) {
+      console.log("entrou no chunk for");
+      await insertMerchantSettlementOrdersAndRelations(chunk);
+    }
+    /*
 
- }
+    const responsePixMerchantSettlementsOrders =
+      await fetchPixMerchantSettlementsOrders();
+    const pixMerchantSettlementOrders: PixMerchantSettlementOrders[] =
+      responsePixMerchantSettlementsOrders || [];
 
+    for (const pixMerchantSettlementOrder of pixMerchantSettlementOrders) {
+      await insertPixMerchantSettlementOrdersAndRelations(
+        pixMerchantSettlementOrder
+      );
+    }*/
   } catch (error) {
     console.error("Erro ao processar Settlements:", error);
   } finally {

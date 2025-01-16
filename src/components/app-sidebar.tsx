@@ -8,6 +8,7 @@ import {
   DollarSignIcon,
   Grid,
   HomeIcon,
+  Landmark,
   User,
 } from "lucide-react";
 import * as React from "react";
@@ -72,12 +73,12 @@ const data = {
     {
       title: "Histórico de Liquidação",
       url: "/portal/settlements/history",
-      icon: Grid,
+      icon: Landmark,
     },
     {
       title: "Liquidação",
-      url: "/portal/settlements",
-      icon: Grid,
+      url: "/portal/settlements/present",
+      icon: Landmark,
     },
   ],
 };

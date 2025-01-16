@@ -145,3 +145,8 @@ async function insertPixMerchantSettlementOrders(
     console.error("Error inserting pixMerchantSettlementOrder:", error);
   }
 }
+
+
+
+
+

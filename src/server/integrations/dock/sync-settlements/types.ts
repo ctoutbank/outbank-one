@@ -134,8 +134,6 @@ export type MerchantSettlementsOrders = {
   lock: boolean;
 };
 
-
-
 export type PixMerchantSettlementOrders = {
   slug: string;
   active: boolean;
@@ -177,3 +175,35 @@ export type PixMerchantSettlementOrdersResponse = {
   meta: Meta;
   objects: PixMerchantSettlementOrders[];
 };
+
+export type InsertMerchantSettlementsOrders = {
+  slug: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  compeCode: string;
+  accountNumber: string;
+  accountNumberCheckDigit: string;
+  slugPaymentInstitution: string;
+  idPaymentInstitution: number;
+  bankBranchNumber: string;
+  accountType: string;
+  integrationType: string;
+  brand: string;
+  productType: string;
+  amount: string;
+  anticipationAmount: string;
+  idMerchantSettlement: number;
+  merchantSettlementOrderStatus: string;
+  orderTransactionId: string;
+  settlementUniqueNumber: string;
+  protocolGuidId: string;
+  legalPerson: string;
+  documentId: string;
+  corporateName: string;
+  effectivePaymentDate: string;
+  lock: boolean;
+};
+
+
+
