@@ -1,10 +1,8 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq, count, desc, ilike, or } from "drizzle-orm";
+import { asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { categories } from "../../../../drizzle/schema";
-import { id } from "date-fns/locale";
-import { toast } from "@/components/use-toast";
 
 
 export interface CategoryList {
@@ -32,7 +30,9 @@ export type CategoryDetail = typeof categories.$inferSelect;
 export async function getCategories(
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sortField: string = 'id',
+  sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<CategoryList> {
   const offset = (page - 1) * pageSize;
 
@@ -61,12 +61,20 @@ export async function getCategories(
         ilike(categories.cnae, `%${search}%`)
       )
     )
-    .orderBy(desc(categories.id))
+    .orderBy(
+      sortField === 'name' 
+        ? sortOrder === 'asc' 
+          ? asc(categories.name) 
+          : desc(categories.name)
+        : desc(categories.id)
+    )
     .limit(pageSize)
     .offset(offset);
 
   const totalCountResult = await db.select({ count: count() }).from(categories);
   const totalCount = totalCountResult[0]?.count || 0;
+
+  console.log(sortField, sortOrder)
 
   return {
     categories: result.map((category) => ({
@@ -86,7 +94,10 @@ export async function getCategories(
     })),
     totalCount,
   };
+ 
 }
+
+
 
 export async function getCategoryById(
   id: number

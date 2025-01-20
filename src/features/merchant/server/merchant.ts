@@ -408,3 +408,60 @@ export async function updateMerchant(merchant: MerchantDetail): Promise<void> {
     })
     .where(eq(merchants.id, merchant.id));
 }
+
+
+export async function updateMerchantColumnBySlug(
+  slug: string,
+  columnName: string,
+  value: string | number | boolean | null
+): Promise<void> {
+  try {
+    await db
+      .update(merchants)
+      .set({
+        [columnName]: value
+       
+      })
+      .where(eq(merchants.slug, slug));
+
+    console.log(`Coluna ${columnName} atualizada com sucesso para o slug ${slug}`);
+  } catch (error) {
+    console.error(
+      `Erro ao atualizar coluna ${columnName} para o slug ${slug}:`,
+      error
+    );
+    throw new Error(`Falha ao atualizar merchant: ${error}`);
+  }
+}
+
+
+
+
+export async function updateMerchantColumnById(
+  id: number,
+  columnName: string,
+  value: string | number | boolean | null
+): Promise<void> {
+  try {
+    await db
+      .update(merchants)
+      .set({
+        [columnName]: value,
+        dtupdate: new Date().toISOString(), 
+      })
+      .where(eq(merchants.id, id));
+
+    console.log(`Coluna ${columnName} atualizada com sucesso para o ID ${id}`);
+  } catch (error) {
+    console.error(
+      `Erro ao atualizar coluna ${columnName} para o ID ${id}:`,
+      error
+    );
+    throw new Error(`Falha ao atualizar merchant: ${error}`);
+  }
+}
+
+
+
+// Atualizar o nome
+//await updateMerchantColumnById(123, "name", "Novo Nome"); //

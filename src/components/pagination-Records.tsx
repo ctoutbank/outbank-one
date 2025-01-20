@@ -27,7 +27,7 @@ const PaginationCustom: React.FC<PaginationProps> = ({
   const router = useRouter();
   const totalPages = Math.ceil(totalRecords / pageSize);
   const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams?.toString());
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
