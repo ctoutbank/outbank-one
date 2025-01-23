@@ -10,6 +10,7 @@ import {
   HomeIcon,
   Landmark,
   User,
+  Settings,
 } from "lucide-react";
 import * as React from "react";
 
@@ -38,16 +39,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     navMain: [
       {
-        title: "Dashboard Geral",
-        url: "/portal/dashboard",
-        icon: ChartArea,
-      },
-      {
-        title: "Vendas",
-        url: "/portal/transactions",
-        icon: DollarSign,
-      },
-      {
         title: "Estabelecimentos",
         url: "/portal/merchants",
         icon: HomeIcon,
@@ -58,19 +49,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Calculator,
       },
       {
-        title: "Consultores",
+        title: "Vendas",
+        url: "/portal/transactions",
+        icon: DollarSign,
+        items: [
+          {
+            title: "Dashboard",
+            url: "/portal/dashboard",
+          },
+        ],
+      },
+
+      {
+        title: "Consultores Comerciais",
         url: "/portal/salesAgents",
         icon: User,
-      },
-      {
-        title: "Natureza Jurídica",
-        url: "/portal/legalNatures",
-        icon: Building,
-      },
-      {
-        title: "Categorias",
-        url: "/portal/categories",
-        icon: Grid,
       },
 
       {
@@ -85,6 +78,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Histórico",
             url: "/portal/settlements/history",
+          },
+        ],
+      },
+      {
+        title: "Configurações",
+        url: "/portal/categories",
+        icon: Settings,
+        items: [
+          {
+            title: "Categorias",
+            url: "/portal/categories",
+          },
+          {
+            title: "Natureza Jurídica",
+            url: "/portal/legalNatures",
           },
         ],
       },

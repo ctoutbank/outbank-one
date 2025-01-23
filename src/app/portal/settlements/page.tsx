@@ -46,7 +46,7 @@ export default async function SettlementsPage({
 
       <BaseBody
         title="Liquidações"
-        subtitle={`visualização de todas as Liquidações`}
+        subtitle={`Visualização de todas as Liquidações`}
       >
         <FinancialOverview
           financialOverviewProps={{

@@ -42,18 +42,54 @@ export default function FinancialOverview({
   }
   return (
     <Card className="w-full border-l-8 border-black ">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold ">Visão geral</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {FormatDateComplete(financialOverviewProps.date)}
-        </p>
-      </CardHeader>
+      <div className="flex items-center justify-between">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold ">Visão geral</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {FormatDateComplete(financialOverviewProps.date)}
+          </p>
+        </CardHeader>
+        <div className="flex gap-4 mt-4 mr-10">
+          <Badge variant="outline" className="flex items-center gap-2 w-auto">
+            <Circle
+              className={`w-3 h-3 stroke-none ${getStatusColor(
+                financialOverviewProps.creditStatus
+              )}`}
+            />
+            Crédito
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-2 w-auto">
+            <Circle
+              className={`w-3 h-3 stroke-none ${getStatusColor(
+                financialOverviewProps.debitStatus
+              )}`}
+            />
+            Débito
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-2 w-auto">
+            <Circle
+              className={`w-3 h-3 stroke-none ${getStatusColor(
+                financialOverviewProps.anticipationStatus
+              )}`}
+            />
+            Antecipação
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-2 w-auto">
+            <Circle
+              className={`w-3 h-3 stroke-none ${getStatusColor(
+                financialOverviewProps.pixStatus
+              )}`}
+            />
+            Pix
+          </Badge>
+        </div>
+      </div>
       <CardContent>
         <div className="grid gap-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Montante Bruto das Vendas
+                Valor Líquido Recebíveis
               </p>
               <p className="text-lg font-semibold">
                 {FormatCurrency(financialOverviewProps.grossSalesAmount)}
@@ -61,7 +97,7 @@ export default function FinancialOverview({
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Montante Líquido das Antecipações
+                Valor Líquido Antecipação
               </p>
               <p className="text-lg font-semibold">
                 {FormatCurrency(financialOverviewProps.netAnticipationsAmount)}
@@ -69,7 +105,7 @@ export default function FinancialOverview({
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Montante da Restituição
+                Valores de Retorno
               </p>
               <p className="text-lg font-semibold">
                 {FormatCurrency(financialOverviewProps.restitutionAmount)}
@@ -77,46 +113,12 @@ export default function FinancialOverview({
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Montante da Liquidação
+                Valor Total de Liquidação
               </p>
               <p className="text-lg font-semibold">
                 {FormatCurrency(financialOverviewProps.settlementAmount)}
               </p>
             </div>
-          </div>
-          <div className="flex gap-4 mt-4">
-            <Badge variant="outline" className="flex items-center gap-2 w-auto">
-              <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(
-                  financialOverviewProps.creditStatus
-                )}`}
-              />
-              Crédito
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-2 w-auto">
-              <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(
-                  financialOverviewProps.debitStatus
-                )}`}
-              />
-              Débito
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-2 w-auto">
-              <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(
-                  financialOverviewProps.anticipationStatus
-                )}`}
-              />
-              Antecipação
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-2 w-auto">
-              <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(
-                  financialOverviewProps.pixStatus
-                )}`}
-              />
-              Pix
-            </Badge>
           </div>
         </div>
       </CardContent>

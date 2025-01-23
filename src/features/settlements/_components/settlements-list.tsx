@@ -54,12 +54,12 @@ export default function MerchantSettlementsList({
           <TableRow className="hover:bg-transparent">
             <TableHead className="flex">
               <div className="w-[250px]">Estabelecimento</div>
-              <div className="w-[250px]">Montante bruto das vendas</div>
-              <div className="w-[250px]">Montante líquido das antecipações</div>
-              <div className="w-[150px]">Ajuste</div>
-              <div className="w-[250px]">Montante da restituição pendente</div>
-              <div className="w-[150px]">Montante da liquidação</div>
-              <div className="w-[100px]">Status</div>
+              <div className="w-[250px]">Valor Líquido Recebíveis</div>
+              <div className="w-[250px]">Valor Líquido Antecipação</div>
+              <div className="w-[150px]">Valor de Ajuste</div>
+              <div className="w-[250px]">Valor Pendente</div>
+              <div className="w-[170px]">Valor Total de Liquidação</div>
+              <div className="ml-10 w-[100px]">Status</div>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -98,7 +98,7 @@ export default function MerchantSettlementsList({
                     <TableCell className="w-[150px]">
                       {FormatCurrency(Number(settlement.totalsettlementamount))}
                     </TableCell>
-                    <TableCell className="w-[100px]">
+                    <TableCell className="ml-10 w-[100px]">
                       <Badge
                         className={
                           getStatusColor(settlement.status) + " text-white"
@@ -113,15 +113,15 @@ export default function MerchantSettlementsList({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Unidade a Receber</TableHead>
+                        <TableHead>Unidade de Recebível</TableHead>
                         <TableHead>Banco</TableHead>
                         <TableHead>Agência</TableHead>
                         <TableHead>Número da Conta</TableHead>
                         <TableHead>Tipo de Conta</TableHead>
-                        <TableCell>Montante</TableCell>
-                        <TableHead>Data de Pagamento Efectiva</TableHead>
-                        <TableHead>Número de Pagamento</TableHead>
-                        <TableHead className="text-center">Estado</TableHead>
+                        <TableCell>Valor</TableCell>
+                        <TableHead>Data Efetiva do Pagamento</TableHead>
+                        <TableHead>Número do Pagamento</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -137,7 +137,7 @@ export default function MerchantSettlementsList({
                           <TableCell className="text-right">
                             <div className="flex items-center gap-2">
                               <div className="w-1/2 text-left">
-                              {FormatCurrency(order.amount)}{" "}
+                                {FormatCurrency(order.amount)}{" "}
                               </div>
 
                               <VoucherDownload

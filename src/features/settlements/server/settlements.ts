@@ -94,12 +94,22 @@ export type MerchantSettlementsInsert = typeof merchantSettlements.$inferInsert;
 export type MerchantSettlementsDetail = typeof merchantSettlements.$inferSelect;
 
 export async function getSettlements(
-  search: string,
+  status: string,
+  dateFrom: string,
+  dateTo: string,
   page: number,
   pageSize: number
 ): Promise<SettlementsList> {
   const offset = (page - 1) * pageSize;
-
+  status = status == undefined || status == "" || status == null ? "0" : status;
+  const dateF: string =
+    dateFrom == undefined || dateFrom == "" || dateFrom == null
+      ? "2024-02-23"
+      : dateFrom;
+  const dateT: string =
+    dateTo == undefined || dateTo == "" || dateTo == null
+      ? "	2025-01-30"
+      : dateTo;
   const result = await db
     .select({
       id: settlements.id,
@@ -136,7 +146,11 @@ export async function getSettlements(
     })
 
     .from(settlements)
-    .where(or(ilike(settlements.status, `%${search}%`)))
+    .where(
+      sql`((${status} in ('0') OR ${settlements.status} in (${status}))) 
+      AND (${settlements.paymentDate} >= ${dateF}) 
+      AND (${settlements.paymentDate} <= ${dateT})`
+    )
     .orderBy(desc(settlements.paymentDate))
     .limit(pageSize)
     .offset(offset);
@@ -254,7 +268,7 @@ export async function getMerchantSettlements(
       FROM merchant_settlements ms
       LEFT JOIN merchants m ON m.id = ms.id_merchant
       LEFT JOIN settlements s ON s.id = ms.id_settlement
-      WHERE (${settlementSlug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${settlementSlug} AND (${search} = '' OR m.name LIKE '%' || ${search} || '%')
+      WHERE (${settlementSlug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${settlementSlug} AND (${search} = '' OR m.name ILIKE '%' || ${search} || '%')
       GROUP BY 
         ms.id,
         m.name,

@@ -29,7 +29,7 @@ export async function insertMerchantSettlementAndRelations(
         (merchantSettlement) => merchantSettlement.settlement.slug
       )
     );
-
+    
     const merchantids = await getOrCreateMerchants(
       merchantSettlementList.map((settlement) => settlement.merchant)
     );

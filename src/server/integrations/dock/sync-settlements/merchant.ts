@@ -34,9 +34,13 @@ export async function getOrCreateMerchants(merchants: Merchant[]) {
 
     if (filteredList.length > 0) {
       const insertedIds = await insertMerchant(filteredList);
-      const nonNullInsertedIds = insertedIds?.filter((id) => id.slug !== null).map((id) => ({ id: id.id, slug: id.slug as string })) ?? [];
-      return merchantIds?.concat(nonNullInsertedIds ?? []) || nonNullInsertedIds;
-
+      const nonNullInsertedIds =
+        insertedIds
+          ?.filter((id) => id.slug !== null)
+          .map((id) => ({ id: id.id, slug: id.slug as string })) ?? [];
+      return (
+        merchantIds?.concat(nonNullInsertedIds ?? []) || nonNullInsertedIds
+      );
     } else {
       return merchantIds;
     }

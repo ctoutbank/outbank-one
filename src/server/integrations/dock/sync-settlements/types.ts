@@ -306,3 +306,10 @@ export type InsertSettlement = {
   creditFinancialAdjustmentAmount: string;
   debitFinancialAdjustmentAmount: string;
 };
+
+
+export type InsertMerchant = {
+  slug: string;
+  name: string;
+  idDocument: string;
+};
