@@ -125,7 +125,7 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                 <CardTitle>Empresa</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                
+                <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="idDocument"
@@ -160,24 +160,10 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                     </FormItem>
                   )}
                 />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="is_affiliate"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value || false}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel>É uma filial?</FormLabel>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+                
+                 <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="corporateName"
@@ -211,12 +197,14 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                </div>
+                <div className="grid grid-cols-2 gap-4 ">
+                  <div className="flex items-center gap-2">
                 <FormField
                     control={form.control}
                     name="areaCode"
                     render={({ field }) => (
-                      <FormItem className="col-span-1">
+                      <FormItem className="w-1/6">
                         <FormLabel>
                           DDD <span className="text-red-500">*</span>
                         </FormLabel>
@@ -231,13 +219,13 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                       </FormItem>
                     )}
                   />
-                <div className="grid grid-cols-6 gap-4">
+             
                   
                   <FormField
                     control={form.control}
                     name="number"
                     render={({ field }) => (
-                      <FormItem className="col-span-5">
+                      <FormItem className="w-5/6">
                         <FormLabel>
                           Telefone <span className="text-red-500">*</span>
                         </FormLabel>
@@ -251,10 +239,13 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                       </FormItem>
                     )}
                   />
+                  </div>
+                  <div> </div>
+                 
                 </div>
 
 
-                </div>
+               
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
@@ -298,34 +289,25 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+
                 <FormField
                   control={form.control}
-                  name="openingDate"
+                  name="is_affiliate"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Data de Abertura <span className="text-red-500">*</span>
-                      </FormLabel>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          value={
-                            field.value
-                              ? new Date(field.value)
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
-                          max={new Date().toISOString().split("T")[0]}
+                        <Checkbox
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
+                      <FormLabel>É uma filial?</FormLabel>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-<FormField
+                <FormField
   control={form.control}
   name="openingDays"
   render={({ field }) => (
@@ -362,6 +344,38 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
     </FormItem>
   )}
 />
+                
+
+                <FormField
+                  control={form.control}
+                  name="openingDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Data de Abertura <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          {...field}
+                          value={
+                            field.value
+                              ? new Date(field.value)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : ""
+                          }
+                          max={new Date().toISOString().split("T")[0]}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                </div>
+
+
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
@@ -407,6 +421,8 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+
                 <FormField
                   control={form.control}
                   name="municipalRegistration"
@@ -434,9 +450,34 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                     </FormItem>
                   )}
                 />
-
+                </div>
       
 
+                <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="revenue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Receita <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          {...field}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            field.onChange(isNaN(value) ? "" : value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="legal_nature"
@@ -467,30 +508,8 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="revenue"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Receita <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value);
-                            field.onChange(isNaN(value) ? "" : value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                </div>
               </CardContent>
             </Card>
 
