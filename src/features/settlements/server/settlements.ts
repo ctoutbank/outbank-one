@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import {
   merchants,
   merchantSettlements,
@@ -43,6 +43,18 @@ export interface SettlementsList {
   }[];
   totalCount: number;
 }
+
+export type SettlementDetail = {
+  payment_date: string | null;
+  batch_amount: string | null;
+  total_anticipation_amount: string | null;
+  total_restituition_amount: string | null;
+  total_settlement_amount: string | null;
+  debit_status: string | null;
+  credit_status: string | null;
+  anticipation_status: string | null;
+  pix_status: string | null;
+};
 
 export type Order = {
   receivableUnit: string;
@@ -181,6 +193,26 @@ export async function getSettlements(
   };
 }
 
+export async function getSettlementBySlug(slug: string) {
+  const result = await db.execute(
+    sql`SELECT 
+        s.batch_amount,
+        s.total_anticipation_amount,
+        s.total_restitution_amount,
+        s.total_settlement_amount,
+        s.credit_status,
+        s.debit_status,
+        s.anticipation_status,
+        s.pix_status,
+        s.payment_date
+        FROM settlements s
+        WHERE (${slug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${slug}`
+  );
+  return {
+    settlement: result.rows as SettlementDetail[],
+  };
+}
+
 export async function getMerchantSettlements(
   search: string,
   page: number,
@@ -222,7 +254,7 @@ export async function getMerchantSettlements(
       FROM merchant_settlements ms
       LEFT JOIN merchants m ON m.id = ms.id_merchant
       LEFT JOIN settlements s ON s.id = ms.id_settlement
-      WHERE (${settlementSlug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${settlementSlug}
+      WHERE (${settlementSlug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${settlementSlug} AND (${search} = '' OR m.name LIKE '%' || ${search} || '%')
       GROUP BY 
         ms.id,
         m.name,
