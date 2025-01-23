@@ -11,7 +11,7 @@ import {
 } from "./types";
 import { insertSettlementAndRelations } from "./settlements";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
-import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders copy";
+import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
 import { insertPixMerchantSettlementOrdersAndRelations } from "./pixMerchantSettlementOrders";
 
 async function fetchSettlements() {
@@ -156,50 +156,46 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 
 export async function main() {
   try {
-    console.log("Buscando customer...");
+    console.log("Buscando settlements...");
 
-    /* const response = await fetchSettlements(); // Obtém a resposta inicial
+    const response = await fetchSettlements(); // Obtém a resposta inicial
     const settlements: Settlement[] = response || []; // Extraindo Settlements de 'objects'
 
-    console.log(`Total de Settlements encontrados: ${settlements.length}`);
-
-    for (const settlement of settlements) {
-      await insertSettlementAndRelations(settlement);
+    // Divida a lista em pedaços de 1000 itens
+    const chunkedSettlement = chunkArray(settlements, 1000);
+    // Envie cada pedaço para a função de insert
+    for (const chunk of chunkedSettlement) {
+      await insertSettlementAndRelations(chunk);
     }
 
+    //merchant settlement
     const reponseMerchantSettlement = await fetchMerchantSettlements();
     const merchantSettlements: SettlementObject[] =
       reponseMerchantSettlement || [];
+    const chunkedMerchantSettlement = chunkArray(merchantSettlements, 1000);
+    for (const chunk of chunkedMerchantSettlement) {
+      await insertMerchantSettlementAndRelations(chunk);
+    }
 
-    for (const merchantsettlement of merchantSettlements) {
-      await insertMerchantSettlementAndRelations(merchantsettlement);
-    }*/
-
+    //merchant settlements orders
     const responseMerchantSettlementsOrders =
       await fetchMerchantSettlementsOrders();
     const merchantSettlementsOrders: MerchantSettlementsOrders[] =
       responseMerchantSettlementsOrders || [];
-
-    // Divida a lista em pedaços de 1000 itens
     const chunkedOrders = chunkArray(merchantSettlementsOrders, 1000);
-
-    // Envie cada pedaço para a função insertMerchantSettlementOrdersAndRelations
     for (const chunk of chunkedOrders) {
-      console.log("entrou no chunk for");
       await insertMerchantSettlementOrdersAndRelations(chunk);
     }
-    /*
 
+    //pix merchant settlements orders
     const responsePixMerchantSettlementsOrders =
       await fetchPixMerchantSettlementsOrders();
     const pixMerchantSettlementOrders: PixMerchantSettlementOrders[] =
       responsePixMerchantSettlementsOrders || [];
-
-    for (const pixMerchantSettlementOrder of pixMerchantSettlementOrders) {
-      await insertPixMerchantSettlementOrdersAndRelations(
-        pixMerchantSettlementOrder
-      );
-    }*/
+    const chunkedPixOrders = chunkArray(pixMerchantSettlementOrders, 1000);
+    for (const chunk of chunkedPixOrders) {
+      await insertPixMerchantSettlementOrdersAndRelations(chunk);
+    }
   } catch (error) {
     console.error("Erro ao processar Settlements:", error);
   } finally {

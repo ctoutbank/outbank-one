@@ -111,7 +111,34 @@ export function FormatDate(date: Date): string {
   return `${day}/${month}/${year}`;
 }
 
-export function currencyFormat(number: number): string {
+export function FormatDateTime(date: Date): string {
+  const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+
+  return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export function FormatDateComplete(date: Date): string {
+  const days = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+  const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+  const dayOfWeek = days[date.getDay()];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  const daySuffix = (day === 1 || day === 21 || day === 31) ? 'º' : '';
+
+  return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
+}
+
+
+export function FormatCurrency(number: number): string {
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
 }
 

@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { currencyFormat, FormatDate } from "@/lib/utils";
+import { FormatCurrency, FormatDate } from "@/lib/utils";
 import { SettlementsList } from "../server/settlements";
 
 export default function SettlementHistorylist({
@@ -22,6 +22,8 @@ export default function SettlementHistorylist({
       case "PENDING":
         return "bg-yellow-500 text-white hover:bg-yellow-600";
       case "PROCESSING":
+        return "bg-yellow-300 text-black hover:bg-yellow-400";
+      case "REQUESTED":
         return "bg-yellow-300 text-black hover:bg-yellow-400";
       case "FAILED":
         return "bg-red-500 text-white hover:bg-red-600";
@@ -42,11 +44,11 @@ export default function SettlementHistorylist({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Settlement Date</TableHead>
-              <TableHead>Gross Sales Amount</TableHead>
-              <TableHead>Net Anticipations Amount</TableHead>
-              <TableHead>Restitution Amount</TableHead>
-              <TableHead>Settlement Amount</TableHead>
+              <TableHead>Data de liquidação</TableHead>
+              <TableHead>Montante bruto das vendas</TableHead>
+              <TableHead>Montante líquido das antecipações</TableHead>
+              <TableHead>Montante da restituição</TableHead>
+              <TableHead>Montante da liquidação</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -54,21 +56,25 @@ export default function SettlementHistorylist({
             {Settlements.settlements.map((settlements) => (
               <TableRow key={settlements.id}>
                 <TableCell>
-                  {FormatDate(settlements.payment_date || new Date())}
+                  <a
+                    href={`/portal/settlements?settlementSlug=${settlements.slug}`}
+                  >
+                    {FormatDate(settlements.payment_date || new Date())}
+                  </a>
                 </TableCell>
                 <TableCell>
-                  {currencyFormat(settlements.batch_amount || 0)}
+                  {FormatCurrency(settlements.batch_amount || 0)}
                 </TableCell>
                 <TableCell>
-                  {currencyFormat(settlements.total_anticipation_amount || 0)}
+                  {FormatCurrency(settlements.total_anticipation_amount || 0)}
                 </TableCell>
 
                 <TableCell>
-                  {currencyFormat(settlements.total_restituition_amount || 0)}
+                  {FormatCurrency(settlements.total_restituition_amount || 0)}
                 </TableCell>
 
                 <TableCell>
-                  {currencyFormat(settlements.total_settlement_amount || 0)}
+                  {FormatCurrency(settlements.total_settlement_amount || 0)}
                 </TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(settlements.status || "")}>

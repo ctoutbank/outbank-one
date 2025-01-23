@@ -3,7 +3,7 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import PaginationRecords from "@/components/pagination-Records";
-import SettlementList from "../../../../features/settlements/_components/settlements-list";
+import MerchantSettlementsList from "../../../features/settlements/_components/settlements-list";
 
 import { getMerchantSettlements } from "@/features/settlements/server/settlements";
 
@@ -13,6 +13,7 @@ type CategoryProps = {
   page: string;
   pageSize: string;
   search: string;
+  settlementSlug: string;
 };
 
 export default async function SettlementsPage({
@@ -23,28 +24,36 @@ export default async function SettlementsPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");
   const search = searchParams.search || "";
-  const settlements = await getMerchantSettlements(search, page, pageSize);
-  const totalRecords = settlements.totalCount;
+  const settlementSlug = searchParams.settlementSlug || "";
+  const merchantSettlements = await getMerchantSettlements(
+    search,
+    page,
+    pageSize,
+    settlementSlug
+  );
+  const totalRecords = merchantSettlements.totalCount;
 
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Liquidações", url: "/portal/settlements/present" }]}
+        breadcrumbItems={[
+          { title: "Liquidações", url: "/portal/settlements" },
+        ]}
       />
 
       <BaseBody
         title="Liquidações"
-        subtitle={`visualização de todos as Liquidações`}
+        subtitle={`visualização de todas as Liquidações`}
       >
-        <ListFilter pageName="portal/settlements/present" search={search} />
+        <ListFilter pageName="portal/settlements" search={search} />
 
-        <SettlementList />
+        <MerchantSettlementsList merchantSettlementList={merchantSettlements} />
         {totalRecords > 0 && (
           <PaginationRecords
             totalRecords={totalRecords}
             currentPage={page}
             pageSize={pageSize}
-            pageName="portal/settlements/present"
+            pageName="portal/settlements"
           ></PaginationRecords>
         )}
       </BaseBody>

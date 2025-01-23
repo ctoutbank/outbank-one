@@ -1,111 +1,121 @@
 "use server";
 
 import { db } from "@/server/db";
-import { sql } from "drizzle-orm";
 import { merchantSettlementOrders } from "../../../../../drizzle/schema";
-import { getIdBySlug } from "../sync-merchant/getslug";
-import { getOrCreatePaymentInstitution } from "./institutionalPayment";
-import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
-import { MerchantSettlementsOrders } from "./types";
+import { getIdBySlugs } from "./getIdBySlugs";
+import {
+  InsertMerchantSettlementsOrders,
+  MerchantSettlementsOrders,
+} from "./types";
+import { sql } from "drizzle-orm";
 
 export async function insertMerchantSettlementOrdersAndRelations(
-  merchantSettlementOrders: MerchantSettlementsOrders
+  merchantSettlementOrders: MerchantSettlementsOrders[]
 ) {
   try {
-    const customerid = merchantSettlementOrders.merchantSettlement.customer
-      ? await getIdBySlug(
-          "customers",
-          merchantSettlementOrders.merchantSettlement.customer.slug
+    const paymentInstitutionSlugs = Array.from(
+      new Set(
+        merchantSettlementOrders.map(
+          (MerchantSettlementsOrders) =>
+            MerchantSettlementsOrders.paymentInstitution.slug
         )
-      : null;
+      )
+    );
 
-    merchantSettlementOrders.merchantSettlement.customer
-      ? await getOrCreatePaymentInstitution(
-          merchantSettlementOrders.paymentInstitution,
-          customerid || 0
-        )
-      : null;
-
-    const paymentInstitutionId = await getIdBySlug(
+    const paymentInstitution = await getIdBySlugs(
       "payment_institution",
-      merchantSettlementOrders.paymentInstitution.slug
+      paymentInstitutionSlugs
     );
 
-    await insertMerchantSettlementAndRelations(
-      merchantSettlementOrders.merchantSettlement
-    );
-
-    const merchantSettlementId = await getIdBySlug(
+    const merchantSettlement = await getIdBySlugs(
       "merchant_settlements",
-      merchantSettlementOrders.merchantSettlement.slug
+      merchantSettlementOrders.map(
+        (MerchantSettlementsOrders) =>
+          MerchantSettlementsOrders.merchantSettlement.slug
+      )
     );
+ 
+    const insertMerchantSettlementOrders: InsertMerchantSettlementsOrders[] =
+      merchantSettlementOrders.map((merchantSettlementsOrder) => ({
+        slug: merchantSettlementsOrder.slug,
+        active: merchantSettlementsOrder.active,
+        dtinsert: new Date(merchantSettlementsOrder.dtInsert).toISOString(),
+        dtupdate: new Date(merchantSettlementsOrder.dtUpdate).toISOString(),
+        compeCode: merchantSettlementsOrder.compeCode,
+        accountNumber: merchantSettlementsOrder.accountNumber,
+        accountNumberCheckDigit:
+          merchantSettlementsOrder.accountNumberCheckDigit,
+        slugPaymentInstitution:
+          merchantSettlementsOrder.paymentInstitution.slug,
+        idPaymentInstitution:
+          paymentInstitution?.filter(
+            (paymentInstitution) =>
+              paymentInstitution.slug ===
+              merchantSettlementsOrder.paymentInstitution.slug
+          )[0].id || 0,
+        bankBranchNumber: merchantSettlementsOrder.bankBranchNumber,
+        accountType: merchantSettlementsOrder.accountType,
+        integrationType: merchantSettlementsOrder.integrationType,
+        brand: merchantSettlementsOrder.brand,
+        productType: merchantSettlementsOrder.productType,
+        amount: merchantSettlementsOrder.amount.toString(),
+        anticipationAmount:
+          merchantSettlementsOrder.anticipationAmount.toString(),
+        idMerchantSettlements:
+          merchantSettlement?.filter(
+            (merchantSettlement) =>
+              merchantSettlement.slug ===
+              merchantSettlementsOrder.merchantSettlement.slug
+          )[0]?.id || 0,
+        merchantSettlementOrderStatus:
+          merchantSettlementsOrder.merchantSettlementOrderStatus,
+        orderTransactionId: merchantSettlementsOrder.orderTransactionId,
+        settlementUniqueNumber: merchantSettlementsOrder.settlementUniqueNumber,
+        protocolGuidId: merchantSettlementsOrder.protocolGuidId,
+        legalPerson: merchantSettlementsOrder.legalPerson,
+        documentId: merchantSettlementsOrder.documentId,
+        corporateName: merchantSettlementsOrder.corporateName,
+        effectivePaymentDate: merchantSettlementsOrder.effectivePaymentDate,
+        lock: merchantSettlementsOrder.lock,
+      }));
 
-    await insertMerchantSettlementOrder(
-      merchantSettlementOrders,
-      paymentInstitutionId,
-      merchantSettlementId
-    );
+    await insertMerchantSettlementOrder(insertMerchantSettlementOrders);
   } catch (error) {
-    console.error(
-      `Erro ao processar settlement ${merchantSettlementOrders.slug}:`,
-      error
-    );
+    console.error(`Erro ao processar merchant settlement order:`, error);
   }
 }
 
 async function insertMerchantSettlementOrder(
-  merchantSettlementsOrder: MerchantSettlementsOrders,
-
-  paymentInstitutionId: number | null,
-  merchantSettlementId: number | null
+  merchantSettlementsOrder: InsertMerchantSettlementsOrders[]
 ) {
   try {
-    const existingSettlement = await db
-      .select({ slug: merchantSettlementOrders.slug })
-      .from(merchantSettlementOrders)
-      .where(
-        sql`${merchantSettlementOrders.slug} = ${merchantSettlementsOrder.slug}`
-      );
+    const existingMerchantSettlementOrders = await getIdBySlugs(
+      "merchant_settlement_orders",
+      merchantSettlementsOrder.map(
+        (MerchantSettlementsOrders) => MerchantSettlementsOrders.slug
+      )
+    );
 
-    if (existingSettlement.length > 0) {
-      console.log(
-        `Merchant settlement ${merchantSettlementsOrder.slug} já existe, pulando inserção.`
-      );
+    const filteredList = merchantSettlementsOrder.filter(
+      (merchantSettlementsOrder) =>
+        !existingMerchantSettlementOrders?.some(
+          (existingMerchantSettlementOrders) =>
+            existingMerchantSettlementOrders.slug ===
+            merchantSettlementsOrder.slug
+        )
+    );
+
+    if (filteredList.length < 1) {
+      console.log("todos os merchant settlement orders já foram adicionados");
       return;
     }
 
-    console.log("Inserting MerchantSettlementOrder:", merchantSettlementsOrder);
+    console.log(
+      "Inserting MerchantSettlementOrder, quantity:",
+      filteredList.length
+    );
 
-    await db.insert(merchantSettlementOrders).values({
-      slug: merchantSettlementsOrder.slug || null,
-      active: merchantSettlementsOrder.active,
-      dtinsert: new Date(merchantSettlementsOrder.dtInsert).toISOString(),
-      dtupdate: new Date(merchantSettlementsOrder.dtUpdate).toISOString(),
-      compeCode: merchantSettlementsOrder.compeCode,
-      accountNumber: merchantSettlementsOrder.accountNumber,
-      accountNumberCheckDigit: merchantSettlementsOrder.accountNumberCheckDigit,
-      slugPaymentInstitution: merchantSettlementsOrder.slugPaymentInstitution,
-      bankBranchNumber: merchantSettlementsOrder.bankBranchNumber,
-      accountType: merchantSettlementsOrder.accountType,
-      integrationType: merchantSettlementsOrder.integrationType,
-      brand: merchantSettlementsOrder.brand,
-      productType: merchantSettlementsOrder.productType,
-      amount: merchantSettlementsOrder.amount.toString(),
-      anticipationAmount:
-        merchantSettlementsOrder.anticipationAmount.toString(),
-      merchantSettlementOrderStatus:
-        merchantSettlementsOrder.merchantSettlementOrderStatus,
-      orderTransactionId: merchantSettlementsOrder.orderTransactionId,
-      settlementUniqueNumber: merchantSettlementsOrder.settlementUniqueNumber,
-      protocolGuidId: merchantSettlementsOrder.protocolGuidId,
-      legalPerson: merchantSettlementsOrder.legalPerson,
-      documentId: merchantSettlementsOrder.documentId,
-      corporateName: merchantSettlementsOrder.corporateName,
-      effectivePaymentDate: merchantSettlementsOrder.effectivePaymentDate,
-      lock: merchantSettlementsOrder.lock,
-      idPaymentInstitution: paymentInstitutionId,
-      idMerchantSettlements: merchantSettlementId,
-    });
+    await db.insert(merchantSettlementOrders).values(filteredList);
 
     console.log("Settlement MerchantSettlementOrder successfully.");
   } catch (error) {

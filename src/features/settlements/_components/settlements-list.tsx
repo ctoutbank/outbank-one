@@ -15,81 +15,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FormatCurrency, FormatDate } from "@/lib/utils";
+import { MerchantSettlementList } from "../server/settlements";
+import VoucherDownload from "./exportfile";
 
-const mockSettlements = {
-  merchant_settlements: [
-    {
-      id: "1",
-      merchant: "Martinho Posto E Conveniencia",
-      batchAmount: 18158.84,
-      totalAnticipationAmount: 0,
-      pendingFinancialAdjustmentAmount: 0,
-      pendingRestitutionAmount: 0,
-      totalSettlementAmount: 18158.84,
-      status: "SETTLED",
-      transactions: [
-        {
-          receivableUnit: "MASTERCARD Credit",
-          bank: "Bco cooperativo sicredi s.a.",
-          agency: "0710",
-          accountNumber: "35455",
-          accountType: "Checking",
-          amount: 3626.4,
-          effectivePaymentDate: "2025-01-16",
-          paymentNumber: "202501150000561154288",
-          status: "PAID",
-        },
-      ],
-    },
-    {
-      id: "2",
-      merchant: "AUTO POSTO GABRIELLY LTDA",
-      batchAmount: 16096.23,
-      totalAnticipationAmount: 0,
-      pendingFinancialAdjustmentAmount: 0,
-      pendingRestitutionAmount: 0,
-      totalSettlementAmount: 16096.23,
-      status: "SETTLED",
-      transactions: [],
-    },
-    {
-      id: "3",
-      merchant: "POSTO JOIA",
-      batchAmount: 9715.61,
-      totalAnticipationAmount: 0,
-      pendingFinancialAdjustmentAmount: 0,
-      pendingRestitutionAmount: 0,
-      totalSettlementAmount: 9715.61,
-      status: "SETTLED",
-      transactions: [],
-    },
-  ],
-};
-
-export default function SettlementsList() {
+export default function MerchantSettlementsList({
+  merchantSettlementList,
+}: {
+  merchantSettlementList: MerchantSettlementList;
+}) {
   function getStatusColor(status: string): string {
     switch (status) {
       case "PENDING":
-        return "bg-yellow-500 text-white hover:bg-yellow-600";
+        return "bg-yellow-500  hover:bg-yellow-600";
       case "PROCESSING":
+        return "bg-yellow-500 hover:bg-yellow-400";
+      case "REQUESTED":
         return "bg-yellow-300 text-black hover:bg-yellow-400";
       case "FAILED":
-        return "bg-red-500 text-white hover:bg-red-600";
+        return "bg-red-500  hover:bg-red-600";
       case "SETTLED":
-        return "bg-green-500 text-white hover:bg-green-600";
+        return "bg-green-500  hover:bg-green-600";
       case "PAID":
-        return "bg-green-500 text-white hover:bg-green-600";
+        return "bg-green-500  hover:bg-green-600";
       case "PRE_APPROVED":
-        return "bg-blue-400 text-white hover:bg-blue-500";
+        return "bg-blue-400  hover:bg-blue-500";
       case "APPROVED":
-        return "bg-blue-700 text-white hover:bg-blue-800";
+        return "bg-blue-700  hover:bg-blue-800";
       default:
-        return "bg-gray-400 text-white hover:bg-gray-500";
+        return "bg-gray-400 hover:bg-gray-500";
     }
-  }
-
-  function formatCurrency(value: number): string {
-    return `R$ ${value.toFixed(2)}`;
   }
 
   return (
@@ -98,49 +53,57 @@ export default function SettlementsList() {
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="flex">
-              <div className="w-[250px]">Merchant</div>
-              <div className="w-[250px]">Gross Sales Amount</div>
-              <div className="w-[250px]">Net Anticipations Amount</div>
-              <div className="w-[150px]">Adjustment</div>
-              <div className="w-[250px]">Pending Restitution Amount</div>
-              <div className="w-[150px]">Settlement Amount</div>
+              <div className="w-[250px]">Estabelecimento</div>
+              <div className="w-[250px]">Montante bruto das vendas</div>
+              <div className="w-[250px]">Montante líquido das antecipações</div>
+              <div className="w-[150px]">Ajuste</div>
+              <div className="w-[250px]">Montante da restituição pendente</div>
+              <div className="w-[150px]">Montante da liquidação</div>
               <div className="w-[100px]">Status</div>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockSettlements.merchant_settlements.map((settlement) => (
+          {merchantSettlementList.merchant_settlements.map((settlement) => (
             <Accordion
               key={settlement.id}
               type="single"
               collapsible
               className="w-full"
             >
-              <AccordionItem value={settlement.id} className="border-0">
+              <AccordionItem value={"1"} className="border-0">
                 <AccordionTrigger className="hover:no-underline w-full [&[data-state=open]>div>table>tbody>tr]:bg-gray-100/50">
                   <TableRow className="hover:bg-gray-100/50 w-full">
                     <TableCell className="font-medium w-[250px]">
                       {settlement.merchant}
                     </TableCell>
-                    <TableCell className="text-right w-[250px]">
-                      {formatCurrency(settlement.batchAmount)}
+                    <TableCell className=" w-[250px]">
+                      {FormatCurrency(Number(settlement.batchamount))}
                     </TableCell>
-                    <TableCell className="text-right w-[250px]">
-                      {formatCurrency(settlement.totalAnticipationAmount)}
-                    </TableCell>
-                    <TableCell className="text-right w-[150px]">
-                      {formatCurrency(
-                        settlement.pendingFinancialAdjustmentAmount
+                    <TableCell className=" w-[250px]">
+                      {FormatCurrency(
+                        Number(settlement.totalanticipationamount)
                       )}
                     </TableCell>
-                    <TableCell className="text-right w-[250px]">
-                      {formatCurrency(settlement.pendingRestitutionAmount)}
+                    <TableCell className=" w-[150px]">
+                      {FormatCurrency(
+                        Number(settlement.pendingfinancialadjustmentamount)
+                      )}
                     </TableCell>
-                    <TableCell className="text-right w-[150px]">
-                      {formatCurrency(settlement.totalSettlementAmount)}
+                    <TableCell className=" w-[250px]">
+                      {FormatCurrency(
+                        Number(settlement.pendingrestitutionamount)
+                      )}
                     </TableCell>
-                    <TableCell className="text-center w-[100px]">
-                      <Badge className={getStatusColor(settlement.status)}>
+                    <TableCell className=" w-[150px]">
+                      {FormatCurrency(Number(settlement.totalsettlementamount))}
+                    </TableCell>
+                    <TableCell className=" w-[100px]">
+                      <Badge
+                        className={
+                          getStatusColor(settlement.status) + " text-white"
+                        }
+                      >
                         {settlement.status}
                       </Badge>
                     </TableCell>
@@ -150,39 +113,56 @@ export default function SettlementsList() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Receivable Unit</TableHead>
-                        <TableHead>Bank</TableHead>
-                        <TableHead>Agency</TableHead>
-                        <TableHead>Account Number</TableHead>
-                        <TableHead>Account Type</TableHead>
-                        <TableCell className="text-right font-medium">
-                          Amount
-                        </TableCell>
-                        <TableHead>Effective Payment Date</TableHead>
-                        <TableHead>Payment Number</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead>Unidade a Receber</TableHead>
+                        <TableHead>Banco</TableHead>
+                        <TableHead>Agência</TableHead>
+                        <TableHead>Número da Conta</TableHead>
+                        <TableHead>Tipo de Conta</TableHead>
+                        <TableCell>Montante</TableCell>
+                        <TableHead>Data de Pagamento Efectiva</TableHead>
+                        <TableHead>Número de Pagamento</TableHead>
+                        <TableHead className="text-center">Estado</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {settlement.transactions.map((transaction, index) => (
+                      {settlement.orders?.map((order, index) => (
                         <TableRow key={index}>
-                          <TableCell>{transaction.receivableUnit}</TableCell>
-                          <TableCell>{transaction.bank}</TableCell>
-                          <TableCell>{transaction.agency}</TableCell>
-                          <TableCell>{transaction.accountNumber}</TableCell>
-                          <TableCell>{transaction.accountType}</TableCell>
+                          <TableCell>
+                            {order.receivableUnit + " " + order.productType}
+                          </TableCell>
+                          <TableCell>{}</TableCell>
+                          <TableCell>{order.agency}</TableCell>
+                          <TableCell>{order.accountNumber}</TableCell>
+                          <TableCell>{order.accountType}</TableCell>
                           <TableCell className="text-right">
-                            {formatCurrency(transaction.amount)}
+                            <div className="flex items-center gap-2">
+                              {FormatCurrency(order.amount)}{" "}
+                              <VoucherDownload
+                                vouncherDownloadProps={{
+                                  date: new Date(order.effectivePaymentDate),
+                                  value: order.amount,
+                                  description:
+                                    order.receivableUnit +
+                                    " " +
+                                    order.productType,
+                                  singleSettlementNumber:
+                                    order.settlementUniqueNumber,
+                                  corporateName: order.corporateName,
+                                  cnpj: order.documentId,
+                                  bank: "",
+                                  bankBranchNumber: order.agency,
+                                  accountNumber: order.accountNumber,
+                                }}
+                              />
+                            </div>
                           </TableCell>
                           <TableCell>
-                            {transaction.effectivePaymentDate}
+                            {FormatDate(new Date(order.effectivePaymentDate))}
                           </TableCell>
-                          <TableCell>{transaction.paymentNumber}</TableCell>
+                          <TableCell>{order.settlementUniqueNumber}</TableCell>
                           <TableCell className="text-center">
-                            <Badge
-                              className={getStatusColor(transaction.status)}
-                            >
-                              {transaction.status}
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status}
                             </Badge>
                           </TableCell>
                         </TableRow>

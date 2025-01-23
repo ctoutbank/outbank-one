@@ -5,141 +5,176 @@ import { sql } from "drizzle-orm";
 import { merchantPixSettlementOrders } from "../../../../../drizzle/schema";
 import { getIdBySlug } from "../sync-merchant/getslug";
 import { getOrCreatePaymentInstitution } from "./institutionalPayment";
-import { getOrCreateMerchant } from "./merchant";
+import { getOrCreateMerchants } from "./merchant";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
-import { PixMerchantSettlementOrders } from "./types";
+import {
+  InsertPixMerchantSettlementOrders,
+  PixMerchantSettlementOrders,
+} from "./types";
+import { getIdBySlugs } from "./getIdBySlugs";
 
 export async function insertPixMerchantSettlementOrdersAndRelations(
-  pixMerchantSettlementOrders: PixMerchantSettlementOrders
+  pixMerchantSettlementOrderList: PixMerchantSettlementOrders[]
 ) {
   try {
-    const customerid = pixMerchantSettlementOrders.customer
-      ? await getIdBySlug(
-          "customers",
-          pixMerchantSettlementOrders.customer.slug
+    // Remove duplicatas e retorna um array com os slugs unicos
+    const customer = Array.from(
+      new Set(
+        pixMerchantSettlementOrderList.map(
+          (pixMerchantSettlementOrderList) =>
+            pixMerchantSettlementOrderList.customer.slug
         )
-      : null;
+      )
+    );
+    const customerids = await getIdBySlugs("customers", customer);
 
-    pixMerchantSettlementOrders.customer
-      ? await getOrCreatePaymentInstitution(
-          pixMerchantSettlementOrders.customer.paymentInstitution,
-          customerid || 0
-        )
-      : null;
-
-    await getOrCreateMerchant(pixMerchantSettlementOrders.merchant);
-
-    const merchantId = await getIdBySlug(
-      "merchants",
-      pixMerchantSettlementOrders.merchant.slug
+    const merchantIds = await getOrCreateMerchants(
+      pixMerchantSettlementOrderList.map((settlement) => settlement.merchant)
     );
 
     await insertMerchantSettlementAndRelations(
-      pixMerchantSettlementOrders.merchantSettlement
+      pixMerchantSettlementOrderList.map(
+        (pixMerchantSettlementOrderList) =>
+          pixMerchantSettlementOrderList.merchantSettlement
+      )
     );
 
-    const merchantSettlementId = await getIdBySlug(
+    const merchantSettlementIds = await getIdBySlugs(
       "merchant_settlements",
-      pixMerchantSettlementOrders.merchantSettlement.slug
+      pixMerchantSettlementOrderList.map(
+        (pixMerchantSettlementOrderList) => pixMerchantSettlementOrderList.merchantSettlement.slug
+      )
     );
+ 
+    const insertPixMerchantSettlementOrdersVar: InsertPixMerchantSettlementOrders[] =
+      pixMerchantSettlementOrderList.map((pixMerchantSettlementOrder) => ({
+        slug: pixMerchantSettlementOrder.slug,
+        active: pixMerchantSettlementOrder.active,
+        dtinsert: new Date(pixMerchantSettlementOrder.dtInsert).toISOString(),
+        dtupdate: new Date(pixMerchantSettlementOrder.dtUpdate).toISOString(),
+        slugCustomer: pixMerchantSettlementOrder.slugCustomer,
+        idCustomer:
+          customerids?.filter(
+            (customer) =>
+              customer.slug === pixMerchantSettlementOrder.slugCustomer
+          )[0]?.id || 0,
+        slugMerchant: pixMerchantSettlementOrder.slugMerchant,
+        idMerchant:
+          merchantIds?.filter(
+            (merchant) =>
+              merchant.slug === pixMerchantSettlementOrder.slugMerchant
+          )[0]?.id || 0,
+        paymentDate: pixMerchantSettlementOrder.paymentDate
+          ? new Date(pixMerchantSettlementOrder.paymentDate)
+              .toISOString()
+              .split("T")[0]
+          : null,
+        authorizerMerchantId: pixMerchantSettlementOrder.authorizerMerchantId,
+        expectedPaymentDate: pixMerchantSettlementOrder.expectedPaymentDate
+          ? new Date(pixMerchantSettlementOrder.expectedPaymentDate)
+              .toISOString()
+              .split("T")[0]
+          : null,
+        transactionCount: pixMerchantSettlementOrder.transactionCount,
+        totalAmount:
+          pixMerchantSettlementOrder.totalAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalAmount.toString(),
+        totalRefundAmount:
+          pixMerchantSettlementOrder.totalRefundAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalRefundAmount.toString(),
+        totalNetAmount:
+          pixMerchantSettlementOrder.totalNetAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalNetAmount.toString(),
+        totalFeeAmount:
+          pixMerchantSettlementOrder.totalFeeAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalFeeAmount.toString(),
+        totalCostAmount:
+          pixMerchantSettlementOrder.totalCostAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalCostAmount.toString(),
+        totalSettlementAmount:
+          pixMerchantSettlementOrder.totalSettlementAmount == undefined
+            ? "0"
+            : pixMerchantSettlementOrder.totalSettlementAmount.toString(),
+        status: pixMerchantSettlementOrder.status,
+        compeCode: pixMerchantSettlementOrder.compeCode,
+        accountNumber: pixMerchantSettlementOrder.accountNumber,
+        accountNumberCheckDigit:
+          pixMerchantSettlementOrder.accountNumberCheckDigit,
+        bankBranchNumber: pixMerchantSettlementOrder.bankBranchNumber,
+        accountType: pixMerchantSettlementOrder.accountType,
+        legalPerson: pixMerchantSettlementOrder.legalPerson,
+        documentId: pixMerchantSettlementOrder.documentId,
+        corporateName: pixMerchantSettlementOrder.corporateName,
+        effectivePaymentDate: pixMerchantSettlementOrder.effectivePaymentDate
+          ? new Date(pixMerchantSettlementOrder.effectivePaymentDate)
+              .toISOString()
+              .split("T")[0]
+          : null,
+        settlementUniqueNumber:
+          pixMerchantSettlementOrder.settlementUniqueNumber,
+        protocolGuidId: pixMerchantSettlementOrder.protocolGuidId,
+        feeSettlementUniqueNumber:
+          pixMerchantSettlementOrder.feeSettlementUniqueNumber,
+        feeEffectivePaymentDate:
+          pixMerchantSettlementOrder.feeEffectivePaymentDate
+            ? new Date(pixMerchantSettlementOrder.feeEffectivePaymentDate)
+                .toISOString()
+                .split("T")[0]
+            : null,
+        feeProtocolGuidId: pixMerchantSettlementOrder.feeProtocolGuidId,
+        idMerchantSettlement:
+          merchantSettlementIds?.filter(
+            (merchantSettlement) =>
+              merchantSettlement.slug === pixMerchantSettlementOrder.merchantSettlement.slug
+          )[0]?.id || 0,
+      }));
 
     await insertPixMerchantSettlementOrders(
-      pixMerchantSettlementOrders,
-      merchantId,
-      merchantSettlementId,
-      customerid
+      insertPixMerchantSettlementOrdersVar
     );
   } catch (error) {
-    console.error(
-      `Erro ao processar pixMerchantSettlementOrders ${pixMerchantSettlementOrders.slug}:`,
-      error
-    );
+    console.error(`Erro ao processar pixMerchantSettlementOrders:`, error);
   }
 }
 
 async function insertPixMerchantSettlementOrders(
-  pixMerchantSettlementOrder: PixMerchantSettlementOrders,
-
-  merchantId: number | null,
-  merchantSettlementId: number | null,
-  customerId: number | null
+  pixMerchantSettlementOrder: InsertPixMerchantSettlementOrders[]
 ) {
   try {
-    const existingSettlement = await db
-      .select({ slug: merchantPixSettlementOrders.slug })
-      .from(merchantPixSettlementOrders)
-      .where(
-        sql`${merchantPixSettlementOrders.slug} = ${pixMerchantSettlementOrder.slug}`
-      );
+    const existingPixMerchantSettlementOrder = await getIdBySlugs(
+      "merchant_pix_settlement_orders",
+      pixMerchantSettlementOrder.map(
+        (pixMerchantSettlementOrder) => pixMerchantSettlementOrder.slug
+      )
+    );
 
-    if (existingSettlement.length > 0) {
+    const filteredList = pixMerchantSettlementOrder.filter(
+      (pixMerchantSettlementOrder) =>
+        !existingPixMerchantSettlementOrder?.some(
+          (existingPixMerchantSettlementOrder) =>
+            existingPixMerchantSettlementOrder.slug ===
+            pixMerchantSettlementOrder.slug
+        )
+    );
+
+    if (filteredList.length < 1) {
       console.log(
-        `Merchant pixMerchantSettlementOrder ${pixMerchantSettlementOrder.slug} já existe, pulando inserção.`
+        "todos os merchant settlement orders pix já foram adicionados"
       );
       return;
     }
 
     console.log(
-      "Inserting pixMerchantSettlementOrder:",
-      pixMerchantSettlementOrder
+      "Inserting pixMerchantSettlementOrder, quantity:",
+      filteredList.length
     );
 
-    await db.insert(merchantPixSettlementOrders).values({
-      slug: pixMerchantSettlementOrder.slug || null,
-      active: pixMerchantSettlementOrder.active,
-      dtinsert: new Date(pixMerchantSettlementOrder.dtInsert).toISOString(),
-      dtupdate: new Date(pixMerchantSettlementOrder.dtUpdate).toISOString(),
-      slugCustomer: pixMerchantSettlementOrder.slugCustomer,
-      idCustomer: customerId,
-      slugMerchant: pixMerchantSettlementOrder.slugMerchant,
-      idMerchant: merchantId,
-      paymentDate: new Date(pixMerchantSettlementOrder.paymentDate)
-        .toISOString()
-        .split("T")[0],
-      authorizerMerchantId: pixMerchantSettlementOrder.authorizerMerchantId,
-      expectedPaymentDate: pixMerchantSettlementOrder.expectedPaymentDate
-        ? new Date(pixMerchantSettlementOrder.expectedPaymentDate)
-            .toISOString()
-            .split("T")[0]
-        : null,
-      transactionCount: pixMerchantSettlementOrder.transactionCount,
-      totalAmount: pixMerchantSettlementOrder.totalAmount.toString(),
-      totalRefundAmount:
-        pixMerchantSettlementOrder.totalRefundAmount.toString(),
-      totalNetAmount: pixMerchantSettlementOrder.totalNetAmount.toString(),
-      totalFeeAmount: pixMerchantSettlementOrder.totalFeeAmount.toString(),
-      totalCostAmount: pixMerchantSettlementOrder.totalCostAmount.toString(),
-      totalSettlementAmount:
-        pixMerchantSettlementOrder.totalSettlementAmount.toString(),
-      status: pixMerchantSettlementOrder.status,
-      compeCode: pixMerchantSettlementOrder.compeCode,
-      accountNumber: pixMerchantSettlementOrder.accountNumber,
-      accountNumberCheckDigit:
-        pixMerchantSettlementOrder.accountNumberCheckDigit,
-      bankBranchNumber: pixMerchantSettlementOrder.bankBranchNumber,
-      accountType: pixMerchantSettlementOrder.accountType,
-      legalPerson: pixMerchantSettlementOrder.legalPerson,
-      documentId: pixMerchantSettlementOrder.documentId,
-      corporateName: pixMerchantSettlementOrder.corporateName,
-      effectivePaymentDate: pixMerchantSettlementOrder.effectivePaymentDate
-        ? new Date(pixMerchantSettlementOrder.effectivePaymentDate)
-            .toISOString()
-            .split("T")[0]
-        : null,
-      settlementUniqueNumber: pixMerchantSettlementOrder.settlementUniqueNumber,
-      protocolGuidId: pixMerchantSettlementOrder.protocolGuidId,
-      feeSettlementUniqueNumber:
-        pixMerchantSettlementOrder.feeSettlementUniqueNumber,
-      feeEffectivePaymentDate:
-        pixMerchantSettlementOrder.feeEffectivePaymentDate
-          ? new Date(pixMerchantSettlementOrder.feeEffectivePaymentDate)
-              .toISOString()
-              .split("T")[0]
-          : null,
-      feeProtocolGuidId: pixMerchantSettlementOrder.feeProtocolGuidId,
-      idMerchantSettlement: merchantSettlementId,
-    });
-
+    await db.insert(merchantPixSettlementOrders).values(filteredList);
     console.log("pixMerchantSettlementOrder successfully.");
   } catch (error) {
     console.error("Error inserting pixMerchantSettlementOrder:", error);

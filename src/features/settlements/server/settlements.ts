@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import { count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import {
   merchants,
   merchantSettlements,
@@ -44,42 +44,38 @@ export interface SettlementsList {
   totalCount: number;
 }
 
-export interface MerchantSettlementsList {
-  merchant_settlements: {
-    id: number;
-    slug: string | null;
-    active: boolean | null;
-    dtInsert: Date | null;
-    dtUpdate: Date | null;
-    transactionCount: number | null;
-    adjustmentCount: number | null;
-    batchAmount: number | null;
-    netSettlementAmount: number | null;
-    pixAmount: number | null;
-    pixNetAmount: number | null;
-    pixFeeAmount: number | null;
-    pixCostAmount: number | null;
-    creditAdjustmentAmount: number | null;
-    debitAdjustmentAmount: number | null;
-    totalAnticipationAmount: number | null;
-    totalRestitutionAmount: number | null;
-    pendingRestitutionAmount: number | null;
-    totalSettlementAmount: number | null;
-    pendingFinancialAdjustmentAmount: number | null;
-    creditFinancialAdjustmentAmount: number | null;
-    debitFinancialAdjustmentAmount: number | null;
-    status: string | null;
-    slugMerchant: string | null;
-    idMerchant: number | null;
-    slugCustomer: string | null;
-    idCustomer: number | null;
-    outstandingAmount: number | null;
-    restRoundingAmount: number | null;
-    idSettlement: number | null;
-  }[];
-  totalCount: number;
-}
+export type Order = {
+  receivableUnit: string;
+  productType: string;
+  bank: string;
+  agency: string;
+  settlementUniqueNumber: string;
+  accountNumber: string;
+  accountType: string;
+  amount: number;
+  effectivePaymentDate: string; // ISO 8601 date format
+  paymentNumber: string;
+  status: string;
+  corporateName: string;
+  documentId: string;
+};
 
+export type MerchantSettlement = {
+  id: number;
+  merchant: string;
+  batchamount: number;
+  totalanticipationamount: number;
+  pendingfinancialadjustmentamount: number;
+  pendingrestitutionamount: number;
+  totalsettlementamount: number;
+  status: string;
+  orders?: Order[];
+};
+
+export type MerchantSettlementList = {
+  merchant_settlements: MerchantSettlement[];
+  totalCount: number;
+};
 export type SettlementsInsert = typeof settlements.$inferInsert;
 export type SettlementsDetail = typeof settlements.$inferSelect;
 export type MerchantSettlementsInsert = typeof merchantSettlements.$inferInsert;
@@ -188,113 +184,91 @@ export async function getSettlements(
 export async function getMerchantSettlements(
   search: string,
   page: number,
-  pageSize: number
-): Promise<MerchantSettlementsList> {
+  pageSize: number,
+  settlementSlug: string
+): Promise<MerchantSettlementList> {
   const offset = (page - 1) * pageSize;
 
-  const result = await db
-    .select({
-      id: merchantSettlements.id,
-      slug: merchantSettlements.slug,
-      active: merchantSettlements.active,
-      dtinsert: merchantSettlements.dtinsert,
-      dtupdate: merchantSettlements.dtupdate,
-      transaction_count: merchantSettlements.transactionCount,
-      adjustment_count: merchantSettlements.adjustmentCount,
-      batch_amount: merchantSettlements.batchAmount,
-      net_settlement_amount: merchantSettlements.netSettlementAmount,
-      pix_amount: merchantSettlements.pixAmount,
-      pix_net_amount: merchantSettlements.pixNetAmount,
-      pix_fee_amount: merchantSettlements.pixFeeAmount,
-      pix_cost_amount: merchantSettlements.pixCostAmount,
-      credit_adjustment_amount: merchantSettlements.creditAdjustmentAmount,
-      debit_adjustment_amount: merchantSettlements.debitAdjustmentAmount,
-      total_anticipation_amount: merchantSettlements.totalAnticipationAmount,
-      total_restitution_amount: merchantSettlements.totalRestitutionAmount,
-      pending_restitution_amount: merchantSettlements.pendingRestitutionAmount,
-      total_settlement_amount: merchantSettlements.totalSettlementAmount,
-      pending_financial_adjustment_amount:
-        merchantSettlements.pendingFinancialAdjustmentAmount,
-      credit_financial_adjustment_amount:
-        merchantSettlements.creditFinancialAdjustmentAmount,
-      debit_financial_adjustment_amount:
-        merchantSettlements.debitFinancialAdjustmentAmount,
-      status: merchantSettlements.status,
-      slug_merchant: merchantSettlements.slugMerchant,
-      outstanding_amount: merchantSettlements.outstandingAmount,
-      rest_rounding_amount: merchantSettlements.restRoundingAmount,
-      idCustomer: merchantSettlements.idCustomer,
-      idMerchant: merchantSettlements.idMerchant,
-      idSettlement: merchantSettlements.idSettlement,
-      slug_customer: merchantSettlements.slugCustomer,
-    })
-
-    .from(merchantSettlements)
-    .where(or(ilike(merchantSettlements.status, `%${search}%`)))
-    .orderBy(desc(merchantSettlements.dtupdate))
-    .limit(pageSize)
-    .offset(offset);
+  const result = await db.execute(
+    sql`SELECT 
+        ms.id AS id,
+        m.name AS merchant,
+        ms.batch_amount AS batchAmount,
+        ms.total_settlement_amount AS totalSettlementAmount,
+        ms.total_anticipation_amount AS totalAnticipationAmount,
+        ms.pending_financial_adjustment_amount AS pendingFinancialAdjustmentAmount,
+        ms.pending_restitution_amount AS pendingRestitutionAmount,
+        ms.status AS status,
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'receivableUnit', mo.brand,
+              'productType', mo.product_type,
+              'bank', mo.slug_payment_institution,
+              'agency', mo.bank_branch_number,
+              'settlementUniqueNumber', mo.settlement_unique_number,
+              'accountNumber', mo.account_number,
+              'accountType', mo.account_type,
+              'amount', mo.amount,
+              'effectivePaymentDate', mo.effective_payment_date,
+              'status', mo.merchant_settlement_order_status,
+              'corporateName', mo.corporate_name,
+              'documentId', mo.document_id
+            )
+          )
+          FROM merchant_settlement_orders mo
+          WHERE mo.id_merchant_settlements = ms.id
+        ) AS orders
+      FROM merchant_settlements ms
+      LEFT JOIN merchants m ON m.id = ms.id_merchant
+      LEFT JOIN settlements s ON s.id = ms.id_settlement
+      WHERE (${settlementSlug} = '' AND s.payment_date = (Select MAX(payment_date) from settlements)) OR s.slug = ${settlementSlug}
+      GROUP BY 
+        ms.id,
+        m.name,
+        ms.batch_amount,
+        ms.total_settlement_amount,
+        ms.total_anticipation_amount,
+        ms.pending_financial_adjustment_amount,
+        ms.pending_restitution_amount,
+        ms.status 
+      ORDER BY ms.id ASC
+      LIMIT ${pageSize} OFFSET ${offset};`
+  );
 
   const totalCountResult = await db
     .select({ count: count() })
-    .from(merchantSettlements);
+    .from(merchantSettlements)
+    .where(
+      settlementSlug
+        ? eq(
+            merchantSettlements.idSettlement,
+            (
+              await db
+                .select({ id: settlements.id })
+                .from(settlements)
+                .where(eq(settlements.slug, settlementSlug))
+                .limit(1)
+            )[0]?.id
+          )
+        : eq(
+            merchantSettlements.idSettlement,
+            (
+              await db
+                .select({ id: settlements.id })
+                .from(settlements)
+                .orderBy(desc(settlements.paymentDate))
+                .limit(1)
+            )[0]?.id
+          )
+    );
+
   const totalCount = totalCountResult[0]?.count || 0;
 
+  const rows: MerchantSettlement[] = result.rows as MerchantSettlement[];
+
   return {
-    merchant_settlements: result.map((merchantSettlements) => ({
-      id: merchantSettlements.id,
-      slug: merchantSettlements.slug,
-      active: merchantSettlements.active,
-      dtInsert: merchantSettlements.dtinsert
-        ? new Date(merchantSettlements.dtinsert)
-        : null,
-      dtUpdate: merchantSettlements.dtupdate
-        ? new Date(merchantSettlements.dtupdate)
-        : null,
-      transactionCount: merchantSettlements.transaction_count,
-      adjustmentCount: merchantSettlements.adjustment_count,
-      batchAmount: Number(merchantSettlements.batch_amount),
-      netSettlementAmount: Number(merchantSettlements.net_settlement_amount),
-      pixAmount: Number(merchantSettlements.pix_amount),
-      pixNetAmount: Number(merchantSettlements.pix_net_amount),
-      pixFeeAmount: Number(merchantSettlements.pix_fee_amount),
-      pixCostAmount: Number(merchantSettlements.pix_cost_amount),
-      creditAdjustmentAmount: Number(
-        merchantSettlements.credit_adjustment_amount
-      ),
-      debitAdjustmentAmount: Number(
-        merchantSettlements.debit_adjustment_amount
-      ),
-      totalAnticipationAmount: Number(
-        merchantSettlements.total_anticipation_amount
-      ),
-      totalRestitutionAmount: Number(
-        merchantSettlements.total_restitution_amount
-      ),
-      pendingRestitutionAmount: Number(
-        merchantSettlements.pending_restitution_amount
-      ),
-      totalSettlementAmount: Number(
-        merchantSettlements.total_settlement_amount
-      ),
-      pendingFinancialAdjustmentAmount: Number(
-        merchantSettlements.pending_financial_adjustment_amount
-      ),
-      creditFinancialAdjustmentAmount: Number(
-        merchantSettlements.credit_financial_adjustment_amount
-      ),
-      debitFinancialAdjustmentAmount: Number(
-        merchantSettlements.debit_financial_adjustment_amount
-      ),
-      status: merchantSettlements.status,
-      slugMerchant: merchantSettlements.slug_merchant,
-      idMerchant: merchantSettlements.idMerchant,
-      slugCustomer: merchantSettlements.slug_customer,
-      idCustomer: merchantSettlements.idCustomer,
-      outstandingAmount: Number(merchantSettlements.outstanding_amount),
-      restRoundingAmount: Number(merchantSettlements.rest_rounding_amount),
-      idSettlement: merchantSettlements.idSettlement,
-    })),
+    merchant_settlements: rows,
     totalCount,
   };
 }

@@ -1,42 +1,46 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq, sql } from "drizzle-orm";
-import { Customer, Merchant } from "./types";
 import { merchants } from "../../../../../drizzle/schema";
+import { getIdBySlugs } from "./getIdBySlugs";
+import { Merchant } from "./types";
 
-async function insertMerchant(merchant: Merchant) {
+async function insertMerchant(
+  merchant: Merchant[]
+): Promise<{ id: number; slug: string | null }[] | null> {
   try {
-    const existing = await db
-      .select()
-      .from(merchants)
-      .where(eq(merchants.slug, merchant.slug));
-
-    if (existing.length > 0) {
-      console.log(
-        "merchants with this slug already exists. Skipping insert."
-      );
-      return; // Não realiza o insert
-    }
-
-    await db.insert(merchants).values(merchant);
+    const inserted = await db
+      .insert(merchants)
+      .values(merchant)
+      .returning({ id: merchants.id, slug: merchants.slug });
+    return inserted;
   } catch (error) {
     console.error("Error inserting merchant:", error);
+    return null;
   }
 }
 
-export async function getOrCreateMerchant(merchant: Merchant) {
+export async function getOrCreateMerchants(merchants: Merchant[]) {
   try {
-    const result = await db.select({ slug: merchants.slug })
-         .from(merchants)
-         .where(sql`${merchants.slug} = ${merchant.slug}`);
-       if (result.length > 0) {
-         return result[0].slug;
-       } else {
-         await insertMerchant(merchant);
-         return merchant.slug;
-       }
+    const slugs = merchants.map((merchant) => merchant.slug);
+    const merchantIds = await getIdBySlugs("merchants", slugs);
+
+    const filteredList = merchants.filter(
+      (merchant) =>
+        !merchantIds?.some(
+          (existingMerchant) => existingMerchant.slug === merchant.slug
+        )
+    );
+
+    if (filteredList.length > 0) {
+      const insertedIds = await insertMerchant(filteredList);
+      const nonNullInsertedIds = insertedIds?.filter((id) => id.slug !== null).map((id) => ({ id: id.id, slug: id.slug as string })) ?? [];
+      return merchantIds?.concat(nonNullInsertedIds ?? []) || nonNullInsertedIds;
+
+    } else {
+      return merchantIds;
+    }
   } catch (error) {
-    console.error("Error getting or creating merchant:", error);
+    console.error("Error getting or creating merchants:", error);
   }
 }
