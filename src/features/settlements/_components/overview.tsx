@@ -10,7 +10,7 @@ export type FinancialOverviewProps = {
   restitutionAmount: number;
   settlementAmount: number;
   creditStatus: string;
-  debigStatus: string;
+  debitStatus: string;
   anticipationStatus: string;
   pixStatus: string;
 };
@@ -41,9 +41,9 @@ export default function FinancialOverview({
     }
   }
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className="w-full border-l-8 border-black ">
       <CardHeader>
-        <CardTitle className="text-lg font-medium">Visão geral</CardTitle>
+        <CardTitle className="text-xl font-bold ">Visão geral</CardTitle>
         <p className="text-sm text-muted-foreground">
           {FormatDateComplete(financialOverviewProps.date)}
         </p>
@@ -85,27 +85,35 @@ export default function FinancialOverview({
             </div>
           </div>
           <div className="flex gap-4 mt-4">
-            <Badge variant="outline" className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-2 w-auto">
               <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(status)}`}
+                className={`w-3 h-3 stroke-none ${getStatusColor(
+                  financialOverviewProps.creditStatus
+                )}`}
               />
               Crédito
             </Badge>
-            <Badge variant="outline" className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-2 w-auto">
               <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(status)}`}
+                className={`w-3 h-3 stroke-none ${getStatusColor(
+                  financialOverviewProps.debitStatus
+                )}`}
               />
               Débito
             </Badge>
-            <Badge variant="outline" className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-2 w-auto">
               <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(status)}`}
+                className={`w-3 h-3 stroke-none ${getStatusColor(
+                  financialOverviewProps.anticipationStatus
+                )}`}
               />
               Antecipação
             </Badge>
-            <Badge variant="outline" className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-2 w-auto">
               <Circle
-                className={`w-3 h-3 stroke-none ${getStatusColor(status)}`}
+                className={`w-3 h-3 stroke-none ${getStatusColor(
+                  financialOverviewProps.pixStatus
+                )}`}
               />
               Pix
             </Badge>

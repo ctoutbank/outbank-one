@@ -5,7 +5,11 @@ import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import MerchantSettlementsList from "../../../features/settlements/_components/settlements-list";
 
-import { getMerchantSettlements } from "@/features/settlements/server/settlements";
+import {
+  getMerchantSettlements,
+  getSettlementBySlug,
+} from "@/features/settlements/server/settlements";
+import FinancialOverview from "@/features/settlements/_components/overview";
 
 export const revalidate = 0;
 
@@ -31,20 +35,43 @@ export default async function SettlementsPage({
     pageSize,
     settlementSlug
   );
+  const settlements = await getSettlementBySlug(settlementSlug);
   const totalRecords = merchantSettlements.totalCount;
 
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[
-          { title: "Liquidações", url: "/portal/settlements" },
-        ]}
+        breadcrumbItems={[{ title: "Liquidações", url: "/portal/settlements" }]}
       />
 
       <BaseBody
         title="Liquidações"
         subtitle={`visualização de todas as Liquidações`}
       >
+        <FinancialOverview
+          financialOverviewProps={{
+            date:
+              new Date(settlements.settlement[0].payment_date || "") ||
+              new Date(),
+            grossSalesAmount: Number(
+              settlements.settlement[0]?.batch_amount || 0
+            ),
+            netAnticipationsAmount: Number(
+              settlements.settlement[0]?.total_anticipation_amount || 0
+            ),
+            restitutionAmount: Number(
+              settlements.settlement[0]?.total_restituition_amount || 0
+            ),
+            settlementAmount: Number(
+              settlements.settlement[0]?.total_settlement_amount || 0
+            ),
+            creditStatus: settlements.settlement[0].credit_status || "",
+            debitStatus: settlements.settlement[0].debit_status || "",
+            anticipationStatus:
+              settlements.settlement[0].anticipation_status || "",
+            pixStatus: settlements.settlement[0].pix_status || "",
+          }}
+        />
         <ListFilter pageName="portal/settlements" search={search} />
 
         <MerchantSettlementsList merchantSettlementList={merchantSettlements} />

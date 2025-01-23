@@ -77,28 +77,28 @@ export default function MerchantSettlementsList({
                     <TableCell className="font-medium w-[250px]">
                       {settlement.merchant}
                     </TableCell>
-                    <TableCell className=" w-[250px]">
+                    <TableCell className="w-[250px]">
                       {FormatCurrency(Number(settlement.batchamount))}
                     </TableCell>
-                    <TableCell className=" w-[250px]">
+                    <TableCell className="w-[250px]">
                       {FormatCurrency(
                         Number(settlement.totalanticipationamount)
                       )}
                     </TableCell>
-                    <TableCell className=" w-[150px]">
+                    <TableCell className="w-[150px]">
                       {FormatCurrency(
                         Number(settlement.pendingfinancialadjustmentamount)
                       )}
                     </TableCell>
-                    <TableCell className=" w-[250px]">
+                    <TableCell className="w-[250px]">
                       {FormatCurrency(
                         Number(settlement.pendingrestitutionamount)
                       )}
                     </TableCell>
-                    <TableCell className=" w-[150px]">
+                    <TableCell className="w-[150px]">
                       {FormatCurrency(Number(settlement.totalsettlementamount))}
                     </TableCell>
-                    <TableCell className=" w-[100px]">
+                    <TableCell className="w-[100px]">
                       <Badge
                         className={
                           getStatusColor(settlement.status) + " text-white"
@@ -136,7 +136,10 @@ export default function MerchantSettlementsList({
                           <TableCell>{order.accountType}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center gap-2">
+                              <div className="w-1/2 text-left">
                               {FormatCurrency(order.amount)}{" "}
+                              </div>
+
                               <VoucherDownload
                                 vouncherDownloadProps={{
                                   date: new Date(order.effectivePaymentDate),

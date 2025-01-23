@@ -41,8 +41,6 @@ export default async function SettlementsPage({
         title="Histórico de Liquidações"
         subtitle={`visualização do histórico de Liquidações`}
       >
-        <ListFilter pageName="portal/settlements/history" search={search} />
-
         <SettlementHistoryList Settlements={settlements} />
         {totalRecords > 0 && (
           <PaginationRecords
