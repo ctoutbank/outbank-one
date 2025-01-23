@@ -66,6 +66,10 @@ export type Merchant = {
     isPartnerContact: boolean;
     isPep: boolean;
     address?: Address;
+    icNumber?: string;
+    icDateIssuance?: Date;
+    icDispatcher?: string;
+    icFederativeUnit?: string;
   };
   
   export type category = {

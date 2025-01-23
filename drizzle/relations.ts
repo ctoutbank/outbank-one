@@ -1,20 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, settlements, paymentInstitution, merchants, merchantSettlements, merchantSettlementOrders, merchantPixSettlementOrders, categories, legalNatures, salesAgents, configurations, addresses, contacts, merchantpixaccount } from "./schema";
-
-export const settlementsRelations = relations(settlements, ({one, many}) => ({
-	customer: one(customers, {
-		fields: [settlements.idCustomer],
-		references: [customers.id]
-	}),
-	merchantSettlements: many(merchantSettlements),
-}));
-
-export const customersRelations = relations(customers, ({many}) => ({
-	settlements: many(settlements),
-	paymentInstitutions: many(paymentInstitution),
-	merchantSettlements: many(merchantSettlements),
-	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
-}));
+import { customers, paymentInstitution, merchants, merchantSettlements, settlements, merchantSettlementOrders, merchantPixSettlementOrders, categories, legalNatures, salesAgents, configurations, addresses, contacts, merchantpixaccount } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -22,6 +7,13 @@ export const paymentInstitutionRelations = relations(paymentInstitution, ({one, 
 		references: [customers.id]
 	}),
 	merchantSettlementOrders: many(merchantSettlementOrders),
+}));
+
+export const customersRelations = relations(customers, ({many}) => ({
+	paymentInstitutions: many(paymentInstitution),
+	merchantSettlements: many(merchantSettlements),
+	settlements: many(settlements),
+	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
 }));
 
 export const merchantSettlementsRelations = relations(merchantSettlements, ({one, many}) => ({
@@ -66,6 +58,14 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	}),
 	contacts: many(contacts),
 	merchantpixaccounts: many(merchantpixaccount),
+}));
+
+export const settlementsRelations = relations(settlements, ({one, many}) => ({
+	merchantSettlements: many(merchantSettlements),
+	customer: one(customers, {
+		fields: [settlements.idCustomer],
+		references: [customers.id]
+	}),
 }));
 
 export const merchantSettlementOrdersRelations = relations(merchantSettlementOrders, ({one}) => ({

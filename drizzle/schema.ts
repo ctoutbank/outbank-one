@@ -1,4 +1,4 @@
-import { pgTable, varchar, bigint, unique, serial, boolean, timestamp, char, integer, foreignKey, numeric, date, uuid, text, time } from "drizzle-orm/pg-core"
+import { pgTable, varchar, bigint, boolean, timestamp, unique, serial, char, integer, foreignKey, numeric, date, uuid, text, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -10,6 +10,20 @@ export const customers = pgTable("customers", {
 	settlementManagementType: varchar("settlement_management_type", { length: 50 }),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customers_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+});
+
+export const salesAgents = pgTable("sales_agents", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	firstName: varchar("first_name", { length: 255 }),
+	lastName: varchar("last_name", { length: 255 }),
+	documentId: varchar("document_id", { length: 50 }),
+	email: varchar({ length: 255 }),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
 });
 
 export const terminals = pgTable("terminals", {
@@ -35,50 +49,6 @@ export const terminals = pgTable("terminals", {
 }, (table) => {
 	return {
 		terminalsSlugKey: unique("terminals_slug_key").on(table.slug),
-	}
-});
-
-export const settlements = pgTable("settlements", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "settlements_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	batchAmount: numeric("batch_amount"),
-	discountFeeAmount: numeric("discount_fee_amount"),
-	netSettlementAmount: numeric("net_settlement_amount"),
-	totalAnticipationAmount: numeric("total_anticipation_amount"),
-	totalRestitutionAmount: numeric("total_restitution_amount"),
-	pixAmount: numeric("pix_amount"),
-	pixNetAmount: numeric("pix_net_amount"),
-	pixFeeAmount: numeric("pix_fee_amount"),
-	pixCostAmount: numeric("pix_cost_amount"),
-	pendingRestitutionAmount: numeric("pending_restitution_amount"),
-	totalCreditAdjustmentAmount: numeric("total_credit_adjustment_amount"),
-	totalDebitAdjustmentAmount: numeric("total_debit_adjustment_amount"),
-	totalSettlementAmount: numeric("total_settlement_amount"),
-	restRoundingAmount: numeric("rest_rounding_amount"),
-	outstandingAmount: numeric("outstanding_amount"),
-	slugCustomer: varchar("slug_customer", { length: 50 }),
-	status: varchar({ length: 50 }),
-	creditStatus: varchar("credit_status", { length: 50 }),
-	debitStatus: varchar("debit_status", { length: 50 }),
-	anticipationStatus: varchar("anticipation_status", { length: 50 }),
-	pixStatus: varchar("pix_status", { length: 50 }),
-	paymentDate: date("payment_date"),
-	pendingFinancialAdjustmentAmount: numeric("pending_financial_adjustment_amount"),
-	creditFinancialAdjustmentAmount: numeric("credit_financial_adjustment_amount"),
-	debitFinancialAdjustmentAmount: numeric("debit_financial_adjustment_amount"),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idCustomer: bigint("id_customer", { mode: "number" }),
-}, (table) => {
-	return {
-		settlementsIdCustomerFkey: foreignKey({
-			columns: [table.idCustomer],
-			foreignColumns: [customers.id],
-			name: "settlements_id_customer_fkey"
-		}),
 	}
 });
 
@@ -111,20 +81,6 @@ export const configurations = pgTable("configurations", {
 	lockCpAnticipationOrder: boolean("lock_cp_anticipation_order"),
 	lockCnpAnticipationOrder: boolean("lock_cnp_anticipation_order"),
 	url: varchar({ length: 255 }),
-});
-
-export const salesAgents = pgTable("sales_agents", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	firstName: varchar("first_name", { length: 255 }),
-	lastName: varchar("last_name", { length: 255 }),
-	documentId: varchar("document_id", { length: 50 }),
-	email: varchar({ length: 255 }),
-	slugCustomer: varchar("slug_customer", { length: 50 }),
 });
 
 export const merchantSettlements = pgTable("merchant_settlements", {
@@ -226,6 +182,50 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 			columns: [table.idMerchantSettlements],
 			foreignColumns: [merchantSettlements.id],
 			name: "merchant_settlement_orders_id_merchant_settlements_fkey"
+		}),
+	}
+});
+
+export const settlements = pgTable("settlements", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "settlements_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	batchAmount: numeric("batch_amount"),
+	discountFeeAmount: numeric("discount_fee_amount"),
+	netSettlementAmount: numeric("net_settlement_amount"),
+	totalAnticipationAmount: numeric("total_anticipation_amount"),
+	totalRestitutionAmount: numeric("total_restitution_amount"),
+	pixAmount: numeric("pix_amount"),
+	pixNetAmount: numeric("pix_net_amount"),
+	pixFeeAmount: numeric("pix_fee_amount"),
+	pixCostAmount: numeric("pix_cost_amount"),
+	pendingRestitutionAmount: numeric("pending_restitution_amount"),
+	totalCreditAdjustmentAmount: numeric("total_credit_adjustment_amount"),
+	totalDebitAdjustmentAmount: numeric("total_debit_adjustment_amount"),
+	totalSettlementAmount: numeric("total_settlement_amount"),
+	restRoundingAmount: numeric("rest_rounding_amount"),
+	outstandingAmount: numeric("outstanding_amount"),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
+	status: varchar({ length: 50 }),
+	creditStatus: varchar("credit_status", { length: 50 }),
+	debitStatus: varchar("debit_status", { length: 50 }),
+	anticipationStatus: varchar("anticipation_status", { length: 50 }),
+	pixStatus: varchar("pix_status", { length: 50 }),
+	paymentDate: date("payment_date"),
+	pendingFinancialAdjustmentAmount: numeric("pending_financial_adjustment_amount"),
+	creditFinancialAdjustmentAmount: numeric("credit_financial_adjustment_amount"),
+	debitFinancialAdjustmentAmount: numeric("debit_financial_adjustment_amount"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+}, (table) => {
+	return {
+		settlementsIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "settlements_id_customer_fkey"
 		}),
 	}
 });
@@ -392,17 +392,6 @@ export const categories = pgTable("categories", {
 	waitingPeriodCnp: integer("waiting_period_cnp"),
 });
 
-export const legalNatures = pgTable("legal_natures", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "legal_natures_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	name: varchar({ length: 255 }),
-	code: varchar({ length: 10 }),
-});
-
 export const merchants = pgTable("merchants", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchants_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -491,6 +480,10 @@ export const contacts = pgTable("contacts", {
 	idMerchant: integer("id_merchant"),
 	slugMerchant: varchar("slug_merchant", { length: 50 }),
 	idAddress: integer("id_address"),
+	icNumber: varchar("ic_number", { length: 50 }),
+	icDateIssuance: date("ic_date_issuance"),
+	icDispatcher: varchar("ic_dispatcher", { length: 10 }),
+	icFederativeUnit: varchar("ic_federative_unit", { length: 5 }),
 }, (table) => {
 	return {
 		contactsIdAddressFkey: foreignKey({
@@ -504,6 +497,17 @@ export const contacts = pgTable("contacts", {
 			name: "contacts_id_merchant_fkey"
 		}),
 	}
+});
+
+export const legalNatures = pgTable("legal_natures", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "legal_natures_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	name: varchar({ length: 255 }),
+	code: varchar({ length: 10 }),
 });
 
 export const merchantpixaccount = pgTable("merchantpixaccount", {
