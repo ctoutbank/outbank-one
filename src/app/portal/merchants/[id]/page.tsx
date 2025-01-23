@@ -1,70 +1,36 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import MerchantForm from "@/features/merchant/_components/merchant-form";
-import { getMerchantById } from "@/features/merchant/server/merchant";
-import { MerchantSchema } from "@/features/merchant/schema/merchant-schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MerchantFormAuthorizers from "@/features/merchant/_components/merchant-form-authorizers";
+import MerchantFormBank from "@/features/merchant/_components/merchant-form-bank";
+import MerchantFormCompany from "@/features/merchant/_components/merchant-form-company";
+import MerchantFormcontact from "@/features/merchant/_components/merchant-form-contact";
+import MerchantFormDocuments from "@/features/merchant/_components/merchant-form-documents";
+import MerchantFormOperations from "@/features/merchant/_components/merchant-form-operation";
+import Transactionrate from "@/features/merchant/_components/merchant-form-tax";
+import { getAddressByContactId } from "@/features/merchant/server/adderres";
+import { getContactByMerchantId } from "@/features/merchant/server/contact";
+import { getLegalNaturesForDropdown, getMerchantById } from "@/features/merchant/server/merchant";
+
 
 export default async function MerchantDetail({
   params,
 }: {
   params: { id: string };
 }) {
-  let merchantDetail: MerchantSchema | null = null;
 
-  try {
-    const data = await getMerchantById(BigInt(params.id));
-    if (data) {
-      merchantDetail = {
-        id: data.id,
-        slug: data.slug,
-        active: data.active,
-        dtinsert: data.dtinsert,
-        dtupdate: data.dtupdate,
-        idMerchant: data.id_merchant,
-        name: data.name,
-        idDocument: data.id_document,
-        corporateName: data.corporate_name,
-        email: data.email,
-        areaCode: data.area_code,
-        number: data.number,
-        phoneType: data.phone_type,
-        language: data.language,
-        timezone: data.timezone,
-        slugCustomer: data.slug_customer,
-        riskAnalysisStatus: data.risk_analysis_status,
-        riskAnalysisStatusJustification:
-          data.risk_analysis_status_justification,
-        legalPerson: data.legal_person,
-        openingDate: data.opening_date,
-        inclusion: data.inclusion,
-        openingDays: data.opening_days ? data.opening_days.split(",") : [],
-        openingHour: data.opening_hour,
-        closingHour: data.closing_hour,
-        municipalRegistration: data.municipal_registration,
-        stateSubcription: data.state_subcription,
-        hasTef: data.has_tef,
-        hasPix: data.has_pix,
-        hasTop: data.has_top,
-        establishmentFormat: data.establishment_format,
-        revenue: data.revenue,
-        idCategory: data.id_category,
-        slugCategory: data.slug_category,
-        idLegalNature: data.id_legal_nature,
-        slugLegalNature: data.slug_legal_nature,
-        idSalesAgent: data.id_sales_agent,
-        slugSalesAgent: data.slug_sales_agent,
-        idConfiguration: data.id_configuration,
-        slugConfiguration: data.slug_configuration,
-        idAddress: data.id_address,
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching merchant:", error);
-  }
+    const merchant = await getMerchantById(parseInt(params.id));
+    console.log("merchant", merchant);
+    const legalNatures = await getLegalNaturesForDropdown();
+   
+    console.log("legalNatures", legalNatures);
+    const address = await getAddressByContactId(merchant?.contacts?.id || 0);
+   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
+   console.log("contact", contact);
 
-  return (
-    <>
+
+      return (
+        <>
       <BaseHeader
         breadcrumbItems={[
           { title: "Estabelecimentos", url: "/portal/merchants" },
@@ -74,16 +40,142 @@ export default async function MerchantDetail({
       <BaseBody
         title="Estabelecimento"
         subtitle={
-          merchantDetail?.id
+          merchant?.merchants.id
             ? "Editar Estabelecimento"
             : "Adicionar Estabelecimento"
         }
       >
         <div className="">
           <Tabs defaultValue="company" className="space-y-4 w-full">
+            <TabsList>
+             
+              <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
+              <TabsTrigger value="contact">Dados do Responsável</TabsTrigger>
+              <TabsTrigger value="operation">Dados de Operação</TabsTrigger>
+              <TabsTrigger value="bank">Dados Bancários</TabsTrigger>
+              <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
+              <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
+              <TabsTrigger value="documents">Documentos</TabsTrigger>
+              
+            </TabsList>
+            
             <TabsContent value="company">
-              <MerchantForm merchant={merchantDetail || undefined} />
+              <MerchantFormCompany merchant={{
+                id: merchant?.merchants.id ? Number(merchant.merchants.id) : 0,
+                name: merchant?.merchants.name || null,
+                slug: merchant?.merchants.slug || null,
+                active: merchant?.merchants.active || false,
+                number: merchant?.merchants.number || null,
+                idDocument: merchant?.merchants.idDocument || null,
+                corporateName: merchant?.merchants.corporateName || null,
+                email: merchant?.merchants.email || null,
+                dtinsert: merchant?.merchants.dtinsert ? merchant.merchants.dtinsert : new Date().toISOString(),
+                dtupdate: merchant?.merchants.dtupdate ? new Date(merchant.merchants.dtupdate).toISOString() : null,
+                idMerchant: merchant?.merchants.idMerchant || "",
+                idAddress: merchant?.merchants.idAddress || 0,
+                idLegalNature: merchant?.merchants.idLegalNature || 0,
+                idSalesAgent: merchant?.merchants.idSalesAgent || 0,
+                idConfiguration: merchant?.merchants.idConfiguration || 0,
+                areaCode: merchant?.merchants.areaCode || null,
+                phoneType: merchant?.merchants.phoneType || null,
+                language: merchant?.merchants.language || null,
+                timezone: merchant?.merchants.timezone || null,
+                slugCustomer: merchant?.merchants.slugCustomer || null,
+                riskAnalysisStatus: merchant?.merchants.riskAnalysisStatus || null,
+                riskAnalysisStatusJustification: merchant?.merchants.riskAnalysisStatusJustification || null,
+                legalPerson: merchant?.merchants.legalPerson || null,
+                openingDate: merchant?.merchants.openingDate ? new Date(merchant.merchants.openingDate).toISOString() : null,
+                inclusion: merchant?.merchants.inclusion || null,
+                openingDays: merchant?.merchants.openingDays || null,
+                openingHour: merchant?.merchants.openingHour || null,
+                closingHour: merchant?.merchants.closingHour || null,
+                municipalRegistration: merchant?.merchants.municipalRegistration || null,
+                stateSubcription: merchant?.merchants.stateSubcription || null,
+                hasTef: merchant?.merchants.hasTef || false,
+                hasPix: merchant?.merchants.hasPix || false,
+                hasTop: merchant?.merchants.hasTop || false,
+                establishmentFormat: merchant?.merchants.establishmentFormat || null,
+                revenue: merchant?.merchants.revenue || null,
+                idCategory: merchant?.merchants.idCategory || null,
+                slugCategory: merchant?.merchants.slugCategory || null,
+                slugLegalNature: merchant?.merchants.slugLegalNature || null,
+                slugSalesAgent: merchant?.merchants.slugSalesAgent || "",
+                slugConfiguration: merchant?.merchants.slugConfiguration || "",
+                cnae: merchant?.categories?.cnae || "",
+                mcc: merchant?.categories?.mcc || "",
+                
+              }} address={{
+                id: merchant?.addresses?.id || 0,
+                streetAddress: merchant?.addresses?.streetAddress || null,
+                streetNumber: merchant?.addresses?.streetNumber || null,
+                complement: merchant?.addresses?.complement || null,
+                neighborhood: merchant?.addresses?.neighborhood || null,
+                city: merchant?.addresses?.city || null,
+                state: merchant?.addresses?.state || null,
+                country: merchant?.addresses?.country || null,
+                zipCode: merchant?.addresses?.zipCode || null
+              }} Cnae={merchant?.categories?.cnae || ""} Mcc={merchant?.categories?.mcc || ""} DDLegalNature={legalNatures}            />
+            
             </TabsContent>
+            <TabsContent value="contact">
+              <MerchantFormcontact Contact={contact?.[0]?.contacts} Address={contact?.[0]?.addresses || {
+                id: 0,
+                streetAddress: null,
+                streetNumber: null,
+                complement: null,
+                neighborhood: null,
+                city: null,
+                state: null,
+                country: null,
+                zipCode: null
+              }} />
+            
+            </TabsContent>
+            <TabsContent value="operation">
+              <MerchantFormOperations Configuration={merchant?.configurations || {
+                id: 0,
+                slug: null,
+                active: false,
+                dtinsert: null,
+                dtupdate: null,
+                lockCpAnticipationOrder: false,
+                lockCnpAnticipationOrder: false,
+                url: null,
+              }} hasTaf={merchant?.merchants.hasTef || false} hastop={merchant?.merchants.hasTop|| false} hasPix={merchant?.merchants.hasPix || false} merhcnatSlug={merchant?.merchants.slugCategory || ""} timerzone={merchant?.merchants.timezone || ""} />
+            </TabsContent>
+            <TabsContent value="bank">
+              <MerchantFormBank merchantpixaccount={merchant?.pixaccounts || {
+                id: 136,
+                slug: '',
+                active: true,
+                dtinsert: '',
+                dtupdate: '',
+                idRegistration: '',
+                idAccount: '',
+                bankNumber: '',
+                bankBranchNumber: '',
+                bankBranchDigit: '',
+                bankAccountNumber: '',
+                bankAccountDigit: ' ',
+                bankAccountType: '',
+                bankAccountStatus: '',
+                onboardingPixStatus: 'W',
+                message: '',
+                bankName: '',
+                idMerchant: merchant?.merchants.id || 0,
+                slugMerchant: ''
+              }} merchantcorporateName={merchant?.merchants.corporateName || ""} merchantdocumentId={merchant?.merchants.idDocument || ""} legalPerson={merchant?.merchants.legalPerson || ""} />
+            </TabsContent>
+            <TabsContent value="authorizers">
+              <MerchantFormAuthorizers form={""} />
+            </TabsContent>
+            <TabsContent value="rate">
+              <Transactionrate />
+            </TabsContent>
+            <TabsContent value="documents">
+              <MerchantFormDocuments form={""} />
+            </TabsContent>
+
           </Tabs>
         </div>
       </BaseBody>

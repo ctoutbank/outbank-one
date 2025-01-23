@@ -1,11 +1,17 @@
 "use server";
 
-import { MerchantSchema } from "../schema/merchant-schema";
+
+import { AddressSchema, MerchantSchema } from "../schema/merchant-schema";
 import {
   MerchantInsert,
   MerchantDetail,
   insertMerchant,
   updateMerchant,
+  AddressInsert,
+  AddressDetail,
+  updateAddress,
+  insertAddress,
+  updateMerchantColumnById,
 } from "../server/merchant";
 
 export async function insertMerchantFormAction(data: MerchantSchema) {
@@ -30,7 +36,7 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
     legalPerson: data.legalPerson || "",
     openingDate: data.openingDate?.toISOString() || new Date().toISOString(),
     inclusion: data.inclusion || "",
-    openingDays: data.openingDays?.join(",") || "",
+    openingDays: Array.isArray(data.openingDays) ? data.openingDays.join(",") : "",
     openingHour: data.openingHour || "",
     closingHour: data.closingHour || "",
     municipalRegistration: data.municipalRegistration || "",
@@ -82,7 +88,7 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
     legalPerson: data.legalPerson || "",
     openingDate: data.openingDate || new Date(),
     inclusion: data.inclusion || "",
-    openingDays: data.openingDays?.join(",") || "",
+    openingDays: Array.isArray(data.openingDays) ? data.openingDays.join(",") : "",
     openingHour: data.openingHour || "",
     closingHour: data.closingHour || "",
     municipalRegistration: data.municipalRegistration || "",
@@ -96,4 +102,40 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
     id: 0,
   };
   await updateMerchant(merchantUpdate);
+}
+
+
+export async function insertAddressFormAction(data: AddressSchema) {
+  const addressInsert: AddressInsert = {
+    streetAddress: data.street || "",
+    streetNumber: data.number || "", 
+    complement: data.complement || "",
+    neighborhood: data.neighborhood || "",
+    city: data.city || "",
+    state: data.state || "",
+    country: data.country || "",
+    zipCode: data.zipCode || ""
+  };
+  const newId = await insertAddress(addressInsert);
+  
+  
+   
+  
+
+  return newId;
+}
+
+export async function updateAddressFormAction(data: AddressSchema) {
+  const addressUpdate: AddressDetail = {
+    id: data.id || 0,
+    streetAddress: data.street || "",
+    streetNumber: data.number || "", 
+    complement: data.complement || "",
+    neighborhood: data.neighborhood || "",
+    city: data.city || "",
+    state: data.state || "",
+    country: data.country || "",
+    zipCode: data.zipCode || "",
+  };
+  await updateAddress(addressUpdate);
 }

@@ -27,7 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, MapPin, User } from "lucide-react";
 
 import { useForm } from "react-hook-form";
-import { MerchantSchema, schemaMerchant } from "../schema/merchant-schema";
+import { AddressSchema, MerchantSchema, schemaMerchant } from "../schema/merchant-schema";
 import TransactionFees from "./merchantedittaxa";
 
 import { useRouter } from "next/navigation";
@@ -36,9 +36,10 @@ import { updateMerchantFormAction } from "../_actions/merchant-formActions";
 
 interface MerchantProps {
   merchant: MerchantSchema | undefined;
+  address: AddressSchema | undefined;
 }
 
-export default function MerchantForm({ merchant }: MerchantProps) {
+export default function MerchantForm({ merchant, address }: MerchantProps) {
   const router = useRouter();
   const form = useForm<MerchantSchema>({
     resolver: zodResolver(schemaMerchant),
@@ -250,12 +251,14 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                           <div key={id} className="flex items-center space-x-2">
                             <Checkbox
                               id={id}
-                              checked={(field.value || []).includes(id)}
+                              checked={Array.isArray(field.value) && field.value.includes(id)}
                               onCheckedChange={(checked) => {
-                                const current = field.value || [];
+                                const current = Array.isArray(field.value) ? field.value : [];
                                 const updated = checked
                                   ? [...current, id]
-                                  : current.filter((day: string) => day !== id);
+                                  : Array.isArray(current) 
+                                    ? current.filter((day: string) => day !== id)
+                                    : [];
                                 field.onChange(updated);
                               }}
                             />
@@ -421,7 +424,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
               <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="address.zipCode"
+                  name="zipCode_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -441,7 +444,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="address.street"
+                  name="street_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -461,7 +464,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="address.number"
+                    name="number_address"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -480,7 +483,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="address.complement"
+                    name="complement_address"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Complemento</FormLabel>
@@ -498,7 +501,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="address.neighborhood"
+                  name="neighborhood_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -518,7 +521,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="address.city"
+                    name="city_address"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -537,7 +540,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="address.state"
+                    name="state_address"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -566,7 +569,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="address.country"
+                  name="country_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -597,7 +600,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
               <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="isOwner"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -627,7 +630,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="isPep"
+                  name="phoneType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -657,7 +660,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="cpf"
+                  name="idLegalNature"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -678,7 +681,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="rg.number"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -697,7 +700,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="rg.issueDate"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -721,7 +724,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="rg.issuingAgency"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -741,7 +744,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="rg.issuingState"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -770,7 +773,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="fullName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -789,7 +792,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="birthDate"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -811,7 +814,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="motherName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -830,7 +833,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="personalEmail"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -851,7 +854,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="phone.areaCode"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -871,7 +874,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="phone.number"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -900,7 +903,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
               <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="personalAddress.zipCode"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -920,7 +923,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="personalAddress.street"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -940,7 +943,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="personalAddress.number"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -959,7 +962,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="personalAddress.complement"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Complemento</FormLabel>
@@ -977,7 +980,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="personalAddress.neighborhood"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -997,7 +1000,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="personalAddress.city"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -1016,7 +1019,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                   <FormField
                     control={form.control}
-                    name="personalAddress.state"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -1045,7 +1048,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
 
                 <FormField
                   control={form.control}
-                  name="personalAddress.country"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>

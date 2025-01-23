@@ -1,20 +1,25 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, ilike, or } from "drizzle-orm";
 import {
   addresses,
+  categories,
   configurations,
+  contacts,
+  legalNatures,
+  merchantpixaccount,
   merchants,
   salesAgents,
 } from "../../../../drizzle/schema";
+import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
 
 export type MerchantInsert = typeof merchants.$inferInsert;
-export type MerchantSelect = typeof merchants.$inferSelect;
+
 
 export interface Merchantlist {
   merchants: {
-    id: bigint;
+    merchantid: number | bigint ;
     slug: string;
     active: boolean;
     name: string;
@@ -31,6 +36,8 @@ export interface Merchantlist {
     sales_agent: string;
     state: string;
     cnpj: string;
+    corporate_name: string;
+    slug_category: string;
   }[];
   totalCount: number;
 }
@@ -44,7 +51,7 @@ export async function getMerchants(
 
   const result = await db
     .select({
-      id: merchants.id,
+      merchantid: merchants.id,
       corporate_name: merchants.corporateName,
       name: merchants.name,
       risk_analysis_status: merchants.riskAnalysisStatus,
@@ -63,11 +70,12 @@ export async function getMerchants(
       lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
       cnpj: merchants.idDocument,
+      slug_category: merchants.slugCategory,
+      
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
     .where(
       or(
@@ -80,6 +88,9 @@ export async function getMerchants(
     .offset(offset)
     .limit(pageSize);
 
+    console.log("result", result);
+ 
+
   const totalCount = await db
     .select({ count: count() })
     .from(merchants)
@@ -87,7 +98,7 @@ export async function getMerchants(
 
   return {
     merchants: result.map((merchant) => ({
-      id: BigInt(merchant.id),
+      merchantid: merchant.merchantid,
       slug: merchant.slug ?? "N/A",
       active: merchant.active ?? false,
       name: merchant.name ?? "Não informado",
@@ -99,20 +110,25 @@ export async function getMerchants(
           : merchant.revenue ?? 0,
       id_category: merchant.id_category ?? 0,
       kic_status: merchant.kic_status ?? "N/A",
-      corporate_name: merchant.corporate_name ?? "Não informado",
-      risk_analysis_status: merchant.risk_analysis_status ?? "Indefinido",
-      addressname: merchant.addressname ?? "Não informado",
+      corporate_name: merchant.corporate_name ?? " ",
+      risk_analysis_status: merchant.risk_analysis_status ?? "",
+      addressname: merchant.addressname ?? "",
       dtinsert: merchant.dtinsert ? merchant.dtinsert.toString() : "N/A",
       state: merchant.addresses ?? "N/A",
       cnpj: merchant.document ?? "N/A",
       lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
       lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
-
+      slug_category: merchant.slug_category ?? "N/A",
+      
       sales_agent: merchant.salesAgents ?? "N/A",
-    })),
+    })
+  ),
     totalCount,
+   
   };
+  
 }
+
 
 export type Merchant = {
   id: bigint;
@@ -157,122 +173,53 @@ export type Merchant = {
   id_address: number;
 };
 
-export async function getMerchantById(id: bigint): Promise<Merchant | null> {
-  const result = await db
-    .select({
-      id: merchants.id,
-      slug: merchants.slug,
-      active: merchants.active,
-      dtinsert: merchants.dtinsert,
-      dtupdate: merchants.dtupdate,
-      id_merchant: merchants.idMerchant,
-      name: merchants.name,
-      id_document: merchants.idDocument,
-      corporate_name: merchants.corporateName,
-      email: merchants.email,
-      area_code: merchants.areaCode,
-      number: merchants.number,
-      phone_type: merchants.phoneType,
-      language: merchants.language,
-      timezone: merchants.timezone,
-      slug_customer: merchants.slugCustomer,
-      risk_analysis_status: merchants.riskAnalysisStatus,
-      risk_analysis_status_justification:
-        merchants.riskAnalysisStatusJustification,
-      legal_person: merchants.legalPerson,
-      opening_date: merchants.openingDate,
-      inclusion: merchants.inclusion,
-      opening_days: merchants.openingDays,
-      opening_hour: merchants.openingHour,
-      closing_hour: merchants.closingHour,
-      municipal_registration: merchants.municipalRegistration,
-      state_subcription: merchants.stateSubcription,
-      has_tef: merchants.hasTef,
-      has_pix: merchants.hasPix,
-      has_top: merchants.hasTop,
-      establishment_format: merchants.establishmentFormat,
-      revenue: merchants.revenue,
-      id_category: merchants.idCategory,
-      slug_category: merchants.slugCategory,
-      id_legal_nature: merchants.idLegalNature,
-      slug_legal_nature: merchants.slugLegalNature,
-      id_sales_agent: merchants.idSalesAgent,
-      slug_sales_agent: merchants.slugSalesAgent,
-      id_configuration: merchants.idConfiguration,
-      slug_configuration: merchants.slugConfiguration,
-      id_address: merchants.idAddress,
-    })
-    .from(merchants)
-    .where(eq(merchants.id, Number(id)))
-    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .limit(1);
+export type MerchantSelect = typeof merchants.$inferSelect & {
+  category?: typeof categories.$inferSelect;
+  address?: typeof addresses.$inferSelect;
+  legalNaturesname?:typeof legalNatures.$inferSelect;
+  salesAgent?:typeof salesAgents.$inferSelect;
+  configuration?:typeof configurations.$inferSelect;
+  contacts?:typeof contacts.$inferSelect;
+  
+};
 
-  if (result.length === 0) {
-    return null;
-  }
 
-  const merchant = result[0];
 
-  if (!result) {
-    return null;
-  }
+export async function getMerchantById(id: number) {
+ 
 
-  return {
-    id: BigInt(merchant.id),
-    slug: merchant.slug ?? "N/A",
-    active: merchant.active ?? false,
-    dtinsert:
-      typeof merchant.dtinsert === "string"
-        ? new Date(merchant.dtinsert)
-        : merchant.dtinsert ?? new Date(),
-    dtupdate:
-      typeof merchant.dtupdate === "string"
-        ? new Date(merchant.dtupdate)
-        : merchant.dtupdate ?? new Date(),
-    id_merchant: merchant.id_merchant ?? "N/A",
-    name: merchant.name ?? "N/A",
-    id_document: merchant.id_document ?? "N/A",
-    corporate_name: merchant.corporate_name ?? "N/A",
-    email: merchant.email ?? "N/A",
-    area_code: merchant.area_code ?? "N/A",
-    number: merchant.number ?? "N/A",
-    phone_type: merchant.phone_type ?? "N/A",
-    language: merchant.language ?? "N/A",
-    timezone: merchant.timezone ?? "N/A",
-    slug_customer: merchant.slug_customer ?? "N/A",
-    risk_analysis_status: merchant.risk_analysis_status ?? "N/A",
-    risk_analysis_status_justification:
-      merchant.risk_analysis_status_justification ?? "N/A",
-    legal_person: merchant.legal_person ?? "N/A",
-    opening_date:
-      typeof merchant.opening_date === "string"
-        ? new Date(merchant.opening_date)
-        : merchant.opening_date ?? new Date(),
-    inclusion: merchant.inclusion ?? "N/A",
-    opening_days: merchant.opening_days ?? "N/A",
-    opening_hour: merchant.opening_hour ?? "N/A",
-    closing_hour: merchant.closing_hour ?? "N/A",
-    municipal_registration: merchant.municipal_registration ?? "N/A",
-    state_subcription: merchant.state_subcription ?? "N/A",
-    has_tef: merchant.has_tef ?? false,
-    has_pix: merchant.has_pix ?? false,
-    has_top: merchant.has_top ?? false,
-    establishment_format: merchant.establishment_format ?? "N/A",
-    revenue:
-      typeof merchant.revenue === "string"
-        ? parseFloat(merchant.revenue)
-        : merchant.revenue ?? 0,
-    id_category: merchant.id_category ?? 0,
-    slug_category: merchant.slug_category ?? "N/A",
-    id_legal_nature: merchant.id_legal_nature ?? 0,
-    slug_legal_nature: merchant.slug_legal_nature ?? "N/A",
-    id_sales_agent: merchant.id_sales_agent ?? 0,
-    slug_sales_agent: merchant.slug_sales_agent ?? "N/A",
-    id_configuration: merchant.id_configuration ?? 0,
-    slug_configuration: merchant.slug_configuration ?? "N/A",
-    id_address: merchant.id_address ?? 0,
-  };
-}
+
+    const result = await db
+      .select({
+       merchants: {...getTableColumns(merchants)},
+       categories: {...getTableColumns(categories)},
+       addresses: {...getTableColumns(addresses)},
+       configurations: {...getTableColumns(configurations)},
+       salesAgents: {...getTableColumns(salesAgents)},
+       legalNatures: {...getTableColumns(legalNatures)},
+       contacts: {...getTableColumns(contacts)},
+       pixaccounts: {...getTableColumns(merchantpixaccount)},
+
+      })
+      .from(merchants)
+      .where(eq(merchants.id, Number(id)))
+      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+      .leftJoin(categories, eq(merchants.idCategory, categories.id))
+      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+      .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+      .leftJoin(merchantpixaccount, eq(merchants.id, merchantpixaccount.idMerchant))
+      .limit(1);
+
+    console.log(result)
+
+    const merchant = result[0];
+
+    return merchant;
+    };
+  
+
 
 // Interface para o MerchantDetail
 export interface MerchantDetail {
@@ -465,3 +412,61 @@ export async function updateMerchantColumnById(
 
 // Atualizar o nome
 //await updateMerchantColumnById(123, "name", "Novo Nome"); //
+
+
+export type AddressInsert = typeof addresses.$inferInsert;
+export type AddressDetail = typeof addresses.$inferSelect;
+
+
+export async function insertAddress(address: AddressInsert): Promise<number> {
+  const result = await db.insert(addresses).values(address).returning({ id: addresses.id });
+  return result[0].id;
+}
+
+
+export async function updateAddress(address: AddressDetail): Promise<void> {
+  await db.update(addresses).set(address).where(eq(addresses.id, address.id));
+}
+
+
+export async function getDDLegalNatures(): Promise<LegalNatureDetail[]> {
+  const result = await db
+    .select({
+      id: legalNatures.id,
+      name: legalNatures.name,
+      code: legalNatures.code
+    })
+    .from(legalNatures)
+    .orderBy(legalNatures.name);
+  return result.map(item => ({
+    id: item.id,
+    name: item.name,
+    code: item.code,
+    slug: null,
+    active: null, 
+    dtinsert: null,
+    dtupdate: null
+  }));
+}
+export type LegalNatureDropdown = {
+  value: number;
+  label: string;
+}
+
+export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[]> {
+  const result = await db
+    .select({
+      value: legalNatures.id,
+      label: legalNatures.name,
+    })
+    .from(legalNatures)
+    .orderBy(legalNatures.id);
+
+    return result.map(item => ({
+      value: item.value,
+      label: item.label ?? '' // Fornece um valor padrão caso seja null
+    }))
+    
+  }
+
+  

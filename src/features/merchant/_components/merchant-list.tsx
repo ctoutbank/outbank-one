@@ -67,11 +67,11 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
           </TableHeader>
           <TableBody>
             {list.merchants.map((merchant, i) => (
-              <TableRow key={merchant.id}>
+              <TableRow key={merchant.merchantid}>
                 <TableCell><Link
                     className="text-primary underline"
                     href="/portal/merchants/[id]"
-                    as={`/portal/merchants/${merchant.id}`}
+                    as={`/portal/merchants/${merchant.merchantid}`}
                   >
                   {merchant.name}
                   <div className="text-sm text-muted-foreground">
