@@ -15,6 +15,10 @@ export const schemaContact = z.object({
 	idMerchant: z.number().optional(),
 	slugMerchant: z.string().max(50).optional(),
 	idAddress: z.number().optional(),
+	icNumber: z.string().optional(),
+	icDateIssuance: z.date().optional(),
+	icDispatcher: z.string().optional(),
+	icFederativeUnit: z.string().optional(),
     
 	
 });

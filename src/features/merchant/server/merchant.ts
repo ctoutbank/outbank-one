@@ -14,6 +14,7 @@ import {
 } from "../../../../drizzle/schema";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
 
+
 export type MerchantInsert = typeof merchants.$inferInsert;
 
 
@@ -29,9 +30,11 @@ export interface Merchantlist {
     id_category: number;
     kic_status: string;
     addressname: string;
+    time_zone: string;
 
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
+    
 
     sales_agent: string;
     state: string;
@@ -71,6 +74,8 @@ export async function getMerchants(
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
+      time_zone: merchants.timezone,
+     
       
     })
     .from(merchants)
@@ -119,7 +124,7 @@ export async function getMerchants(
       lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
       lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
       slug_category: merchant.slug_category ?? "N/A",
-      
+      time_zone: merchant.time_zone ?? "N/A",
       sales_agent: merchant.salesAgents ?? "N/A",
     })
   ),

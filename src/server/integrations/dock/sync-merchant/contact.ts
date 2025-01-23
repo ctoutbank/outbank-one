@@ -61,7 +61,11 @@ async function insertContactRelations(
       isPartnerContact: contact.isPartnerContact,
       isPep: contact.isPep,
       idMerchant: id_merchant,
-      slugMerchant: slug_merchant
+      slugMerchant: slug_merchant,
+      icNumber: contact.icNumber || "",
+      icDateIssuance: contact.icDateIssuance ? new Date(contact.icDateIssuance).toISOString() : null,
+      icDispatcher: contact.icDispatcher || "",
+      icFederativeUnit: contact.icFederativeUnit || ""
     }
       
     ).returning({ id: contacts.id });

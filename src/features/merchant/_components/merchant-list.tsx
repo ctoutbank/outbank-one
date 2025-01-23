@@ -17,6 +17,8 @@ import Link from "next/link";
 import { Merchantlist } from "../server/merchant";
 
 
+
+
 export default function MerchantList({ list }: { list: Merchantlist }) {
   
 

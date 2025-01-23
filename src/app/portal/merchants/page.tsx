@@ -7,6 +7,8 @@ import MerchantList from "../../../features/merchant/_components/merchant-list";
 import ListFilter from "@/components/filter";
 import { getMerchants } from "@/features/merchant/server/merchant";
 
+
+
 type MerchantProps = {
 page:string
 pageSize:string
