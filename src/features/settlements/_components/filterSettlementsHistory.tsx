@@ -22,11 +22,11 @@ type Status =
   | "error"
   | "settled";
 
-export default function FiltersHistory() {
+export default function FiltersHistory({statusIn, dateFromIn, dateToIn} : { statusIn: string, dateFromIn: Date | undefined, dateToIn: Date | undefined}) {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-  const [selectedStatuses, setSelectedStatuses] = useState<Status[]>([]);
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [selectedStatuses, setSelectedStatuses] = useState<Status[]>(statusIn ? statusIn.split(",") as Status[] : []);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
+  const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
 
   const router = useRouter();
   const searchParams = useSearchParams();
