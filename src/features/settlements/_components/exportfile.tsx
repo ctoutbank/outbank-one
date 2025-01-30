@@ -86,7 +86,7 @@ export default function VoucherDownload({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px] p-0 border-0">
+        <DialogContent className="sm:max-w-[425px] p-0 border-0 overflow-auto max-h-[90%]">
           <div id="proof">
             <div className="bg-black text-white py-4">
               <DialogHeader>
@@ -174,7 +174,7 @@ export default function VoucherDownload({
                         </p>
                       </div>
                     </div>
-                    <div>
+                    <div className="pb-4">
                       <p className="text-sm text-gray-600 mb-2">Conta</p>
                       <p className="font-medium">
                         {vouncherDownloadProps.accountNumber}

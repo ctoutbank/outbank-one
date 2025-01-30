@@ -64,69 +64,71 @@ export default async function SettlementsPage({
         subtitle={`Visualização de todas as Liquidações`}
       >
         {settlements.settlement.length > 0 && (
-          <ExcelExport
-            data={merchantSettlements.merchant_settlements.flatMap(
-              (settlement) =>
-                settlement.orders?.map((order) => ({
-                  Name: order.corporateName,
-                  CorporateName: order.corporateName,
-                  FederalTAXID: order.documentId,
-                  ISO: settlement.customerId,
-                  Date: order.effectivePaymentDate,
-                  ReceivableUnit: order.receivableUnit,
-                  Amount: order.amount,
-                  Bank: order.bank,
-                  Agency: order.agency,
-                  AccountNumber: order.accountNumber,
-                  AccountType: order.accountType,
-                  EffectivePaymentDate: formatDate(
-                    new Date(order.effectivePaymentDate)
-                  ),
-                  PaymentNumber: order.paymentNumber,
-                  Status: order.status,
-                  Lock: order.lock,
-                  LockBank: "",
-                  LockFederalTAXID: "",
-                  LockAccountNumber: "",
-                  LockAgency: "",
-                  Identifier: order.settlementUniqueNumber,
-                }))
-            )}
-            globalStyles={globalStyles}
-            sheetName="Liquidação"
-            fileName={
-              `LIQUIDAÇÕES ${settlements.settlement[0]?.payment_date}` || ""
-            }
-          />
+          <>
+            <FinancialOverview
+              financialOverviewProps={{
+                date:
+                  new Date(settlements.settlement[0].payment_date || "") ||
+                  new Date(),
+                grossSalesAmount: Number(
+                  settlements.settlement[0]?.batch_amount || 0
+                ),
+                netAnticipationsAmount: Number(
+                  settlements.settlement[0]?.total_anticipation_amount || 0
+                ),
+                restitutionAmount: Number(
+                  settlements.settlement[0]?.total_restitution_amount || 0
+                ),
+                settlementAmount: Number(
+                  settlements.settlement[0]?.total_settlement_amount || 0
+                ),
+                creditStatus: settlements.settlement[0].credit_status || "",
+                debitStatus: settlements.settlement[0].debit_status || "",
+                anticipationStatus:
+                  settlements.settlement[0].anticipation_status || "",
+                pixStatus: settlements.settlement[0].pix_status || "",
+              }}
+            />
+          </>
         )}
-
-        {settlements.settlement.length > 0 && (
-          <FinancialOverview
-            financialOverviewProps={{
-              date:
-                new Date(settlements.settlement[0].payment_date || "") ||
-                new Date(),
-              grossSalesAmount: Number(
-                settlements.settlement[0]?.batch_amount || 0
-              ),
-              netAnticipationsAmount: Number(
-                settlements.settlement[0]?.total_anticipation_amount || 0
-              ),
-              restitutionAmount: Number(
-                settlements.settlement[0]?.total_restitution_amount || 0
-              ),
-              settlementAmount: Number(
-                settlements.settlement[0]?.total_settlement_amount || 0
-              ),
-              creditStatus: settlements.settlement[0].credit_status || "",
-              debitStatus: settlements.settlement[0].debit_status || "",
-              anticipationStatus:
-                settlements.settlement[0].anticipation_status || "",
-              pixStatus: settlements.settlement[0].pix_status || "",
-            }}
-          />
-        )}
-
+        <div className="relative">
+         <div className="absolute top-4 right-0 z-10">
+            <ExcelExport
+              data={merchantSettlements.merchant_settlements.flatMap(
+                (settlement) =>
+                  settlement.orders?.map((order) => ({
+                    Name: order.corporateName,
+                    CorporateName: order.corporateName,
+                    FederalTAXID: order.documentId,
+                    ISO: settlement.customerId,
+                    Date: order.effectivePaymentDate,
+                    ReceivableUnit: order.receivableUnit,
+                    Amount: order.amount,
+                    Bank: order.bank,
+                    Agency: order.agency,
+                    AccountNumber: order.accountNumber,
+                    AccountType: order.accountType,
+                    EffectivePaymentDate: formatDate(
+                      new Date(order.effectivePaymentDate)
+                    ),
+                    PaymentNumber: order.paymentNumber,
+                    Status: order.status,
+                    Lock: order.lock,
+                    LockBank: "",
+                    LockFederalTAXID: "",
+                    LockAccountNumber: "",
+                    LockAgency: "",
+                    Identifier: order.settlementUniqueNumber,
+                  }))
+              )}
+              globalStyles={globalStyles}
+              sheetName="Liquidação"
+              fileName={
+                `LIQUIDAÇÕES ${settlements.settlement[0]?.payment_date}` || ""
+              }
+            />
+            </div>
+            </div>
         <ListFilter pageName="portal/settlements" search={search} />
         {merchantSettlements.merchant_settlements.length == 0 ? (
           <div className="flex justify-center items-center mt-10">

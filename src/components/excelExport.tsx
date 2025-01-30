@@ -113,10 +113,10 @@ export default function ExcelExport<T>({
     <div className="flex justify-end">
       <button
         onClick={downloadExcel}
-        className="flex items-center gap-2 p-2 text-black rounded"
+        className="flex items-center gap-2 p-2 text-black rounded bg-secondary"
       >
         <Download size={16} />
-        Baixar Excel
+        Exportar
       </button>
     </div>
   );
