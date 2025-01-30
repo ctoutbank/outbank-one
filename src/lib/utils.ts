@@ -101,9 +101,7 @@ export function gateDateByViewMode(viewMode: string): Period {
   }
 }
 
-
-
-export function FormatDate(date: Date): string {
+export function formatDate(date: Date): string {
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
@@ -111,7 +109,7 @@ export function FormatDate(date: Date): string {
   return `${day}/${month}/${year}`;
 }
 
-export function FormatDateTime(date: Date): string {
+export function formatDateTime(date: Date): string {
   const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
   const day = date.getDate();
   const month = date.getMonth() + 1;
@@ -120,31 +118,147 @@ export function FormatDateTime(date: Date): string {
   const minutes = date.getMinutes();
   const seconds = date.getSeconds();
 
-  return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours
+    .toString()
+    .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
 }
 
-export function FormatDateComplete(date: Date): string {
-  const days = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
-  const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+export function formatDateComplete(date: Date): string {
+  const days = [
+    "domingo",
+    "segunda-feira",
+    "terça-feira",
+    "quarta-feira",
+    "quinta-feira",
+    "sexta-feira",
+    "sábado",
+  ];
+  const months = [
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+  ];
 
   const dayOfWeek = days[date.getDay()];
   const month = months[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();
 
-  const daySuffix = (day === 1 || day === 21 || day === 31) ? 'º' : '';
+  const daySuffix = day === 1 || day === 21 || day === 31 ? "º" : "";
 
   return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
 }
 
-
-export function FormatCurrency(number: number): string {
-  return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+export function formatCurrency(number: number): string {
+  return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
-
 
 export function generateSlug(): string {
   return crypto.randomBytes(16).toString("hex").toUpperCase();
 }
 
+export function translateStatus(status: string): string {
+  switch (status) {
+    case "PENDING":
+      return "Pendente";
+    case "PROCESSING":
+      return "Processando";
+    case "REQUESTED":
+      return "Pedido";
+    case "FAILED":
+      return "Falhou";
+    case "SETTLED":
+      return "Liquidado";
+    case "PAID":
+      return "Pago";
+    case "PRE_APPROVED":
+      return "Pré Aprovado";
+    case "APPROVED":
+      return "Aprovado";
+    default:
+      return "";
+  }
+}
 
+export function getStatusColor(status: string) {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-500  hover:bg-yellow-600";
+    case "PROCESSING":
+      return "bg-yellow-500 hover:bg-yellow-400";
+    case "REQUESTED":
+      return "bg-yellow-300 hover:bg-yellow-400";
+    case "FAILED":
+      return "bg-red-500  hover:bg-red-600";
+    case "SETTLED":
+      return "bg-green-500  hover:bg-green-600";
+    case "PAID":
+      return "bg-green-500  hover:bg-green-600";
+    case "PRE_APPROVED":
+      return "bg-blue-400  hover:bg-blue-500";
+    case "APPROVED":
+      return "bg-blue-700  hover:bg-blue-800";
+    default:
+      return "bg-gray-400 hover:bg-gray-500";
+  }
+}
+
+export function formatCurrencyWithoutSymbol(number: number): string {
+  return number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
+}
+
+export function formatDateMonthPT(date: Date): string {
+  const months = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} de ${month} de ${year}`;
+}
+
+export function toUpperCaseFirst(text: string): string {
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(" ");
+}
+
+export function translateCardType(cardType: string): string {
+  switch (cardType.toUpperCase()) {
+    case "CREDIT":
+      return "Crédito";
+    case "DEBIT":
+      return "Débito";
+    case "PREPAID - DEBIT":
+      return "Débito - Pré-pago";
+    case "PIX":
+      return "Pix";
+    default:
+      return "";
+  }
+}

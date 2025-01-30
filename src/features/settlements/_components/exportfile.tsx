@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PDFDocument } from "pdf-lib";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +12,13 @@ import {
 } from "@/components/ui/dialog";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { FormatDateTime, FormatCurrency } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
+import {
+  formatDateTime,
+  formatCurrency,
+  formatCurrencyWithoutSymbol,
+  formatDateMonthPT,
+  toUpperCaseFirst,
+} from "@/lib/utils";
 
 export type VouncherDownloadProps = {
   date: Date;
@@ -33,21 +39,43 @@ export default function VoucherDownload({
 }) {
   const [open, setOpen] = useState(false);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const element = document.getElementById("proof");
     if (element) {
-      html2canvas(element).then((canvas) => {
-        const imgData = canvas;
+      try {
+        // Renderiza o HTML em um canvas
+        const canvas = await html2canvas(element, { backgroundColor: null });
+
+        // Converte o canvas para uma imagem PNG
+        const imgData = canvas.toDataURL("image/png");
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const pdf = new jsPDF({
-          orientation: imgWidth > imgHeight ? "landscape" : "portrait",
-          unit: "px",
-          format: [imgWidth, imgHeight],
+
+        // Cria um novo documento PDF
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([imgWidth, imgHeight]);
+
+        // Adiciona a imagem ao PDF
+        const pngImage = await pdfDoc.embedPng(imgData);
+        page.drawImage(pngImage, {
+          x: 0,
+          y: 0,
+          width: imgWidth,
+          height: imgHeight,
         });
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-        pdf.save("comprovante.pdf");
-      });
+
+        // Salva o PDF como um Blob
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+
+        // Gera um link para download do PDF
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "comprovante.pdf";
+        link.click();
+      } catch (error) {
+        console.error("Erro ao gerar o PDF:", error);
+      }
     }
   };
 
@@ -58,83 +86,109 @@ export default function VoucherDownload({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[600px] h-[96%] overflow-auto p-0 py-4">
+        <DialogContent className="sm:max-w-[425px] p-0 border-0">
           <div id="proof">
-            <DialogHeader>
-              <DialogTitle className="text-center mb-6 text-2xl w-full">
-                Baixar Vouncher
-              </DialogTitle>
-            </DialogHeader>
+            <div className="bg-black text-white py-4">
+              <DialogHeader>
+                <DialogTitle className="text-center text-sm font-semibold">
+                  BAIXAR VOUNCHER
+                </DialogTitle>
+              </DialogHeader>
+            </div>
 
-            <div className="p-8 border-solid border-2 border-black mx-8 mb-4">
-              <img
-                src="/logo_sistema_outbank.png"
-                alt="Banco Prisma Logo"
-                className="w-72 mx-auto"
-              />
-              <Separator className="bg-black mb-4" />
-              <div className="space-y-6 ">
+            <div className="p-6">
+              <div className="text-center mb-4">
+                <h1 className="text-2xl font-bold mb-4">BANCO PRISMA</h1>
+                <div className="border-b border-dashed border-black" />
+              </div>
+
+              <div>
                 <div>
-                  <h2 className="font-semibold text-xl">Prova de Liquidação</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {FormatDateTime(vouncherDownloadProps.date)}
+                  <h2 className="font-bold text-lg">Prova de Liquidação</h2>
+                  <p className="text-sm text-gray-600">
+                    {formatDateMonthPT(vouncherDownloadProps.date)}
                   </p>
+                  <div className="border-b border-dashed border-black mt-4" />
                 </div>
-                <Separator className="bg-black " />
+
                 <div>
-                  <h3 className="font-semibold mb-2">TRANSAÇÃO</h3>
-                  <div className="grid gap-2">
+                  <h3 className="font-bold text-lg mb- mt-4">Transação</h3>
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Valor</p>
-                      <p>{FormatCurrency(vouncherDownloadProps.value)}</p>
+                      <p className="text-lg font-bold text-center">Valor</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <p className="text-sm"> R$ </p>
+                        <p className="text-4xl font-bold text-center">
+                          {formatCurrencyWithoutSymbol(
+                            vouncherDownloadProps.value
+                          )}
+                        </p>
+                      </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Descrição</p>
-                      <p>{vouncherDownloadProps.description}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Número Único de Liquidação
+                      <p className="text-sm text-gray-600 mb-2">Descrição</p>
+                      <p className="font-medium">
+                        {toUpperCaseFirst(vouncherDownloadProps.description)}
                       </p>
-                      <p>{vouncherDownloadProps.singleSettlementNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Número único de liquidação
+                      </p>
+                      <p className="font-semibold">
+                        {vouncherDownloadProps.singleSettlementNumber}
+                      </p>
                     </div>
                   </div>
+                  <div className="border-b border-dashed border-black mt-4" />
                 </div>
-                <Separator className="bg-black" />
+
                 <div>
-                  <h3 className="font-semibold mb-2">CONTA CREDITADA</h3>
-                  <div className="grid gap-2">
+                  <h3 className="font-bold text-lg mb-4 mt-4">
+                    Conta Creditada
+                  </h3>
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Nome/Razão Social
+                      <p className="text-sm text-gray-600 mb-2">Nome</p>
+                      <p className="font-medium">
+                        {toUpperCaseFirst(vouncherDownloadProps.corporateName)}
                       </p>
-                      <p>{vouncherDownloadProps.corporateName}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">CNPJ</p>
-                      <p>{vouncherDownloadProps.cnpj}</p>
+                      <p className="text-sm text-gray-600 mb-2">CNPJ</p>
+                      <p className="font-medium">
+                        {vouncherDownloadProps.cnpj}
+                      </p>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Banco</p>
-                        <p>{vouncherDownloadProps.bank}</p>
+                        <p className="text-sm text-gray-600 mb-2">Banco</p>
+                        <p className="font-medium">
+                          {vouncherDownloadProps.bank}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Ramal</p>
-                        <p>{vouncherDownloadProps.bankBranchNumber}</p>
+                        <p className="text-sm text-gray-600 mb-2">Ramal</p>
+                        <p className="font-medium">
+                          {vouncherDownloadProps.bankBranchNumber}
+                        </p>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Conta</p>
-                        <p>{vouncherDownloadProps.accountNumber}</p>
-                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">Conta</p>
+                      <p className="font-medium">
+                        {vouncherDownloadProps.accountNumber}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 mx-8">
-            <Button onClick={handleDownloadPDF}>exportar</Button>
+          <div className="flex justify-end gap-2 p-4 bg-white border-t">
+            <Button onClick={handleDownloadPDF} variant="default">
+              Exportar PDF
+            </Button>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Fechar
             </Button>

@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Circle } from "lucide-react";
-import { FormatCurrency, FormatDateComplete } from "@/lib/utils";
+import {
+  formatCurrency,
+  formatDateComplete,
+  getStatusColor,
+} from "@/lib/utils";
 
 export type FinancialOverviewProps = {
   date: Date;
@@ -20,39 +24,19 @@ export default function FinancialOverview({
 }: {
   financialOverviewProps: FinancialOverviewProps;
 }) {
-  function getStatusColor(status: string): string {
-    switch (status) {
-      case "PENDING":
-        return "fill-yellow-500  ";
-      case "PROCESSING":
-        return "fill-yellow-300 ";
-      case "REQUESTED":
-        return "fill-yellow-300 ";
-      case "FAILED":
-        return "fill-red-500";
-      case "SETTLED":
-        return "fill-green-500  ";
-      case "PRE_APPROVED":
-        return "fill-blue-400  ";
-      case "APPROVED":
-        return "fill-blue-700  ";
-      default:
-        return "fill-gray-400 ";
-    }
-  }
   return (
     <Card className="w-full border-l-8 border-black ">
       <div className="flex items-center justify-between">
         <CardHeader>
           <CardTitle className="text-xl font-bold ">Visão geral</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {FormatDateComplete(financialOverviewProps.date)}
+            {formatDateComplete(financialOverviewProps.date)}
           </p>
         </CardHeader>
         <div className="flex gap-4 mt-4 mr-10">
           <Badge variant="outline" className="flex items-center gap-2 w-auto">
             <Circle
-              className={`w-3 h-3 stroke-none ${getStatusColor(
+              className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.creditStatus
               )}`}
             />
@@ -60,7 +44,7 @@ export default function FinancialOverview({
           </Badge>
           <Badge variant="outline" className="flex items-center gap-2 w-auto">
             <Circle
-              className={`w-3 h-3 stroke-none ${getStatusColor(
+              className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.debitStatus
               )}`}
             />
@@ -68,7 +52,7 @@ export default function FinancialOverview({
           </Badge>
           <Badge variant="outline" className="flex items-center gap-2 w-auto">
             <Circle
-              className={`w-3 h-3 stroke-none ${getStatusColor(
+              className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.anticipationStatus
               )}`}
             />
@@ -76,7 +60,7 @@ export default function FinancialOverview({
           </Badge>
           <Badge variant="outline" className="flex items-center gap-2 w-auto">
             <Circle
-              className={`w-3 h-3 stroke-none ${getStatusColor(
+              className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.pixStatus
               )}`}
             />
@@ -92,7 +76,7 @@ export default function FinancialOverview({
                 Valor Líquido Recebíveis
               </p>
               <p className="text-lg font-semibold">
-                {FormatCurrency(financialOverviewProps.grossSalesAmount)}
+                {formatCurrency(financialOverviewProps.grossSalesAmount)}
               </p>
             </div>
             <div>
@@ -100,7 +84,7 @@ export default function FinancialOverview({
                 Valor Líquido Antecipação
               </p>
               <p className="text-lg font-semibold">
-                {FormatCurrency(financialOverviewProps.netAnticipationsAmount)}
+                {formatCurrency(financialOverviewProps.netAnticipationsAmount)}
               </p>
             </div>
             <div>
@@ -108,7 +92,7 @@ export default function FinancialOverview({
                 Valores de Retorno
               </p>
               <p className="text-lg font-semibold">
-                {FormatCurrency(financialOverviewProps.restitutionAmount)}
+                {formatCurrency(financialOverviewProps.restitutionAmount)}
               </p>
             </div>
             <div>
@@ -116,7 +100,7 @@ export default function FinancialOverview({
                 Valor Total de Liquidação
               </p>
               <p className="text-lg font-semibold">
-                {FormatCurrency(financialOverviewProps.settlementAmount)}
+                {formatCurrency(financialOverviewProps.settlementAmount)}
               </p>
             </div>
           </div>

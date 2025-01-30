@@ -52,6 +52,9 @@ export default async function SettlementsPage({
         title="Histórico de Liquidações"
         subtitle={`Visualização do Histórico de Liquidações`}
       >
+        <div className="mb-4">
+        <FiltersHistory></FiltersHistory>
+        </div>
         <SettlementHistoryList Settlements={settlements} />
         {totalRecords > 0 && (
           <PaginationRecords
