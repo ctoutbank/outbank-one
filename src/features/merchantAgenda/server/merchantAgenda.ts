@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { asc, count, desc, eq, ilike, or } from "drizzle-orm";
+import { asc, count, desc, eq, ilike, max, or, sql, sum } from "drizzle-orm";
 import { categories, merchants, payout } from "../../../../drizzle/schema";
 import { te } from "date-fns/locale";
 
@@ -93,5 +93,46 @@ export async function getMerchantAgenda(
       rnn: merchantAgendaMap.rnn || "",
     })),
     totalCount,
+  };
+}
+
+export async function getMerchantAgendaInfo(): Promise<{
+  count: string | null;
+  totalSettlementAmount: string | null;
+  totalTaxAmount: string | null;
+}> {
+  const maxDateResult = await db
+    .select({
+      maxDate: max(payout.expectedSettlementDate),
+    })
+    .from(payout);
+
+  const maxDate = new Date(maxDateResult[0]?.maxDate || 0);
+
+  const countResult = await db
+    .select({
+      count: count(),
+    })
+    .from(payout)
+    .where(eq(payout.settlementDate, maxDate.toISOString()));
+
+  const totalSettlementAmountResult = await db
+    .select({
+      totalSettlementAmount: sum(payout.settlementAmount),
+    })
+    .from(payout)
+    .where(eq(payout.settlementDate, maxDate.toISOString()));
+
+  const totalTaxAmountResult = await db
+    .select({
+      totalTaxAmount: sum(payout.transactionMdr),
+    })
+    .from(payout)
+    .where(eq(payout.settlementDate, maxDate.toISOString()));
+
+  return {
+    count: countResult[0]?.count?.toString() || null,
+    totalSettlementAmount: totalSettlementAmountResult[0]?.totalSettlementAmount?.toString() || null,
+    totalTaxAmount: totalTaxAmountResult[0]?.totalTaxAmount?.toString() || null,
   };
 }

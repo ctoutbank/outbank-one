@@ -2,13 +2,16 @@ import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
-import Categorylist from "../../../features/categories/_components/categories-list";
+import { EmptyState } from "@/components/empty-state";
 import PaginationRecords from "@/components/pagination-Records";
-import { getCategories } from "@/features/categories/server/category";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
+import {
+  getMerchantAgenda,
+  getMerchantAgendaInfo,
+} from "@/features/merchantAgenda/server/merchantAgenda";
+import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -39,6 +42,7 @@ export default async function MerchantAgendaPage({
     sortOrder
   );
   const totalRecords = merchantAgenda.totalCount;
+  const merchantAgendaCard = await getMerchantAgendaInfo();
 
   return (
     <>
@@ -77,15 +81,25 @@ export default async function MerchantAgendaPage({
             <ListFilter pageName="portal/merchantAgenda" search={search} />
             <div className="mb-4">
               <MerchantAgendaOverview
-                totalSales={0}
-                totalAmount={0}
-                grossAmount={0}
-                taxAmount={0}
-                settledInstallments={0}
+                totalMerchant={Number(merchantAgendaCard.count || 0)}
+                totalSales={Number(
+                  merchantAgendaCard.totalSettlementAmount || 0
+                )}
+                grossAmount={Number(
+                  merchantAgendaCard.totalSettlementAmount || 0
+                )}
+                taxAmount={Number(merchantAgendaCard.totalTaxAmount || 0)}
+                settledInstallments={Number(
+                  merchantAgendaCard.totalSettlementAmount || 0
+                )}
                 pendingInstallments={0}
                 date={new Date()}
-                settledGrossAmount={0}
-                settledTaxAmount={0}
+                settledGrossAmount={Number(
+                  merchantAgendaCard.totalSettlementAmount || 0
+                )}
+                settledTaxAmount={Number(
+                  merchantAgendaCard.totalTaxAmount || 0
+                )}
                 anticipatedGrossAmount={0}
                 anticipatedTaxAmount={0}
                 toSettleInstallments={0}
@@ -98,19 +112,30 @@ export default async function MerchantAgendaPage({
               sortField={sortField}
               sortOrder={sortOrder}
             />
+            {totalRecords > 0 && (
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/merchantAgenda"
+              />
+            )}
           </TabsContent>
-          <TabsContent value="anticipations" className="mt-6"></TabsContent>
-          <TabsContent value="adjustment" className="mt-6"></TabsContent>
+          <TabsContent value="anticipations" className="mt-6">
+            <EmptyState
+              icon={Search}
+              title={"Nenhum resultado encontrado"}
+              description={""}
+            ></EmptyState>
+          </TabsContent>
+          <TabsContent value="adjustment" className="mt-6">
+            <EmptyState
+              icon={Search}
+              title={"Nenhum resultado encontrado"}
+              description={""}
+            ></EmptyState>
+          </TabsContent>
         </Tabs>
-
-        {totalRecords > 0 && (
-          <PaginationRecords
-            totalRecords={totalRecords}
-            currentPage={page}
-            pageSize={pageSize}
-            pageName="portal/merchantAgenda"
-          />
-        )}
       </BaseBody>
     </>
   );

@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 export type MerchantAgendaOverviewProps = {
-  date: Date
-  totalSales: number
-  totalAmount: number
-  grossAmount: number
-  taxAmount: number
-  settledInstallments: number
-  pendingInstallments: number
-  settledGrossAmount: number
-  settledTaxAmount: number
-  anticipatedGrossAmount: number
-  anticipatedTaxAmount: number
-  toSettleInstallments: number
-  toSettleGrossAmount: number
-  toSettleTaxAmount: number
-}
+  totalMerchant: number;
+  date: Date;
+  totalSales: number;
+  grossAmount: number;
+  taxAmount: number;
+  settledInstallments: number;
+  pendingInstallments: number;
+  settledGrossAmount: number;
+  settledTaxAmount: number;
+  anticipatedGrossAmount: number;
+  anticipatedTaxAmount: number;
+  toSettleInstallments: number;
+  toSettleGrossAmount: number;
+  toSettleTaxAmount: number;
+};
 
-type ViewType = "settled" | "anticipated"
+type ViewType = "settled" | "anticipated";
 
 export default function MerchantAgendaOverview({
+  totalMerchant,
   date,
   totalSales,
-  totalAmount,
   grossAmount,
   taxAmount,
   settledInstallments,
@@ -40,19 +40,19 @@ export default function MerchantAgendaOverview({
   toSettleGrossAmount,
   toSettleTaxAmount,
 }: MerchantAgendaOverviewProps) {
-  const [view, setView] = useState<ViewType>("settled")
+  const [view, setView] = useState<ViewType>("settled");
 
   const toggleView = () => {
-    setView(view === "settled" ? "anticipated" : "settled")
-  }
+    setView(view === "settled" ? "anticipated" : "settled");
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("pt-BR", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -68,7 +68,7 @@ export default function MerchantAgendaOverview({
             <CardTitle className="text-base">Estabelecimentos</CardTitle>
           </CardHeader>
           <CardContent className="pb-3">
-            <div className="text-xl font-bold">14</div>
+            <div className="text-xl font-bold">{totalMerchant}</div>
           </CardContent>
         </Card>
 
@@ -88,10 +88,6 @@ export default function MerchantAgendaOverview({
               <div className="text-sm text-zinc-400">Valor Total em Taxas</div>
               <div className="text-right">{formatCurrency(taxAmount)}</div>
             </div>
-            <div className="grid grid-cols-2 pt-1.5 border-t border-zinc-700">
-              <div className="text-sm font-medium">Total</div>
-              <div className="text-right font-medium">{formatCurrency(totalAmount)}</div>
-            </div>
           </CardContent>
         </Card>
 
@@ -107,7 +103,9 @@ export default function MerchantAgendaOverview({
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <CardTitle className="text-base">
-                  {view === "settled" ? "Parcelas Liquidadas" : "Parcelas Antecipadas"}
+                  {view === "settled"
+                    ? "Parcelas Liquidadas"
+                    : "Parcelas Antecipadas"}
                 </CardTitle>
                 <button
                   onClick={toggleView}
@@ -117,29 +115,27 @@ export default function MerchantAgendaOverview({
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              <span className="text-base">{view === "settled" ? settledInstallments : pendingInstallments}</span>
+              <span className="text-base">
+                {view === "settled" ? settledInstallments : pendingInstallments}
+              </span>
             </div>
           </CardHeader>
           <CardContent className="space-y-1.5 pb-3">
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total Bruto</div>
               <div className="text-right">
-                {formatCurrency(view === "settled" ? settledGrossAmount : anticipatedGrossAmount)}
+                {formatCurrency(
+                  view === "settled"
+                    ? settledGrossAmount
+                    : anticipatedGrossAmount
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total em Taxas</div>
               <div className="text-right">
-                {formatCurrency(view === "settled" ? settledTaxAmount : anticipatedTaxAmount)}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 pt-1.5 border-t border-zinc-700">
-              <div className="text-sm font-medium">Total</div>
-              <div className="text-right font-medium">
                 {formatCurrency(
-                  view === "settled"
-                    ? settledGrossAmount + settledTaxAmount
-                    : anticipatedGrossAmount + anticipatedTaxAmount,
+                  view === "settled" ? settledTaxAmount : anticipatedTaxAmount
                 )}
               </div>
             </div>
@@ -156,20 +152,19 @@ export default function MerchantAgendaOverview({
           <CardContent className="space-y-1.5 pb-3">
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total Bruto</div>
-              <div className="text-right">{formatCurrency(toSettleGrossAmount)}</div>
+              <div className="text-right">
+                {formatCurrency(toSettleGrossAmount)}
+              </div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total em Taxas</div>
-              <div className="text-right">{formatCurrency(toSettleTaxAmount)}</div>
-            </div>
-            <div className="grid grid-cols-2 pt-1.5 border-t border-zinc-700">
-              <div className="text-sm font-medium">Total</div>
-              <div className="text-right font-medium">{formatCurrency(toSettleGrossAmount + toSettleTaxAmount)}</div>
+              <div className="text-right">
+                {formatCurrency(toSettleTaxAmount)}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
-
