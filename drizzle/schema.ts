@@ -195,6 +195,11 @@ export const bank = pgTable("bank", {
 	name: varchar({ length: 255 }),
 });
 
+export const state = pgTable("state", {
+	code: varchar({ length: 5 }).primaryKey().notNull(),
+	name: varchar({ length: 20 }).notNull(),
+});
+
 export const settlements = pgTable("settlements", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "settlements_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -235,6 +240,53 @@ export const settlements = pgTable("settlements", {
 			columns: [table.idCustomer],
 			foreignColumns: [customers.id],
 			name: "settlements_id_customer_fkey"
+		}),
+	}
+});
+
+export const payout = pgTable("payout", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payout_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	payoutId: varchar("payout_id", { length: 50 }),
+	slugMerchant: varchar("slug_merchant", { length: 50 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchant: bigint("id_merchant", { mode: "number" }),
+	rrn: varchar({ length: 50 }),
+	transactionDate: timestamp("transaction_date", { mode: 'string' }),
+	productType: varchar("product_type", { length: 50 }),
+	type: varchar({ length: 50 }),
+	brand: varchar({ length: 50 }),
+	installmentNumber: integer("installment_number"),
+	installments: integer(),
+	installmentAmount: numeric("installment_amount"),
+	transactionMdr: numeric("transaction_mdr"),
+	transactionMdrFee: numeric("transaction_mdr_fee"),
+	transactionFee: numeric("transaction_fee"),
+	settlementAmount: numeric("settlement_amount"),
+	expectedSettlementDate: timestamp("expected_settlement_date", { mode: 'string' }),
+	status: varchar({ length: 50 }),
+	receivableAmount: numeric("receivable_amount"),
+	settlementDate: timestamp("settlement_date", { mode: 'string' }),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+	effectivePaymentDate: timestamp("effective_payment_date", { mode: 'string' }),
+	settlementUniqueNumber: varchar("settlement_unique_number", { length: 50 }),
+	anticipationAmount: numeric("anticipation_amount"),
+	anticipationBlockStatus: varchar("anticipation_block_status", { length: 50 }),
+	slugMerchantSplit: varchar("slug_merchant_split", { length: 50 }),
+}, (table) => {
+	return {
+		payoutIdMerchantFkey: foreignKey({
+			columns: [table.idMerchant],
+			foreignColumns: [merchants.id],
+			name: "payout_id_merchant_fkey"
+		}),
+		payoutIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "payout_id_customer_fkey"
 		}),
 	}
 });

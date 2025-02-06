@@ -11,6 +11,7 @@ import {
   Landmark,
   User,
   Settings,
+  Check,
 } from "lucide-react";
 import * as React from "react";
 
@@ -80,6 +81,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/portal/settlements/history",
           },
         ],
+      },
+      {
+        title: "Agenda dos Lojistas",
+        url: "/portal/merchantAgenda",
+        icon: Check,
+      },
+      {
+        title: "Recebimentos",
+        url: "/portal/receipts",
+        icon: Check,
       },
       {
         title: "Configurações",

@@ -55,7 +55,7 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
         debitFinancialAdjustmentAmount:
           settlement.debitFinancialAdjustmentAmount.toString(),
         idCustomer:
-          customerids?.filter((customer) => customer.slug === customer.slug)[0]
+          customerids?.filter((customer) => customer.slug === settlement.customer.slug)[0]
             ?.id || 0,
       })
     );
