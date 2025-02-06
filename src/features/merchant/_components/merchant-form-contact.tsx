@@ -25,12 +25,13 @@ import { insertContactFormAction, updateContactFormAction } from "../_actions/co
 interface MerchantProps {
     Contact: typeof contacts.$inferSelect ;
     Address: typeof addresses.$inferSelect;
+    onAdvance: () => void;
   }
 
  
 
 
-export default function MerchantFormcontact({ Contact, Address }: MerchantProps ) {
+export default function MerchantFormcontact({ Contact, Address, onAdvance }: MerchantProps ) {
     const router = useRouter();
     const form = useForm<ContactSchema>({
       resolver: zodResolver(schemaContact),
@@ -62,7 +63,7 @@ export default function MerchantFormcontact({ Contact, Address }: MerchantProps 
         } else {
           await insertContactFormAction(data);
         }
-        router.push("/merchants");
+        onAdvance();
       } catch (error) {
         console.error("Error submitting form:", error);
       }

@@ -13,6 +13,7 @@ type MerchantProps = {
 page:string
 pageSize:string
 search:string
+
 }
 
 export default async function MerchantsPage({
@@ -38,7 +39,7 @@ export default async function MerchantsPage({
         subtitle={`visualização de todos os estabelecimentos`}
       >
         <ListFilter
-         pageName="portal/merchants" search={search} linkHref={"/portal/merchants/0"} linkText={"Novo merchants"} />
+         pageName="portal/merchants" search={search} linkHref={"/portal/merchants/0"} linkText={"Novo Estabelecimento"} />
       
         <MerchantList list={merchants} />
         {totalRecords > 0 && (

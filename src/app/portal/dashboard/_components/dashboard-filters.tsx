@@ -11,7 +11,7 @@ interface DashboardFiltersProps {
 export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const viewMode = searchParams.get("viewMode") || "today";
+  const viewMode = searchParams?.get("viewMode") || "today";
 
   const handleFilterChange = (viewMode: string) => {
     router.push(`/portal/dashboard?viewMode=${viewMode}`);
