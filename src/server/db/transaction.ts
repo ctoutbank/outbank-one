@@ -1,3 +1,5 @@
+"use server";
+
 import { and, count, desc, gte, lte, sql, sum } from "drizzle-orm";
 import { transactions } from "../../../drizzle/schema";
 import { db } from "./index";
