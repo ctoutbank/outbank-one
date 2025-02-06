@@ -1,7 +1,18 @@
 "use server";
 
 import { db } from "@/server/db";
-import { asc, count, desc, eq, ilike, max, or, sql, sum } from "drizzle-orm";
+import {
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  max,
+  or,
+  sql,
+  sum,
+  and,
+} from "drizzle-orm";
 import { categories, merchants, payout } from "../../../../drizzle/schema";
 import { te } from "date-fns/locale";
 
@@ -38,6 +49,14 @@ export async function getMerchantAgenda(
 ): Promise<MerchantAgendaList> {
   const offset = (page - 1) * pageSize;
 
+  const maxExpectedSettlementDate = await db
+    .select({
+      maxExpectedSettlementDate: max(payout.expectedSettlementDate),
+    })
+    .from(payout);
+
+  const maxDate =
+    maxExpectedSettlementDate[0]?.maxExpectedSettlementDate || new Date(0);
   const result = await db
     .select({
       merchant: merchants.name,
@@ -59,12 +78,32 @@ export async function getMerchantAgenda(
     })
     .from(payout)
     .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
-    .where(or(ilike(merchants.name, `%${search}%`)))
+    .where(
+      and(
+        eq(
+          payout.expectedSettlementDate,
+          typeof maxDate == "string" ? maxDate : maxDate.toISOString()
+        ),
+        or(ilike(merchants.name, `%${search}%`))
+      )
+    )
     .orderBy(desc(payout.settlementDate))
     .limit(pageSize)
     .offset(offset);
 
-  const totalCountResult = await db.select({ count: count() }).from(payout);
+  const totalCountResult = await db
+    .select({ count: count() })
+    .from(payout)
+    .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
+    .where(
+      and(
+        eq(
+          payout.expectedSettlementDate,
+          typeof maxDate == "string" ? maxDate : maxDate.toISOString()
+        ),
+        or(ilike(merchants.name, `%${search}%`))
+      )
+    );
   const totalCount = totalCountResult[0]?.count || 0;
 
   console.log(sortField, sortOrder);
@@ -132,7 +171,8 @@ export async function getMerchantAgendaInfo(): Promise<{
 
   return {
     count: countResult[0]?.count?.toString() || null,
-    totalSettlementAmount: totalSettlementAmountResult[0]?.totalSettlementAmount?.toString() || null,
+    totalSettlementAmount:
+      totalSettlementAmountResult[0]?.totalSettlementAmount?.toString() || null,
     totalTaxAmount: totalTaxAmountResult[0]?.totalTaxAmount?.toString() || null,
   };
 }
