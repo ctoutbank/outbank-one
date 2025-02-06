@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -26,22 +27,51 @@ import { Building2, MapPin } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { AddressSchema, MerchantSchema, schemaAddress, schemaMerchant } from "../schema/merchant-schema";
 
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { addresses, merchants } from "../../../../drizzle/schema";
 import { insertAddressFormAction, insertMerchantFormAction, updateMerchantFormAction } from "../_actions/merchant-formActions";
-import { LegalNatureDropdown } from "../server/merchant";
+import { CnaeMccDropdown, LegalNatureDropdown } from "../server/merchant";
 
 interface MerchantProps {
-  merchant: typeof merchants.$inferSelect & {cnae:string, mcc:string} ;
+  merchant: typeof merchants.$inferSelect & {cnae:string, mcc:string};
   address: typeof addresses.$inferSelect;
-  Cnae:string;
-  Mcc:string;
-  DDLegalNature:LegalNatureDropdown[];
-  
+  Cnae: string;
+  Mcc: string;
+  DDLegalNature: LegalNatureDropdown[];
+  DDCnaeMcc: CnaeMccDropdown[];
+  activeTab: string;
 }
 
-export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLegalNature }: MerchantProps) {
+export default function MerchantFormCompany({ 
+  merchant, 
+  address, 
+  Cnae, 
+  Mcc, 
+  DDLegalNature, 
+  DDCnaeMcc = [],
+  activeTab
+}: MerchantProps) {
 
+  const [openCnae, setOpenCnae] = useState(false)
+  const [openMcc,setOpenMcc]= useState(false);
+
+  if (!DDCnaeMcc) {
+    return null; // ou algum componente de loading/erro
+  }
+
+  const handleCnaeSelect = (cnaeMcc: CnaeMccDropdown) => {
+    form.setValue("cnae", cnaeMcc.cnae);
+    form.setValue("mcc", cnaeMcc.mcc);
+    setOpenCnae(false);
+  };
+
+  const handleMccSelect = (cnaeMcc: CnaeMccDropdown) => {
+    form.setValue("cnae", cnaeMcc.cnae);
+    form.setValue("mcc", cnaeMcc.mcc);
+    setOpenMcc(false);
+  };
   
   const router = useRouter();
   const form = useForm<MerchantSchema>({
@@ -73,6 +103,7 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
       // campos do endereço virão de outra tabela
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
+
     
   });
 
@@ -91,14 +122,50 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
     }
   });
 
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams || "");
+
+  const refreshPage = (id: number) => {
+    
+    params.set("tab", activeTab);
+    
+    //add new objects in searchParams
+    router.push(`/portal/merchants/${id}?${params.toString()}`);
+  };
+
   const onSubmit = async (data: MerchantSchema) => {
     try {
-      if (data?.id) {
-        await updateMerchantFormAction(data);
-      } else {
-        await insertMerchantFormAction(data);
+      // Validar o formulário de endereço antes de submeter
+      const addressFormValid = await form1.trigger();
+      if (!addressFormValid) {
+        console.error("Formulário de endereço inválido");
+        return;
       }
-      router.push("/merchants");
+
+      // Obter os dados do formulário de endereço
+      const addressData = form1.getValues();
+      
+      // Criar o endereço
+      const addressId = await insertAddressFormAction(addressData);
+      
+      // Criar o merchant com o ID do endereço
+      const merchantData = {
+        ...data,
+        idAddress: addressId
+      };
+
+      let idMerchant = data.id;
+
+      if (data?.id) {
+        await updateMerchantFormAction(merchantData);
+      } else {
+        
+       idMerchant = await insertMerchantFormAction(merchantData);
+      }
+      
+    
+      refreshPage(idMerchant || 0);
+     
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -107,7 +174,7 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
   const onSubmitAddress = async (data: AddressSchema) => {
     try {
       await insertAddressFormAction(data);
-    } catch (error) {
+     } catch (error) {
       console.error("Error submitting form:", error);
     }
   };
@@ -246,48 +313,82 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
 
 
                
-
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cnae"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          CNAE <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={7}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+  <FormField
+    control={form.control}
+    name="idCategory"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>CNAE <span className="text-red-500">*</span></FormLabel>
+        <Select 
+          onValueChange={(value) => {
+            const selected = DDCnaeMcc.find(item => item.value === value);
+            if (selected) {
+              field.onChange(Number(value));
+              const mccField = form.getFieldState('mcc');
+              if (mccField) {
+                form.setValue('mcc', selected.mcc, { shouldValidate: false });
+              }
+            }
+          }}
+          value={field.value?.toString() || undefined}
+        >
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o CNAE" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            <SelectGroup>
+              {DDCnaeMcc.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
 
-                  <FormField
-                    control={form.control}
-                    name="mcc"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          MCC <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={4}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+  <FormField
+    control={form.control}
+    name="mcc"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>MCC</FormLabel>
+        <Select 
+          onValueChange={(value) => {
+            const selected = DDCnaeMcc.find(item => item.mcc === value);
+            if (selected) {
+              form.setValue('idCategory', Number(selected.value));
+              field.onChange(value);
+            }
+          }}
+          value={field.value || undefined}
+        >
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o MCC" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            <SelectGroup>
+              {DDCnaeMcc.map((item) => (
+                <SelectItem key={item.mcc} value={item.mcc}>
+                  {`${item.mcc} - ${item.label}`}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
                 <div className="grid grid-cols-2 gap-4">
 
@@ -358,13 +459,11 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                         <Input
                           type="date"
                           {...field}
-                          value={
-                            field.value
-                              ? new Date(field.value)
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
+                          value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                          onChange={(e) => {
+                            const date = new Date(e.target.value);
+                            field.onChange(date);
+                          }}
                           max={new Date().toISOString().split("T")[0]}
                         />
                       </FormControl>
@@ -470,7 +569,7 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
                           {...field}
                           onChange={(e) => {
                             const value = parseFloat(e.target.value);
-                            field.onChange(isNaN(value) ? "" : value);
+                            field.onChange(isNaN(value) ? 0 : value);
                           }}
                         />
                       </FormControl>
@@ -692,6 +791,9 @@ export default function MerchantFormCompany({ merchant, address, Cnae, Mcc, DDLe
             </Card>
           </TabsContent>
         </Tabs>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Avançar</Button>
+        </div>
       </form>
     </Form>
   );

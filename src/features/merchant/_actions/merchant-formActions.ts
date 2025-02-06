@@ -45,18 +45,19 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
     hasPix: data.hasPix ?? false,
     hasTop: data.hasTop ?? false,
     establishmentFormat: data.establishmentFormat || "",
-    revenue: data.revenue ? data.revenue.toString() : "",
+    revenue: data.revenue?.toString() || "0",
     idCategory: data.idCategory || 0,
     slugCategory: data.slugCategory || "",
     idLegalNature: data.idLegalNature || 0,
     slugLegalNature: data.slugLegalNature || "",
-    idSalesAgent: data.idSalesAgent || 0,
+    idSalesAgent: Number(data.idSalesAgent) || null,
     slugSalesAgent: data.slugSalesAgent || "",
-    idConfiguration: data.idConfiguration || 0,
+    idConfiguration: Number(data.idConfiguration) || null,
     slugConfiguration: data.slugConfiguration || "",
-    idAddress: data.idAddress || 0,
+    idAddress: Number(data.idAddress) || 0,
   };
 
+  console.log('Dados do merchant antes de inserir:', merchantInsert);
   const newId = await insertMerchant(merchantInsert);
   return newId;
 }

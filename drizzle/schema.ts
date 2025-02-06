@@ -351,6 +351,16 @@ export const merchantPixSettlementOrders = pgTable("merchant_pix_settlement_orde
 	}
 });
 
+export const country = pgTable("country", {
+	code: varchar({ length: 5 }).primaryKey().notNull(),
+	name: varchar({ length: 20 }).notNull(),
+});
+
+export const city = pgTable("city", {
+	code: varchar({ length: 5 }).primaryKey().notNull(),
+	name: varchar({ length: 100 }).notNull(),
+});
+
 export const transactions = pgTable("transactions", {
 	slug: uuid().primaryKey().notNull(),
 	active: boolean(),

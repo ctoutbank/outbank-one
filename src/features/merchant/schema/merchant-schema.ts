@@ -43,7 +43,7 @@ export const schemaMerchant = z.object({
   idAddress: z.number().optional(),
   is_affiliate: z.boolean().optional().nullable(),
   cnae: z.string().max(20).optional().nullable(),
-  mcc: z.string().max(20).optional().nullable(),
+  mcc: z.string().optional(),
   state_registration: z.string().max(20).optional().nullable(),
   legal_nature: z.string().optional().nullable(),
   legal_form: z.string().optional().nullable(),

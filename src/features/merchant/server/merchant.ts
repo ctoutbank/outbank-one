@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, getTableColumns, ilike, or } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, ilike, or,and } from "drizzle-orm";
 import {
   addresses,
   categories,
@@ -75,7 +75,6 @@ export async function getMerchants(
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
-     
       
     })
     .from(merchants)
@@ -424,7 +423,33 @@ export type AddressDetail = typeof addresses.$inferSelect;
 
 
 export async function insertAddress(address: AddressInsert): Promise<number> {
-  const result = await db.insert(addresses).values(address).returning({ id: addresses.id });
+  // Verifica se o endereço já existe
+  const existingAddress = await db
+    .select({ id: addresses.id })
+    .from(addresses)
+    .where(
+      and(
+        eq(addresses.streetAddress, address.streetAddress ?? ''),
+        eq(addresses.streetNumber, address.streetNumber ?? ''),
+        eq(addresses.neighborhood, address.neighborhood ?? ''),
+        eq(addresses.city, address.city ?? ''),
+        eq(addresses.state, address.state ?? ''),
+        eq(addresses.zipCode, address.zipCode ?? '')
+      )
+    )
+    .limit(1);
+
+  // Se encontrar um endereço existente, retorna o ID dele
+  if (existingAddress.length > 0) {
+    return existingAddress[0].id;
+  }
+
+  // Se não encontrar, insere novo endereço
+  const result = await db
+    .insert(addresses)
+    .values(address)
+    .returning({ id: addresses.id });
+    
   return result[0].id;
 }
 
@@ -474,4 +499,37 @@ export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[
     
   }
 
+  export type CnaeMccDropdown = {
+    value: string;
+    label: string;
+    cnae: string;
+    mcc: string;
+  }
+
+  export async function getCnaeMccForDropdown(): Promise<CnaeMccDropdown[]> {
+    try {
+      const result = await db
+        .select({
+          value: categories.id,
+          label: categories.name,
+          cnae: categories.cnae,
+          mcc: categories.mcc,
+        })
+        .from(categories)
+        .orderBy(categories.cnae);
   
+     // Adicione este log para debug
+  
+      if (!result) return [];
+  
+      return result.map(item => ({
+        value: item.value.toString(),
+        label: `${item.cnae} - ${item.label}`,
+        cnae: item.cnae || '',
+        mcc: item.mcc || ''
+      }));
+    } catch (error) {
+      console.error('Error fetching CNAE/MCC:', error);
+      return [];
+    }
+  }

@@ -8,26 +8,42 @@ import MerchantFormcontact from "@/features/merchant/_components/merchant-form-c
 import MerchantFormDocuments from "@/features/merchant/_components/merchant-form-documents";
 import MerchantFormOperations from "@/features/merchant/_components/merchant-form-operation";
 import Transactionrate from "@/features/merchant/_components/merchant-form-tax";
+import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getAddressByContactId } from "@/features/merchant/server/adderres";
+import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
-import { getLegalNaturesForDropdown, getMerchantById } from "@/features/merchant/server/merchant";
+import { getCnaeMccForDropdown, getLegalNaturesForDropdown, getMerchantById } from "@/features/merchant/server/merchant";
+
+
+
 
 
 export default async function MerchantDetail({
   params,
+  
 }: {
   params: { id: string };
+
 }) {
+  
+  
+
+  const cnaeMccList = await getCnaeMccForDropdown()
+
+
+
 
     const merchant = await getMerchantById(parseInt(params.id));
     console.log("merchant", merchant);
     const legalNatures = await getLegalNaturesForDropdown();
+    
    
     console.log("legalNatures", legalNatures);
     const address = await getAddressByContactId(merchant?.contacts?.id || 0);
    const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
    console.log("contact", contact);
-
+   const configurations = await getConfigurationsByMerchantId(merchant?.merchants.id || 0);
+ 
 
       return (
         <>
@@ -45,7 +61,7 @@ export default async function MerchantDetail({
             : "Adicionar Estabelecimento"
         }
       >
-        <div className="">
+       {/* <div className="">
           <Tabs defaultValue="company" className="space-y-4 w-full">
             <TabsList>
              
@@ -103,6 +119,7 @@ export default async function MerchantDetail({
                 slugConfiguration: merchant?.merchants.slugConfiguration || "",
                 cnae: merchant?.categories?.cnae || "",
                 mcc: merchant?.categories?.mcc || "",
+               
                 
               }} address={{
                 id: merchant?.addresses?.id || 0,
@@ -114,7 +131,7 @@ export default async function MerchantDetail({
                 state: merchant?.addresses?.state || null,
                 country: merchant?.addresses?.country || null,
                 zipCode: merchant?.addresses?.zipCode || null
-              }} Cnae={merchant?.categories?.cnae || ""} Mcc={merchant?.categories?.mcc || ""} DDLegalNature={legalNatures}            />
+              }} Cnae={merchant?.categories?.cnae || ""} Mcc={merchant?.categories?.mcc || ""} DDLegalNature={legalNatures} DDCnaeMcc={cnaeMccList || []}           />
             
             </TabsContent>
             <TabsContent value="contact">
@@ -167,17 +184,157 @@ export default async function MerchantDetail({
               }} merchantcorporateName={merchant?.merchants.corporateName || ""} merchantdocumentId={merchant?.merchants.idDocument || ""} legalPerson={merchant?.merchants.legalPerson || ""} />
             </TabsContent>
             <TabsContent value="authorizers">
-              <MerchantFormAuthorizers form={""} />
+              <MerchantFormAuthorizers  />
             </TabsContent>
             <TabsContent value="rate">
               <Transactionrate />
             </TabsContent>
             <TabsContent value="documents">
-              <MerchantFormDocuments form={""} />
+              <MerchantFormDocuments  />
             </TabsContent>
 
           </Tabs>
         </div>
+        */}
+         <MerchantTabs 
+          merchant={{
+            id: merchant?.merchants?.id || 0,
+            name: merchant?.merchants?.name || "",
+            slug: merchant?.merchants?.slug || "",
+            active: merchant?.merchants?.active || false,
+            establishmentFormat: merchant?.merchants?.establishmentFormat || "",
+            idCategory: merchant?.merchants?.idCategory || 0,
+            slugLegalNature: merchant?.merchants?.slugLegalNature || "",
+            slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
+            openingHour: merchant?.merchants?.openingHour || "",
+            closingHour: merchant?.merchants?.closingHour || "",
+            municipalRegistration: merchant?.merchants?.municipalRegistration || "",
+            stateSubcription: merchant?.merchants?.stateSubcription || "",
+            idDocument: merchant?.merchants?.idDocument || "",
+            legalPerson: merchant?.merchants?.legalPerson || "",
+            corporateName: merchant?.merchants?.corporateName || "",
+            riskAnalysisStatusJustification: merchant?.merchants?.riskAnalysisStatusJustification || "",
+            openingDate: merchant?.merchants?.openingDate || "",
+            inclusion: merchant?.merchants?.inclusion || "",
+            openingDays: merchant?.merchants?.openingDays || null,
+            phoneType: merchant?.merchants?.phoneType || "",
+            language: merchant?.merchants?.language || "",
+            slugCustomer: merchant?.merchants?.slugCustomer || "",
+            riskAnalysisStatus: merchant?.merchants?.riskAnalysisStatus || "",
+            idAddress: merchant?.merchants?.idAddress || 0,
+            idLegalNature: merchant?.merchants?.idLegalNature || 0,
+            idSalesAgent: merchant?.merchants?.idSalesAgent || 0,
+            areaCode: merchant?.merchants?.areaCode || "",
+            number: merchant?.merchants?.number?String(merchant?.merchants?.number) : "",
+            email: merchant?.merchants?.email || "",
+            dtinsert: merchant?.merchants?.dtinsert || "",
+            dtupdate: merchant?.merchants?.dtupdate || "",
+            idMerchant: String(merchant?.merchants?.id),
+            idConfiguration: merchant?.configurations?.id || 0,
+            hasTef: Boolean(merchant?.merchants?.hasTef || false),
+            hasTop: Boolean(merchant?.merchants?.hasTop || false),
+            hasPix: Boolean(merchant?.merchants?.hasPix || false),
+            revenue: Number(merchant?.merchants.revenue),
+            cnae: merchant?.categories?.cnae || "",
+            mcc: merchant?.categories?.mcc || "",
+            slugConfiguration: merchant?.configurations?.slug || "",
+           
+            registration: merchant?.merchants?.municipalRegistration || "",
+            customer: merchant?.merchants?.slugCustomer || "",
+           
+           
+            
+            slugCategory: merchant?.merchants.slugCategory || null,
+            timezone: merchant?.merchants.timezone || "",
+          }}
+          address={{
+            id: merchant?.addresses?.id || 0,
+            streetAddress: merchant?.addresses?.streetAddress || "",
+            streetNumber: merchant?.addresses?.streetNumber || "",
+            complement: merchant?.addresses?.complement || "",
+            neighborhood: merchant?.addresses?.neighborhood || "",
+            city: merchant?.addresses?.city || "",
+            state: merchant?.addresses?.state || "",
+            country: merchant?.addresses?.country || "",
+            zipCode: merchant?.addresses?.zipCode || ""
+          }}
+
+          
+          cnaeMccList={cnaeMccList}
+          legalNatures={legalNatures}
+
+          Contacts={{
+            contacts: contact?.[0]?.contacts || [],
+            addresses: contact?.[0]?.addresses || {
+              id: 0,
+              streetAddress: null,
+              streetNumber: null, 
+              complement: null,
+              neighborhood: null,
+              city: null,
+              state: null,
+              country: null,
+              zipCode: null
+            }
+          }}
+          addresses={{
+            id: 0,
+            streetAddress: null,
+            streetNumber: null,
+            complement: null,
+            neighborhood: null,
+            city: null,
+            state: null,
+            country: null,
+            zipCode: null
+          }}
+          configurations={{
+            configurations: {
+              id: 0,
+              slug: null,
+              active: null,
+              dtinsert: null,
+              dtupdate: null,
+              lockCpAnticipationOrder: null,
+              lockCnpAnticipationOrder: null,
+              url: null
+            }
+          }}
+          pixaccounts={{
+            pixaccounts: {
+              id: 0,
+              slug: null,
+              active: null,
+              dtinsert: null,
+              dtupdate: null,
+              idRegistration: null,
+              idAccount: null,
+              bankNumber: null,
+              bankBranchNumber: null,
+              bankBranchDigit: null,
+              bankAccountNumber: null,
+              bankAccountDigit: null,
+              bankAccountType: null,
+              bankAccountStatus: null,
+              onboardingPixStatus: null,
+              message: null,
+              bankName: null,
+              idMerchant: null,
+              slugMerchant: null
+            },
+            merchantcorporateName: merchant?.merchants?.corporateName || "",
+            merchantdocumentId: merchant?.merchants?.idDocument || "",
+            legalPerson: merchant?.merchants?.legalPerson || ""
+          }}
+         
+        
+        
+
+          
+
+
+        /> 
+        
       </BaseBody>
     </>
   );

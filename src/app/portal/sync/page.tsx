@@ -1,5 +1,6 @@
 // pages/index.tsx
 
+import AsyncButtonsCity from "./asynButtomCity";
 import AsyncButtonsPage from "./asyncButtom";
 import AsyncButtonsPayout from "./asyncButtonPayouts";
 import AsyncButtonsSettlement from "./asyncButtonSettlement";
@@ -10,6 +11,7 @@ export default function HomePage() {
       <AsyncButtonsPage />
       <AsyncButtonsSettlement />
       <AsyncButtonsPayout />
+      <AsyncButtonsCity />
     </div>
   );
 }
