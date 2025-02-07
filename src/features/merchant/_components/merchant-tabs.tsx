@@ -1,18 +1,23 @@
-"use client"
+"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useEffect, useState } from "react"
-import MerchantFormCompany from "./merchant-form-company"
-import MerchantFormcontact from "./merchant-form-contact"
-import MerchantFormOperations from "./merchant-form-operation"
-import MerchantFormBank from "./merchant-form-bank"
-import MerchantFormAuthorizers from "./merchant-form-authorizers"
-import Transactionrate from "./merchant-form-tax"
-import MerchantFormDocuments from "./merchant-form-documents"
-import { CnaeMccDropdown, LegalNatureDropdown } from "../server/merchant"
-import { addresses, configurations, contacts, merchantpixaccount } from "../../../../drizzle/schema"
-import { ContactSchema } from "../schema/contact-schema"
-import { useSearchParams } from "next/navigation"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import MerchantFormCompany from "./merchant-form-company";
+import MerchantFormcontact from "./merchant-form-contact";
+import MerchantFormOperations from "./merchant-form-operation";
+import MerchantFormBank from "./merchant-form-bank";
+import MerchantFormAuthorizers from "./merchant-form-authorizers";
+import Transactionrate from "./merchant-form-tax";
+import MerchantFormDocuments from "./merchant-form-documents";
+import { CnaeMccDropdown, LegalNatureDropdown } from "../server/merchant";
+import {
+  addresses,
+  configurations,
+  contacts,
+  merchantpixaccount,
+} from "../../../../drizzle/schema";
+import { ContactSchema } from "../schema/contact-schema";
+import { useSearchParams } from "next/navigation";
 
 interface MerchantData {
   id: number;
@@ -59,9 +64,6 @@ interface MerchantData {
   mcc: string;
   customer: string | null;
   registration: string | null;
-  
-  
-
 }
 interface AddressData {
   id: number;
@@ -77,7 +79,6 @@ interface AddressData {
 interface ContactData {
   contacts: typeof contacts.$inferSelect;
   addresses: typeof addresses.$inferSelect;
-
 }
 interface ConfigurationData {
   configurations: typeof configurations.$inferSelect;
@@ -85,57 +86,57 @@ interface ConfigurationData {
 
 interface PixAccountData {
   pixaccounts: typeof merchantpixaccount.$inferSelect;
-  merchantcorporateName:string,merchantdocumentId:string,legalPerson:string
-
+  merchantcorporateName: string;
+  merchantdocumentId: string;
+  legalPerson: string;
 }
-
-  
-
 
 interface MerchantTabsProps {
   merchant: MerchantData;
   address: AddressData;
   Contacts: ContactData;
   addresses: AddressData;
- 
+
   pixaccounts: PixAccountData;
   configurations: ConfigurationData;
-  
+
   cnaeMccList: CnaeMccDropdown[];
   legalNatures: LegalNatureDropdown[];
- 
-  
 }
 
-
-
-export default function MerchantTabs({ 
-  merchant, 
-  address, 
-  Contacts ,
+export default function MerchantTabs({
+  merchant,
+  address,
+  Contacts,
   configurations,
   pixaccounts,
-  cnaeMccList, 
-  legalNatures, 
-  
-
+  cnaeMccList,
+  legalNatures,
 }: MerchantTabsProps) {
+  const [activeTab, setActiveTab] = useState("company");
 
-  const [activeTab, setActiveTab] = useState("company")
-
-  const listTabs = ["company","contact","operation","bank","authorizers","rate","documents"]
+  const listTabs = [
+    "company",
+    "contact",
+    "operation",
+    "bank",
+    "authorizers",
+    "rate",
+    "documents",
+  ];
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const tab = searchParams.get('tab') || 'company';
+    const tab = searchParams.get("tab") || "company";
     setActiveTab(tab);
   }, []);
 
-
-
-
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 w-full">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="space-y-4 w-full"
+    >
       <TabsList>
         <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
         <TabsTrigger value="contact">Dados do Responsável</TabsTrigger>
@@ -147,86 +148,91 @@ export default function MerchantTabs({
       </TabsList>
 
       <TabsContent value="company">
-        <MerchantFormCompany 
-          merchant={{...merchant, number: String(merchant.number), revenue: String(merchant.revenue)}}
+        <MerchantFormCompany
+          merchant={{
+            ...merchant,
+            number: String(merchant.number),
+            revenue: String(merchant.revenue),
+          }}
           address={address}
           Cnae={merchant.cnae}
           Mcc={merchant.mcc}
           DDLegalNature={legalNatures}
           DDCnaeMcc={cnaeMccList}
-          activeTab={listTabs[listTabs.findIndex(tab => tab === activeTab)+1]}
-          
-          
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
         />
       </TabsContent>
 
       <TabsContent value="contact">
-        <MerchantFormcontact 
-          Contact={Contacts?.contacts || {
-            id: 0,
-            number: null,
-            name: null,
-            idMerchant: null,
-            idAddress: null,
-            mothersName: null,
-            isPartnerContact: null,
-            isPep: null,
-            idDocument: null,
-            email: null,
-            areaCode: null,
-            phoneType: null,
-            birthDate: null,
-            slugMerchant: null,
-            icNumber: null,
-            icDateIssuance: null,
-            icDispatcher: null,
-            icFederativeUnit: null
-          }}
-          Address={Contacts?.addresses || {
-            id: 0,
-            streetAddress: null,
-            streetNumber: null,
-            complement: null,
-            neighborhood: null,
-            city: null,
-            state: null,
-            country: null,
-            zipCode: null
-          }}
-          onAdvance={() => setActiveTab("operation")}
+        <MerchantFormcontact
+          Contact={
+            Contacts?.contacts || {
+              id: 0,
+              number: null,
+              name: null,
+              idMerchant: null,
+              idAddress: null,
+              mothersName: null,
+              isPartnerContact: null,
+              isPep: null,
+              idDocument: null,
+              email: null,
+              areaCode: null,
+              phoneType: null,
+              birthDate: null,
+              slugMerchant: null,
+              icNumber: null,
+              icDateIssuance: null,
+              icDispatcher: null,
+              icFederativeUnit: null,
+            }
+          }
+          Address={
+            Contacts?.addresses || {
+              id: 0,
+              streetAddress: null,
+              streetNumber: null,
+              complement: null,
+              neighborhood: null,
+              city: null,
+              state: null,
+              country: null,
+              zipCode: null,
+            }
+          }
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
         />
       </TabsContent>
 
-     
-
-
       <TabsContent value="operation">
-        <MerchantFormOperations 
+        <MerchantFormOperations
           Configuration={{
             id: 0,
             slug: null,
-            active: null, 
+            active: null,
             dtinsert: null,
             dtupdate: null,
             lockCpAnticipationOrder: null,
             lockCnpAnticipationOrder: null,
-            url: null
+            url: null,
           }}
           hasTaf={merchant.hasTef}
           hastop={merchant.hasTop}
           hasPix={merchant.hasPix}
           merhcnatSlug={merchant.slugCategory || ""}
           timerzone={merchant.timezone || ""}
-          
         />
       </TabsContent>
-       
 
       <TabsContent value="bank">
-        <MerchantFormBank 
+        <MerchantFormBank
           merchantpixaccount={{
-            id:  0,
-            slug:  null,
+            id: 0,
+            slug: null,
             active: null,
             dtinsert: null,
             idAccount: null,
@@ -243,17 +249,13 @@ export default function MerchantTabs({
             bankBranchDigit: null,
             bankAccountNumber: null,
             bankAccountDigit: null,
-            bankName: null
+            bankName: null,
           }}
           merchantcorporateName={merchant.corporateName || ""}
           merchantdocumentId={merchant.idDocument || ""}
           legalPerson={merchant.legalPerson || ""}
-          
         />
-     
-
       </TabsContent>
-       
 
       <TabsContent value="authorizers">
         <MerchantFormAuthorizers />
@@ -267,5 +269,5 @@ export default function MerchantTabs({
         <MerchantFormDocuments />
       </TabsContent>
     </Tabs>
-  )
+  );
 }
