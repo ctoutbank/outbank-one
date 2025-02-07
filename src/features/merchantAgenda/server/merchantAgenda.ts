@@ -106,8 +106,6 @@ export async function getMerchantAgenda(
     );
   const totalCount = totalCountResult[0]?.count || 0;
 
-  console.log(sortField, sortOrder);
-
   return {
     merchantAgenda: result.map((merchantAgendaMap) => ({
       merchant: merchantAgendaMap.merchant || "",
@@ -150,7 +148,7 @@ export async function getMerchantAgendaInfo(): Promise<{
 
   const countResult = await db
     .select({
-      count: count(),
+      count: count(payout.idMerchant),
     })
     .from(payout)
     .where(eq(payout.settlementDate, maxDate.toISOString()));

@@ -76,7 +76,7 @@ export default function MerchantAgendaOverview({
           <CardHeader className="py-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Vendas</CardTitle>
-              <span className="text-base">{totalSales}</span>
+              <span className="text-base">{formatCurrency(totalSales)}</span>
             </div>
           </CardHeader>
           <CardContent className="space-y-1.5 pb-3">
@@ -146,7 +146,9 @@ export default function MerchantAgendaOverview({
           <CardHeader className="py-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Parcelas a Liquidar</CardTitle>
-              <span className="text-base">{toSettleInstallments}</span>
+              <span className="text-base">
+                {formatCurrency(toSettleInstallments)}
+              </span>
             </div>
           </CardHeader>
           <CardContent className="space-y-1.5 pb-3">

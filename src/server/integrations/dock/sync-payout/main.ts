@@ -9,7 +9,10 @@ async function fetchPayout(
   expectedSettlementDate: Date | undefined
 ) {
   let stringExpectedSettlementDate = "";
-  if (!expectedSettlementDate) {
+  if (
+    expectedSettlementDate === undefined ||
+    expectedSettlementDate === null 
+  ) {
     stringExpectedSettlementDate = "2024-09-05";
   } else {
     stringExpectedSettlementDate = formatDateToAPIFilter(
@@ -48,30 +51,32 @@ export async function main() {
       ? new Date(payoutConfig.lastExpectedSettlementDate)
       : undefined;
 
-      while (true) {
-        const response = await fetchPayout(offset, expectedSettlementDate);
-        const payouts: Payout[] = response.objects || [];
-  
-        // Insere no banco os novos registros
-        await insertPayoutAndRelations(payouts);
-  
-        // Atualiza o offset e verifica se há mais registros para essa data
-        offset += payouts.length;
-        if (offset >= response.meta.total_count) {
-          // Se terminamos essa data, avançamos para o dia seguinte
-          expectedSettlementDate = new Date(
-            (expectedSettlementDate ?? new Date()).getTime() +
-              1000 * 60 * 60 * 24
-          );
-          offset = 0;
-        }
-  
-        if(expectedSettlementDate) {
-        if (expectedSettlementDate.toISOString().split("T")[0] === new Date().toISOString().split("T")[0]) {
+    while (true) {
+      const response = await fetchPayout(offset, expectedSettlementDate);
+      const payouts: Payout[] = response.objects || [];
+
+      // Insere no banco os novos registros
+      await insertPayoutAndRelations(payouts);
+
+      // Atualiza o offset e verifica se há mais registros para essa data
+      offset += payouts.length;
+      if (offset >= response.meta.total_count) {
+        // Se terminamos essa data, avançamos para o dia seguinte
+        expectedSettlementDate = new Date(
+          (expectedSettlementDate ?? new Date()).getTime() + 1000 * 60 * 60 * 24
+        );
+        offset = 0;
+      }
+
+      if (expectedSettlementDate) {
+        if (
+          expectedSettlementDate.toISOString().split("T")[0] ===
+          new Date().toISOString().split("T")[0]
+        ) {
           break;
         }
       }
-      }
+    }
   } catch (error) {
     console.error("Erro ao processar payout:", error);
   } finally {

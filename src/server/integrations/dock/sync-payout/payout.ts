@@ -1,12 +1,12 @@
 "use server";
 
 import { db } from "@/server/db";
+import { count, eq, max } from "drizzle-orm";
+import { payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
 import { getOrCreateMerchants } from "../sync-settlements/merchant";
 import { InsertPayout, Payout } from "./types";
-import { payout } from "../../../../../drizzle/schema";
-import { count, eq, max, sql } from "drizzle-orm";
 
 export async function insertPayoutAndRelations(payoutList: Payout[]) {
   try {
@@ -109,7 +109,14 @@ export async function getPayoutSyncConfig() {
       lastExpectedSettlementDate: max(payout.expectedSettlementDate),
     })
     .from(payout)
-    .where(eq(payout.expectedSettlementDate, maxDate ?? ""))
+    .where(
+      eq(
+        payout.expectedSettlementDate,
+        maxDate == null || maxDate == "" || maxDate == undefined
+          ? "01/01/1900"
+          : maxDate
+      )
+    )
     .execute();
 
   console.log(result[0]?.count);
