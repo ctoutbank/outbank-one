@@ -15,6 +15,8 @@ export async function insertContact(contact: ContactInsert) {
     const result = await db.insert(contacts).values(contact).returning({
         id: contacts.id,
     });
+
+    console.log(result);
     return result[0].id;
 }
 

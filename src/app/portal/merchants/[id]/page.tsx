@@ -266,61 +266,61 @@ export default async function MerchantDetail({
           Contacts={{
             contacts: contact?.[0]?.contacts || [],
             addresses: contact?.[0]?.addresses || {
-              id: 0,
-              streetAddress: null,
-              streetNumber: null, 
-              complement: null,
-              neighborhood: null,
-              city: null,
-              state: null,
-              country: null,
-              zipCode: null
+              id:contact?.[0]?.addresses?.id || 0,
+              streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+              streetNumber: contact?.[0]?.addresses?.streetNumber || "", 
+              complement: contact?.[0]?.addresses?.complement || "",
+              neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+              city: contact?.[0]?.addresses?.city || "",
+              state: contact?.[0]?.addresses?.state || "",
+              country: contact?.[0]?.addresses?.country || "",
+              zipCode: contact?.[0]?.addresses?.zipCode || ""
             }
           }}
           addresses={{
-            id: 0,
-            streetAddress: null,
-            streetNumber: null,
-            complement: null,
-            neighborhood: null,
-            city: null,
-            state: null,
-            country: null,
-            zipCode: null
+            id: contact?.[0]?.addresses?.id || 0,
+            streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+            streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+            complement: contact?.[0]?.addresses?.complement || "",
+            neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+            city: contact?.[0]?.addresses?.city || "",
+            state: contact?.[0]?.addresses?.state || "",
+            country: contact?.[0]?.addresses?.country || "",
+            zipCode: contact?.[0]?.addresses?.zipCode || ""
           }}
           configurations={{
             configurations: {
-              id: 0,
-              slug: null,
-              active: null,
-              dtinsert: null,
-              dtupdate: null,
-              lockCpAnticipationOrder: null,
-              lockCnpAnticipationOrder: null,
-              url: null
+              id: configurations?.id || 0,
+              slug: configurations?.slug || "",
+              active: configurations?.active || false,
+              dtinsert: configurations?.dtinsert || "",
+              dtupdate: configurations?.dtupdate || "",
+              lockCpAnticipationOrder: configurations?.lockCpAnticipationOrder || false,
+              lockCnpAnticipationOrder: configurations?.lockCnpAnticipationOrder || false,
+              url: configurations?.url || ""
             }
           }}
           pixaccounts={{
             pixaccounts: {
-              id: 0,
-              slug: null,
-              active: null,
-              dtinsert: null,
-              dtupdate: null,
-              idRegistration: null,
-              idAccount: null,
-              bankNumber: null,
-              bankBranchNumber: null,
-              bankBranchDigit: null,
-              bankAccountNumber: null,
-              bankAccountDigit: null,
-              bankAccountType: null,
-              bankAccountStatus: null,
-              onboardingPixStatus: null,
-              message: null,
-              bankName: null,
-              idMerchant: null,
-              slugMerchant: null
+              id: merchant?.pixaccounts?.id || 0,
+              slug: merchant?.pixaccounts?.slug || "",
+              active: merchant?.pixaccounts?.active || false,
+              dtinsert: merchant?.pixaccounts?.dtinsert || "",
+              dtupdate: merchant?.pixaccounts?.dtupdate || "",
+              idRegistration: merchant?.pixaccounts?.idRegistration || "",
+              idAccount: merchant?.pixaccounts?.idAccount || "",
+              bankNumber: merchant?.pixaccounts?.bankNumber || "",
+              bankBranchNumber: merchant?.pixaccounts?.bankBranchNumber || "",
+              bankBranchDigit: merchant?.pixaccounts?.bankBranchDigit || "",
+              bankAccountNumber: merchant?.pixaccounts?.bankAccountNumber || "",
+              bankAccountDigit: merchant?.pixaccounts?.bankAccountDigit || "",
+              bankAccountType: merchant?.pixaccounts?.bankAccountType || "",
+              bankAccountStatus: merchant?.pixaccounts?.bankAccountStatus || "",
+              onboardingPixStatus: merchant?.pixaccounts?.onboardingPixStatus || "",
+              message: merchant?.pixaccounts?.message || "",
+              bankName: merchant?.pixaccounts?.bankName || "",
+              idMerchant: merchant?.pixaccounts?.idMerchant || 0,
+              slugMerchant: merchant?.pixaccounts?.slugMerchant || null
             },
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",

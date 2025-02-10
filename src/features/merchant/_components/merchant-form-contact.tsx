@@ -1,20 +1,7 @@
 "use client";
 
-import {
-  insertAddressFormAction,
-  insertMerchantFormAction,
-  updateMerchantFormAction,
-} from "../_actions/merchant-formActions";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  AddressSchema,
-  MerchantSchema,
-  schemaAddress,
-  schemaMerchant,
-} from "../schema/merchant-schema";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,11 +10,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { MapPin, User } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -35,32 +20,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MapPin, User } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { addresses, contacts } from "../../../../drizzle/schema";
-import { schemaContact } from "../schema/contact-schema";
-import { ContactSchema } from "../schema/contact-schema";
 import {
   insertContactFormAction,
   updateContactFormAction,
 } from "../_actions/contact-formActions";
+import {
+  insertAddressFormAction
+} from "../_actions/merchant-formActions";
+import { ContactSchema, schemaContact } from "../schema/contact-schema";
+import {
+  AddressSchema,
+  schemaAddress
+} from "../schema/merchant-schema";
 import { updateMerchantColumnById } from "../server/merchant";
-import { Button } from "@/components/ui/button";
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
   Address: typeof addresses.$inferSelect;
   activeTab: string;
+  idMerchant: number;
 }
 
 export default function MerchantFormcontact({
   Contact,
   Address,
   activeTab,
+  idMerchant,
 }: MerchantProps) {
   const router = useRouter();
   const form = useForm<ContactSchema>({
     resolver: zodResolver(schemaContact),
     defaultValues: {
-      id: Contact?.id || undefined,
+      id: Contact?.id ? Number(Contact.id) : undefined,
       name: Contact?.name || "",
       idDocument: Contact?.idDocument || "",
       email: Contact?.email || "",
@@ -71,7 +67,7 @@ export default function MerchantFormcontact({
       mothersName: Contact?.mothersName || "",
       isPartnerContact: Contact?.isPartnerContact || false,
       isPep: Contact?.isPep || false,
-      idMerchant: Contact?.idMerchant || undefined,
+      idMerchant: idMerchant,
       slugMerchant: Contact?.slugMerchant || "",
       idAddress: Contact?.idAddress || undefined,
       icNumber: Contact?.icNumber || "",
@@ -82,45 +78,6 @@ export default function MerchantFormcontact({
       icFederativeUnit: Contact?.icFederativeUnit || "",
     },
   });
-  const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams || "");
-
-  const refreshPage = (id: number) => {
-    params.set("tab", activeTab);
-
-    //add new objects in searchParams
-    router.push(`/portal/merchants/${id}?${params.toString()}`);
-  };
-
-  const onSubmit = async (data: ContactSchema) => {
-    try {
-      const addressFormValid = await form1.trigger();
-      if (!addressFormValid) {
-        console.error("Formulário de endereço inválido");
-        return;
-      }
-      const addressData = form1.getValues();
-      const addressId = await insertAddressFormAction(addressData);
-
-      const contactData = {
-        ...data,
-        idAddress: addressId,
-      };
-
-      let idContact = data.id;
-
-      if (data?.id) {
-        await updateContactFormAction(contactData);
-      } else {
-        idContact = await insertContactFormAction(contactData);
-        await updateMerchantColumnById(idContact, "idContact", idContact);
-      }
-
-      refreshPage(idContact || 0);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
 
   const form1 = useForm<AddressSchema>({
     resolver: zodResolver(schemaAddress),
@@ -136,6 +93,52 @@ export default function MerchantFormcontact({
       country: Address?.country || "",
     },
   });
+
+
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams || "");
+
+  const refreshPage = (id: number) => {
+    params.set("tab", activeTab);
+
+    //add new objects in searchParams
+    router.push(`/portal/merchants/${id}?${params.toString()}`);
+  };
+
+  const onSubmit = async (data: ContactSchema) => {
+    try {
+      console.log("idMerchant", idMerchant);
+      const addressFormValid = await form1.trigger();
+      if (!addressFormValid) {
+        console.error("Formulário de endereço inválido");
+        return;
+      }
+      const addressData = form1.getValues();
+      const addressId = await insertAddressFormAction(addressData);
+
+      const contactData = {
+        ...data,
+        idAddress: addressId,
+      };
+      const Idmerchant = idMerchant;
+      let idContact = data.id;
+
+      console.log(contactData);
+
+      if (data?.id) {
+        await updateContactFormAction(contactData);
+      } else {
+        idContact = await insertContactFormAction(contactData),
+        await updateMerchantColumnById(Idmerchant, "idContact", idContact);
+      }
+
+      refreshPage(Idmerchant || 0);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
+
+  
 
   const onSubmitAddress = async (data: AddressSchema) => {
     try {
@@ -629,6 +632,30 @@ export default function MerchantFormcontact({
                             <SelectItem value="PR">PR</SelectItem>
                             <SelectItem value="SP">SP</SelectItem>
                             <SelectItem value="RJ">RJ</SelectItem>
+                            <SelectItem value="AC">AC</SelectItem>
+                            <SelectItem value="AL">AL</SelectItem>
+                            <SelectItem value="AP">AP</SelectItem>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="BA">BA</SelectItem>
+                            <SelectItem value="CE">CE</SelectItem>
+                            <SelectItem value="DF">DF</SelectItem>
+                            <SelectItem value="ES">ES</SelectItem>
+                            <SelectItem value="GO">GO</SelectItem>
+                            <SelectItem value="MA">MA</SelectItem>
+                            <SelectItem value="MT">MT</SelectItem>
+                            <SelectItem value="MS">MS</SelectItem>
+                            <SelectItem value="MG">MG</SelectItem>
+                            <SelectItem value="PA">PA</SelectItem>
+                            <SelectItem value="PB">PB</SelectItem>
+                            <SelectItem value="PE">PE</SelectItem>
+                            <SelectItem value="PI">PI</SelectItem>
+                            <SelectItem value="RN">RN</SelectItem>
+                            <SelectItem value="RO">RO</SelectItem>
+                            <SelectItem value="RR">RR</SelectItem>
+                            <SelectItem value="SC">SC</SelectItem>
+                            <SelectItem value="SE">SE</SelectItem>
+                            <SelectItem value="TO">TO</SelectItem>
+
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -648,7 +675,7 @@ export default function MerchantFormcontact({
                       <FormControl>
                         <Input
                           {...field}
-                          disabled
+                          
                           defaultValue="Brasil"
                           value={field.value?.toString() || ""}
                         />
@@ -664,6 +691,7 @@ export default function MerchantFormcontact({
         <div className="flex justify-end mt-4">
           <Button type="submit">Avançar</Button>
         </div>
+        
       </form>
     </Form>
   );

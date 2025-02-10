@@ -838,7 +838,7 @@ export default function MerchantFormCompany({
                           <FormControl>
                             <Input
                               {...field}
-                              disabled
+                              
                               defaultValue="Brasil"
                               value={field.value?.toString() || ""}
                             />
