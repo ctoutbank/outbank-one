@@ -29,14 +29,9 @@ import {
   insertContactFormAction,
   updateContactFormAction,
 } from "../_actions/contact-formActions";
-import {
-  insertAddressFormAction
-} from "../_actions/merchant-formActions";
+import { insertAddressFormAction } from "../_actions/merchant-formActions";
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
-import {
-  AddressSchema,
-  schemaAddress
-} from "../schema/merchant-schema";
+import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { updateMerchantColumnById } from "../server/merchant";
 
 interface MerchantProps {
@@ -44,6 +39,7 @@ interface MerchantProps {
   Address: typeof addresses.$inferSelect;
   activeTab: string;
   idMerchant: number;
+  setActiveTab: (tab: string) => void;
 }
 
 export default function MerchantFormcontact({
@@ -51,6 +47,7 @@ export default function MerchantFormcontact({
   Address,
   activeTab,
   idMerchant,
+  setActiveTab,
 }: MerchantProps) {
   const router = useRouter();
   const form = useForm<ContactSchema>({
@@ -94,13 +91,12 @@ export default function MerchantFormcontact({
     },
   });
 
-
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams || "");
 
   const refreshPage = (id: number) => {
     params.set("tab", activeTab);
-
+    setActiveTab(activeTab);
     //add new objects in searchParams
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
@@ -122,14 +118,13 @@ export default function MerchantFormcontact({
       };
       const Idmerchant = idMerchant;
       let idContact = data.id;
-
+      contactData.phoneType = contactData.number?.startsWith("9") ? "C" : "P";
       console.log(contactData);
 
       if (data?.id) {
         await updateContactFormAction(contactData);
       } else {
-        idContact = await insertContactFormAction(contactData),
-        await updateMerchantColumnById(Idmerchant, "idContact", idContact);
+        idContact = await insertContactFormAction(contactData);
       }
 
       refreshPage(Idmerchant || 0);
@@ -137,8 +132,6 @@ export default function MerchantFormcontact({
       console.error("Error submitting form:", error);
     }
   };
-
-  
 
   const onSubmitAddress = async (data: AddressSchema) => {
     try {
@@ -160,7 +153,7 @@ export default function MerchantFormcontact({
             <FormField
               control={form.control}
               name="isPartnerContact"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem>
                   <FormLabel>
                     Sócio ou Proprietário{" "}
@@ -168,24 +161,18 @@ export default function MerchantFormcontact({
                   </FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value === true ? "yes" : "no"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "true")
+                      }
+                      defaultValue={field.value ? "true" : "false"}
                       className="flex space-x-4"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="yes"
-                          id="owner-yes"
-                          checked={field.value === true}
-                        />
+                        <RadioGroupItem value="true" id="owner-yes" />
                         <Label htmlFor="owner-yes">Sim</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="no"
-                          id="owner-no"
-                          checked={field.value === false}
-                        />
+                        <RadioGroupItem value="false" id="owner-no" />
                         <Label htmlFor="owner-no">Não</Label>
                       </div>
                     </RadioGroup>
@@ -206,24 +193,18 @@ export default function MerchantFormcontact({
                   </FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value === true ? "yes" : "no"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "true")
+                      }
+                      defaultValue={field.value ? "true" : "false"}
                       className="flex space-x-4"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="yes"
-                          id="pep-yes"
-                          checked={field.value === true}
-                        />
+                        <RadioGroupItem value="true" id="pep-yes" />
                         <Label htmlFor="pep-yes">Sim</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="no"
-                          id="pep-no"
-                          checked={field.value === false}
-                        />
+                        <RadioGroupItem value="false" id="pep-no" />
                         <Label htmlFor="pep-no">Não</Label>
                       </div>
                     </RadioGroup>
@@ -655,7 +636,6 @@ export default function MerchantFormcontact({
                             <SelectItem value="SC">SC</SelectItem>
                             <SelectItem value="SE">SE</SelectItem>
                             <SelectItem value="TO">TO</SelectItem>
-
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -675,7 +655,6 @@ export default function MerchantFormcontact({
                       <FormControl>
                         <Input
                           {...field}
-                          
                           defaultValue="Brasil"
                           value={field.value?.toString() || ""}
                         />
@@ -691,7 +670,6 @@ export default function MerchantFormcontact({
         <div className="flex justify-end mt-4">
           <Button type="submit">Avançar</Button>
         </div>
-        
       </form>
     </Form>
   );

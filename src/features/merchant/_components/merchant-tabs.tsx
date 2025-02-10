@@ -124,13 +124,15 @@ export default function MerchantTabs({
     "rate",
     "documents",
   ];
-
+  console.log("activeTab 1", activeTab);
+  const searchParams = useSearchParams();
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
+    console.log("entrou no useEffect");
+
     const tab = searchParams.get("tab") || "company";
     setActiveTab(tab);
-  }, []);
-
+  }, [searchParams]);
+  console.log("activeTab 2", activeTab);
   return (
     <Tabs
       value={activeTab}
@@ -162,6 +164,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
@@ -202,9 +205,11 @@ export default function MerchantTabs({
               zipCode: Contacts?.addresses?.zipCode || null,
             }
           }
-          
           idMerchant={merchant.id}
-          activeTab="operation"
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
@@ -216,8 +221,10 @@ export default function MerchantTabs({
             active: configurations?.configurations?.active || null,
             dtinsert: configurations?.configurations?.dtinsert || null,
             dtupdate: configurations?.configurations?.dtupdate || null,
-            lockCpAnticipationOrder: configurations?.configurations?.lockCpAnticipationOrder || null,
-            lockCnpAnticipationOrder: configurations?.configurations?.lockCnpAnticipationOrder || null,
+            lockCpAnticipationOrder:
+              configurations?.configurations?.lockCpAnticipationOrder || null,
+            lockCnpAnticipationOrder:
+              configurations?.configurations?.lockCnpAnticipationOrder || null,
             url: configurations?.configurations?.url || null,
           }}
           hasTaf={merchant.hasTef}
@@ -237,18 +244,23 @@ export default function MerchantTabs({
             dtinsert: pixaccounts?.pixaccounts?.dtinsert || null,
             idAccount: pixaccounts?.pixaccounts?.idAccount || null,
             bankAccountType: pixaccounts?.pixaccounts?.bankAccountType || null,
-            bankAccountStatus: pixaccounts?.pixaccounts?.bankAccountStatus || null,
-            onboardingPixStatus: pixaccounts?.pixaccounts?.onboardingPixStatus || null,
+            bankAccountStatus:
+              pixaccounts?.pixaccounts?.bankAccountStatus || null,
+            onboardingPixStatus:
+              pixaccounts?.pixaccounts?.onboardingPixStatus || null,
             message: pixaccounts?.pixaccounts?.message || null,
             dtupdate: pixaccounts?.pixaccounts?.dtupdate || null,
             idMerchant: pixaccounts?.pixaccounts?.idMerchant || null,
             slugMerchant: pixaccounts?.pixaccounts?.slugMerchant || null,
             idRegistration: pixaccounts?.pixaccounts?.idRegistration || null,
             bankNumber: pixaccounts?.pixaccounts?.bankNumber || null,
-            bankBranchNumber: pixaccounts?.pixaccounts?.bankBranchNumber || null,
+            bankBranchNumber:
+              pixaccounts?.pixaccounts?.bankBranchNumber || null,
             bankBranchDigit: pixaccounts?.pixaccounts?.bankBranchDigit || null,
-            bankAccountNumber: pixaccounts?.pixaccounts?.bankAccountNumber || null,
-            bankAccountDigit: pixaccounts?.pixaccounts?.bankAccountDigit || null,
+            bankAccountNumber:
+              pixaccounts?.pixaccounts?.bankAccountNumber || null,
+            bankAccountDigit:
+              pixaccounts?.pixaccounts?.bankAccountDigit || null,
             bankName: pixaccounts?.pixaccounts?.bankName || null,
           }}
           merchantcorporateName={merchant.corporateName || ""}

@@ -51,6 +51,7 @@ interface MerchantProps {
   DDLegalNature: LegalNatureDropdown[];
   DDCnaeMcc: CnaeMccDropdown[];
   activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
 export default function MerchantFormCompany({
@@ -61,6 +62,7 @@ export default function MerchantFormCompany({
   DDLegalNature,
   DDCnaeMcc = [],
   activeTab,
+  setActiveTab,
 }: MerchantProps) {
   const [openCnae, setOpenCnae] = useState(false);
   const [openMcc, setOpenMcc] = useState(false);
@@ -93,7 +95,7 @@ export default function MerchantFormCompany({
       openingDate: merchant?.openingDate
         ? new Date(merchant.openingDate)
         : undefined,
-      openingDays: merchant?.openingDays || "",
+      openingDays: merchant?.openingDays || "0000000",
       openingHour: merchant?.openingHour || "",
       closingHour: merchant?.closingHour || "",
       municipalRegistration: merchant?.municipalRegistration || "",
@@ -132,6 +134,7 @@ export default function MerchantFormCompany({
 
   const refreshPage = (id: number) => {
     params.set("tab", activeTab);
+    setActiveTab(activeTab);
 
     //add new objects in searchParams
     router.push(`/portal/merchants/${id}?${params.toString()}`);
@@ -139,6 +142,7 @@ export default function MerchantFormCompany({
 
   const onSubmit = async (data: MerchantSchema) => {
     try {
+      console.log(data);
       // Validar o formulário de endereço antes de submeter
       const addressFormValid = await form1.trigger();
       if (!addressFormValid) {
@@ -159,8 +163,10 @@ export default function MerchantFormCompany({
       };
 
       let idMerchant = data.id;
+      merchantData.phoneType = merchantData.number?.startsWith("9") ? "C" : "P";
 
       if (data?.id) {
+        console.log("dataid", data.id);
         await updateMerchantFormAction(merchantData);
       } else {
         idMerchant = await insertMerchantFormAction(merchantData);
@@ -433,18 +439,16 @@ export default function MerchantFormCompany({
                               <Checkbox
                                 id={id}
                                 checked={
-                                  field.value
-                                    ? field.value[index] === "1"
-                                    : false
+                                  (field.value || "0000000").charAt(index) ===
+                                  "1"
                                 }
                                 onCheckedChange={(checked) => {
                                   const currentValue = field.value || "0000000";
-                                  const valueArray =
-                                    typeof currentValue === "string"
-                                      ? currentValue.split("")
-                                      : currentValue;
-                                  valueArray[index] = checked ? "1" : "0";
-                                  field.onChange(valueArray.join(""));
+                                  const newValue =
+                                    currentValue.substring(0, index) +
+                                    (checked ? "1" : "0") +
+                                    currentValue.substring(index + 1);
+                                  field.onChange(newValue);
                                 }}
                               />
                               <Label htmlFor={id}>{label}</Label>
@@ -838,7 +842,6 @@ export default function MerchantFormCompany({
                           <FormControl>
                             <Input
                               {...field}
-                              
                               defaultValue="Brasil"
                               value={field.value?.toString() || ""}
                             />
