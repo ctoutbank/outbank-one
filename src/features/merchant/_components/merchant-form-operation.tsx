@@ -30,6 +30,10 @@ import { useForm } from "react-hook-form";
 import { configurations } from "../../../../drizzle/schema";
 import { insertConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
 import { updateConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { updateMerchantColumnById, updateMerchantColumnsById } from "../server/merchant";
+import { Button } from "@/components/ui/button";
 
 interface MerchantProps {
   Configuration: typeof configurations.$inferSelect;
@@ -38,6 +42,10 @@ interface MerchantProps {
   hasPix: boolean;
   merhcnatSlug: string;
   timerzone: string;
+  idMerchant: number;
+  setActiveTab: (tab: string) => void;
+  activeTab: string;
+
 }
 
 export default function MerchantFormOperations({
@@ -47,7 +55,12 @@ export default function MerchantFormOperations({
   hasPix,
   merhcnatSlug,
   timerzone,
+  setActiveTab,
+  activeTab,
+  idMerchant,
 }: MerchantProps) {
+  const router = useRouter();
+
   const form = useForm<ConfigurationOperationsSchema>({
     resolver: zodResolver(schemaConfigurationOperations),
     defaultValues: {
@@ -76,13 +89,37 @@ export default function MerchantFormOperations({
     },
   });
 
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams || "");
+
+  const refreshPage = (id: number) => {
+    setActiveTab(activeTab);
+    //add new objects in searchParams
+    router.push(`/portal/merchants/${id}?${params.toString()}`);
+  };
+
   const onSubmit = async (data: ConfigurationOperationsSchema) => {
     try {
+      let idConfiguration = data.id;
+
+      // Criar ou atualizar configuração
       if (data?.id) {
         await updateConfigurationFormAction(data);
       } else {
-        await insertConfigurationFormAction(data);
+        idConfiguration = await insertConfigurationFormAction(data);
       }
+
+      console.log("idConfiguration", idConfiguration);
+  
+      // Atualizar merchant com o ID da configuração (novo ou existente)
+      await updateMerchantColumnsById(idMerchant, {
+        idConfiguration: idConfiguration!, // Usar o ID obtido da criação ou o existente
+        hasTef: data.hasTaf || false,
+        hasTop: data.hastop || false,
+        hasPix: data.hasPix || false,
+      });
+  
+      refreshPage(idMerchant);
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -126,17 +163,17 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(value === "true")}
+                        defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="true" id="tef-yes" />
-                          <Label htmlFor="tef-yes">yes</Label>
+                          <Label htmlFor="tef-yes">Sim</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="tef-no" />
-                          <Label htmlFor="tef-no">no</Label>
+                          <RadioGroupItem value="false" id="tef-no" />
+                          <Label htmlFor="tef-no">Não</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -156,17 +193,17 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(value === "true")}
+                        defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="true" id="tap-sim" />
-                          <Label htmlFor="tap-sim">sim</Label>
+                          <Label htmlFor="tap-sim">Sim</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="nao" id="tap-nao" />
-                          <Label htmlFor="tap-nao">não</Label>
+                          <RadioGroupItem value="false" id="tap-nao" />
+                          <Label htmlFor="tap-nao">Não</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -219,17 +256,17 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(value === "true")}
+                        defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="true" id="pix-yes" />
-                          <Label htmlFor="pix-yes">yes</Label>
+                          <Label htmlFor="pix-yes">Sim</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="false" id="pix-no" />
-                          <Label htmlFor="pix-no">no</Label>
+                          <Label htmlFor="pix-no">Não</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -243,7 +280,7 @@ export default function MerchantFormOperations({
           <Card className="w-full mt-4">
             <CardHeader className="flex flex-row items-center space-x-2">
               <Settings className="w-5 h-5" />
-              <CardTitle>OPERATIONAL DATA</CardTitle>
+              <CardTitle>DADOS OPERACIONAIS</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -252,7 +289,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Terminal&apos;s timezone{" "}
+                      Timezone do Terminal{" "}
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <Select
@@ -283,7 +320,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Customer <span className="text-red-500">*</span>
+                      Cliente <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -303,7 +340,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Merchant Theme <span className="text-red-500">*</span>
+                      Tema do estabelecimento <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -324,7 +361,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Access Profile <span className="text-red-500">*</span>
+                      Perfil de acesso <span className="text-red-500">*</span>
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -356,6 +393,9 @@ export default function MerchantFormOperations({
               />
             </CardContent>
           </Card>
+          <div className="flex justify-end mt-4">
+          <Button type="submit">Avançar</Button>
+        </div>  
         </form>
       </Form>
     </div>

@@ -9,7 +9,7 @@ import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
 import Transactionrate from "./merchant-form-tax";
 import MerchantFormDocuments from "./merchant-form-documents";
-import { CnaeMccDropdown, LegalNatureDropdown } from "../server/merchant";
+import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 import {
   addresses,
   configurations,
@@ -102,6 +102,7 @@ interface MerchantTabsProps {
 
   cnaeMccList: CnaeMccDropdown[];
   legalNatures: LegalNatureDropdown[];
+  establishmentFormatList: EstablishmentFormatDropdown[];
 }
 
 export default function MerchantTabs({
@@ -112,6 +113,7 @@ export default function MerchantTabs({
   pixaccounts,
   cnaeMccList,
   legalNatures,
+  establishmentFormatList,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
 
@@ -129,7 +131,7 @@ export default function MerchantTabs({
   useEffect(() => {
     console.log("entrou no useEffect");
 
-    const tab = searchParams.get("tab") || "company";
+    const tab = searchParams?.get("tab") || "company";
     setActiveTab(tab);
   }, [searchParams]);
   console.log("activeTab 2", activeTab);
@@ -155,16 +157,19 @@ export default function MerchantTabs({
             ...merchant,
             number: String(merchant.number),
             revenue: String(merchant.revenue),
+            establishmentFormat: merchant.establishmentFormat || "",
           }}
           address={address}
           Cnae={merchant.cnae}
           Mcc={merchant.mcc}
           DDLegalNature={legalNatures}
           DDCnaeMcc={cnaeMccList}
+          DDEstablishmentFormat={establishmentFormatList}
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
           setActiveTab={setActiveTab}
+         
         />
       </TabsContent>
 
@@ -232,6 +237,9 @@ export default function MerchantTabs({
           hasPix={merchant.hasPix}
           merhcnatSlug={merchant.slugCategory || ""}
           timerzone={merchant.timezone || ""}
+          idMerchant={merchant.id}
+          setActiveTab={setActiveTab}
+          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
         />
       </TabsContent>
 
@@ -266,6 +274,9 @@ export default function MerchantTabs({
           merchantcorporateName={merchant.corporateName || ""}
           merchantdocumentId={merchant.idDocument || ""}
           legalPerson={merchant.legalPerson || ""}
+          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
+          idMerchant={merchant.id}
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
