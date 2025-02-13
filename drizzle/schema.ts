@@ -361,6 +361,15 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 	}
 });
 
+export const establishmentFormat = pgTable("establishment_format", {
+	code: varchar({ length: 10 }).primaryKey().notNull(),
+	name: varchar({ length: 50 }).notNull(),
+}, (table) => {
+	return {
+		establishmentFormatNameKey: unique("establishment_format_name_key").on(table.name),
+	}
+});
+
 export const transactions = pgTable("transactions", {
 	slug: uuid().primaryKey().notNull(),
 	active: boolean(),
