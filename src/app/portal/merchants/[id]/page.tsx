@@ -14,9 +14,11 @@ import { getConfigurationsByMerchantId } from "@/features/merchant/server/config
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
 import {
   getCnaeMccForDropdown,
+  getEstablishmentFormatForDropdown,
   getLegalNaturesForDropdown,
   getMerchantById,
 } from "@/features/merchant/server/merchant";
+import { getMerchantPixAccountByMerchantId } from "@/features/merchant/server/merchantpixacount";
 
 export default async function MerchantDetail({
   params,
@@ -24,9 +26,9 @@ export default async function MerchantDetail({
   params: { id: string };
 }) {
   const cnaeMccList = await getCnaeMccForDropdown();
-
+  const establishmentFormatList = await getEstablishmentFormatForDropdown();
   const merchant = await getMerchantById(parseInt(params.id));
-  console.log("merchant", merchant);
+
   const legalNatures = await getLegalNaturesForDropdown();
 
   console.log("legalNatures", legalNatures);
@@ -36,8 +38,9 @@ export default async function MerchantDetail({
   const configurations = await getConfigurationsByMerchantId(
     merchant?.merchants.id || 0
   );
+  const pixaccount = await getMerchantPixAccountByMerchantId(merchant?.merchants.id || 0);
 
-  console.log("contact", merchant?.merchants.id, contact);
+
 
   return (
     <>
@@ -297,31 +300,33 @@ export default async function MerchantDetail({
           }}
           pixaccounts={{
             pixaccounts: {
-              id: merchant?.pixaccounts?.id || 0,
-              slug: merchant?.pixaccounts?.slug || "",
-              active: merchant?.pixaccounts?.active || false,
-              dtinsert: merchant?.pixaccounts?.dtinsert || "",
-              dtupdate: merchant?.pixaccounts?.dtupdate || "",
-              idRegistration: merchant?.pixaccounts?.idRegistration || "",
-              idAccount: merchant?.pixaccounts?.idAccount || "",
+              id: pixaccount?.id || 0,
+              slug: pixaccount?.slug || "",
+              active: pixaccount?.active || false,
+              dtinsert: pixaccount?.dtinsert || "",
+              dtupdate: pixaccount?.dtupdate || "",
+              idRegistration: pixaccount?.idRegistration || "",
+              idAccount: pixaccount?.idAccount || "",
               bankNumber: merchant?.pixaccounts?.bankNumber || "",
               bankBranchNumber: merchant?.pixaccounts?.bankBranchNumber || "",
-              bankBranchDigit: merchant?.pixaccounts?.bankBranchDigit || "",
-              bankAccountNumber: merchant?.pixaccounts?.bankAccountNumber || "",
-              bankAccountDigit: merchant?.pixaccounts?.bankAccountDigit || "",
-              bankAccountType: merchant?.pixaccounts?.bankAccountType || "",
-              bankAccountStatus: merchant?.pixaccounts?.bankAccountStatus || "",
+              bankBranchDigit: pixaccount?.bankBranchDigit || "",
+              bankAccountNumber: pixaccount?.bankAccountNumber || "",
+              bankAccountDigit: pixaccount?.bankAccountDigit || "",
+              bankAccountType: pixaccount?.bankAccountType || "",
+              bankAccountStatus: pixaccount?.bankAccountStatus || "",
               onboardingPixStatus:
-                merchant?.pixaccounts?.onboardingPixStatus || "",
-              message: merchant?.pixaccounts?.message || "",
-              bankName: merchant?.pixaccounts?.bankName || "",
-              idMerchant: merchant?.pixaccounts?.idMerchant || 0,
-              slugMerchant: merchant?.pixaccounts?.slugMerchant || null,
+                pixaccount?.onboardingPixStatus || "",
+              message: pixaccount?.message || "",
+              bankName: pixaccount?.bankName || "",
+              idMerchant: pixaccount?.idMerchant || 0,
+              slugMerchant: pixaccount?.slugMerchant || null,
             },
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
+            
           }}
+          establishmentFormatList={establishmentFormatList}
         />
       </BaseBody>
     </>
