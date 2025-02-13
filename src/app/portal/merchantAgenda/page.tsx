@@ -55,9 +55,10 @@ export default async function MerchantAgendaPage({
       <BaseBody
         title="Agenda dos Lojistas"
         subtitle={`visualização da agenda dos Lojistas`}
+        className="overflow-x-hidden"
       >
         <Tabs defaultValue="receivables" className="w-full">
-          <TabsList className="border-b rounded-none w-full justify-start h-auto bg-transparent">
+          <TabsList className="border-b rounded-none w-full justify-start h-auto bg-transparent overflow-x-auto">
             <TabsTrigger
               value="receivables"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
@@ -77,7 +78,7 @@ export default async function MerchantAgendaPage({
               AJUSTES
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="receivables" className="mt-6">
+          <TabsContent value="receivables" className="mt-6 overflow-x-hidden">
             <ListFilter pageName="portal/merchantAgenda" search={search} />
             <div className="mb-4">
               <MerchantAgendaOverview
@@ -107,11 +108,13 @@ export default async function MerchantAgendaPage({
                 toSettleTaxAmount={0}
               />
             </div>
-            <MerchantAgendaList
-              merchantAgendaList={merchantAgenda}
-              sortField={sortField}
-              sortOrder={sortOrder}
-            />
+            <div className="w-full overflow-x-auto">
+              <MerchantAgendaList
+                merchantAgendaList={merchantAgenda}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              />
+            </div>
             {totalRecords > 0 && (
               <PaginationRecords
                 totalRecords={totalRecords}
