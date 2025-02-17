@@ -13,30 +13,13 @@ import type { MerchantAgendaList } from "../server/merchantAgenda";
 
 interface MerchantAgendaListProps {
   merchantAgendaList: MerchantAgendaList | null;
-  sortField: string;
-  sortOrder: "asc" | "desc";
 }
 
 export default function MerchantAgendaList({
   merchantAgendaList,
-  sortField,
-  sortOrder,
 }: MerchantAgendaListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const handleSort = (field: string) => {
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
-
-    if (field === sortField) {
-      params.set("sortOrder", sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      params.set("sortField", field);
-      params.set("sortOrder", "asc");
-    }
-
-    router.push(`/portal/merchant-agenda?${params.toString()}`);
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -51,7 +34,7 @@ export default function MerchantAgendaList({
 
   return (
     <div className="border rounded-lg">
-      <Table className="w-[150%] overflow-x-auto">
+      <Table className="w-[200%] h-[50%] overflow-x-auto">
         <TableHeader>
           <TableRow>
             <TableHead>Estabelecimento</TableHead>
