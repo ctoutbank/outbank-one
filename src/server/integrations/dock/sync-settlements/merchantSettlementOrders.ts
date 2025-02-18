@@ -7,7 +7,6 @@ import {
   InsertMerchantSettlementsOrders,
   MerchantSettlementsOrders,
 } from "./types";
-import { sql } from "drizzle-orm";
 
 export async function insertMerchantSettlementOrdersAndRelations(
   merchantSettlementOrders: MerchantSettlementsOrders[]

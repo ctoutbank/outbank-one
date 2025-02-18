@@ -53,12 +53,7 @@ export function ConfigurationsDataTable<TData, TValue>({
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this configuration?")) {
-      await deleteConfiguration(id);
-      router.refresh();
-    }
-  };
+  
 
   return (
     <div className="space-y-4">

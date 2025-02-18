@@ -1,12 +1,9 @@
 "use client";
 
 import {
-  Building,
   Calculator,
-  ChartArea,
   DollarSign,
   DollarSignIcon,
-  Grid,
   HomeIcon,
   Landmark,
   User,
@@ -25,11 +22,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
-import build from "next/dist/build";
-import { usePathname } from "next/navigation";
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const activeUrl = usePathname();
+  
   const data = {
     teams: [
       {
@@ -55,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: DollarSign,
         items: [
           {
-            title: "Dashboard",
+            title: "Painel de Vendas",
             url: "/portal/dashboard",
           },
         ],
@@ -65,6 +61,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Consultores Comerciais",
         url: "/portal/salesAgents",
         icon: User,
+      },
+      
+      {
+        title: "Antecipações",
+        url: "/portal/anticipations",
+        icon: DollarSign,
       },
 
       {

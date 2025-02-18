@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -22,10 +23,20 @@ import {
   translateCardType,
   translateStatus,
 } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { MerchantSettlementList } from "../server/settlements";
 import VoucherDownload from "./exportfile";
-import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+const getCardImage = (cardName: string): string => {
+  const cardMap: { [key: string]: string } = {
+    "MASTERCARD": "/mastercard.svg",
+    "VISA": "/visa.svg",
+    "ELO": "/elo.svg",
+    "AMERICAN_EXPRESS": "/american-express.svg",
+    "HIPERCARD": "/hipercard.svg"
+  };
+  return cardMap[cardName] || "";
+};
 
 export default function MerchantSettlementsList({
   merchantSettlementList,
@@ -134,7 +145,18 @@ export default function MerchantSettlementsList({
                                         className="hover:bg-transparent"
                                       >
                                         <TableCell className="text-sm text-muted-foreground" style={{ width: '15%' }}>
-                                          {order.receivableUnit + " " + translateCardType(order.productType)}
+                                          <div className="flex items-center gap-2">
+                                            {getCardImage(order.receivableUnit) && (
+                                              <img
+                                                src={getCardImage(order.receivableUnit)}
+                                                alt={order.receivableUnit}
+                                                width={40}
+                                                height={24}
+                                                className="object-contain"
+                                              />
+                                            )}
+                                            <span>{translateCardType(order.productType)}</span>
+                                          </div>
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground" style={{ width: '10%' }}>{order.bank}</TableCell>
                                         <TableCell className="text-sm text-muted-foreground" style={{ width: '10%' }}>{order.agency}</TableCell>

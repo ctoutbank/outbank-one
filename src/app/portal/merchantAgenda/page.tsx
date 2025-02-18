@@ -9,9 +9,12 @@ import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAg
 import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
 import {
   getMerchantAgenda,
+  getMerchantAgendaExcelData,
   getMerchantAgendaInfo,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { Search } from "lucide-react";
+import ExcelExport from "@/components/excelExport";
+import { Fill, Font } from "exceljs";
 
 export const revalidate = 0;
 
@@ -19,8 +22,8 @@ type MerchantAgendaProps = {
   page: string;
   pageSize: string;
   search: string;
-  sortField?: string;
-  sortOrder?: string;
+  dateFrom: string;
+  dateTo: string;
 };
 
 export default async function MerchantAgendaPage({
@@ -31,18 +34,33 @@ export default async function MerchantAgendaPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");
   const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
+  const dateFrom = searchParams.dateFrom || "";
+  const dateTo = searchParams.dateTo || "";
 
-  const merchantAgenda = await getMerchantAgenda(
-    search,
-    page,
-    pageSize,
-    sortField,
-    sortOrder
-  );
+  const merchantAgenda = await getMerchantAgenda(search, page, pageSize);
   const totalRecords = merchantAgenda.totalCount;
   const merchantAgendaCard = await getMerchantAgendaInfo();
+  const globalStyles = {
+    header: {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "808080" },
+      } as Fill,
+      font: { color: { argb: "FFFFFF" }, bold: true } as Font,
+    },
+    row: {
+      font: { color: { argb: "000000" } } as Font,
+    },
+  };
+  const excelDataToExport = await getMerchantAgendaExcelData(
+    dateFrom == undefined || dateFrom == null || dateFrom == ""
+      ? "2025-01-13"
+      : dateFrom,
+    dateTo == undefined || dateFrom == null || dateFrom == ""
+      ? "2025-02-13"
+      : dateTo
+  );
 
   return (
     <>
@@ -54,7 +72,7 @@ export default async function MerchantAgendaPage({
 
       <BaseBody
         title="Agenda dos Lojistas"
-        subtitle={`visualização da agenda dos Lojistas`}
+        subtitle={`Visualização da agenda dos Lojistas`}
         className="overflow-x-hidden"
       >
         <Tabs defaultValue="receivables" className="w-full">
@@ -78,7 +96,7 @@ export default async function MerchantAgendaPage({
               AJUSTES
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="receivables" className="mt-6 overflow-x-hidden">
+          <TabsContent value="receivables" className="mt-2 overflow-x-hidden">
             <ListFilter pageName="portal/merchantAgenda" search={search} />
             <div className="mb-4">
               <MerchantAgendaOverview
@@ -108,12 +126,33 @@ export default async function MerchantAgendaPage({
                 toSettleTaxAmount={0}
               />
             </div>
-            <div className="w-full overflow-x-auto">
-              <MerchantAgendaList
-                merchantAgendaList={merchantAgenda}
-                sortField={sortField}
-                sortOrder={sortOrder}
+            <div className="mb-4">
+              <ExcelExport
+                data={excelDataToExport.map((data) => ({
+                  Merchant: data.merchant,
+                  CNPJ: data.cnpj,
+                  NSU: data.nsu,
+                  SaleDate: data.saleDate,
+                  Type: data.type,
+                  Brand: data.brand,
+                  Installments: data.installments,
+                  InstallmentNumber: data.installmentNumber,
+                  InstallmentValue: data.installmentValue,
+                  TransactionMdr: data.transactionMdr,
+                  TransactionMdrFee: data.transactionMdrFee,
+                  TransactionFee: data.transactionFee,
+                  SettlementAmount: data.settlementAmount,
+                  ExpectedDate: data.expectedDate,
+                  ReceivableAmount: data.receivableAmount,
+                  SettlementDate: data.settlementDate,
+                }))}
+                globalStyles={globalStyles}
+                sheetName="Conciliação de recebíveis"
+                fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
               />
+            </div>
+            <div className="w-full overflow-x-auto">
+              <MerchantAgendaList merchantAgendaList={merchantAgenda} />
             </div>
             {totalRecords > 0 && (
               <PaginationRecords
