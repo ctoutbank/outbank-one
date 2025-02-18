@@ -1,13 +1,5 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MerchantFormAuthorizers from "@/features/merchant/_components/merchant-form-authorizers";
-import MerchantFormBank from "@/features/merchant/_components/merchant-form-bank";
-import MerchantFormCompany from "@/features/merchant/_components/merchant-form-company";
-import MerchantFormcontact from "@/features/merchant/_components/merchant-form-contact";
-import MerchantFormDocuments from "@/features/merchant/_components/merchant-form-documents";
-import MerchantFormOperations from "@/features/merchant/_components/merchant-form-operation";
-import Transactionrate from "@/features/merchant/_components/merchant-form-tax";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getAddressByContactId } from "@/features/merchant/server/adderres";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";

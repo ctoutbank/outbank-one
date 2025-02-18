@@ -1,7 +1,6 @@
 "use server";
 import { db } from "@/server/db";
 import { Address } from "./types";
-import { sql } from "drizzle-orm";
 import { addresses } from "../../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 

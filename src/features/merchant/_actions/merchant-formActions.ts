@@ -10,7 +10,6 @@ import {
   AddressDetail,
   updateAddress,
   insertAddress,
-  updateMerchantColumnById,
 } from "../server/merchant";
 
 export async function insertMerchantFormAction(data: MerchantSchema) {

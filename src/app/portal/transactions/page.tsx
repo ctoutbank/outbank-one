@@ -25,9 +25,9 @@ export default async function Transactions() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Merchant</TableHead>
-              <TableHead>Amount</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead>Estabelecimento</TableHead>
+              <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>

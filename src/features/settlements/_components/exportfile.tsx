@@ -1,24 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PDFDocument } from "pdf-lib";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import {
-  formatDateTime,
-  formatCurrency,
   formatCurrencyWithoutSymbol,
   formatDateMonthPT,
-  toUpperCaseFirst,
+  toUpperCaseFirst
 } from "@/lib/utils";
+import html2canvas from "html2canvas";
+import { FileText } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
+import { useState } from "react";
 
 export type VouncherDownloadProps = {
   date: Date;

@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Bell, ChevronDown, Filter } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ChevronDown } from 'lucide-react'
 import Image from "next/image"
-import Link from "next/link"
+import { useState } from 'react'
 
 interface FeeData {
   method: string

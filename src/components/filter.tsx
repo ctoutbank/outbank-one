@@ -18,8 +18,8 @@ type ListFilterProps = {
 export default function ListFilter(props: ListFilterProps) 
 {
   const [search, setSearch] = React.useState<string>(props.search || "");
-    const [linkText, setLinkText] = React.useState<string | null>(props.linkText || null);
-    const [linkHref, setLinkHref] = React.useState<string | null>(props.linkHref || null);
+    const [linkText] = React.useState<string | null>(props.linkText || null);
+    const [linkHref] = React.useState<string | null>(props.linkHref || null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams || "");

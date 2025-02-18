@@ -55,13 +55,10 @@ export default function MerchantAgendaOverview({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 text-muted-foreground">
-        <Calendar className="h-6 w-6" />
-        <div className="flex flex-col gap-0.5">
-          <span className="font-semibold tracking-wide">HOJE</span>
-          <span className="text-sm text-zinc-500">{formatDate(date)}</span>
-        </div>
+    <div className="space-y-4">
+      <div className="bg-zinc-200 px-4 py-2 rounded-md flex items-center justify-between">
+        <span className="font-semibold text-zinc-700">TODAY</span>
+        <span className="text-zinc-600">{formatDate(date)}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">

@@ -1,17 +1,14 @@
 "use server";
 
 import { db } from "@/server/db";
-import { sql } from "drizzle-orm";
 import { merchantPixSettlementOrders } from "../../../../../drizzle/schema";
-import { getIdBySlug } from "../sync-merchant/getslug";
-import { getOrCreatePaymentInstitution } from "./institutionalPayment";
+import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
 import {
   InsertPixMerchantSettlementOrders,
   PixMerchantSettlementOrders,
 } from "./types";
-import { getIdBySlugs } from "./getIdBySlugs";
 
 export async function insertPixMerchantSettlementOrdersAndRelations(
   pixMerchantSettlementOrderList: PixMerchantSettlementOrders[]

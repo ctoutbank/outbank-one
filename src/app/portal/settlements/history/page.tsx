@@ -1,4 +1,4 @@
-import ListFilter from "@/components/filter";
+
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
@@ -36,6 +36,7 @@ export default async function SettlementsPage({
     pageSize
   );
   const totalRecords = settlements.totalCount;
+  
 
   return (
     <>

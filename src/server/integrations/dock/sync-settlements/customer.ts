@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq, sql } from "drizzle-orm";
 import { Customer } from "./types";
 import { customers } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";

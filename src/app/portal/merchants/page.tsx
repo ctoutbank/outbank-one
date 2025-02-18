@@ -28,6 +28,7 @@ export default async function MerchantsPage({
   const totalRecords = merchants.totalCount;
 
   
+  
   return (
     <>
       <BaseHeader
@@ -36,7 +37,7 @@ export default async function MerchantsPage({
 
       <BaseBody
         title="Estabelecimentos"
-        subtitle={`visualização de todos os estabelecimentos`}
+        subtitle={`Visualização de todos os estabelecimentos`}
       >
         <ListFilter
          pageName="portal/merchants" search={search} linkHref={"/portal/merchants/0"} linkText={"Novo Estabelecimento"} />
