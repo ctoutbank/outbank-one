@@ -40,19 +40,21 @@ export default async function SalesDashboard({
     period.to!
   );
 
+ 
+
   return (
     <>
       <BaseHeader
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
-      <BaseBody title="Sales Dashboard" subtitle={`Visão geral das vendas`}>
+      <BaseBody title="Painel de Vendas" subtitle={`Visão geral das vendas`}>
         <DashboardFilters
           dateRange={{
             from: period.from,
             to: period.to,
           }}
         />
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Carregando...</div>}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             <CardValue
               title={`Bruto total `}

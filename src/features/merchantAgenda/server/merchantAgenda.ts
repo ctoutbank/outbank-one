@@ -2,19 +2,16 @@
 
 import { db } from "@/server/db";
 import {
-  asc,
+  and,
   count,
   desc,
   eq,
   ilike,
   max,
   or,
-  sql,
-  sum,
-  and,
+  sum
 } from "drizzle-orm";
-import { categories, merchants, payout } from "../../../../drizzle/schema";
-import { te } from "date-fns/locale";
+import { merchants, payout } from "../../../../drizzle/schema";
 
 export interface MerchantAgenda {
   merchant: string;

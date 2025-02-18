@@ -2,7 +2,7 @@ import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
-import { getSalesAgents, SalesAgentFull } from "@/features/salesAgents/server/salesAgent";
+import { getSalesAgents } from "@/features/salesAgents/server/salesAgent";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
 
 export const revalidate = 0;

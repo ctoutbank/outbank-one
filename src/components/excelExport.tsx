@@ -83,7 +83,7 @@ export default function ExcelExport<T>({
       }
     });
 
-    worksheet.eachRow((row, rowNumber) => {
+    worksheet.eachRow((row) => {
       row.eachCell({ includeEmpty: true }, (cell) => {
         cell.border = {
           top: { style: "thin" },

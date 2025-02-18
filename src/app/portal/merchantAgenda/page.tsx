@@ -54,7 +54,7 @@ export default async function MerchantAgendaPage({
 
       <BaseBody
         title="Agenda dos Lojistas"
-        subtitle={`visualização da agenda dos Lojistas`}
+        subtitle={`Visualização da agenda dos Lojistas`}
         className="overflow-x-hidden"
       >
         <Tabs defaultValue="receivables" className="w-full">
@@ -78,7 +78,7 @@ export default async function MerchantAgendaPage({
               AJUSTES
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="receivables" className="mt-6 overflow-x-hidden">
+          <TabsContent value="receivables" className="mt-2 overflow-x-hidden">
             <ListFilter pageName="portal/merchantAgenda" search={search} />
             <div className="mb-4">
               <MerchantAgendaOverview

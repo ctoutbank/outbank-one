@@ -1,13 +1,7 @@
-import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
-import Categorylist from "../../../features/categories/_components/categories-list";
-import PaginationRecords from "@/components/pagination-Records";
 import { getCategories } from "@/features/categories/server/category";
-import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
-import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import FinancialPage from "@/features/merchantAgenda/_components/calendar";
 
 export const revalidate = 0;

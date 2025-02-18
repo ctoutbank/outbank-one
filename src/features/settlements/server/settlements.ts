@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import {
   merchants,
   merchantSettlements,

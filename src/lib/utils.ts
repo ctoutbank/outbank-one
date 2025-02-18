@@ -208,11 +208,11 @@ export function getStatusColor(status: string) {
     case "REQUESTED":
       return "bg-yellow-300 hover:bg-yellow-400";
     case "FAILED":
-      return "bg-red-500  hover:bg-red-600";
+      return "bg-[#C74545]  hover:bg-[#953434]";
     case "SETTLED":
-      return "bg-green-500  hover:bg-green-600";
+      return "bg-[#00B28E]  hover:bg-[#006b55]";
     case "PAID":
-      return "bg-green-500  hover:bg-green-600";
+      return "bg-[#00B28E]  hover:bg-[#006b55]";
     case "PRE_APPROVED":
       return "bg-blue-400  hover:bg-blue-500";
     case "APPROVED":

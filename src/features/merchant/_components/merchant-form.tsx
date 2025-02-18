@@ -39,7 +39,7 @@ interface MerchantProps {
   address: AddressSchema | undefined;
 }
 
-export default function MerchantForm({ merchant, address }: MerchantProps) {
+export default function MerchantForm({ merchant}: MerchantProps) {
   const router = useRouter();
   const form = useForm<MerchantSchema>({
     resolver: zodResolver(schemaMerchant),

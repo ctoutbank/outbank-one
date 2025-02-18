@@ -16,7 +16,6 @@ import {
   contacts,
   merchantpixaccount,
 } from "../../../../drizzle/schema";
-import { ContactSchema } from "../schema/contact-schema";
 import { useSearchParams } from "next/navigation";
 
 interface MerchantData {

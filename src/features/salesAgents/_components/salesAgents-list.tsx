@@ -70,7 +70,7 @@ export default function SalesAgentlist({ SalesAgents }: { SalesAgents: SalesAgen
                 <TableCell>
                   {" "}
                   <Badge variant={agent.active ? "success" : "destructive"}>
-                    {agent.active ? "INATIVO" : "ATIVO"}
+                    {agent.active ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
                 

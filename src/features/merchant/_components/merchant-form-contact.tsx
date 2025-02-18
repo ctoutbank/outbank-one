@@ -32,7 +32,6 @@ import {
 import { insertAddressFormAction } from "../_actions/merchant-formActions";
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
-import { updateMerchantColumnById } from "../server/merchant";
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;

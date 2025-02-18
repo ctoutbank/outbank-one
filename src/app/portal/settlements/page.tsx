@@ -11,7 +11,7 @@ import {
   getMerchantSettlements,
   getSettlementBySlug,
 } from "@/features/settlements/server/settlements";
-import { Alignment, Fill, Font } from "exceljs";
+import { Fill, Font } from "exceljs";
 import { formatDate } from "@/lib/utils";
 
 export const revalidate = 0;

@@ -369,7 +369,7 @@ export default function MerchantFormOperations({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select profile" />
+                          <SelectValue placeholder="Selecione o perfil" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
