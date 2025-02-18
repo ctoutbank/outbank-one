@@ -55,31 +55,33 @@ export default function MerchantAgendaOverview({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-zinc-600">
-        <Calendar className="h-5 w-5" />
-        <span className="font-medium">HOJE</span>
-        <span className="text-sm">{formatDate(date)}</span>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <Calendar className="h-6 w-6" />
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold tracking-wide">HOJE</span>
+          <span className="text-sm text-zinc-500">{formatDate(date)}</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-black text-white">
-          <CardHeader className="py-3">
-            <CardTitle className="text-base">Estabelecimentos</CardTitle>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <Card className="bg-gradient-to-br from-black to-zinc-800 text-white">
+          <CardHeader className="py-4">
+            <CardTitle className="text-base font-semibold">Estabelecimentos</CardTitle>
           </CardHeader>
-          <CardContent className="pb-3">
-            <div className="text-xl font-bold">{totalMerchant}</div>
+          <CardContent className="pb-4">
+            <div className="text-2xl font-bold">{totalMerchant}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 text-white">
-          <CardHeader className="py-3">
+        <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white">
+          <CardHeader className="py-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Vendas</CardTitle>
-              <span className="text-base">{formatCurrency(totalSales)}</span>
+              <CardTitle className="text-base font-semibold">Vendas</CardTitle>
+              <span className="text-xl font-bold">{totalSales}</span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-1.5 pb-3">
+          <CardContent className="space-y-2.5 pb-4">
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total Bruto</div>
               <div className="text-right">{formatCurrency(grossAmount)}</div>
@@ -91,36 +93,36 @@ export default function MerchantAgendaOverview({
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-800 text-white">
-          <CardHeader className="py-3">
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-700 text-white">
+          <CardHeader className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleView}
-                  className="p-1 hover:bg-zinc-700 rounded-full transition-colors"
+                  className="p-1.5 hover:bg-zinc-600/50 rounded-full transition-all duration-200"
                   aria-label="Previous view"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <CardTitle className="text-base">
+                <CardTitle className="text-base font-semibold">
                   {view === "settled"
                     ? "Parcelas Liquidadas"
                     : "Parcelas Antecipadas"}
                 </CardTitle>
                 <button
                   onClick={toggleView}
-                  className="p-1 hover:bg-zinc-700 rounded-full transition-colors"
+                  className="p-1.5 hover:bg-zinc-600/50 rounded-full transition-all duration-200"
                   aria-label="Next view"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              <span className="text-base">
+              <span className="text-xl font-bold">
                 {view === "settled" ? settledInstallments : pendingInstallments}
               </span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-1.5 pb-3">
+          <CardContent className="space-y-2.5 pb-4">
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total Bruto</div>
               <div className="text-right">
@@ -142,16 +144,14 @@ export default function MerchantAgendaOverview({
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-700 text-white">
-          <CardHeader className="py-3">
+        <Card className="bg-gradient-to-br from-zinc-700 to-zinc-600 text-white">
+          <CardHeader className="py-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Parcelas a Liquidar</CardTitle>
-              <span className="text-base">
-                {formatCurrency(toSettleInstallments)}
-              </span>
+              <CardTitle className="text-base font-semibold">Parcelas a Liquidar</CardTitle>
+              <span className="text-xl font-bold">{toSettleInstallments}</span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-1.5 pb-3">
+          <CardContent className="space-y-2.5 pb-4">
             <div className="grid grid-cols-2">
               <div className="text-sm text-zinc-400">Valor Total Bruto</div>
               <div className="text-right">

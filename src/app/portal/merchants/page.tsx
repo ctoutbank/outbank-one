@@ -27,7 +27,7 @@ export default async function MerchantsPage({
   const merchants = await getMerchants(search,page, pageSize);
   const totalRecords = merchants.totalCount;
 
-  console.log(merchants);
+  
   return (
     <>
       <BaseHeader

@@ -93,7 +93,7 @@ export default async function SettlementsPage({
         )}
         {settlements.settlement.length > 0 && (
           <div className="relative">
-            <div className="absolute top-4 right-0 z-10">
+            <div className="absolute top-5 right-0 z-10 ">
               <ExcelExport
                 data={merchantSettlements.merchant_settlements.flatMap(
                   (settlement) =>

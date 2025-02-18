@@ -76,7 +76,7 @@ export const schemaAddress = z.object({
   neighborhood: z.string().max(255).optional(),
   city: z.string().max(255).optional(),
   state: z.string().max(2).optional(),
-  country: z.string().max(2).optional(),
+  country: z.string().optional(),
 });
 
 export type AddressSchema = z.infer<typeof schemaAddress>;

@@ -37,59 +37,61 @@ export default function MerchantAgendaList({
       <Table className="w-[200%] h-[50%] overflow-x-auto">
         <TableHeader>
           <TableRow>
-            <TableHead>Estabelecimento</TableHead>
-            <TableHead>Terminal</TableHead>
-            <TableHead>NSU / ID</TableHead>
-            <TableHead>Data da Venda</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Bandeira</TableHead>
-            <TableHead>Parcela</TableHead>
-            <TableHead>Valor Bruto da Parcela</TableHead>
-            <TableHead>Taxa (%)</TableHead>
-            <TableHead>Taxa (R$) </TableHead>
-            <TableHead>Valor Líquido da Parcela</TableHead>
-            <TableHead>Data Prevista de Liquidação </TableHead>
-            <TableHead>Valor Total de Liquidação </TableHead>
-            <TableHead>Data de Liquidação</TableHead>
-            <TableHead>Data Efetiva do Pagamento</TableHead>
-            <TableHead>Número do Pagamento</TableHead>
+            <TableHead className="text-black">Estabelecimento</TableHead>
+            <TableHead className="text-black" >Terminal</TableHead>
+            <TableHead className="text-black">NSU / ID</TableHead>
+            <TableHead className="text-black">Data da Venda</TableHead>
+            <TableHead className="text-black">Tipo</TableHead>
+            <TableHead className="text-black">Bandeira</TableHead>
+            <TableHead className="text-black">Parcela</TableHead>
+            <TableHead className="text-black">Valor Bruto da Parcela</TableHead>
+            <TableHead className="text-black">Taxa (%)</TableHead>
+            <TableHead className="text-black">Taxa (R$) </TableHead>
+            <TableHead className="text-black">Valor Líquido da Parcela</TableHead>
+            <TableHead className="text-black">Data Prevista de Liquidação </TableHead>
+            <TableHead className="text-black">Valor Total de Liquidação </TableHead>
+            <TableHead className="text-black">Data de Liquidação</TableHead>
+            <TableHead className="text-black">Data Efetiva do Pagamento</TableHead>
+            <TableHead className="text-black">Número do Pagamento</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {merchantAgendaList?.merchantAgenda.map((merchantAgenda, index) => (
             <TableRow key={index}>
-              <TableCell>{merchantAgenda.merchant}</TableCell>
-              <TableCell className="text-center">{"-"}</TableCell>
-              <TableCell>{merchantAgenda.rnn}</TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground ">{merchantAgenda.merchant}</TableCell>
+              <TableCell className="text-muted-foreground">{"-"}</TableCell>
+              <TableCell className="text-muted-foreground">{merchantAgenda.rnn}</TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatDate(merchantAgenda.saleDate.toString())}
               </TableCell>
-              <TableCell>{merchantAgenda.type}</TableCell>
-              <TableCell>{merchantAgenda.brand}</TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">{merchantAgenda.type}</TableCell>
+              <TableCell className="text-muted-foreground">{merchantAgenda.brand}</TableCell>
+              <TableCell className="text-muted-foreground">
                 {merchantAgenda.installmentNumber +
                   "/" +
                   merchantAgenda.installments}{" "}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatCurrency(merchantAgenda.grossAmount)}
               </TableCell>
-              <TableCell>{merchantAgenda.feePercentage.toFixed(2)}%</TableCell>
-              <TableCell>{formatCurrency(merchantAgenda.feeAmount)}</TableCell>
-              <TableCell>{formatCurrency(merchantAgenda.netAmount)}</TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">{merchantAgenda.feePercentage.toFixed(2)}%</TableCell>
+              <TableCell className="text-muted-foreground">{formatCurrency(merchantAgenda.feeAmount)}</TableCell>
+              <TableCell className="text-muted-foreground">{formatCurrency(merchantAgenda.netAmount)}</TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatDate(merchantAgenda.expectedSettlementDate.toString())}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatCurrency(merchantAgenda.settledAmount)}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatDate(merchantAgenda.settlementDate.toString())}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground">
                 {formatDate(merchantAgenda.effectivePaymentDate.toString())}
               </TableCell>
-              <TableCell>{merchantAgenda.paymentNumber}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {merchantAgenda.paymentNumber}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -12,41 +12,38 @@ import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getAddressByContactId } from "@/features/merchant/server/adderres";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
-import { getCnaeMccForDropdown, getLegalNaturesForDropdown, getMerchantById } from "@/features/merchant/server/merchant";
-
-
-
-
+import {
+  getCnaeMccForDropdown,
+  getEstablishmentFormatForDropdown,
+  getLegalNaturesForDropdown,
+  getMerchantById,
+} from "@/features/merchant/server/merchant";
+import { getMerchantPixAccountByMerchantId } from "@/features/merchant/server/merchantpixacount";
 
 export default async function MerchantDetail({
   params,
-  
 }: {
   params: { id: string };
-
 }) {
-  
-  
+  const cnaeMccList = await getCnaeMccForDropdown();
+  const establishmentFormatList = await getEstablishmentFormatForDropdown();
+  const merchant = await getMerchantById(parseInt(params.id));
 
-  const cnaeMccList = await getCnaeMccForDropdown()
+  const legalNatures = await getLegalNaturesForDropdown();
+
+  console.log("legalNatures", legalNatures);
+  const address = await getAddressByContactId(merchant?.contacts?.id || 0);
+  const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
+
+  const configurations = await getConfigurationsByMerchantId(
+    merchant?.merchants.id || 0
+  );
+  const pixaccount = await getMerchantPixAccountByMerchantId(merchant?.merchants.id || 0);
 
 
 
-
-    const merchant = await getMerchantById(parseInt(params.id));
-    console.log("merchant", merchant);
-    const legalNatures = await getLegalNaturesForDropdown();
-    
-   
-    console.log("legalNatures", legalNatures);
-    const address = await getAddressByContactId(merchant?.contacts?.id || 0);
-   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
-   console.log("contact", contact);
-   const configurations = await getConfigurationsByMerchantId(merchant?.merchants.id || 0);
- 
-
-      return (
-        <>
+  return (
+    <>
       <BaseHeader
         breadcrumbItems={[
           { title: "Estabelecimentos", url: "/portal/merchants" },
@@ -61,7 +58,7 @@ export default async function MerchantDetail({
             : "Adicionar Estabelecimento"
         }
       >
-       {/* <div className="">
+        {/* <div className="">
           <Tabs defaultValue="company" className="space-y-4 w-full">
             <TabsList>
              
@@ -196,7 +193,7 @@ export default async function MerchantDetail({
           </Tabs>
         </div>
         */}
-         <MerchantTabs 
+        <MerchantTabs
           merchant={{
             id: merchant?.merchants?.id || 0,
             name: merchant?.merchants?.name || "",
@@ -208,12 +205,14 @@ export default async function MerchantDetail({
             slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
             openingHour: merchant?.merchants?.openingHour || "",
             closingHour: merchant?.merchants?.closingHour || "",
-            municipalRegistration: merchant?.merchants?.municipalRegistration || "",
+            municipalRegistration:
+              merchant?.merchants?.municipalRegistration || "",
             stateSubcription: merchant?.merchants?.stateSubcription || "",
             idDocument: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
             corporateName: merchant?.merchants?.corporateName || "",
-            riskAnalysisStatusJustification: merchant?.merchants?.riskAnalysisStatusJustification || "",
+            riskAnalysisStatusJustification:
+              merchant?.merchants?.riskAnalysisStatusJustification || "",
             openingDate: merchant?.merchants?.openingDate || "",
             inclusion: merchant?.merchants?.inclusion || "",
             openingDays: merchant?.merchants?.openingDays || null,
@@ -225,7 +224,9 @@ export default async function MerchantDetail({
             idLegalNature: merchant?.merchants?.idLegalNature || 0,
             idSalesAgent: merchant?.merchants?.idSalesAgent || 0,
             areaCode: merchant?.merchants?.areaCode || "",
-            number: merchant?.merchants?.number?String(merchant?.merchants?.number) : "",
+            number: merchant?.merchants?.number
+              ? String(merchant?.merchants?.number)
+              : "",
             email: merchant?.merchants?.email || "",
             dtinsert: merchant?.merchants?.dtinsert || "",
             dtupdate: merchant?.merchants?.dtupdate || "",
@@ -238,12 +239,10 @@ export default async function MerchantDetail({
             cnae: merchant?.categories?.cnae || "",
             mcc: merchant?.categories?.mcc || "",
             slugConfiguration: merchant?.configurations?.slug || "",
-           
+
             registration: merchant?.merchants?.municipalRegistration || "",
             customer: merchant?.merchants?.slugCustomer || "",
-           
-           
-            
+
             slugCategory: merchant?.merchants.slugCategory || null,
             timezone: merchant?.merchants.timezone || "",
           }}
@@ -256,85 +255,79 @@ export default async function MerchantDetail({
             city: merchant?.addresses?.city || "",
             state: merchant?.addresses?.state || "",
             country: merchant?.addresses?.country || "",
-            zipCode: merchant?.addresses?.zipCode || ""
+            zipCode: merchant?.addresses?.zipCode || "",
           }}
-
-          
           cnaeMccList={cnaeMccList}
           legalNatures={legalNatures}
-
           Contacts={{
             contacts: contact?.[0]?.contacts || [],
             addresses: contact?.[0]?.addresses || {
-              id: 0,
-              streetAddress: null,
-              streetNumber: null, 
-              complement: null,
-              neighborhood: null,
-              city: null,
-              state: null,
-              country: null,
-              zipCode: null
-            }
+              id: contact?.[0]?.addresses?.id || 0,
+              streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+              streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+              complement: contact?.[0]?.addresses?.complement || "",
+              neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+              city: contact?.[0]?.addresses?.city || "",
+              state: contact?.[0]?.addresses?.state || "",
+              country: contact?.[0]?.addresses?.country || "",
+              zipCode: contact?.[0]?.addresses?.zipCode || "",
+            },
           }}
           addresses={{
-            id: 0,
-            streetAddress: null,
-            streetNumber: null,
-            complement: null,
-            neighborhood: null,
-            city: null,
-            state: null,
-            country: null,
-            zipCode: null
+            id: contact?.[0]?.addresses?.id || 0,
+            streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+            streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+            complement: contact?.[0]?.addresses?.complement || "",
+            neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+            city: contact?.[0]?.addresses?.city || "",
+            state: contact?.[0]?.addresses?.state || "",
+            country: contact?.[0]?.addresses?.country || "",
+            zipCode: contact?.[0]?.addresses?.zipCode || "",
           }}
           configurations={{
             configurations: {
-              id: 0,
-              slug: null,
-              active: null,
-              dtinsert: null,
-              dtupdate: null,
-              lockCpAnticipationOrder: null,
-              lockCnpAnticipationOrder: null,
-              url: null
-            }
+              id: configurations?.id || 0,
+              slug: configurations?.slug || "",
+              active: configurations?.active || false,
+              dtinsert: configurations?.dtinsert || "",
+              dtupdate: configurations?.dtupdate || "",
+              lockCpAnticipationOrder:
+                configurations?.lockCpAnticipationOrder || false,
+              lockCnpAnticipationOrder:
+                configurations?.lockCnpAnticipationOrder || false,
+              url: configurations?.url || "",
+            },
           }}
           pixaccounts={{
             pixaccounts: {
-              id: 0,
-              slug: null,
-              active: null,
-              dtinsert: null,
-              dtupdate: null,
-              idRegistration: null,
-              idAccount: null,
-              bankNumber: null,
-              bankBranchNumber: null,
-              bankBranchDigit: null,
-              bankAccountNumber: null,
-              bankAccountDigit: null,
-              bankAccountType: null,
-              bankAccountStatus: null,
-              onboardingPixStatus: null,
-              message: null,
-              bankName: null,
-              idMerchant: null,
-              slugMerchant: null
+              id: pixaccount?.id || 0,
+              slug: pixaccount?.slug || "",
+              active: pixaccount?.active || false,
+              dtinsert: pixaccount?.dtinsert || "",
+              dtupdate: pixaccount?.dtupdate || "",
+              idRegistration: pixaccount?.idRegistration || "",
+              idAccount: pixaccount?.idAccount || "",
+              bankNumber: merchant?.pixaccounts?.bankNumber || "",
+              bankBranchNumber: merchant?.pixaccounts?.bankBranchNumber || "",
+              bankBranchDigit: pixaccount?.bankBranchDigit || "",
+              bankAccountNumber: pixaccount?.bankAccountNumber || "",
+              bankAccountDigit: pixaccount?.bankAccountDigit || "",
+              bankAccountType: pixaccount?.bankAccountType || "",
+              bankAccountStatus: pixaccount?.bankAccountStatus || "",
+              onboardingPixStatus:
+                pixaccount?.onboardingPixStatus || "",
+              message: pixaccount?.message || "",
+              bankName: pixaccount?.bankName || "",
+              idMerchant: pixaccount?.idMerchant || 0,
+              slugMerchant: pixaccount?.slugMerchant || null,
             },
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",
-            legalPerson: merchant?.merchants?.legalPerson || ""
+            legalPerson: merchant?.merchants?.legalPerson || "",
+            
           }}
-         
-        
-        
-
-          
-
-
-        /> 
-        
+          establishmentFormatList={establishmentFormatList}
+        />
       </BaseBody>
     </>
   );

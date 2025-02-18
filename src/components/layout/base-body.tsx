@@ -3,14 +3,16 @@ export default function BaseBody({
   subtitle,
   children,
   actions,
+  className
 }: {
   title: string;
   subtitle: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <main className="flex-1 overflow-auto p-6">
+    <main className={`flex-1 overflow-auto p-6 ${className}`}>
       <div className="flex flex-col gap-4 justify-between">
         <div className="flex items-center justify-between">
           <div>

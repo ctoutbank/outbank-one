@@ -9,7 +9,7 @@ import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
 import Transactionrate from "./merchant-form-tax";
 import MerchantFormDocuments from "./merchant-form-documents";
-import { CnaeMccDropdown, LegalNatureDropdown } from "../server/merchant";
+import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 import {
   addresses,
   configurations,
@@ -102,6 +102,7 @@ interface MerchantTabsProps {
 
   cnaeMccList: CnaeMccDropdown[];
   legalNatures: LegalNatureDropdown[];
+  establishmentFormatList: EstablishmentFormatDropdown[];
 }
 
 export default function MerchantTabs({
@@ -112,6 +113,7 @@ export default function MerchantTabs({
   pixaccounts,
   cnaeMccList,
   legalNatures,
+  establishmentFormatList,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
 
@@ -124,13 +126,15 @@ export default function MerchantTabs({
     "rate",
     "documents",
   ];
-
+  console.log("activeTab 1", activeTab);
+  const searchParams = useSearchParams();
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const tab = searchParams.get("tab") || "company";
-    setActiveTab(tab);
-  }, []);
+    console.log("entrou no useEffect");
 
+    const tab = searchParams?.get("tab") || "company";
+    setActiveTab(tab);
+  }, [searchParams]);
+  console.log("activeTab 2", activeTab);
   return (
     <Tabs
       value={activeTab}
@@ -153,15 +157,19 @@ export default function MerchantTabs({
             ...merchant,
             number: String(merchant.number),
             revenue: String(merchant.revenue),
+            establishmentFormat: merchant.establishmentFormat || "",
           }}
           address={address}
           Cnae={merchant.cnae}
           Mcc={merchant.mcc}
           DDLegalNature={legalNatures}
           DDCnaeMcc={cnaeMccList}
+          DDEstablishmentFormat={establishmentFormatList}
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
+          setActiveTab={setActiveTab}
+         
         />
       </TabsContent>
 
@@ -169,91 +177,106 @@ export default function MerchantTabs({
         <MerchantFormcontact
           Contact={
             Contacts?.contacts || {
-              id: 0,
-              number: null,
-              name: null,
-              idMerchant: null,
-              idAddress: null,
-              mothersName: null,
-              isPartnerContact: null,
-              isPep: null,
-              idDocument: null,
-              email: null,
-              areaCode: null,
-              phoneType: null,
-              birthDate: null,
-              slugMerchant: null,
-              icNumber: null,
-              icDateIssuance: null,
-              icDispatcher: null,
-              icFederativeUnit: null,
+              id: Contacts?.contacts?.id || 0,
+              number: Contacts?.contacts?.number || null,
+              name: Contacts?.contacts?.name || null,
+              idMerchant: Contacts?.contacts?.idMerchant || null,
+              idAddress: Contacts?.contacts?.idAddress || null,
+              mothersName: Contacts?.contacts?.mothersName || null,
+              isPartnerContact: Contacts?.contacts?.isPartnerContact || null,
+              isPep: Contacts?.contacts?.isPep || null,
+              idDocument: Contacts?.contacts?.idDocument || null,
+              email: Contacts?.contacts?.email || null,
+              areaCode: Contacts?.contacts?.areaCode || null,
+              phoneType: Contacts?.contacts?.phoneType || null,
+              birthDate: Contacts?.contacts?.birthDate || null,
+              slugMerchant: Contacts?.contacts?.slugMerchant || null,
+              icNumber: Contacts?.contacts?.icNumber || null,
+              icDateIssuance: Contacts?.contacts?.icDateIssuance || null,
+              icDispatcher: Contacts?.contacts?.icDispatcher || null,
+              icFederativeUnit: Contacts?.contacts?.icFederativeUnit || null,
             }
           }
           Address={
             Contacts?.addresses || {
-              id: 0,
-              streetAddress: null,
-              streetNumber: null,
-              complement: null,
-              neighborhood: null,
-              city: null,
-              state: null,
-              country: null,
-              zipCode: null,
+              id: Contacts?.addresses?.id || 0,
+              streetAddress: Contacts?.addresses?.streetAddress || null,
+              streetNumber: Contacts?.addresses?.streetNumber || null,
+              complement: Contacts?.addresses?.complement || null,
+              neighborhood: Contacts?.addresses?.neighborhood || null,
+              city: Contacts?.addresses?.city || null,
+              state: Contacts?.addresses?.state || null,
+              country: Contacts?.addresses?.country || null,
+              zipCode: Contacts?.addresses?.zipCode || null,
             }
           }
+          idMerchant={merchant.id}
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
       <TabsContent value="operation">
         <MerchantFormOperations
           Configuration={{
-            id: 0,
-            slug: null,
-            active: null,
-            dtinsert: null,
-            dtupdate: null,
-            lockCpAnticipationOrder: null,
-            lockCnpAnticipationOrder: null,
-            url: null,
+            id: configurations?.configurations?.id || 0,
+            slug: configurations?.configurations?.slug || null,
+            active: configurations?.configurations?.active || null,
+            dtinsert: configurations?.configurations?.dtinsert || null,
+            dtupdate: configurations?.configurations?.dtupdate || null,
+            lockCpAnticipationOrder:
+              configurations?.configurations?.lockCpAnticipationOrder || null,
+            lockCnpAnticipationOrder:
+              configurations?.configurations?.lockCnpAnticipationOrder || null,
+            url: configurations?.configurations?.url || null,
           }}
           hasTaf={merchant.hasTef}
           hastop={merchant.hasTop}
           hasPix={merchant.hasPix}
           merhcnatSlug={merchant.slugCategory || ""}
           timerzone={merchant.timezone || ""}
+          idMerchant={merchant.id}
+          setActiveTab={setActiveTab}
+          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
         />
       </TabsContent>
 
       <TabsContent value="bank">
         <MerchantFormBank
           merchantpixaccount={{
-            id: 0,
-            slug: null,
-            active: null,
-            dtinsert: null,
-            idAccount: null,
-            bankAccountType: null,
-            bankAccountStatus: null,
-            onboardingPixStatus: null,
-            message: null,
-            dtupdate: null,
-            idMerchant: null,
-            slugMerchant: null,
-            idRegistration: null,
-            bankNumber: null,
-            bankBranchNumber: null,
-            bankBranchDigit: null,
-            bankAccountNumber: null,
-            bankAccountDigit: null,
-            bankName: null,
+            id: pixaccounts?.pixaccounts?.id || 0,
+            slug: pixaccounts?.pixaccounts?.slug || null,
+            active: pixaccounts?.pixaccounts?.active || null,
+            dtinsert: pixaccounts?.pixaccounts?.dtinsert || null,
+            idAccount: pixaccounts?.pixaccounts?.idAccount || null,
+            bankAccountType: pixaccounts?.pixaccounts?.bankAccountType || null,
+            bankAccountStatus:
+              pixaccounts?.pixaccounts?.bankAccountStatus || null,
+            onboardingPixStatus:
+              pixaccounts?.pixaccounts?.onboardingPixStatus || null,
+            message: pixaccounts?.pixaccounts?.message || null,
+            dtupdate: pixaccounts?.pixaccounts?.dtupdate || null,
+            idMerchant: pixaccounts?.pixaccounts?.idMerchant || null,
+            slugMerchant: pixaccounts?.pixaccounts?.slugMerchant || null,
+            idRegistration: pixaccounts?.pixaccounts?.idRegistration || null,
+            bankNumber: pixaccounts?.pixaccounts?.bankNumber || null,
+            bankBranchNumber:
+              pixaccounts?.pixaccounts?.bankBranchNumber || null,
+            bankBranchDigit: pixaccounts?.pixaccounts?.bankBranchDigit || null,
+            bankAccountNumber:
+              pixaccounts?.pixaccounts?.bankAccountNumber || null,
+            bankAccountDigit:
+              pixaccounts?.pixaccounts?.bankAccountDigit || null,
+            bankName: pixaccounts?.pixaccounts?.bankName || null,
           }}
           merchantcorporateName={merchant.corporateName || ""}
           merchantdocumentId={merchant.idDocument || ""}
           legalPerson={merchant.legalPerson || ""}
+          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
+          idMerchant={merchant.id}
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 

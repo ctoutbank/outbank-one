@@ -1,3 +1,4 @@
+"use server"
 import { db } from "@/server/db";
 import { merchantpixaccount } from "../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -16,12 +17,17 @@ export async function insertMerchantPixAccount(merchantPixAccount: MerchantPixAc
 
 
 export async function updateMerchantPixAccount(merchantPixAccount: MerchantPixAccountUpdate) {
-    await db.update(merchantpixaccount).set(merchantPixAccount).where(eq(merchantpixaccount.id, merchantPixAccount.id));
+    const { id, ...merchantPixAccountWithoutId } = merchantPixAccount;
+    await db.update(merchantpixaccount).set(merchantPixAccountWithoutId).where(eq(merchantpixaccount.id, id));
 }
 
 
-export async function deleteMerchantPixAccount(id: number) {
-    await db.delete(merchantpixaccount).where(eq(merchantpixaccount.id, id));
+
+export async function getMerchantPixAccountByMerchantId(merchantId: number) {
+    const result = await db.select().from(merchantpixaccount).where(eq(merchantpixaccount.idMerchant, merchantId));
+    return result[0] || null;
 }
+
+
 
 

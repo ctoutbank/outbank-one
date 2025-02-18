@@ -7,6 +7,7 @@ import {
   categories,
   configurations,
   contacts,
+  establishmentFormat,
   legalNatures,
   merchantpixaccount,
   merchants,
@@ -418,6 +419,30 @@ export async function updateMerchantColumnById(
 //await updateMerchantColumnById(123, "name", "Novo Nome"); //
 
 
+export async function updateMerchantColumnsById(
+  id: number,
+  updates: Record<string, string | number | boolean | null>
+): Promise<void> {
+  try {
+    await db
+      .update(merchants)
+      .set({
+        ...updates,
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(merchants.id, id));
+
+    console.log(`Colunas atualizadas com sucesso para o ID ${id}`);
+  } catch (error) {
+    console.error(
+      `Erro ao atualizar colunas para o ID ${id}:`,
+      error
+    );
+    throw new Error(`Falha ao atualizar merchant: ${error}`);
+  }
+}
+
+
 export type AddressInsert = typeof addresses.$inferInsert;
 export type AddressDetail = typeof addresses.$inferSelect;
 
@@ -481,6 +506,26 @@ export async function getDDLegalNatures(): Promise<LegalNatureDetail[]> {
 export type LegalNatureDropdown = {
   value: number;
   label: string;
+}
+
+export type EstablishmentFormatDropdown = {
+  value: string;
+  label: string;
+}
+
+export async function getEstablishmentFormatForDropdown(): Promise<EstablishmentFormatDropdown[]> {
+  const result = await db
+    .select({
+      value: establishmentFormat.code,
+      label: establishmentFormat.name,
+    })
+    .from(establishmentFormat)
+    .orderBy(establishmentFormat.code);
+
+  return result.map(item => ({
+    value: item.value,
+    label: item.label ?? ''
+  }));
 }
 
 export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[]> {

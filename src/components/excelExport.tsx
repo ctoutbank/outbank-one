@@ -117,7 +117,7 @@ export default function ExcelExport<T>({
     <div className="flex justify-end">
       <button
         onClick={downloadExcel}
-        className="flex items-center gap-2 p-2 text-black rounded bg-secondary"
+        className="flex items-center gap-2 p-2 text-black rounded-md bg-sidebar border border-black"
       >
         <Download size={16} />
         Exportar
