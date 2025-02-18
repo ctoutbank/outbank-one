@@ -223,13 +223,15 @@ export async function getMerchantAgendaInfo(): Promise<{
   };
 }
 
-export async function getMerchantAgendaReceipts() {
+export async function getMerchantAgendaReceipts(search: string | null) {
   const merchantAgendaReceipts = await db
     .select({
       day: sql`DATE(${payout.settlementDate})`.as("day"),
       totalAmount: sql`SUM(${payout.settlementAmount})`.as("total_amount"),
     })
     .from(payout)
+    .innerJoin(merchants, eq(merchants.id, payout.idMerchant))
+    .where(search ? ilike(merchants.name, `%${search}%`) : sql`1=1`)
     .groupBy(sql`DATE(${payout.settlementDate})`)
     .orderBy(sql`DATE(${payout.settlementDate})`);
 
@@ -281,7 +283,8 @@ export async function getMerchantAgendaExcelData(
     .innerJoin(merchants, eq(merchants.id, payout.idMerchant))
     .where(
       sql`(${payout.settlementDate} >= ${dateFrom}) 
-          AND (${payout.settlementDate} <= ${dateTo})`
+          AND (${payout.settlementDate} <= ${dateTo})
+         `
     );
 
   return result.map((item) => ({
@@ -304,12 +307,22 @@ export async function getMerchantAgendaExcelData(
   })) as MerchantAgendaExcelData[];
 }
 
-export async function getGlobalSettlement(): Promise<GlobalSettlementResult> {
+export async function getGlobalSettlement(
+  search: string | null,
+  date: string
+): Promise<GlobalSettlementResult> {
+  if (date == "" || date == null || date == undefined) {
+    date = new Date().toISOString().split("T")[0];
+  }
+
+  // Fix: Create a safe search parameter
+  const searchTerm = search ? `'${search}'` : "NULL";
+
   const query = `
     WITH payout_filtered AS (
       SELECT *
       FROM payout
-      WHERE settlement_date = '2025-01-02'
+      WHERE DATE(settlement_date) = DATE('${date}')
     ),
     global_total AS (
       SELECT SUM(settlement_amount) AS global_settlement_total
@@ -374,6 +387,7 @@ export async function getGlobalSettlement(): Promise<GlobalSettlementResult> {
       FROM product_totals pt
       JOIN merchant_totals mt ON pt.id_merchant = mt.id_merchant
       JOIN merchants m ON mt.id_merchant = m.id
+      WHERE (${searchTerm} IS NULL OR m.name ILIKE '%' || ${searchTerm} || '%')
       GROUP BY m.name, mt.merchant_total, mt.merchant_status
     )
     SELECT jsonb_build_object(
@@ -382,10 +396,6 @@ export async function getGlobalSettlement(): Promise<GlobalSettlementResult> {
     ) AS result;
   `;
 
-  // Executa a query utilizando o método raw do drizzle
   const result = await db.execute(query);
-  console.log(result);
-
-  // Supondo que o resultado retorne a coluna "result" da primeira linha.
   return result.rows[0].result as GlobalSettlementResult;
 }

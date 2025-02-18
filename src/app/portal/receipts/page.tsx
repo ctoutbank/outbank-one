@@ -11,11 +11,8 @@ import {
 export const revalidate = 0;
 
 type ReceiptsProps = {
-  page: string;
-  pageSize: string;
   search: string;
-  sortField?: string;
-  sortOrder?: string;
+  date: string;
 };
 
 export default async function ReceiptsPage({
@@ -23,12 +20,17 @@ export default async function ReceiptsPage({
 }: {
   searchParams: ReceiptsProps;
 }) {
-  const merchantAgendaReceipts = await getMerchantAgendaReceipts();
+  const merchantAgendaReceipts = await getMerchantAgendaReceipts(
+    searchParams.search
+  );
   const dailyAmounts: DailyAmount[] = merchantAgendaReceipts.map((receipt) => ({
     date: receipt.day as string,
     amount: receipt.totalAmount as number,
   }));
-  const dailyData = await getGlobalSettlement();
+  const dailyData = await getGlobalSettlement(
+    searchParams.search,
+    searchParams.date
+  );
   return (
     <>
       <BaseHeader

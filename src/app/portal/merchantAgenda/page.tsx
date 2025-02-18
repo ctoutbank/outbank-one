@@ -151,13 +151,8 @@ export default async function MerchantAgendaPage({
                 fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
               />
             </div>
-            <MerchantAgendaList merchantAgendaList={merchantAgenda} />
             <div className="w-full overflow-x-auto">
-              <MerchantAgendaList
-                merchantAgendaList={merchantAgenda}
-                sortField={sortField}
-                sortOrder={sortOrder}
-              />
+              <MerchantAgendaList merchantAgendaList={merchantAgenda} />
             </div>
             {totalRecords > 0 && (
               <PaginationRecords

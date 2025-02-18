@@ -12,6 +12,7 @@ import {
   GlobalSettlementResult,
   getMerchantAgendaTotal,
 } from "../server/merchantAgenda";
+import ListFilter from "./receiptsFilter";
 
 // Exemplo de dados - substitua pelos dados reais da sua aplicação
 
@@ -45,24 +46,19 @@ export default function MerchantAgendaReceipts({
 
   return (
     <div className="container mx-auto p-4 space-y-4">
+      <ToggleGroup
+        type="single"
+        value={view}
+        onValueChange={(v) => v && setView(v)}
+      >
+        <ToggleGroupItem value="month">Mês</ToggleGroupItem>
+        <ToggleGroupItem value="day">Dia</ToggleGroupItem>
+      </ToggleGroup>
       <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Busque por um estabelecimento"
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(v) => v && setView(v)}
-        >
-          <ToggleGroupItem value="month">Mês</ToggleGroupItem>
-          <ToggleGroupItem value="day">Dia</ToggleGroupItem>
-        </ToggleGroup>
+        <ListFilter
+          linkHref="/portal/portal/receipts"
+          CalendarView={view == "month"}
+        ></ListFilter>
       </div>
 
       <div className="text-sm text-muted-foreground">
@@ -72,7 +68,9 @@ export default function MerchantAgendaReceipts({
         {new Intl.NumberFormat("pt-BR", {
           style: "currency",
           currency: "BRL",
-        }).format(view === "month" ? Number(monthTotal) : dailyData.globalSettlement)}
+        }).format(
+          view === "month" ? Number(monthTotal) : dailyData.globalSettlement
+        )}
       </div>
 
       {view === "month" ? (
