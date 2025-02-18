@@ -83,15 +83,6 @@ export const configurations = pgTable("configurations", {
 	url: varchar({ length: 255 }),
 });
 
-export const bank = pgTable("bank", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "bank_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	name: varchar({ length: 255 }),
-});
-
 export const state = pgTable("state", {
 	code: varchar({ length: 5 }).primaryKey().notNull(),
 	name: varchar({ length: 20 }).notNull(),
@@ -139,6 +130,16 @@ export const settlements = pgTable("settlements", {
 			name: "settlements_id_customer_fkey"
 		}),
 	}
+});
+
+export const bank = pgTable("bank", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "bank_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	name: varchar({ length: 255 }),
+	number: varchar({ length: 10 }),
 });
 
 export const payout = pgTable("payout", {
@@ -367,6 +368,15 @@ export const establishmentFormat = pgTable("establishment_format", {
 }, (table) => {
 	return {
 		establishmentFormatNameKey: unique("establishment_format_name_key").on(table.name),
+	}
+});
+
+export const accountType = pgTable("account_type", {
+	code: varchar({ length: 10 }).primaryKey().notNull(),
+	name: varchar({ length: 50 }).notNull(),
+}, (table) => {
+	return {
+		accountTypeNameKey: unique("account_type_name_key").on(table.name),
 	}
 });
 

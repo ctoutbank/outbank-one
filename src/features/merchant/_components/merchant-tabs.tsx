@@ -18,7 +18,7 @@ import {
 } from "../../../../drizzle/schema";
 import { ContactSchema } from "../schema/contact-schema";
 import { useSearchParams } from "next/navigation";
-
+import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount";
 interface MerchantData {
   id: number;
   slug: string | null;
@@ -103,6 +103,8 @@ interface MerchantTabsProps {
   cnaeMccList: CnaeMccDropdown[];
   legalNatures: LegalNatureDropdown[];
   establishmentFormatList: EstablishmentFormatDropdown[];
+  DDAccountType:accountTypeDropdown[],
+  DDBank:banckDropdown[],
 }
 
 export default function MerchantTabs({
@@ -114,6 +116,8 @@ export default function MerchantTabs({
   cnaeMccList,
   legalNatures,
   establishmentFormatList,
+  DDAccountType,
+  DDBank,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
 
@@ -277,6 +281,8 @@ export default function MerchantTabs({
           activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
           idMerchant={merchant.id}
           setActiveTab={setActiveTab}
+          DDAccountType={DDAccountType}
+          DDBank={DDBank}
         />
       </TabsContent>
 

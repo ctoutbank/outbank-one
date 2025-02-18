@@ -1,6 +1,6 @@
 "use server"
 import { db } from "@/server/db";
-import { merchantpixaccount } from "../../../../drizzle/schema";
+import { accountType, bank, merchantpixaccount } from "../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export type MerchantPixAccountInsert = typeof merchantpixaccount.$inferInsert;
@@ -30,4 +30,36 @@ export async function getMerchantPixAccountByMerchantId(merchantId: number) {
 
 
 
+export type banckDropdown = {
+    value: string;
+    label: string;
+}
+
+export async function getBankForDropdown(): Promise<banckDropdown[]> {
+    const result = await db.select({
+        value: bank.number,
+        label: bank.name,
+    }).from(bank).orderBy(bank.number);
+    return result.map(item => ({
+        value: item.value!,
+        label: item.label!,
+    }));
+}
+
+
+export type accountTypeDropdown = {
+    value: string;
+    label: string;
+}
+
+export async function getAccountTypeForDropdown(): Promise<accountTypeDropdown[]> {
+    const result = await db.select({
+        value: accountType.code,
+        label: accountType.name,
+    }).from(accountType).orderBy(accountType.code);
+    return result.map(item => ({
+        value: item.value!,
+        label: item.label!,
+    }));
+}
 
