@@ -1,7 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
-import { getAddressByContactId } from "@/features/merchant/server/adderres";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
 import {
@@ -24,7 +23,6 @@ export default async function MerchantDetail({
   const legalNatures = await getLegalNaturesForDropdown();
 
   console.log("legalNatures", legalNatures);
-  const address = await getAddressByContactId(merchant?.contacts?.id || 0);
   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
 
   const configurations = await getConfigurationsByMerchantId(

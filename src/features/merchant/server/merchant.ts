@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, getTableColumns, ilike, or,and } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, ilike, or,and, gte, lte } from "drizzle-orm";
 import {
   addresses,
   categories,
@@ -49,9 +49,45 @@ export interface Merchantlist {
 export async function getMerchants(
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  dateTo?: string
 ): Promise<Merchantlist> {
   const offset = (page - 1) * pageSize;
+  
+  let conditions = [];
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(merchants.name, `%${search}%`),
+        ilike(merchants.corporateName, `%${search}%`)
+      )
+    );
+  }
+
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  if (status) {
+    conditions.push(eq(merchants.riskAnalysisStatus, status));
+  }
+
+  if (state) {
+    conditions.push(eq(addresses.state, state));
+  }
+
+  if (dateFrom) {
+    conditions.push(gte(merchants.dtinsert, dateFrom));
+  }
+
+  if (dateTo) {
+    conditions.push(lte(merchants.dtinsert, dateTo));
+  }
 
   const result = await db
     .select({
@@ -82,13 +118,7 @@ export async function getMerchants(
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-    .where(
-      or(
-        ilike(merchants.name, `%${search}%`),
-        ilike(merchants.email, `%${search}%`),
-        ilike(merchants.idDocument, `%${search}%`)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
     .limit(pageSize);

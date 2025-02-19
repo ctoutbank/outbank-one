@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,20 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { insertConfigurationFormAction, updateConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
 import {
   ConfigurationOperationsSchema,
   schemaConfigurationOperations,
 } from "@/features/configuration/schema/configurations-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Settings } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { configurations } from "../../../../drizzle/schema";
-import { insertConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
-import { updateConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { updateMerchantColumnById, updateMerchantColumnsById } from "../server/merchant";
-import { Button } from "@/components/ui/button";
+import { updateMerchantColumnsById } from "../server/merchant";
 
 interface MerchantProps {
   Configuration: typeof configurations.$inferSelect;

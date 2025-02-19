@@ -1,10 +1,10 @@
-import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import { EmptyState } from "@/components/empty-state";
 import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FilterMerchantAgenda from "@/features/merchantAgenda/_components/filterMerchantAgenda";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
 import {
@@ -16,11 +16,20 @@ import { Search } from "lucide-react";
 export const revalidate = 0;
 
 type MerchantAgendaProps = {
-  page: string;
-  pageSize: string;
-  search: string;
+  page?: string;
+  pageSize?: string;
+  search?: string;
   sortField?: string;
   sortOrder?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  establishment?: string;
+  status?: string;
+  cardBrand?: string;
+  settlementDateFrom?: string;
+  settlementDateTo?: string;
+  expectedSettlementDateFrom?: string;
+  expectedSettlementDateTo?: string;
 };
 
 export default async function MerchantAgendaPage({
@@ -29,17 +38,26 @@ export default async function MerchantAgendaPage({
   searchParams: MerchantAgendaProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
   const sortField = searchParams.sortField || "id";
   const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
+  const dateFrom = searchParams.dateFrom;
+  const dateTo = searchParams.dateTo;
 
   const merchantAgenda = await getMerchantAgenda(
     search,
     page,
     pageSize,
-    sortField,
-    sortOrder
+    searchParams.dateFrom,
+    searchParams.dateTo,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.cardBrand,
+    searchParams.settlementDateFrom,
+    searchParams.settlementDateTo,
+    searchParams.expectedSettlementDateFrom,
+    searchParams.expectedSettlementDateTo
   );
   const totalRecords = merchantAgenda.totalCount;
   const merchantAgendaCard = await getMerchantAgendaInfo();
@@ -58,49 +76,36 @@ export default async function MerchantAgendaPage({
         className="overflow-x-hidden"
       >
         <Tabs defaultValue="receivables" className="w-full">
-          <TabsList className="border-b rounded-none w-full justify-start h-auto bg-transparent overflow-x-auto">
-            <TabsTrigger
-              value="receivables"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              RECEBÍVEIS
-            </TabsTrigger>
-            <TabsTrigger
-              value="anticipations"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              ANTECIPAÇÕES
-            </TabsTrigger>
-            <TabsTrigger
-              value="adjustment"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              AJUSTES
-            </TabsTrigger>
+          <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+            <TabsTrigger value="receivables">Recebíveis</TabsTrigger>
+            <TabsTrigger value="anticipations">Antecipações</TabsTrigger>
+            <TabsTrigger value="adjustment">Ajustes</TabsTrigger>
           </TabsList>
-          <TabsContent value="receivables" className="mt-2 overflow-x-hidden">
-            <ListFilter pageName="portal/merchantAgenda" search={search} />
-            <div className="mb-4">
+          <TabsContent value="receivables" className="overflow-x-hidden">
+            <div className="flex justify-between w-full">
+              <FilterMerchantAgenda
+                dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+                dateToIn={dateTo ? new Date(dateTo) : undefined}
+                establishmentIn={searchParams.establishment}
+                statusIn={searchParams.status}
+                cardBrandIn={searchParams.cardBrand}
+                settlementDateFromIn={searchParams.settlementDateFrom ? new Date(searchParams.settlementDateFrom) : undefined}
+                settlementDateToIn={searchParams.settlementDateTo ? new Date(searchParams.settlementDateTo) : undefined}
+                expectedSettlementDateFromIn={searchParams.expectedSettlementDateFrom ? new Date(searchParams.expectedSettlementDateFrom) : undefined}
+                expectedSettlementDateToIn={searchParams.expectedSettlementDateTo ? new Date(searchParams.expectedSettlementDateTo) : undefined}
+              />
+            </div>
+            <div className="mb-4 -mt-2">
               <MerchantAgendaOverview
                 totalMerchant={Number(merchantAgendaCard.count || 0)}
-                totalSales={Number(
-                  merchantAgendaCard.totalSettlementAmount || 0
-                )}
-                grossAmount={Number(
-                  merchantAgendaCard.totalSettlementAmount || 0
-                )}
+                totalSales={Number(merchantAgendaCard.totalSettlementAmount || 0)}
+                grossAmount={Number(merchantAgendaCard.totalSettlementAmount || 0)}
                 taxAmount={Number(merchantAgendaCard.totalTaxAmount || 0)}
-                settledInstallments={Number(
-                  merchantAgendaCard.totalSettlementAmount || 0
-                )}
+                settledInstallments={Number(merchantAgendaCard.totalSettlementAmount || 0)}
                 pendingInstallments={0}
                 date={new Date()}
-                settledGrossAmount={Number(
-                  merchantAgendaCard.totalSettlementAmount || 0
-                )}
-                settledTaxAmount={Number(
-                  merchantAgendaCard.totalTaxAmount || 0
-                )}
+                settledGrossAmount={Number(merchantAgendaCard.totalSettlementAmount || 0)}
+                settledTaxAmount={Number(merchantAgendaCard.totalTaxAmount || 0)}
                 anticipatedGrossAmount={0}
                 anticipatedTaxAmount={0}
                 toSettleInstallments={0}
@@ -129,14 +134,14 @@ export default async function MerchantAgendaPage({
               icon={Search}
               title={"Nenhum resultado encontrado"}
               description={""}
-            ></EmptyState>
+            />
           </TabsContent>
           <TabsContent value="adjustment" className="mt-6">
             <EmptyState
               icon={Search}
               title={"Nenhum resultado encontrado"}
               description={""}
-            ></EmptyState>
+            />
           </TabsContent>
         </Tabs>
       </BaseBody>

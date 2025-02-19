@@ -19,11 +19,9 @@ interface MerchantAgendaListProps {
 
 export default function MerchantAgendaList({
   merchantAgendaList,
-  sortField,
-  sortOrder,
+  
 }: MerchantAgendaListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+ 
 
   
 

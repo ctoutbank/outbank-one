@@ -27,8 +27,8 @@ export default async function SalesDashboard({
     period.to!
   );
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod?.from!,
-    previousPeriod?.to!
+    previousPeriod?.from ?? new Date(),
+    previousPeriod?.to ?? new Date()
   );
   console.log(
     "totalTransactionsPreviousPeriod",

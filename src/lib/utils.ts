@@ -14,7 +14,7 @@ export type Period = {
 };
 
 export function gateDateByViewMode(viewMode: string): Period {
-  const currentMonth = new Date().getMonth();
+  
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight
@@ -196,6 +196,7 @@ export function translateStatus(status: string): string {
       return "Aprovado";
     default:
       return "";
+      
   }
 }
 

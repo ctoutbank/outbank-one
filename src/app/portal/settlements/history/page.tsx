@@ -1,4 +1,3 @@
-
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
@@ -7,6 +6,7 @@ import SettlementHistoryList from "../../../../features/settlements/_components/
 
 import { getSettlements } from "@/features/settlements/server/settlements";
 import FiltersHistory from "@/features/settlements/_components/filterSettlementsHistory";
+import SettlementsHistoryOverview from "@/features/settlements/_components/settlements-history-overview";
 
 export const revalidate = 0;
 
@@ -24,7 +24,7 @@ export default async function SettlementsPage({
   searchParams: HistoryProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const status = searchParams.status;
   const dateFrom = searchParams.dateFrom;
   const dateTo = searchParams.dateTo;
@@ -53,12 +53,25 @@ export default async function SettlementsPage({
         title="Histórico de Liquidações"
         subtitle={`Visualização do Histórico de Liquidações`}
       >
+        
         <div className="mb-4">
           <FiltersHistory
             statusIn={status}
             dateFromIn={new Date(dateFrom)}
             dateToIn={new Date(dateTo)}
-          ></FiltersHistory>
+          />
+        </div>
+        <div className="mb-4">
+          <SettlementsHistoryOverview
+            totalSettlements={settlements.totalCount}
+            date={new Date()}
+            totalGrossAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.batch_amount), 0)}
+            totalNetAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_settlement_amount), 0)}
+            totalRestitutionAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_restitution_amount), 0)}
+            pendingSettlements={settlements.settlements.filter(s => s.status === 'pending').length}
+            approvedSettlements={settlements.settlements.filter(s => s.status === 'approved').length}
+            processedSettlements={settlements.settlements.filter(s => s.status === 'settled').length}
+          />
         </div>
         
         <SettlementHistoryList Settlements={settlements} />

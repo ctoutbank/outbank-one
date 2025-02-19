@@ -1,11 +1,11 @@
 "use server";
 
-import { db } from "../../../server/db";
 import { salesAgents } from "../../../../drizzle/schema";
+import { db } from "../../../server/db";
 
 // Ensure the salesAgents schema includes the slug property
 
-import { count, desc, eq, like, or, asc } from "drizzle-orm";
+import { count, desc, eq, like, or, gte, lte, and } from "drizzle-orm";
 
 export type SalesAgentFull = {
   id: number;
@@ -18,6 +18,10 @@ export type SalesAgentFull = {
   dtupdate: Date | null;
   documentId: string | null;
   slugCustomer: string | null;
+  totalMerchants?: number;
+  pendingMerchants?: number;
+  approvedMerchants?: number;
+  rejectedMerchants?: number;
 };
 
 export interface SalesAgentsList {
@@ -31,20 +35,42 @@ export type SalesAgentesInsert = typeof salesAgents.$inferInsert;
 export async function getSalesAgents(
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  status?: string,
+  dateFrom?: string,
+  dateTo?: string,
+  email?: string
 ): Promise<SalesAgentsList> {
   const offset = (page - 1) * pageSize;
+
+  let conditions = [
+    or(
+      like(salesAgents.firstName, `%${search}%`),
+      like(salesAgents.lastName, `%${search}%`),
+      like(salesAgents.email, `%${search}%`)
+    )
+  ];
+
+  if (email) {
+    conditions.push(like(salesAgents.email, `%${email}%`));
+  }
+
+  if (status) {
+    conditions.push(eq(salesAgents.active, status === 'ACTIVE'));
+  }
+
+  if (dateFrom) {
+    conditions.push(gte(salesAgents.dtinsert, dateFrom));
+  }
+
+  if (dateTo) {
+    conditions.push(lte(salesAgents.dtinsert, dateTo));
+  }
 
   const result = await db
     .select()
     .from(salesAgents)
-    .where(
-      or(
-        like(salesAgents.firstName, `%${search}%`),
-        like(salesAgents.lastName, `%${search}%`),
-        like(salesAgents.email, `%${search}%`)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(salesAgents.id))
     .limit(pageSize)
     .offset(offset);

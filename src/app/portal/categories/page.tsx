@@ -22,7 +22,7 @@ export default async function CategoriesPage({
   searchParams: CategoryProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
   const sortField = searchParams.sortField || "id";
   const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";

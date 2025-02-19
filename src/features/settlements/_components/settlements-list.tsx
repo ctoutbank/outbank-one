@@ -94,7 +94,7 @@ export default function MerchantSettlementsList({
                               </TableCell>
                               <TableCell className="w-[8%] min-w-[100px] text-right text-muted-foreground">
                                 <Badge className={getStatusColor(settlement.status) + " text-white"}>
-                                  {settlement.status}
+                                  {translateStatus(settlement.status)}
                                 </Badge>
                               </TableCell>
                             </TableRow>

@@ -4,15 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { SalesAgentSchema, SchemaSalesAgent } from "../schema/schema";
-import { z } from "zod";
-import { generateSlug } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { insertSalesAgentFormAction, updateSalesAgentFormAction } from "../_actions/salesAgents-formActions";
 import { Card, CardContent } from "@/components/ui/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { insertSalesAgentFormAction, updateSalesAgentFormAction } from "../_actions/salesAgents-formActions";
+import { SalesAgentSchema, SchemaSalesAgent } from "../schema/schema";
 
 interface SalesAgentsFormProps {
   salesAgent: SalesAgentSchema ;
