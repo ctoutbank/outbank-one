@@ -296,6 +296,16 @@ export const merchantTransactionPrice = pgTable("merchant_transaction_price", {
 	nonCardTransactionFee: integer("non_card_transaction_fee"),
 	nonCardTransactionMdr: numeric("non_card_transaction_mdr"),
 	producttype: varchar({ length: 20 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchantPriceGroup: bigint("id_merchant_price_group", { mode: "number" }),
+}, (table) => {
+	return {
+		merchantTransactionPriceIdMerchantPriceGroupFkey: foreignKey({
+			columns: [table.idMerchantPriceGroup],
+			foreignColumns: [merchantPriceGroup.id],
+			name: "merchant_transaction_price_id_merchant_price_group_fkey"
+		}),
+	}
 });
 
 export const productType = pgTable("product_type", {
@@ -526,19 +536,12 @@ export const merchantPriceGroup = pgTable("merchant_price_group", {
 	idGroup: integer("id_group"),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	idMerchantPrice: bigint("id_merchant_price", { mode: "number" }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idMerchantTransactionPrice: bigint("id_merchant_transaction_price", { mode: "number" }),
 }, (table) => {
 	return {
 		merchantPriceGroupIdMerchantPriceFkey: foreignKey({
 			columns: [table.idMerchantPrice],
 			foreignColumns: [merchantPrice.id],
 			name: "merchant_price_group_id_merchant_price_fkey"
-		}),
-		merchantPriceGroupIdMerchantTransactionPriceFkey: foreignKey({
-			columns: [table.idMerchantTransactionPrice],
-			foreignColumns: [merchantTransactionPrice.id],
-			name: "merchant_price_group_id_merchant_transaction_price_fkey"
 		}),
 	}
 });

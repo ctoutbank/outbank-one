@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, merchants, payout, merchantPixSettlementOrders, merchantSettlements, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, merchantPriceGroup, merchantTransactionPrice, contacts, merchantSettlementOrders, merchantpixaccount } from "./schema";
+import { customers, paymentInstitution, settlements, merchants, payout, merchantPixSettlementOrders, merchantSettlements, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -100,6 +100,21 @@ export const merchantSettlementsRelations = relations(merchantSettlements, ({one
 	merchantSettlementOrders: many(merchantSettlementOrders),
 }));
 
+export const merchantTransactionPriceRelations = relations(merchantTransactionPrice, ({one}) => ({
+	merchantPriceGroup: one(merchantPriceGroup, {
+		fields: [merchantTransactionPrice.idMerchantPriceGroup],
+		references: [merchantPriceGroup.id]
+	}),
+}));
+
+export const merchantPriceGroupRelations = relations(merchantPriceGroup, ({one, many}) => ({
+	merchantTransactionPrices: many(merchantTransactionPrice),
+	merchantPrice: one(merchantPrice, {
+		fields: [merchantPriceGroup.idMerchantPrice],
+		references: [merchantPrice.id]
+	}),
+}));
+
 export const categoriesRelations = relations(categories, ({many}) => ({
 	merchants: many(merchants),
 }));
@@ -123,21 +138,6 @@ export const addressesRelations = relations(addresses, ({many}) => ({
 
 export const merchantPriceRelations = relations(merchantPrice, ({many}) => ({
 	merchants: many(merchants),
-	merchantPriceGroups: many(merchantPriceGroup),
-}));
-
-export const merchantPriceGroupRelations = relations(merchantPriceGroup, ({one}) => ({
-	merchantPrice: one(merchantPrice, {
-		fields: [merchantPriceGroup.idMerchantPrice],
-		references: [merchantPrice.id]
-	}),
-	merchantTransactionPrice: one(merchantTransactionPrice, {
-		fields: [merchantPriceGroup.idMerchantTransactionPrice],
-		references: [merchantTransactionPrice.id]
-	}),
-}));
-
-export const merchantTransactionPriceRelations = relations(merchantTransactionPrice, ({many}) => ({
 	merchantPriceGroups: many(merchantPriceGroup),
 }));
 
