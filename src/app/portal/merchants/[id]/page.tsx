@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
+import { getAddressByContactId } from "@/features/merchant/server/adderres";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
 import {

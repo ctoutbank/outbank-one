@@ -7,7 +7,7 @@ import MerchantFormcontact from "./merchant-form-contact";
 import MerchantFormOperations from "./merchant-form-operation";
 import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
-import Transactionrate from "./merchant-form-tax";
+
 import MerchantFormDocuments from "./merchant-form-documents";
 import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 import {
@@ -215,7 +215,7 @@ export default function MerchantTabs({
         <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
         <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
         <TabsTrigger value="documents">Documentos</TabsTrigger>
-        <TabsTrigger value="tax2">Taxas de Transação 2</TabsTrigger>
+        
       </TabsList>
 
       <TabsContent value="company">
@@ -355,14 +355,7 @@ export default function MerchantTabs({
       </TabsContent>
 
       <TabsContent value="rate">
-        <Transactionrate />
-      </TabsContent>
-
-      <TabsContent value="documents">
-        <MerchantFormDocuments />
-      </TabsContent>
-      <TabsContent value="tax2">
-        <MerchantFormTax2 
+      <MerchantFormTax2 
           merchantprice={[{
             id: merchantPriceGroupProps?.merchantPrice?.id || 0,
             name: merchantPriceGroupProps?.merchantPrice?.name || '',
@@ -382,11 +375,17 @@ export default function MerchantTabs({
             nonCardPixMinimumCostFee: merchantPriceGroupProps?.merchantPrice?.nonCardPixMinimumCostFee || 0,
             merchantpricegroup: merchantPriceGroupProps?.merchantpricegroup || []
           }]}
-          setActiveTab={setActiveTab}
-          activeTab={activeTab}
+         
+          
           idMerchantPrice={merchant.idMerchantPrice || 0}
         />
+       
       </TabsContent>
+
+      <TabsContent value="documents">
+        <MerchantFormDocuments />
+      </TabsContent>
+      
     </Tabs>
   );
 }

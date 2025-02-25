@@ -64,8 +64,7 @@ interface Merchantprice {
 
 interface MerchantpriceList {
   merchantprice: Merchantprice[];
-  setActiveTab: (tab: string) => void;
-  activeTab: string;
+  
   idMerchantPrice: number;
 }
 
@@ -97,8 +96,7 @@ type MerchantPriceGroup = {
 
 export default function MerchantFormTax2({
   merchantprice,
-  setActiveTab,
-  activeTab,
+ 
   idMerchantPrice
 }: MerchantpriceList) {
   const [isEditing, setIsEditing] = useState(false);
@@ -123,9 +121,7 @@ export default function MerchantFormTax2({
     setPixFees({ ...pixFees, [field]: parseFloat(value) });
   };
 
-  const handlePixFeeChangeNonCard = (field: keyof typeof pixFeesNonCard, value: string) => {
-    setPixFeesNonCard({ ...pixFeesNonCard, [field]: parseFloat(value) });
-  };
+ 
 
   useEffect(() => {
     console.log("Todos merchantprices:", merchantprice);
@@ -1117,9 +1113,10 @@ export default function MerchantFormTax2({
         </div>
           </div>
         </TabsContent>
-
+      
        
       </Tabs>
+      
     </div>
   )
 }
