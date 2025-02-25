@@ -11,8 +11,7 @@ import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merc
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import {
   getMerchantAgenda,
-  getMerchantAgendaExcelData,
-  getMerchantAgendaInfo,
+  getMerchantAgendaExcelData
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";

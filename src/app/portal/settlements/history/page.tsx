@@ -4,11 +4,10 @@ import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import SettlementHistoryList from "../../../../features/settlements/_components/settlements-history-list";
 
-import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
-import SettlementsHistoryOverview from "@/features/settlements/_components/settlements-history-overview";
-import { getSettlements } from "@/features/settlements/server/settlements";
 import { SettlementsHistoryDashboardButton } from "@/features/settlements/_components/settlements-history-dashboard-button";
 import { SettlementsHistoryDashboardContent } from "@/features/settlements/_components/settlements-history-dashboard-content";
+import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
+import { getSettlements } from "@/features/settlements/server/settlements";
 
 export const revalidate = 0;
 

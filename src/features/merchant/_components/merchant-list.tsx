@@ -9,34 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import exportExcel from "@/lib/export-xlsx";
 
+import { translateStatus } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Merchantlist } from "../server/merchant";
-import { translateStatus } from "@/lib/utils";
 
 
 
 
 export default function MerchantList({ list }: { list: Merchantlist }) {
   
-
-  const onGetExporMerchants = async () => {
-    // Check if the action result contains data and if it's an array
-    if (list.merchants && Array.isArray(list.merchants)) {
-      const dataToExport = list.merchants.map((merchant: any) => ({
-        Nome: merchant.name,
-        CNPJ: merchant.cnpj,
-        Email: merchant.email,
-        Telefone: merchant.phone_type,
-        Status: merchant.kic_status,
-      }));
-      // Create Excel workbook and worksheet
-      exportExcel("Estabelecimentos", "Estabelecimentos", dataToExport);
-    }
-  };
-
+//exportar para excel
+ 
   return (
     <div>
      

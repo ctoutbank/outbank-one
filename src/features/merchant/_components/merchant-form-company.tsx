@@ -67,19 +67,10 @@ export default function MerchantFormCompany({
   activeTab,
   setActiveTab,
 }: MerchantProps) {
-
   const [isRendered, setIsRendered] = useState(false);
-  useEffect(() => {
-    setIsRendered(true);
-  }, []);
-
-  if (!DDCnaeMcc) {
-    return null; // ou algum componente de loading/erro
-  }
-
-  
-
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const form = useForm<MerchantSchema>({
     resolver: zodResolver(schemaMerchant),
     defaultValues: {
@@ -125,7 +116,14 @@ export default function MerchantFormCompany({
     },
   });
 
-  const searchParams = useSearchParams();
+  useEffect(() => {
+    setIsRendered(true);
+  }, []);
+
+  if (!DDCnaeMcc) {
+    return null; // ou algum componente de loading/erro
+  }
+
   const params = new URLSearchParams(searchParams || "");
 
   const refreshPage = (id: number) => {

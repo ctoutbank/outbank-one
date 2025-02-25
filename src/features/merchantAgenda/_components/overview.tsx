@@ -26,7 +26,6 @@ type ViewType = "settled" | "anticipated"
 
 export default function MerchantAgendaOverview({
   totalMerchant,
-  date,
   totalSales,
   grossAmount,
   taxAmount,
@@ -47,13 +46,7 @@ export default function MerchantAgendaOverview({
     setView(view === "settled" ? "anticipated" : "settled")
   }
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("pt-BR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
-  }
+  
 
   return (
     <div className="space-y-3">

@@ -2,23 +2,22 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
+import MerchantFormAuthorizers from "./merchant-form-authorizers";
+import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormCompany from "./merchant-form-company";
 import MerchantFormcontact from "./merchant-form-contact";
 import MerchantFormOperations from "./merchant-form-operation";
-import MerchantFormBank from "./merchant-form-bank";
-import MerchantFormAuthorizers from "./merchant-form-authorizers";
 
-import MerchantFormDocuments from "./merchant-form-documents";
-import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
+import { useSearchParams } from "next/navigation";
 import {
   addresses,
   configurations,
   contacts,
-  merchantpixaccount,
-  merchantPriceGroup,
+  merchantpixaccount
 } from "../../../../drizzle/schema";
-import { useSearchParams } from "next/navigation";
+import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount";
+import MerchantFormDocuments from "./merchant-form-documents";
 import MerchantFormTax2 from "./merchant-form-tax2";
 
 

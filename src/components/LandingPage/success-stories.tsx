@@ -32,7 +32,7 @@ export default function SuccessStories() {
           <div className="bg-gradient-to-r from-[#625F57]  to-[#080808] p-8 text-white flex flex-col justify-between" style={{ height: "566px" }}>
             <div className="space-y-4">
               <h3 className="text-3xl md:text-4xl font-light leading-tight">
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."
+                &ldquo;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.&rdquo;
               </h3>
             </div>
             <div className="mt-8">

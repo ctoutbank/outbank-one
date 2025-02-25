@@ -108,12 +108,6 @@ export default function MerchantFormTax2({
     custoMaximo: merchantprice[0].cardPixCeilingFee,
     antecipacao: merchantprice[0].anticipationType,
   });
-  const [pixFeesNonCard, setPixFeesNonCard] = useState({
-    mdr: merchantprice[0].nonCardPixMdr,
-    custoMinimo: merchantprice[0].nonCardPixMinimumCostFee,
-    custoMaximo: merchantprice[0].nonCardPixCeilingFee,
-    antecipacao: merchantprice[0].anticipationType,
-  });
 
   
 
@@ -232,7 +226,7 @@ export default function MerchantFormTax2({
         <h1 className="text-xl font-semibold">Taxas de Transação</h1>
       </div>
 
-      <Tabs defaultValue="todas" className="w-full">
+      <Tabs defaultValue="todas" className="w-full" onValueChange={setSelectedTab}>
         <TabsList className='flex gap-4 mb-2'>
           <TabsTrigger value="todas" >
             <span className="flex items-center gap-2">

@@ -76,18 +76,13 @@ export default function MerchantFormBank({ merchantpixaccount,merchantcorporateN
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
 
-  let idPixAccount = merchantpixaccount.id;
-
   const onSubmit = async (data: MerchantPixAccountSchema) => {
     if (data.id) {
       await updateMerchantPixAccountFormAction(data);
     } else {
-      idPixAccount = await insertMerchantPixAccountFormAction(data);
+      await insertMerchantPixAccountFormAction(data);
     }
     refreshPage(idMerchant);
-    
-    
-    
   };
 
   return (
