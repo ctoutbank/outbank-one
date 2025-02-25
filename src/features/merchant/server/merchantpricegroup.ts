@@ -1,0 +1,102 @@
+"use server"
+
+import { db } from "@/server/db";
+import { merchantPriceGroup, merchantPrice, merchantTransactionPrice } from "../../../../drizzle/schema";
+import { eq, and, sql } from "drizzle-orm";
+
+export type MerchantPriceGroupInsert = typeof merchantPriceGroup.$inferInsert;
+export type MerchantPriceGroupUpdate = typeof merchantPriceGroup.$inferSelect;
+
+export type MerchantPriceGroup = typeof merchantPriceGroup.$inferSelect & {
+    merchantPrice: typeof merchantPrice.$inferSelect;
+    merchantTransactionPrice: typeof merchantTransactionPrice.$inferSelect;
+}
+
+// Buscar grupo de preços por ID
+export async function getMerchantPriceGroupById(id: number) {
+    const result = await db
+        .select()
+        .from(merchantPriceGroup)
+        .where(eq(merchantPriceGroup.id, id))
+        .leftJoin(merchantPrice, eq(merchantPriceGroup.idMerchantPrice, merchantPrice.id))
+        .limit(1);
+
+    return result[0] || null;
+}
+
+// Inserir novo grupo de preços
+export async function insertMerchantPriceGroup(data: MerchantPriceGroupInsert) {
+    const result = await db
+        .insert(merchantPriceGroup)
+        .values({
+            ...data,
+            dtinsert: new Date().toISOString(),
+            dtupdate: new Date().toISOString(),
+        })
+        .returning();
+
+    return result[0];
+}
+
+// Atualizar grupo de preços
+export async function updateMerchantPriceGroup(data: MerchantPriceGroupUpdate) {
+    const result = await db
+        .update(merchantPriceGroup)
+        .set({
+            ...data,
+            dtupdate: new Date().toISOString(),
+        })
+        .where(eq(merchantPriceGroup.id, data.id))
+        .returning();
+
+    return result[0];
+}
+
+// Buscar grupos de preços por marca
+export async function getMerchantPriceGroupsBymerchantPricetId(merchantPriceId: number) {
+    const result = await db
+        .select({
+            merchantPrice: merchantPrice,
+            priceGroup: merchantPriceGroup,
+            transactionPrices: sql<string>`COALESCE(json_agg(
+                json_build_object(
+                    'id', ${merchantTransactionPrice.id},
+                    'slug', ${merchantTransactionPrice.slug},
+                    'active', ${merchantTransactionPrice.active},
+                    'dtinsert', ${merchantTransactionPrice.dtinsert},
+                    'dtupdate', ${merchantTransactionPrice.dtupdate},
+                    'idMerchantPriceGroup', ${merchantTransactionPrice.idMerchantPriceGroup},
+                    'installmentTransactionFeeStart', ${merchantTransactionPrice.installmentTransactionFeeStart},
+                    'installmentTransactionFeeEnd', ${merchantTransactionPrice.installmentTransactionFeeEnd},
+                    'mdr', ${merchantTransactionPrice.cardTransactionMdr},
+                    'fee', ${merchantTransactionPrice.cardTransactionFee},
+                    'noCardTransactionFee', ${merchantTransactionPrice.nonCardTransactionFee},
+                    'noCardTransactionMdr', ${merchantTransactionPrice.nonCardTransactionMdr},
+                    'producttype', ${merchantTransactionPrice.producttype}
+                    
+                )
+            ) FILTER (WHERE ${merchantTransactionPrice.id} IS NOT NULL), '[]'::json)`
+        })
+        .from(merchantPrice)
+        .where(eq(merchantPrice.id, merchantPriceId))
+        .leftJoin(
+            merchantPriceGroup,
+            eq(merchantPriceGroup.idMerchantPrice, merchantPrice.id)
+        )
+        .leftJoin(
+            merchantTransactionPrice,
+            eq(merchantTransactionPrice.idMerchantPriceGroup, merchantPriceGroup.id)
+        )
+        .groupBy(merchantPrice.id, merchantPriceGroup.id);
+
+        
+    return result;
+    
+}
+
+// Deletar grupo de preços
+export async function deleteMerchantPriceGroup(id: number) {
+    await db
+        .delete(merchantPriceGroup)
+        .where(eq(merchantPriceGroup.id, id));
+}
