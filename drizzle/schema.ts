@@ -684,6 +684,34 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 	}
 });
 
+export const paymentLink = pgTable("payment_link", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payment_link_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	linkName: varchar("link_name", { length: 255 }),
+	dtExpiration: timestamp("dt_expiration", { mode: 'string' }),
+	totalAmount: numeric("total_amount"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchant: bigint("id_merchant", { mode: "number" }),
+	paymentLinkStatus: varchar("payment_link_status", { length: 50 }),
+	productType: varchar("product_type", { length: 50 }),
+	installments: integer(),
+	linkUrl: varchar("link_url", { length: 255 }),
+	pixEnabled: boolean("pix_enabled"),
+	transactionSlug: varchar("transaction_slug", { length: 50 }),
+}, (table) => {
+	return {
+		paymentLinkIdMerchantFkey: foreignKey({
+			columns: [table.idMerchant],
+			foreignColumns: [merchants.id],
+			name: "payment_link_id_merchant_fkey"
+		}),
+	}
+});
+
 export const legalNatures = pgTable("legal_natures", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "legal_natures_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
