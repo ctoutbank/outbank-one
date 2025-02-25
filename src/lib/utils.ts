@@ -14,7 +14,7 @@ export type Period = {
 };
 
 export function gateDateByViewMode(viewMode: string): Period {
-  const currentMonth = new Date().getMonth();
+  
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight
@@ -168,7 +168,8 @@ export function formatDateComplete(date: Date): string {
   return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
 }
 
-export function formatCurrency(number: number): string {
+export function formatCurrency(number: number | undefined | null): string {
+  if (number === undefined || number === null) return 'R$ 0,00';
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
 
@@ -196,6 +197,7 @@ export function translateStatus(status: string): string {
       return "Aprovado";
     default:
       return "";
+      
   }
 }
 
@@ -208,11 +210,11 @@ export function getStatusColor(status: string) {
     case "REQUESTED":
       return "bg-yellow-300 hover:bg-yellow-400";
     case "FAILED":
-      return "bg-red-500  hover:bg-red-600";
+      return "bg-[#C74545]  hover:bg-[#953434]";
     case "SETTLED":
-      return "bg-green-500  hover:bg-green-600";
+      return "bg-[#00B28E]  hover:bg-[#006b55]";
     case "PAID":
-      return "bg-green-500  hover:bg-green-600";
+      return "bg-[#00B28E]  hover:bg-[#006b55]";
     case "PRE_APPROVED":
       return "bg-blue-400  hover:bg-blue-500";
     case "APPROVED":
@@ -269,4 +271,11 @@ export function translateCardType(cardType: string): string {
     default:
       return "";
   }
+}
+
+
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
 }

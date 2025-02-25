@@ -2,7 +2,6 @@
 import { Download } from "lucide-react";
 import ExcelJS from "exceljs";
 import { Fill, Font, Alignment } from "exceljs";
-
 interface ExcelExportProps<T> {
   data: T[];
   globalStyles?: {
@@ -19,6 +18,7 @@ interface ExcelExportProps<T> {
   };
   sheetName: string;
   fileName: string;
+  onClick?: () => void;
 }
 
 export default function ExcelExport<T>({
@@ -26,8 +26,12 @@ export default function ExcelExport<T>({
   globalStyles,
   sheetName,
   fileName,
+  onClick
 }: ExcelExportProps<T>) {
   const downloadExcel = async () => {
+    if(onClick !== undefined) {
+     onClick();
+    }
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(sheetName);
 
@@ -83,7 +87,7 @@ export default function ExcelExport<T>({
       }
     });
 
-    worksheet.eachRow((row, rowNumber) => {
+    worksheet.eachRow((row) => {
       row.eachCell({ includeEmpty: true }, (cell) => {
         cell.border = {
           top: { style: "thin" },
@@ -113,7 +117,7 @@ export default function ExcelExport<T>({
     <div className="flex justify-end">
       <button
         onClick={downloadExcel}
-        className="flex items-center gap-2 p-2 text-black rounded bg-secondary"
+        className="flex items-center gap-2 p-2 text-black rounded-md bg-sidebar border border-black"
       >
         <Download size={16} />
         Exportar

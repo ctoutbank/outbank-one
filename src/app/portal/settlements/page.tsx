@@ -11,7 +11,7 @@ import {
   getMerchantSettlements,
   getSettlementBySlug,
 } from "@/features/settlements/server/settlements";
-import { Alignment, Fill, Font } from "exceljs";
+import { Fill, Font } from "exceljs";
 import { formatDate } from "@/lib/utils";
 
 export const revalidate = 0;
@@ -93,7 +93,7 @@ export default async function SettlementsPage({
         )}
         {settlements.settlement.length > 0 && (
           <div className="relative">
-            <div className="absolute top-4 right-0 z-10">
+            <div className="absolute top-5 right-0 z-10 ">
               <ExcelExport
                 data={merchantSettlements.merchant_settlements.flatMap(
                   (settlement) =>
@@ -127,6 +127,7 @@ export default async function SettlementsPage({
                 fileName={
                   `LIQUIDAÇÕES ${settlements.settlement[0]?.payment_date}` || ""
                 }
+                onClick={undefined}
               />
             </div>
           </div>

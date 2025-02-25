@@ -1,12 +1,12 @@
 "use server";
 
 import { db } from "@/server/db";
+import { max } from "drizzle-orm";
+import { payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
 import { getOrCreateMerchants } from "../sync-settlements/merchant";
 import { InsertPayout, Payout } from "./types";
-import { payout } from "../../../../../drizzle/schema";
-import { count, eq, max, sql } from "drizzle-orm";
 
 export async function insertPayoutAndRelations(payoutList: Payout[]) {
   try {
@@ -32,16 +32,38 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
       brand: payouts.brand,
       installmentNumber: payouts.installmentNumber,
       installments: payouts.installments,
-      installmentAmount: payouts.installmentAmount.toString(),
-      transactionMdr: payouts.transactionMdr.toString(),
-      transactionMdrFee: payouts.transactionMdrFee.toString(),
-      transactionFee: payouts.transactionFee.toString(),
-      settlementAmount: payouts.settlementAmount.toString(),
+      installmentAmount:
+        payouts.installmentAmount === null ||
+        payouts.installmentAmount === undefined
+          ? "0"
+          : payouts.installmentAmount.toString(),
+      transactionMdr:
+        payouts.transactionMdr === null || payouts.transactionMdr === undefined
+          ? "0"
+          : payouts.transactionMdr.toString(),
+      transactionMdrFee:
+        payouts.transactionMdrFee === null ||
+        payouts.transactionMdrFee === undefined
+          ? "0"
+          : payouts.transactionMdrFee.toString(),
+      transactionFee:
+        payouts.transactionFee === null || payouts.transactionFee === undefined
+          ? "0"
+          : payouts.transactionFee.toString(),
+      settlementAmount:
+        payouts.settlementAmount === null ||
+        payouts.settlementAmount === undefined
+          ? "0"
+          : payouts.settlementAmount.toString(),
       expectedSettlementDate: new Date(payouts.expectedSettlementDate)
         .toISOString()
         .split("T")[0],
       status: payouts.status,
-      receivableAmount: payouts.receivableAmount.toString(),
+      receivableAmount:
+        payouts.receivableAmount === null ||
+        payouts.receivableAmount === undefined
+          ? ""
+          : payouts.receivableAmount.toString(),
       settlementDate: new Date(payouts.settlementDate)
         .toISOString()
         .split("T")[0],
@@ -53,8 +75,16 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
       effectivePaymentDate: new Date(payouts.effectivePaymentDate)
         .toISOString()
         .split("T")[0],
-      settlementUniqueNumber: payouts.settlementUniqueNumber.toString(),
-      anticipationAmount: payouts.anticipationAmount?.toString() || "0",
+      settlementUniqueNumber:
+        payouts.settlementUniqueNumber === null ||
+        payouts.settlementUniqueNumber === undefined
+          ? "0"
+          : payouts.settlementUniqueNumber.toString(),
+      anticipationAmount:
+        payouts.anticipationAmount === null ||
+        payouts.anticipationAmount === undefined
+          ? "0"
+          : payouts.anticipationAmount.toString(),
       anticipationBlockStatus: payouts.anticipationBlockStatus,
       slugMerchantSplit:
         payouts.slugMerchantSplit == null ? "" : payouts.slugMerchantSplit,
@@ -98,20 +128,9 @@ export async function insertPayout(payoutList: InsertPayout[]) {
 export async function getPayoutSyncConfig() {
   const maxDateResult = await db
     .select({ maxDate: max(payout.expectedSettlementDate) })
-    .from(payout)
-    .execute();
+    .from(payout);
 
-  const maxDate = maxDateResult[0]?.maxDate;
 
-  const result = await db
-    .select({
-      count: count(),
-      lastExpectedSettlementDate: max(payout.expectedSettlementDate),
-    })
-    .from(payout)
-    .where(eq(payout.expectedSettlementDate, maxDate ?? ""))
-    .execute();
-
-  console.log(result[0]?.count);
-  return result[0];
+  console.log(maxDateResult[0]?.maxDate);
+  return maxDateResult[0]?.maxDate;
 }

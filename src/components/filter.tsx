@@ -18,8 +18,8 @@ type ListFilterProps = {
 export default function ListFilter(props: ListFilterProps) 
 {
   const [search, setSearch] = React.useState<string>(props.search || "");
-    const [linkText, setLinkText] = React.useState<string | null>(props.linkText || null);
-    const [linkHref, setLinkHref] = React.useState<string | null>(props.linkHref || null);
+    const [linkText] = React.useState<string | null>(props.linkText || null);
+    const [linkHref] = React.useState<string | null>(props.linkHref || null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams || "");
@@ -39,7 +39,7 @@ export default function ListFilter(props: ListFilterProps)
   }
 
   return (
-    <div className="basis-1/2 mb-6">
+    <div className="basis-1/2 my-4">
   <div id="row1" className="relative flex gap-4 mt-4 justify-between">
     <div className="flex gap-4">
       <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

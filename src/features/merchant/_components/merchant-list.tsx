@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,9 +11,10 @@ import {
 } from "@/components/ui/table";
 import exportExcel from "@/lib/export-xlsx";
 
-import { ChevronDown, Download, MoreVertical, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Merchantlist } from "../server/merchant";
+import { translateStatus } from "@/lib/utils";
 
 
 
@@ -41,7 +41,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     <div>
      
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg mt-2">
         <Table>
           <TableHeader>
             <TableRow>
@@ -68,23 +68,28 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {list.merchants.map((merchant, i) => (
+            {list.merchants.map((merchant) => (
               <TableRow key={merchant.merchantid}>
-                <TableCell><Link
-                    className="text-primary underline"
-                    href="/portal/merchants/[id]"
-                    as={`/portal/merchants/${merchant.merchantid}`}
-                  >
-                  {merchant.name}
-                  <div className="text-sm text-muted-foreground">
-                    {merchant.cnpj.slice(0, 11) + "-" + merchant.cnpj.slice(11)}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      className="text-primary underline"
+                      href="/portal/merchants/[id]"
+                      as={`/portal/merchants/${merchant.merchantid}`}
+                    >
+                      {merchant.name}
+                    </Link>
+                    <span className="text-sm text-muted-foreground">
+                      ({merchant.cnpj.slice(0, 11) + "-" + merchant.cnpj.slice(11)})
+                    </span>
                   </div>
-                  </Link>
                 </TableCell>
                 <TableCell>
-                  {merchant.addressname}
-                  <div className="text-sm text-muted-foreground">
-                    {merchant.state}
+                  <div className="flex items-center gap-2">
+                    <span>{merchant.addressname}</span>
+                    <span className="text-sm text-muted-foreground">
+                      ({merchant.state})
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -97,7 +102,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                       : "destructive"
                     }
                     >
-                    {merchant.kic_status}
+                    {translateStatus(merchant.kic_status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -108,7 +113,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                         : "success"
                     }
                   >
-                    {merchant.lockCpAnticipationOrder ? "INACTIVE" : "ACTIVE"}
+                    {merchant.lockCpAnticipationOrder ? "Inativo" : "Ativo"}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -119,14 +124,14 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                         : "success"
                     }
                   >
-                    {merchant.lockCnpAnticipationOrder ? "BLOCKED" : "INATIVO"}
+                    {merchant.lockCnpAnticipationOrder ? "Bloqueado" : "Ativo"}
                   </Badge>
                 </TableCell>
                 <TableCell>{merchant.sales_agent}</TableCell>
                 <TableCell>
                   {" "}
                   <Badge variant={merchant.active ? "success" : "destructive"}>
-                    {merchant.active ? "ATIVO" : "INATIVO"}
+                    {merchant.active ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
                

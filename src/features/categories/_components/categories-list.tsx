@@ -4,8 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, MoreVertical } from "lucide-react";
 import { CategoryList } from "../server/category";
 
 interface CategorylistProps {

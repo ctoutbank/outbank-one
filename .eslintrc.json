@@ -5,5 +5,5 @@
     "@typescript-eslint/no-empty-object-type": "off"
     
   },
-  "ignore": ["src/components/ui/chart.tsx"]
+  "ignorePatterns": ["src/components/ui/chart.tsx"]
 }

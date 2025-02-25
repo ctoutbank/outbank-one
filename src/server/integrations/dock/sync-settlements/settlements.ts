@@ -1,13 +1,10 @@
 "use server";
 
-import { sql } from "drizzle-orm";
-import { InsertSettlement, Settlement } from "./types";
-import { getOrCreateCustomer } from "./customer";
 import { db } from "@/server/db";
 import { settlements } from "../../../../../drizzle/schema";
-import { getIdBySlug } from "../sync-merchant/getslug";
-import { getOrCreatePaymentInstitution } from "./institutionalPayment";
+import { getOrCreateCustomer } from "./customer";
 import { getIdBySlugs } from "./getIdBySlugs";
+import { InsertSettlement, Settlement } from "./types";
 
 export async function insertSettlementAndRelations(settlement: Settlement[]) {
   try {

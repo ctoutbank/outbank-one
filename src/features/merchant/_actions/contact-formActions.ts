@@ -21,6 +21,10 @@ export async function insertContactFormAction(data: ContactSchema) {
     idMerchant: data.idMerchant || undefined,
     slugMerchant: data.slugMerchant || "",
     idAddress: data.idAddress || undefined,
+    icNumber: data.icNumber || null,
+    icDateIssuance: data.icDateIssuance?.toISOString() || null,
+    icDispatcher: data.icDispatcher || null,
+    icFederativeUnit: data.icFederativeUnit || null,
   };
   const newId = await insertContact(contactInsert);
   return newId;

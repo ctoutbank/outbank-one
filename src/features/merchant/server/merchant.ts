@@ -1,12 +1,13 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, desc, eq, getTableColumns, ilike, or,and } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, ilike, or,and, gte, lte } from "drizzle-orm";
 import {
   addresses,
   categories,
   configurations,
   contacts,
+  establishmentFormat,
   legalNatures,
   merchantpixaccount,
   merchants,
@@ -43,14 +44,57 @@ export interface Merchantlist {
     slug_category: string;
   }[];
   totalCount: number;
+  active_count: number;
+  inactive_count: number;
+  pending_kyc_count: number;
+  approved_kyc_count: number;
+  rejected_kyc_count: number;
+  cp_anticipation_count: number;
+  cnp_anticipation_count: number;
 }
 
 export async function getMerchants(
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  dateTo?: string
 ): Promise<Merchantlist> {
   const offset = (page - 1) * pageSize;
+  
+  const conditions = [];
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(merchants.name, `%${search}%`),
+        ilike(merchants.corporateName, `%${search}%`)
+      )
+    );
+  }
+
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  if (status) {
+    conditions.push(eq(merchants.riskAnalysisStatus, status));
+  }
+
+  if (state) {
+    conditions.push(eq(addresses.state, state));
+  }
+
+  if (dateFrom) {
+    conditions.push(gte(merchants.dtinsert, dateFrom));
+  }
+
+  if (dateTo) {
+    conditions.push(lte(merchants.dtinsert, dateTo));
+  }
 
   const result = await db
     .select({
@@ -81,13 +125,7 @@ export async function getMerchants(
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-    .where(
-      or(
-        ilike(merchants.name, `%${search}%`),
-        ilike(merchants.email, `%${search}%`),
-        ilike(merchants.idDocument, `%${search}%`)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
     .limit(pageSize);
@@ -128,7 +166,13 @@ export async function getMerchants(
     })
   ),
     totalCount,
-   
+    active_count: result.filter(m => m.active).length,
+    inactive_count: result.filter(m => !m.active).length,
+    pending_kyc_count: result.filter(m => m.kic_status === "PENDING").length,
+    approved_kyc_count: result.filter(m => m.kic_status === "APPROVED").length,
+    rejected_kyc_count: result.filter(m => m.kic_status === "REJECTED").length,
+    cp_anticipation_count: result.filter(m => !m.lockCpAnticipationOrder).length,
+    cnp_anticipation_count: result.filter(m => !m.lockCnpAnticipationOrder).length,
   };
   
 }
@@ -418,6 +462,30 @@ export async function updateMerchantColumnById(
 //await updateMerchantColumnById(123, "name", "Novo Nome"); //
 
 
+export async function updateMerchantColumnsById(
+  id: number,
+  updates: Record<string, string | number | boolean | null>
+): Promise<void> {
+  try {
+    await db
+      .update(merchants)
+      .set({
+        ...updates,
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(merchants.id, id));
+
+    console.log(`Colunas atualizadas com sucesso para o ID ${id}`);
+  } catch (error) {
+    console.error(
+      `Erro ao atualizar colunas para o ID ${id}:`,
+      error
+    );
+    throw new Error(`Falha ao atualizar merchant: ${error}`);
+  }
+}
+
+
 export type AddressInsert = typeof addresses.$inferInsert;
 export type AddressDetail = typeof addresses.$inferSelect;
 
@@ -483,6 +551,26 @@ export type LegalNatureDropdown = {
   label: string;
 }
 
+export type EstablishmentFormatDropdown = {
+  value: string;
+  label: string;
+}
+
+export async function getEstablishmentFormatForDropdown(): Promise<EstablishmentFormatDropdown[]> {
+  const result = await db
+    .select({
+      value: establishmentFormat.code,
+      label: establishmentFormat.name,
+    })
+    .from(establishmentFormat)
+    .orderBy(establishmentFormat.code);
+
+  return result.map(item => ({
+    value: item.value,
+    label: item.label ?? ''
+  }));
+}
+
 export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[]> {
   const result = await db
     .select({
@@ -533,3 +621,15 @@ export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[
       return [];
     }
   }
+
+export type MerchantList = {
+  totalCount: number
+  activeCount: number
+  inactiveCount: number
+  pendingKycCount: number
+  approvedKycCount: number
+  rejectedKycCount: number
+  cpAnticipationCount: number
+  cnpAnticipationCount: number
+  // ... any other existing properties ...
+}
