@@ -62,7 +62,6 @@ export default async function MerchantAgendaPage({
     searchParams.expectedSettlementDateTo
   );
   const totalRecords = merchantAgenda.totalCount;
-  const merchantAgendaCard = await getMerchantAgendaInfo();
   const globalStyles = {
     header: {
       fill: {

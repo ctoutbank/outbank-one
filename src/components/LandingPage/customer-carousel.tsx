@@ -1,9 +1,9 @@
 "use client"
 
-import * as React from "react"
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import Image from "next/image"
+import * as React from "react"
 
 export default function CustomerCarousel() {
   const plugin = React.useRef(
@@ -32,13 +32,29 @@ export default function CustomerCarousel() {
                 { name: "Camera", src: "logo2.svg" },
                 { name: "Startup", src: "logo3.svg" },
                 { name: "Apply", src: "logo4.svg" },
-                { name: "Tech", src: "logo5.svg" },
+                { name: "Software", src: "logo5.svg" },
+                { name: "Tech", src: "logo6.svg" },
+                { name: "Blocky", src: "logo7.svg" },
+                { name: "Codeelify", src: "logo8.svg" },
+                { name: "Restaurant", src: "logo9.svg" },
+                { name: "Apply", src: "logo10.svg" },
+                { name: "Natural", src: "logo11.svg" },
+                { name: "Realtor", src: "logo12.svg" },
+
+
+
                 // Duplicate items to ensure smooth infinite loop
                 { name: "Cloudly", src: "logo1.svg" },
                 { name: "Camera", src: "logo2.svg" },
                 { name: "Startup", src: "logo3.svg" },
                 { name: "Apply", src: "logo4.svg" },
-                { name: "Tech", src: "logo5.svg" },
+                { name: "Software", src: "logo5.svg" },
+                { name: "Tech", src: "logo6.svg" },
+                { name: "Blocky", src: "logo7.svg" },
+                { name: "Codeelify", src: "logo8.svg" },
+                { name: "Restaurant", src: "logo9.svg" },
+                { name: "Apply", src: "logo10.svg" },
+                { name: "Natural", src: "logo11.svg" },
               ].map((logo, index) => (
                 <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 lg:basis-1/4">
                   <div className="p-4">

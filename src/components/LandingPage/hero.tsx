@@ -1,3 +1,5 @@
+"use client"
+
 import Image from 'next/image'
 
 const HeroLandingPage = () => {
@@ -35,7 +37,7 @@ const HeroLandingPage = () => {
               <button className="bg-white text-gray-900 px-8 py-3 font-medium hover:bg-gray-100 transition-colors">
                 Button CTA
               </button>
-              <button className="bg-gray-600/30 text-white px-8 py-3 border border-gray-600/40  font-medium hover:bg-gray-800/60 transition-colors">
+              <button className="bg-gray-600/30 text-white px-8 py-3 border border-gray-600/40  font-medium hover:bg-gray-700/30 transition-colors">
                 Learn More
               </button>
             </div>

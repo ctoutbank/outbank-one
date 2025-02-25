@@ -55,13 +55,12 @@ export default function ServicesSection() {
           {/* Center Column with Phone */}
           <div className="relative flex items-center justify-center">
             <div className="relative rounded-3xl w-full max-w-sm mx-auto">
-              <Image
+              <img
                 src="/phone.svg"
                 alt="Outbank App Interface"
                 width={400}
                 height={800}
                 className="w-full h-auto"
-                priority
               />
             </div>
           </div>

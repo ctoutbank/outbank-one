@@ -1,6 +1,6 @@
 "use client"
 
-import { CreditCard, Building2, Wallet, BanknoteIcon as Bank, PieChart, Landmark } from "lucide-react"
+import { CreditCard, Landmark, Wallet } from "lucide-react"
 import Image from "next/image"
 
 export default function NumbersSection() {
