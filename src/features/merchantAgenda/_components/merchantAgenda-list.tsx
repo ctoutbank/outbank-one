@@ -1,5 +1,4 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Table,
@@ -17,9 +16,12 @@ interface MerchantAgendaListProps {
 
 export default function MerchantAgendaList({
   merchantAgendaList,
+  
 }: MerchantAgendaListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+
+  
+
+    
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

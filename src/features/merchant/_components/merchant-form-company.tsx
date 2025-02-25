@@ -41,7 +41,7 @@ import {
   insertMerchantFormAction,
   updateMerchantFormAction,
 } from "../_actions/merchant-formActions";
-import { CnaeMccDropdown, LegalNatureDropdown, EstablishmentFormatDropdown } from "../server/merchant";
+import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -69,8 +69,6 @@ export default function MerchantFormCompany({
 }: MerchantProps) {
 
   const [isRendered, setIsRendered] = useState(false);
-  const [openCnae, setOpenCnae] = useState(false);
-  const [openMcc, setOpenMcc] = useState(false);
   useEffect(() => {
     setIsRendered(true);
   }, []);
@@ -79,17 +77,7 @@ export default function MerchantFormCompany({
     return null; // ou algum componente de loading/erro
   }
 
-  const handleCnaeSelect = (cnaeMcc: CnaeMccDropdown) => {
-    form.setValue("cnae", cnaeMcc.cnae);
-    form.setValue("mcc", cnaeMcc.mcc);
-    setOpenCnae(false);
-  };
-
-  const handleMccSelect = (cnaeMcc: CnaeMccDropdown) => {
-    form.setValue("cnae", cnaeMcc.cnae);
-    form.setValue("mcc", cnaeMcc.mcc);
-    setOpenMcc(false);
-  };
+  
 
   const router = useRouter();
   const form = useForm<MerchantSchema>({

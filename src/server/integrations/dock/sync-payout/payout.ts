@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { count, eq, max } from "drizzle-orm";
+import { max } from "drizzle-orm";
 import { payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
@@ -130,7 +130,6 @@ export async function getPayoutSyncConfig() {
     .select({ maxDate: max(payout.expectedSettlementDate) })
     .from(payout);
 
-  const maxDate = maxDateResult[0]?.maxDate;
 
   console.log(maxDateResult[0]?.maxDate);
   return maxDateResult[0]?.maxDate;
