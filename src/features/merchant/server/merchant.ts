@@ -44,6 +44,13 @@ export interface Merchantlist {
     slug_category: string;
   }[];
   totalCount: number;
+  active_count: number;
+  inactive_count: number;
+  pending_kyc_count: number;
+  approved_kyc_count: number;
+  rejected_kyc_count: number;
+  cp_anticipation_count: number;
+  cnp_anticipation_count: number;
 }
 
 export async function getMerchants(
@@ -58,7 +65,7 @@ export async function getMerchants(
 ): Promise<Merchantlist> {
   const offset = (page - 1) * pageSize;
   
-  let conditions = [];
+  const conditions = [];
 
   if (search) {
     conditions.push(
@@ -159,7 +166,13 @@ export async function getMerchants(
     })
   ),
     totalCount,
-   
+    active_count: result.filter(m => m.active).length,
+    inactive_count: result.filter(m => !m.active).length,
+    pending_kyc_count: result.filter(m => m.kic_status === "PENDING").length,
+    approved_kyc_count: result.filter(m => m.kic_status === "APPROVED").length,
+    rejected_kyc_count: result.filter(m => m.kic_status === "REJECTED").length,
+    cp_anticipation_count: result.filter(m => !m.lockCpAnticipationOrder).length,
+    cnp_anticipation_count: result.filter(m => !m.lockCnpAnticipationOrder).length,
   };
   
 }
@@ -608,3 +621,15 @@ export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[
       return [];
     }
   }
+
+export type MerchantList = {
+  totalCount: number
+  activeCount: number
+  inactiveCount: number
+  pendingKycCount: number
+  approvedKycCount: number
+  rejectedKycCount: number
+  cpAnticipationCount: number
+  cnpAnticipationCount: number
+  // ... any other existing properties ...
+}

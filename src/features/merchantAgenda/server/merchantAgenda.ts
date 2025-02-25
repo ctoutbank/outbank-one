@@ -6,13 +6,11 @@ import {
   count,
   desc,
   eq,
-  gte,
   ilike,
-  lte,
   max,
   or,
   sql,
-  sum,,
+  sum,
   gte,
   lte
 } from "drizzle-orm";
@@ -115,7 +113,7 @@ export async function getMerchantAgenda(
   const maxDate =
     maxExpectedSettlementDate[0]?.maxExpectedSettlementDate || new Date(0);
 
-  let conditions = [
+  const conditions = [
     eq(
       payout.expectedSettlementDate,
       typeof maxDate == "string" ? maxDate : maxDate.toISOString()

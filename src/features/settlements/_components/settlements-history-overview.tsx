@@ -18,7 +18,6 @@ export type SettlementsHistoryOverviewProps = {
 
 export default function SettlementsHistoryOverview({
   totalSettlements,
-  date,
   totalGrossAmount,
   totalNetAmount,
   totalRestitutionAmount,
@@ -28,13 +27,7 @@ export default function SettlementsHistoryOverview({
 }: SettlementsHistoryOverviewProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("pt-BR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
-  }
+  
 
   return (
     <div className="space-y-3">

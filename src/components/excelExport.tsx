@@ -30,7 +30,7 @@ export default function ExcelExport<T>({
 }: ExcelExportProps<T>) {
   const downloadExcel = async () => {
     if(onClick !== undefined) {
-     onClick
+     onClick();
     }
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(sheetName);

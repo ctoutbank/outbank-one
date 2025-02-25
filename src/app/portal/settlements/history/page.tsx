@@ -4,9 +4,11 @@ import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import SettlementHistoryList from "../../../../features/settlements/_components/settlements-history-list";
 
-import { getSettlements } from "@/features/settlements/server/settlements";
-import FiltersHistory from "@/features/settlements/_components/filterSettlementsHistory";
+import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
 import SettlementsHistoryOverview from "@/features/settlements/_components/settlements-history-overview";
+import { getSettlements } from "@/features/settlements/server/settlements";
+import { SettlementsHistoryDashboardButton } from "@/features/settlements/_components/settlements-history-dashboard-button";
+import { SettlementsHistoryDashboardContent } from "@/features/settlements/_components/settlements-history-dashboard-content";
 
 export const revalidate = 0;
 
@@ -24,7 +26,7 @@ export default async function SettlementsPage({
   searchParams: HistoryProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
+  const pageSize = parseInt(searchParams.pageSize || "12");
   const status = searchParams.status;
   const dateFrom = searchParams.dateFrom;
   const dateTo = searchParams.dateTo;
@@ -54,25 +56,30 @@ export default async function SettlementsPage({
         subtitle={`Visualização do Histórico de Liquidações`}
       >
         
-        <div className="mb-4">
-          <FiltersHistory
+        <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-start gap-4 flex-1">
+          <SettlementsHistoryFilter
             statusIn={status}
-            dateFromIn={new Date(dateFrom)}
-            dateToIn={new Date(dateTo)}
+            dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+            dateToIn={dateTo ? new Date(dateTo) : undefined}
           />
+          
+          <SettlementsHistoryDashboardButton>
+          <div className="-ml-28">
+            <SettlementsHistoryDashboardContent
+              totalSettlements={settlements.totalCount}
+              totalGrossAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.batch_amount), 0)}
+              totalNetAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_settlement_amount), 0)}
+              totalRestitutionAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_restitution_amount), 0)}
+              pendingSettlements={settlements.settlements.filter(s => s.status === 'pending').length}
+              approvedSettlements={settlements.settlements.filter(s => s.status === 'approved').length}
+              processedSettlements={settlements.settlements.filter(s => s.status === 'settled').length}
+            />
+            </div>
+          </SettlementsHistoryDashboardButton>
         </div>
-        <div className="mb-4">
-          <SettlementsHistoryOverview
-            totalSettlements={settlements.totalCount}
-            date={new Date()}
-            totalGrossAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.batch_amount), 0)}
-            totalNetAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_settlement_amount), 0)}
-            totalRestitutionAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_restitution_amount), 0)}
-            pendingSettlements={settlements.settlements.filter(s => s.status === 'pending').length}
-            approvedSettlements={settlements.settlements.filter(s => s.status === 'approved').length}
-            processedSettlements={settlements.settlements.filter(s => s.status === 'settled').length}
-          />
         </div>
+        
         
         <SettlementHistoryList Settlements={settlements} />
         {totalRecords > 0 && (

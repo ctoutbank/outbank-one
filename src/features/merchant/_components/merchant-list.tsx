@@ -41,7 +41,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     <div>
      
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg mt-2">
         <Table>
           <TableHeader>
             <TableRow>

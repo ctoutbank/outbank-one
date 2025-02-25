@@ -24,7 +24,7 @@ async function fetchPayout(
       offset
     );
   } else {
-    let expectedSettlementDateEnd = new Date(expectedSettlementDateStart);
+    const expectedSettlementDateEnd = new Date(expectedSettlementDateStart);
     expectedSettlementDateEnd.setDate(expectedSettlementDateEnd.getDate() + 30);
     stringExpectedSettlementDateStart = formatDateToAPIFilter(
       expectedSettlementDateStart ? expectedSettlementDateStart : new Date()

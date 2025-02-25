@@ -1,5 +1,4 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Table,
@@ -19,8 +18,6 @@ export default function MerchantAgendaList({
   merchantAgendaList,
   
 }: MerchantAgendaListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   
 

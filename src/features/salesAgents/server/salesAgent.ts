@@ -43,7 +43,7 @@ export async function getSalesAgents(
 ): Promise<SalesAgentsList> {
   const offset = (page - 1) * pageSize;
 
-  let conditions = [
+  const conditions = [
     or(
       like(salesAgents.firstName, `%${search}%`),
       like(salesAgents.lastName, `%${search}%`),

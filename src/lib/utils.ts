@@ -168,7 +168,8 @@ export function formatDateComplete(date: Date): string {
   return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
 }
 
-export function formatCurrency(number: number): string {
+export function formatCurrency(number: number | undefined | null): string {
+  if (number === undefined || number === null) return 'R$ 0,00';
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
 

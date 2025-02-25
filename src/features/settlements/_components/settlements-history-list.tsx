@@ -37,8 +37,8 @@ export default function SettlementHistorylist({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Settlements.settlements.map((settlements) => (
-              <TableRow>
+            {Settlements.settlements.map((settlements, index) => (
+              <TableRow key={index}>
                 <TableCell>
                   <a
                     href={`/portal/settlements?settlementSlug=${settlements.slug}`}

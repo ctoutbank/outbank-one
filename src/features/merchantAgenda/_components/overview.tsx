@@ -66,7 +66,6 @@ export default function MerchantAgendaOverview({
             <LayoutGrid className="h-3.5 w-3.5 text-zinc-100" />
           </div>
           <span className="text-sm font-medium text-zinc-100">Dashboard</span>
-          <span className="text-sm font-semibold text-zinc-400">{formatDate(date)}</span>
         </div>
         <ChevronRight
           className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
