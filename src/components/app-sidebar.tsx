@@ -62,6 +62,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/portal/salesAgents",
         icon: User,
       },
+      
+      {
+        title: "Antecipações",
+        url: "/portal/anticipations",
+        icon: DollarSign,
+      },
 
       {
         title: "Liquidação",

@@ -9,9 +9,12 @@ import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAg
 import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
 import {
   getMerchantAgenda,
+  getMerchantAgendaExcelData,
   getMerchantAgendaInfo,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { Search } from "lucide-react";
+import ExcelExport from "@/components/excelExport";
+import { Fill, Font } from "exceljs";
 
 export const revalidate = 0;
 
@@ -40,10 +43,8 @@ export default async function MerchantAgendaPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
-  const dateFrom = searchParams.dateFrom;
-  const dateTo = searchParams.dateTo;
+  const dateFrom = searchParams.dateFrom || "";
+  const dateTo = searchParams.dateTo || "";
 
   const merchantAgenda = await getMerchantAgenda(
     search,
@@ -61,6 +62,27 @@ export default async function MerchantAgendaPage({
   );
   const totalRecords = merchantAgenda.totalCount;
   const merchantAgendaCard = await getMerchantAgendaInfo();
+  const globalStyles = {
+    header: {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "808080" },
+      } as Fill,
+      font: { color: { argb: "FFFFFF" }, bold: true } as Font,
+    },
+    row: {
+      font: { color: { argb: "000000" } } as Font,
+    },
+  };
+  const excelDataToExport = await getMerchantAgendaExcelData(
+    dateFrom == undefined || dateFrom == null || dateFrom == ""
+      ? "2025-01-13"
+      : dateFrom,
+    dateTo == undefined || dateFrom == null || dateFrom == ""
+      ? "2025-02-13"
+      : dateTo
+  );
 
   return (
     <>
@@ -113,12 +135,33 @@ export default async function MerchantAgendaPage({
                 toSettleTaxAmount={0}
               />
             </div>
-            <div className="w-full overflow-x-auto">
-              <MerchantAgendaList
-                merchantAgendaList={merchantAgenda}
-                sortField={sortField}
-                sortOrder={sortOrder}
+            <div className="mb-4">
+              <ExcelExport
+                data={excelDataToExport.map((data) => ({
+                  Merchant: data.merchant,
+                  CNPJ: data.cnpj,
+                  NSU: data.nsu,
+                  SaleDate: data.saleDate,
+                  Type: data.type,
+                  Brand: data.brand,
+                  Installments: data.installments,
+                  InstallmentNumber: data.installmentNumber,
+                  InstallmentValue: data.installmentValue,
+                  TransactionMdr: data.transactionMdr,
+                  TransactionMdrFee: data.transactionMdrFee,
+                  TransactionFee: data.transactionFee,
+                  SettlementAmount: data.settlementAmount,
+                  ExpectedDate: data.expectedDate,
+                  ReceivableAmount: data.receivableAmount,
+                  SettlementDate: data.settlementDate,
+                }))}
+                globalStyles={globalStyles}
+                sheetName="Conciliação de recebíveis"
+                fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
               />
+            </div>
+            <div className="w-full overflow-x-auto">
+              <MerchantAgendaList merchantAgendaList={merchantAgenda} />
             </div>
             {totalRecords > 0 && (
               <PaginationRecords

@@ -14,20 +14,22 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { updateMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
 import { insertMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
 import { Button } from "@/components/ui/button"
-
+import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount"
 interface MerchantProps {
   merchantpixaccount: typeof merchantpixaccount.$inferSelect,
   merchantcorporateName:string,
   merchantdocumentId:string,legalPerson:string,
   activeTab: string;
   idMerchant:number
+  DDAccountType:accountTypeDropdown[],
+  DDBank:banckDropdown[],
   setActiveTab: (tab: string) => void;
 
 }
   
 
 
-export default function MerchantFormBank({ merchantpixaccount,merchantcorporateName,merchantdocumentId,legalPerson,idMerchant,setActiveTab,activeTab  }: MerchantProps) {
+export default function MerchantFormBank({ merchantpixaccount,merchantcorporateName,merchantdocumentId,legalPerson,idMerchant,setActiveTab,activeTab,DDAccountType,DDBank  }: MerchantProps) {
   const router = useRouter();
   
   const form = useForm<MerchantPixAccountSchema>({
@@ -145,46 +147,67 @@ export default function MerchantFormBank({ merchantpixaccount,merchantcorporateN
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="bank"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Banco <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field}  />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="accountType" 
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Tipo da Conta <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value === "CC" ? "checking" : "savings"}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue  />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="checking">Conta Corrente</SelectItem>
-                  <SelectItem value="savings">Conta Poupança</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+<div className="grid grid-cols-2 gap-4">
+<FormField
+                        control={form.control}
+                        name="bank" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Banco <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DDBank.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.value} - {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="accountType" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Tipo de Conta <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DDAccountType.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.value} - {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      </div>
+      
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">

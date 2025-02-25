@@ -13,15 +13,14 @@ import type { MerchantAgendaList } from "../server/merchantAgenda";
 
 interface MerchantAgendaListProps {
   merchantAgendaList: MerchantAgendaList | null;
-  sortField: string;
-  sortOrder: "asc" | "desc";
 }
 
 export default function MerchantAgendaList({
   merchantAgendaList,
   
 }: MerchantAgendaListProps) {
- 
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   
 
@@ -40,7 +39,7 @@ export default function MerchantAgendaList({
 
   return (
     <div className="border rounded-lg">
-      <Table className="w-[150%] overflow-x-auto">
+      <Table className="w-[200%] h-[50%] overflow-x-auto">
         <TableHeader>
           <TableRow>
             <TableHead className="text-black">Estabelecimento</TableHead>

@@ -127,6 +127,7 @@ export default async function SettlementsPage({
                 fileName={
                   `LIQUIDAÇÕES ${settlements.settlement[0]?.payment_date}` || ""
                 }
+                onClick={undefined}
               />
             </div>
           </div>

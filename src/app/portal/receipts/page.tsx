@@ -1,39 +1,36 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
-import { getCategories } from "@/features/categories/server/category";
-import FinancialPage from "@/features/merchantAgenda/_components/calendar";
+import MerchantAgendaReceipts from "@/features/merchantAgenda/_components/merchantAgendaReceipts";
+import {
+  DailyAmount,
+  getMerchantAgendaReceipts,
+  getGlobalSettlement,
+} from "@/features/merchantAgenda/server/merchantAgenda";
 
 export const revalidate = 0;
 
-type CategoryProps = {
-  page: string;
-  pageSize: string;
+type ReceiptsProps = {
   search: string;
-  sortField?: string;
-  sortOrder?: string;
+  date: string;
 };
 
 export default async function ReceiptsPage({
   searchParams,
 }: {
-  searchParams: CategoryProps;
+  searchParams: ReceiptsProps;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
-  const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
-
-  const categories = await getCategories(
-    search,
-    page,
-    pageSize,
-    sortField,
-    sortOrder
+  const merchantAgendaReceipts = await getMerchantAgendaReceipts(
+    searchParams.search
   );
-  const totalRecords = categories.totalCount;
-
+  const dailyAmounts: DailyAmount[] = merchantAgendaReceipts.map((receipt) => ({
+    date: receipt.day as string,
+    amount: receipt.totalAmount as number,
+  }));
+  const dailyData = await getGlobalSettlement(
+    searchParams.search,
+    searchParams.date
+  );
   return (
     <>
       <BaseHeader
@@ -41,7 +38,10 @@ export default async function ReceiptsPage({
       />
 
       <BaseBody title="Recebimentos" subtitle={`visualização dos Recebimentos`}>
-        <FinancialPage></FinancialPage>
+        <MerchantAgendaReceipts
+          monthlyData={dailyAmounts}
+          dailyData={dailyData}
+        ></MerchantAgendaReceipts>
       </BaseBody>
     </>
   );
