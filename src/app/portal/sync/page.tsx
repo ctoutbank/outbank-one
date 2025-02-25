@@ -4,7 +4,8 @@ import AsyncButtonsCity from "./asynButtomCity";
 import AsyncButtonsPage from "./asyncButtom";
 import AsyncButtonsPayout from "./asyncButtonPayouts";
 import AsyncButtonsSettlement from "./asyncButtonSettlement";
-
+import AsyncButtonsMerchantPrice from "./asyncButtomMerchantPrice";
+import AsyncButtonsMerchantPriceGroup from "./asyncButtomMerchantPricegroup";
 export default function HomePage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -12,6 +13,8 @@ export default function HomePage() {
       <AsyncButtonsSettlement />
       <AsyncButtonsPayout />
       <AsyncButtonsCity />
+      <AsyncButtonsMerchantPrice />
+      <AsyncButtonsMerchantPriceGroup />
     </div>
   );
 }
