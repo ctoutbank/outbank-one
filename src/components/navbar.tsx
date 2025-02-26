@@ -51,7 +51,7 @@ export function Navbar() {
           {/* Logo */}
           <div className="w-[120px]">
             <Link className="flex items-center justify-center" href="/">
-              <Image src="/box-logo.svg" alt="Logo Outbank" width={120} height={27} className="h-8 w-auto" priority />
+              <img src="/box-logo.svg" alt="Logo Outbank" width={120} height={27} className="h-8 w-auto" />
             </Link>
           </div>
 

@@ -71,9 +71,10 @@ export default function ServicesSection() {
                   <Image
                     src="/logo-icon.svg"
                     alt="Logo icon"
-                    width={32}
-                    height={32}
-                    className="border border-gray-700/20 p-1 rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20 md:w-10 md:h-10"
+                    width={40}
+                    height={40}
+                    className="border border-gray-700/20 p-1 rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20 w-8 h-8 md:w-10 md:h-10"
+                    quality={100}
                   />
                 </div>
                 <p className="text-sm md:text-base text-muted-foreground">{service.description}</p>
@@ -168,9 +169,10 @@ export default function ServicesSection() {
                   <Image
                     src="/logo-icon.svg"
                     alt="Logo icon"
-                    width={32}
-                    height={32}
-                    className="border border-gray-700/20 p-1 rounded-sm bg-gradient-to-r from-[#080808] to-gray-400/10 md:w-10 md:h-10"
+                    width={40}
+                    height={40}
+                    quality={100}
+                    className="border border-gray-700/20 p-1 rounded-sm bg-gradient-to-r from-[#080808] to-gray-400/10 w-8 h-8 md:w-10 md:h-10"
                   />
                 </div>
                 <p className="text-sm md:text-base text-muted-foreground">{service.description}</p>

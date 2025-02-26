@@ -20,7 +20,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus.',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer1.jpg',
+    customerImage: '/avatar-picture1.svg',
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus.',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer2.jpg',
+    customerImage: '/avatar-picture2.svg',
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus. At',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer3.jpg',
+    customerImage: '/avatar-picture3.svg',
   },
   {
     id: 4,
@@ -44,7 +44,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus.',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer4.jpg',
+    customerImage: '/avatar-picture1.svg',
   },
   {
     id: 5,
@@ -52,7 +52,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus.',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer5.jpg',
+    customerImage: '/avatar-picture2.svg',
   },
   {
     id: 6,
@@ -60,7 +60,7 @@ const testimonials: Testimonial[] = [
     content: 'Lorem ipsum dolor sit amet consectetur. Tempus purus placerat nibh suspendisse. Tellus arcu egestas vitae sapien tempus egestas. Suspendisse volutpat bibendum quam senectus.',
     customerName: 'Customer Name',
     customerProfile: '@customerprofile',
-    customerImage: '/images/customers/customer6.jpg',
+    customerImage: '/avatar-picture3.svg',
   },
 ];
 

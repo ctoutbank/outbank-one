@@ -32,9 +32,9 @@ export const Presence = () => {
       <div className="container mx-auto px-4">
         {/* Title */}
         <div className="text-center mb-2 md:mb-1">
-          <div className="inline-block px-4 py-1.5 mb-2 md:mb-1 rounded-full bg-zinc-800/40 backdrop-blur-sm">
-            <span className="text-sm font-medium">Presence</span>
-          </div>
+          <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
+              PRESENCE
+            </div>
           <h2 className="text-4xl md:text-5xl font-bold">
             Our applications in different places
           </h2>

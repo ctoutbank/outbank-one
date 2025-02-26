@@ -57,7 +57,7 @@ export default function ProductsSection() {
           >
             <div className="flex flex-col gap-2">
               <div className="flex justify-center md:justify-end">
-                <Image src="/product-avatars.svg" alt="avatars" width={180} height={180} />
+                <Image src="/product-avatars.svg" alt="avatars" width={180} height={180} quality={100} />
               </div>
               <div className="text-center md:text-right">
                 <h3 className="text-lg font-medium mb-1">Unlock new possibilities</h3>
@@ -78,14 +78,14 @@ export default function ProductsSection() {
           <motion.div 
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
-            className="bg-[#080808] hover:bg-[#CFC8B8] text-white hover:text-black p-6 md:p-8 transition-all duration-300 group"
+            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
           >
             <h2 className="text-xl md:text-2xl font-semibold mb-4">Dock One Platform</h2>
-            <p className="text-muted-foreground group-hover:text-black mb-8 text-sm md:text-base">
+            <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
               Explore our cloud-native platform, the largest and most comprehensive in Latin America, and discover our
               solutions.
             </p>
-            <Button variant="ghost" className="rounded-none text-white group-hover:text-black hover:bg-transparent group-hover:bg-transparent hover:scale-105 transition-all duration-100">
+            <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
               Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
@@ -93,14 +93,14 @@ export default function ProductsSection() {
           <motion.div 
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
-            className="bg-[#080808] hover:bg-[#CFC8B8] text-white hover:text-black p-6 md:p-8 transition-all duration-300 group"
+            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
           >
             <h2 className="text-xl md:text-2xl font-semibold mb-4">Banking</h2>
-            <p className="text-muted-foreground group-hover:text-black mb-8 text-sm md:text-base">
+            <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
               Elevate the customer experience your profitability with financial solutions integrated into your core
               business.
             </p>
-            <Button variant="ghost" className="rounded-none text-white group-hover:text-black hover:bg-transparent group-hover:bg-transparent hover:scale-105 transition-all duration-100">
+            <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
               Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
@@ -132,14 +132,14 @@ export default function ProductsSection() {
                   key={index}
                   variants={fadeInUp}
                   whileHover={{ scale: 1.02 }}
-                  className="bg-[#080808] hover:bg-[#CFC8B8] text-white hover:text-black p-6 md:p-8 flex flex-col h-full transition-all duration-300 group"
+                  className="bg-[#080808] text-white p-6 md:p-8 flex flex-col h-full transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
                 >
                   <h2 className="text-xl md:text-2xl font-semibold mb-4">{product.title}</h2>
-                  <p className="text-muted-foreground group-hover:text-black mb-8 flex-grow text-sm md:text-base">
+                  <p className="text-muted-foreground md:group-hover:text-black mb-8 flex-grow text-sm md:text-base">
                     {product.description}
                   </p>
                   <div>
-                    <Button variant="ghost" className="rounded-none text-white group-hover:text-black hover:bg-transparent group-hover:bg-transparent hover:scale-105 transition-all duration-100">
+                    <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
                       Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
