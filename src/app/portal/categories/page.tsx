@@ -1,13 +1,12 @@
-import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
-import Categorylist from "../../../features/categories/_components/categories-list";
 import PaginationRecords from "@/components/pagination-Records";
-import { getCategories } from "@/features/categories/server/category";
-import { CategoriesFilter } from "@/features/categories/_components/categories-filter";
 import { CategoriesDashboardButton } from "@/features/categories/_components/categories-dashboard-button";
 import { CategoriesDashboardContent } from "@/features/categories/_components/categories-dashboard-content";
+import { CategoriesFilter } from "@/features/categories/_components/categories-filter";
+import { getCategories } from "@/features/categories/server/category";
+import Categorylist from "../../../features/categories/_components/categories-list";
 
 export const revalidate = 0;
 

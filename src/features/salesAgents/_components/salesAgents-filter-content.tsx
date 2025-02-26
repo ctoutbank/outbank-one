@@ -85,7 +85,23 @@ export function SalesAgentsFilterContent({
           </div>
         </div>
 
-        
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Data Inicial</h3>
+          <Input
+            type="date"
+            value={dateFrom ? dateFrom.toISOString().split('T')[0] : ''}
+            onChange={(e) => setDateFrom(e.target.value ? new Date(e.target.value) : undefined)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Data Final</h3>
+          <Input
+            type="date"
+            value={dateTo ? dateTo.toISOString().split('T')[0] : ''}
+            onChange={(e) => setDateTo(e.target.value ? new Date(e.target.value) : undefined)}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">

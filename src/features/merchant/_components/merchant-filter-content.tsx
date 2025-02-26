@@ -1,13 +1,10 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useState } from "react"
 
 type FilterMerchantsContentProps = {
@@ -27,8 +24,6 @@ type FilterMerchantsContentProps = {
 }
 
 export function FilterMerchantsContent({
-  dateFromIn,
-  dateToIn,
   establishmentIn,
   statusIn,
   stateIn,

@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Users, UserCheck, Building2 } from "lucide-react"
+import { Users } from "lucide-react"
 
 type SalesAgentDashboardContentProps = {
   totalAgents: number
@@ -18,10 +18,6 @@ export function SalesAgentDashboardContent({
   totalAgents,
   activeAgents,
   inactiveAgents,
-  totalMerchants,
-  pendingMerchants,
-  approvedMerchants,
-  rejectedMerchants,
 }: SalesAgentDashboardContentProps) {
   return (
     <div className="w-full mt-4 mb-2">

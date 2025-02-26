@@ -1,9 +1,8 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FilterIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
 
 type CategoriesFilterButtonProps = {
   activeFiltersCount: number

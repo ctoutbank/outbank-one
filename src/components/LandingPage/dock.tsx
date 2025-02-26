@@ -7,8 +7,8 @@ export default function DockSection() {
     <section className="bg-black text-white py-16 px-4 md:px-8">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-16">
-          <div className="bg-gray-600/20 text-muted-foreground px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
+        <div className="mb-16 text-center md:text-left">
+          <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
             DOCK
           </div>
           <h2 className="text-4xl md:text-5xl font-light">Explore questions about the Dock</h2>

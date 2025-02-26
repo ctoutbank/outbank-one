@@ -1,8 +1,8 @@
 "use server"
 
 import { db } from "@/server/db";
-import { merchantPriceGroup, merchantPrice, merchantTransactionPrice } from "../../../../drizzle/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { merchantPrice, merchantPriceGroup, merchantTransactionPrice } from "../../../../drizzle/schema";
 
 export type MerchantPriceGroupInsert = typeof merchantPriceGroup.$inferInsert;
 export type MerchantPriceGroupUpdate = typeof merchantPriceGroup.$inferSelect;

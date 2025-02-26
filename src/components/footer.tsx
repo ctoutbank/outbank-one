@@ -1,24 +1,26 @@
+"use client"
+
 import { Facebook, Instagram, Twitter } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
 export default function Footer() {
   return (
-    <footer className="bg-[#CFC8B8] text-black py-8 mb-10 px-4 md:px-8 rounded-md">
-      <div className="container mx-auto px-4">
+    <footer className="bg-[#CFC8B8] text-black py-6 sm:py-8 px-3 sm:px-4 md:px-8 rounded-md">
+      <div className="container mx-auto px-3 sm:px-4">
         {/* Main Footer Content */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-4">
             {/* Logo and Contact Info */}
-            <div className="md:col-span-4">
+            <div className="md:col-span-4 text-center md:text-left">
               <Image 
                 src="/box-logo.svg" 
                 alt="Outbank" 
                 width={140} 
                 height={32} 
-                className="mb-6 brightness-0" 
+                className="mb-4 sm:mb-6 brightness-0 mx-auto md:mx-0" 
               />
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2 text-sm">
                 <p>42.244.879/0001-67</p>
                 <p>contact@outbank.com</p>
                 <p>+0 (123) 456-789</p>
@@ -26,12 +28,12 @@ export default function Footer() {
             </div>
 
             {/* Navigation Links */}
-            <div className="md:col-span-8 md:justify-self-end">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-8 md:justify-self-end w-full">
+              <div className="grid grid-cols-3 gap-4 sm:gap-8">
                 {/* Company Links */}
-                <div>
-                  <h3 className="font-semibold mb-2">Company</h3>
-                  <ul className="space-y-2">
+                <div className="col-span-1">
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Company</h3>
+                  <ul className="space-y-1.5 sm:space-y-2 text-sm">
                     {["Outbank", "Acquiring", "Banking", "Cards & Credit"].map((item) => (
                       <li key={item}>
                         <Link href="#" className="text-black/70 hover:text-black transition-colors">
@@ -43,9 +45,9 @@ export default function Footer() {
                 </div>
 
                 {/* Navigation Links */}
-                <div>
-                  <h3 className="font-semibold mb-2">Navigation</h3>
-                  <ul className="space-y-2">
+                <div className="col-span-1">
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Navigation</h3>
+                  <ul className="space-y-1.5 sm:space-y-2 text-sm">
                     {["Documentation", "Papers", "Press Conferences"].map((item) => (
                       <li key={item}>
                         <Link href="#" className="text-black/70 hover:text-black transition-colors">
@@ -57,9 +59,9 @@ export default function Footer() {
                 </div>
 
                 {/* Legal Links */}
-                <div>
-                  <h3 className="font-semibold mb-2">Legal</h3>
-                  <ul className="space-y-2">
+                <div className="col-span-1">
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legal</h3>
+                  <ul className="space-y-1.5 sm:space-y-2 text-sm">
                     {["Terms of Service", "Privacy Policy", "Cookies Policy"].map((item) => (
                       <li key={item}>
                         <Link href="#" className="text-black/70 hover:text-black transition-colors">
@@ -75,10 +77,10 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-10 border-t border-black/70">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-black/70">
+          <div className="flex flex-col sm:flex-row justify-between items-center py-4 sm:py-6">
             {/* Social Links */}
-            <div className="flex gap-6">
+            <div className="flex gap-6 mb-4 sm:mb-0">
               <Link href="#" className="text-black/70 hover:text-black transition-colors">
                 <Instagram className="h-5 w-5" />
               </Link>

@@ -64,8 +64,7 @@ interface Merchantprice {
 
 interface MerchantpriceList {
   merchantprice: Merchantprice[];
-  setActiveTab: (tab: string) => void;
-  activeTab: string;
+  
   idMerchantPrice: number;
 }
 
@@ -97,8 +96,7 @@ type MerchantPriceGroup = {
 
 export default function MerchantFormTax2({
   merchantprice,
-  setActiveTab,
-  activeTab,
+ 
   idMerchantPrice
 }: MerchantpriceList) {
   const [isEditing, setIsEditing] = useState(false);
@@ -110,12 +108,6 @@ export default function MerchantFormTax2({
     custoMaximo: merchantprice[0].cardPixCeilingFee,
     antecipacao: merchantprice[0].anticipationType,
   });
-  const [pixFeesNonCard, setPixFeesNonCard] = useState({
-    mdr: merchantprice[0].nonCardPixMdr,
-    custoMinimo: merchantprice[0].nonCardPixMinimumCostFee,
-    custoMaximo: merchantprice[0].nonCardPixCeilingFee,
-    antecipacao: merchantprice[0].anticipationType,
-  });
 
   
 
@@ -123,9 +115,7 @@ export default function MerchantFormTax2({
     setPixFees({ ...pixFees, [field]: parseFloat(value) });
   };
 
-  const handlePixFeeChangeNonCard = (field: keyof typeof pixFeesNonCard, value: string) => {
-    setPixFeesNonCard({ ...pixFeesNonCard, [field]: parseFloat(value) });
-  };
+ 
 
   useEffect(() => {
     console.log("Todos merchantprices:", merchantprice);
@@ -236,7 +226,7 @@ export default function MerchantFormTax2({
         <h1 className="text-xl font-semibold">Taxas de Transação</h1>
       </div>
 
-      <Tabs defaultValue="todas" className="w-full">
+      <Tabs defaultValue="todas" className="w-full" onValueChange={setSelectedTab}>
         <TabsList className='flex gap-4 mb-2'>
           <TabsTrigger value="todas" >
             <span className="flex items-center gap-2">
@@ -1117,9 +1107,10 @@ export default function MerchantFormTax2({
         </div>
           </div>
         </TabsContent>
-
+      
        
       </Tabs>
+      
     </div>
   )
 }
