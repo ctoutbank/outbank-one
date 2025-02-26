@@ -7,11 +7,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowRight } from "lucide-react"
+import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
 
 export default function ContactForm() {
   return (
-    <section id="contact" className="bg-black text-white py-16 px-4 md:px-8">
-      <div className="container mx-auto">
+    <section id="contact" className="relative bg-black text-white py-16 px-4 md:px-8 overflow-hidden">
+      {/* Grid Pattern Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black z-10" />
+        <InteractiveGridPattern 
+          width={80}
+          height={80}
+          squares={[24, 24]}
+          className="border-none"
+          squaresClassName="stroke-gray-500/20 hover:fill-gray-500/20"
+        />
+      </div>
+
+      {/* Main Content - Add relative and z-20 to appear above the background */}
+      <div className="container mx-auto relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Left Column */}
           <div className="text-center lg:text-left">
