@@ -3,7 +3,7 @@ import CTASection from "@/components/banking/cta-section";
 import ProductFeatures from "@/components/banking/products-features";
 import ReasonsSection from "@/components/banking/reasons";
 import Footer from "@/components/footer";
-import CustomerCarousel from "@/components/landingPage/customer-carousel";
+import CustomerCarousel from "@/components/LandingPage/customer-carousel";
 import { Navbar } from "@/components/navbar";
 
 export default function BankingPage() { 

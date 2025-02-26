@@ -1,14 +1,14 @@
 import Footer from "@/components/footer";
-import ContactForm from "@/components/landingPage/contact";
-import CustomerCarousel from "@/components/landingPage/customer-carousel";
-import Depoiments from "@/components/landingPage/depoiments";
-import DockSection from "@/components/landingPage/dock";
-import HeroLandingPage from "@/components/landingPage/hero";
-import NumbersSection from "@/components/landingPage/numbers-section";
-import Presence from "@/components/landingPage/presence";
-import ProductsSection from "@/components/landingPage/products";
-import ServicesSection from "@/components/landingPage/services";
-import SuccessStories from "@/components/landingPage/success-stories";
+import ContactForm from "@/components/LandingPage/contact";
+import CustomerCarousel from "@/components/LandingPage/customer-carousel";
+import Depoiments from "@/components/LandingPage/depoiments";
+import DockSection from "@/components/LandingPage/dock";
+import HeroLandingPage from "@/components/LandingPage/hero";
+import NumbersSection from "@/components/LandingPage/numbers-section";
+import Presence from "@/components/LandingPage/presence";
+import ProductsSection from "@/components/LandingPage/products";
+import ServicesSection from "@/components/LandingPage/services";
+import SuccessStories from "@/components/LandingPage/success-stories";
 import { Navbar } from "@/components/navbar";
 
 export default function Component() {
