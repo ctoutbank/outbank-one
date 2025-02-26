@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, merchants, payout, merchantPixSettlementOrders, merchantSettlements, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount } from "./schema";
+import { customers, paymentInstitution, settlements, merchants, payout, merchantPixSettlementOrders, merchantSettlements, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, paymentLink, merchantpixaccount } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -65,6 +65,7 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	}),
 	contacts: many(contacts),
 	merchantSettlements: many(merchantSettlements),
+	paymentLinks: many(paymentLink),
 	merchantpixaccounts: many(merchantpixaccount),
 }));
 
@@ -160,6 +161,13 @@ export const merchantSettlementOrdersRelations = relations(merchantSettlementOrd
 	merchantSettlement: one(merchantSettlements, {
 		fields: [merchantSettlementOrders.idMerchantSettlements],
 		references: [merchantSettlements.id]
+	}),
+}));
+
+export const paymentLinkRelations = relations(paymentLink, ({one}) => ({
+	merchant: one(merchants, {
+		fields: [paymentLink.idMerchant],
+		references: [merchants.id]
 	}),
 }));
 

@@ -23,8 +23,6 @@ type AntecipationsProps = {
   page: string;
   pageSize: string;
   search: string;
-  dateFrom: string;
-  dateTo: string;
 };
 
 export default async function AntecipationsPage({
@@ -35,12 +33,6 @@ export default async function AntecipationsPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");
   const search = searchParams.search || "";
-  const dateFrom = searchParams.dateFrom || "";
-  const dateTo = searchParams.dateTo || "";
-
-  const merchantAgenda = await getMerchantAgenda(search, page, pageSize);
-  const totalRecords = merchantAgenda.totalCount;
-  const merchantAgendaCard = await getMerchantAgendaInfo();
 
   return (
     <>
@@ -83,14 +75,6 @@ export default async function AntecipationsPage({
             <div className="w-full overflow-x-auto">
               <AnticipationList></AnticipationList>
             </div>
-            {totalRecords > 0 && (
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/merchantAgenda"
-              />
-            )}
           </TabsContent>
           <TabsContent value="eventual" className="mt-6">
             <EmptyState
@@ -111,3 +95,11 @@ export default async function AntecipationsPage({
     </>
   );
 }
+/*   {totalRecords > 0 && (
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/merchantAgenda"
+              />
+            )}*/
