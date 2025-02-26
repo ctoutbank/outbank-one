@@ -28,33 +28,33 @@ export default function CustomerCarousel() {
             <CarouselContent className="-ml-2 md:-ml-4">
               {/* Replace the placeholder.svg with your actual logo URLs */}
               {[
-                { name: "Cloudly", src: "logo1.svg" },
-                { name: "Camera", src: "logo2.svg" },
-                { name: "Startup", src: "logo3.svg" },
-                { name: "Apply", src: "logo4.svg" },
-                { name: "Software", src: "logo5.svg" },
-                { name: "Tech", src: "logo6.svg" },
-                { name: "Blocky", src: "logo7.svg" },
-                { name: "Codeelify", src: "logo8.svg" },
-                { name: "Restaurant", src: "logo9.svg" },
-                { name: "Apply", src: "logo10.svg" },
-                { name: "Natural", src: "logo11.svg" },
-                { name: "Realtor", src: "logo12.svg" },
+                { name: "Cloudly", src: "cloudly.svg" },
+                { name: "Camera", src: "camera.svg" },
+                { name: "Startup", src: "startup.svg" },
+                { name: "Apply", src: "apply.svg" },
+                { name: "Software", src: "software.svg" },
+                { name: "Techlify", src: "techlify.svg" },
+                { name: "Blockly", src: "blockly.svg" },
+                { name: "Codelify", src: "codelify.svg" },
+                { name: "Restaurant", src: "restaurant.svg" },
+                { name: "Apply", src: "apply.svg" },
+                { name: "Natural", src: "natural.svg" },
+                { name: "Realtor", src: "realtor.svg" },
 
 
 
                 // Duplicate items to ensure smooth infinite loop
-                { name: "Cloudly", src: "logo1.svg" },
-                { name: "Camera", src: "logo2.svg" },
-                { name: "Startup", src: "logo3.svg" },
-                { name: "Apply", src: "logo4.svg" },
-                { name: "Software", src: "logo5.svg" },
-                { name: "Tech", src: "logo6.svg" },
-                { name: "Blocky", src: "logo7.svg" },
-                { name: "Codeelify", src: "logo8.svg" },
-                { name: "Restaurant", src: "logo9.svg" },
-                { name: "Apply", src: "logo10.svg" },
-                { name: "Natural", src: "logo11.svg" },
+                { name: "Cloudly", src: "cloudly.svg" },
+                { name: "Camera", src: "camera.svg" },
+                { name: "Startup", src: "startup.svg" },
+                { name: "Apply", src: "apply.svg" },
+                { name: "Software", src: "software.svg" },
+                { name: "Techlify", src: "techlify.svg" },
+                { name: "Blockly", src: "blockly.svg" },
+                { name: "Codelify", src: "codelify.svg" },
+                { name: "Restaurant", src: "restaurant.svg" },
+                { name: "Apply", src: "apply.svg" },
+                { name: "Natural", src: "natural.svg" },
               ].map((logo, index) => (
                 <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 lg:basis-1/4">
                   <div className="p-4">
