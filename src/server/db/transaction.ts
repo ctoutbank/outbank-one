@@ -39,14 +39,14 @@ export type GetTotalTransactionsByMonthResult = {
   date?: Date;
 };
 
-export async function getTotalTransactions(dateFrom: Date, dateTo: Date) {
+export async function getTotalTransactions(dateFrom: Date | null, dateTo: Date | null) {
   const result = await db
     .select({ sum: sum(transactions.totalAmount), count: count() })
     .from(transactions)
     .where(
       and(
-        gte(transactions.dtInsert, dateFrom.toISOString()),
-        lte(transactions.dtInsert, dateTo.toISOString())
+        gte(transactions.dtInsert, dateFrom?.toISOString() || ""),
+        lte(transactions.dtInsert, dateTo?.toISOString() || "")
       )
     );
 

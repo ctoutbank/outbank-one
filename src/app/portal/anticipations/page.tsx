@@ -5,17 +5,11 @@ import BaseHeader from "@/components/layout/base-header";
 import { EmptyState } from "@/components/empty-state";
 import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
-import MerchantAgendaOverview from "@/features/merchantAgenda/_components/overview";
+import AnticipationList from "@/features/anticipations/_components/anticipation-list";
 import {
-  getMerchantAgenda,
-  getMerchantAgendaExcelData,
-  getMerchantAgendaInfo,
+  getMerchantAgenda
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { Search } from "lucide-react";
-import ExcelExport from "@/components/excelExport";
-import { Fill, Font } from "exceljs";
-import AnticipationList from "@/features/anticipations/_components/anticipation-list";
 
 export const revalidate = 0;
 

@@ -2,22 +2,25 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
+import MerchantFormAuthorizers from "./merchant-form-authorizers";
+import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormCompany from "./merchant-form-company";
 import MerchantFormcontact from "./merchant-form-contact";
 import MerchantFormOperations from "./merchant-form-operation";
-import MerchantFormBank from "./merchant-form-bank";
-import MerchantFormAuthorizers from "./merchant-form-authorizers";
-import Transactionrate from "./merchant-form-tax";
-import MerchantFormDocuments from "./merchant-form-documents";
-import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
+
+import { useSearchParams } from "next/navigation";
 import {
   addresses,
   configurations,
   contacts,
-  merchantpixaccount,
+  merchantpixaccount
 } from "../../../../drizzle/schema";
-import { useSearchParams } from "next/navigation";
+import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
 import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount";
+import MerchantFormDocuments from "./merchant-form-documents";
+import MerchantFormTax2 from "./merchant-form-tax2";
+
+
 interface MerchantData {
   id: number;
   slug: string | null;
@@ -63,7 +66,9 @@ interface MerchantData {
   mcc: string;
   customer: string | null;
   registration: string | null;
+  idMerchantPrice: number | null;
 }
+
 interface AddressData {
   id: number;
   streetAddress: string | null;
@@ -75,10 +80,12 @@ interface AddressData {
   country: string | null;
   zipCode: string | null;
 }
+
 interface ContactData {
   contacts: typeof contacts.$inferSelect;
   addresses: typeof addresses.$inferSelect;
 }
+
 interface ConfigurationData {
   configurations: typeof configurations.$inferSelect;
 }
@@ -88,6 +95,57 @@ interface PixAccountData {
   merchantcorporateName: string;
   merchantdocumentId: string;
   legalPerson: string;
+}
+
+interface TransactionPrice {
+  id: number;
+  slug: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  idMerchantPriceGroup: number;
+  installmentTransactionFeeStart: number;
+  installmentTransactionFeeEnd: number;
+  cardTransactionMdr: number;
+  cardTransactionFee: number;
+  nonCardTransactionFee: number;
+  nonCardTransactionMdr: number;
+  producttype: string;
+}
+
+interface MerchantPriceGroup {
+  id: number;
+  name: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  idMerchantPrice: number;
+  listMerchantTransactionPrice: TransactionPrice[];
+}
+
+interface MerchantPrice {
+  id: number;
+  name: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  tableType: string;
+  slugMerchant: string;
+  compulsoryAnticipationConfig: number;
+  anticipationType: string;
+  eventualAnticipationFee: number;
+  cardPixMdr: number;
+  cardPixCeilingFee: number;
+  cardPixMinimumCostFee: number;
+  nonCardPixMdr: number;
+  nonCardPixCeilingFee: number;
+  nonCardPixMinimumCostFee: number;
+  merchantpricegroup: MerchantPriceGroup[];
+}
+
+interface MerchantPriceGroupProps {
+  merchantPrice: MerchantPrice;
+  merchantpricegroup: MerchantPriceGroup[];
 }
 
 interface MerchantTabsProps {
@@ -104,6 +162,8 @@ interface MerchantTabsProps {
   establishmentFormatList: EstablishmentFormatDropdown[];
   DDAccountType:accountTypeDropdown[],
   DDBank:banckDropdown[],
+  
+  merchantPriceGroupProps: MerchantPriceGroupProps;
 }
 
 export default function MerchantTabs({
@@ -117,6 +177,8 @@ export default function MerchantTabs({
   establishmentFormatList,
   DDAccountType,
   DDBank,
+  
+  merchantPriceGroupProps,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
 
@@ -152,6 +214,7 @@ export default function MerchantTabs({
         <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
         <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
         <TabsTrigger value="documents">Documentos</TabsTrigger>
+        
       </TabsList>
 
       <TabsContent value="company">
@@ -160,6 +223,7 @@ export default function MerchantTabs({
             ...merchant,
             number: String(merchant.number),
             revenue: String(merchant.revenue),
+            idMerchantPrice: merchant.idMerchantPrice || null,
             establishmentFormat: merchant.establishmentFormat || "",
           }}
           address={address}
@@ -290,12 +354,37 @@ export default function MerchantTabs({
       </TabsContent>
 
       <TabsContent value="rate">
-        <Transactionrate />
+      <MerchantFormTax2 
+          merchantprice={[{
+            id: merchantPriceGroupProps?.merchantPrice?.id || 0,
+            name: merchantPriceGroupProps?.merchantPrice?.name || '',
+            active: merchantPriceGroupProps?.merchantPrice?.active || false,
+            dtinsert: merchantPriceGroupProps?.merchantPrice?.dtinsert || '',
+            dtupdate: merchantPriceGroupProps?.merchantPrice?.dtupdate || '',
+            tableType: merchantPriceGroupProps?.merchantPrice?.tableType || '',
+            slugMerchant: merchantPriceGroupProps?.merchantPrice?.slugMerchant || '',
+            compulsoryAnticipationConfig: merchantPriceGroupProps?.merchantPrice?.compulsoryAnticipationConfig || 0,
+            anticipationType: merchantPriceGroupProps?.merchantPrice?.anticipationType || '',
+            eventualAnticipationFee: merchantPriceGroupProps?.merchantPrice?.eventualAnticipationFee || 0,
+            cardPixMdr: merchantPriceGroupProps?.merchantPrice?.cardPixMdr || 0,
+            cardPixCeilingFee: merchantPriceGroupProps?.merchantPrice?.cardPixCeilingFee || 0,
+            cardPixMinimumCostFee: merchantPriceGroupProps?.merchantPrice?.cardPixMinimumCostFee || 0,
+            nonCardPixMdr: merchantPriceGroupProps?.merchantPrice?.nonCardPixMdr || 0,
+            nonCardPixCeilingFee: merchantPriceGroupProps?.merchantPrice?.nonCardPixCeilingFee || 0,
+            nonCardPixMinimumCostFee: merchantPriceGroupProps?.merchantPrice?.nonCardPixMinimumCostFee || 0,
+            merchantpricegroup: merchantPriceGroupProps?.merchantpricegroup || []
+          }]}
+         
+          
+          idMerchantPrice={merchant.idMerchantPrice || 0}
+        />
+       
       </TabsContent>
 
       <TabsContent value="documents">
         <MerchantFormDocuments />
       </TabsContent>
+      
     </Tabs>
   );
 }

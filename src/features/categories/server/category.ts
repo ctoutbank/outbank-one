@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { asc, count, desc, eq, ilike, or } from "drizzle-orm";
+import { asc, count, desc, eq, ilike, or, and } from "drizzle-orm";
 import { categories } from "../../../../drizzle/schema";
 
 
@@ -22,6 +22,12 @@ export interface CategoryList {
     waiting_period_cnp: number | null;
   }[];
   totalCount: number;
+  activeCount: number;
+  inactiveCount: number;
+  avgWaitingPeriodCp: number;
+  avgWaitingPeriodCnp: number;
+  avgAnticipationRiskFactorCp: number;
+  avgAnticipationRiskFactorCnp: number;
 }
 
 export type CategoryInsert = typeof categories.$inferInsert;
@@ -32,7 +38,11 @@ export async function getCategories(
   page: number,
   pageSize: number,
   sortField: string = 'id',
-  sortOrder: 'asc' | 'desc' = 'desc'
+  sortOrder: 'asc' | 'desc' = 'desc',
+  name?: string,
+  status?: string,
+  mcc?: string,
+  cnae?: string
 ): Promise<CategoryList> {
   const offset = (page - 1) * pageSize;
 
@@ -55,10 +65,16 @@ export async function getCategories(
 
     .from(categories)
     .where(
-      or(
-        ilike(categories.name, `%${search}%`),
-        ilike(categories.mcc, `%${search}%`),
-        ilike(categories.cnae, `%${search}%`)
+      and(
+        or(
+          ilike(categories.name, `%${search}%`),
+          ilike(categories.mcc, `%${search}%`),
+          ilike(categories.cnae, `%${search}%`)
+        ),
+        name ? ilike(categories.name, `%${name}%`) : undefined,
+        status ? eq(categories.active, status === 'ACTIVE') : undefined,
+        mcc ? ilike(categories.mcc, `%${mcc}%`) : undefined,
+        cnae ? ilike(categories.cnae, `%${cnae}%`) : undefined
       )
     )
     .orderBy(
@@ -76,28 +92,38 @@ export async function getCategories(
 
   console.log(sortField, sortOrder)
 
-  return {
-    categories: result.map((category) => ({
-      id: category.id,
-      slug: category.slug || "",
-      name: category.name || "",
-      active: category.active || false,
-      dtinsert: category.dtinsert ? new Date(category.dtinsert) : new Date(),
-      dtupdate: category.dtupdate ? new Date(category.dtupdate) : new Date(),
-      mcc: category.mcc || "",
+  const categoriesList = result.map((category) => ({
+    id: category.id,
+    slug: category.slug || "",
+    name: category.name || "",
+    active: category.active || false,
+    dtinsert: category.dtinsert ? new Date(category.dtinsert) : new Date(),
+    dtupdate: category.dtupdate ? new Date(category.dtupdate) : new Date(),
+    mcc: category.mcc || "",
 
-      cnae: category.cnae || "",
-      anticipation_risk_factor_cp: category.anticipation_risk_factor_cp || 0,
-      anticipation_risk_factor_cnp: category.anticipation_risk_factor_cnp || 0,
-      waiting_period_cp: category.waiting_period_cp || 0,
-      waiting_period_cnp: category.waiting_period_cnp || 0,
-    })),
+    cnae: category.cnae || "",
+    anticipation_risk_factor_cp: category.anticipation_risk_factor_cp || 0,
+    anticipation_risk_factor_cnp: category.anticipation_risk_factor_cnp || 0,
+    waiting_period_cp: category.waiting_period_cp || 0,
+    waiting_period_cnp: category.waiting_period_cnp || 0,
+  }));
+
+  return {
+    categories: categoriesList,
     totalCount,
+    activeCount: categoriesList.filter(c => c.active).length,
+    inactiveCount: categoriesList.filter(c => !c.active).length,
+    avgWaitingPeriodCp: calculateAverage(categoriesList, 'waiting_period_cp'),
+    avgWaitingPeriodCnp: calculateAverage(categoriesList, 'waiting_period_cnp'),
+    avgAnticipationRiskFactorCp: calculateAverage(categoriesList, 'anticipation_risk_factor_cp'),
+    avgAnticipationRiskFactorCnp: calculateAverage(categoriesList, 'anticipation_risk_factor_cnp'),
   };
- 
 }
 
-
+function calculateAverage(categories: { waiting_period_cp: number | null; waiting_period_cnp: number | null; anticipation_risk_factor_cp: number | null; anticipation_risk_factor_cnp: number | null }[], field: keyof typeof categories[0]): number {
+  const values = categories.map(c => Number(c[field])).filter(Boolean);
+  return values.length ? values.reduce((a, b) => a + b) / values.length : 0;
+}
 
 export async function getCategoryById(
   id: number

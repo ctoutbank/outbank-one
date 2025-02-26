@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type AnticipationListProps = {};
+
 
 export default function AnticipationList() {
   const router = useRouter();

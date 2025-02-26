@@ -6,13 +6,13 @@ import {
   count,
   desc,
   eq,
-  gte,
   ilike,
-  lte,
   max,
   or,
   sql,
   sum,
+  gte,
+  lte
 } from "drizzle-orm";
 import { merchants, payout } from "../../../../drizzle/schema";
 
@@ -92,8 +92,15 @@ export async function getMerchantAgenda(
   search: string,
   page: number,
   pageSize: number,
-  sortField: string = "id",
-  sortOrder: "asc" | "desc" = "desc"
+  dateFrom?: string,
+  dateTo?: string,
+  establishment?: string,
+  status?: string,
+  cardBrand?: string,
+  settlementDateFrom?: string,
+  settlementDateTo?: string,
+  expectedSettlementDateFrom?: string,
+  expectedSettlementDateTo?: string
 ): Promise<MerchantAgendaList> {
   const offset = (page - 1) * pageSize;
 
@@ -105,6 +112,51 @@ export async function getMerchantAgenda(
 
   const maxDate =
     maxExpectedSettlementDate[0]?.maxExpectedSettlementDate || new Date(0);
+
+  const conditions = [
+    eq(
+      payout.expectedSettlementDate,
+      typeof maxDate == "string" ? maxDate : maxDate.toISOString()
+    ),
+    or(ilike(merchants.name, `%${search}%`))
+  ];
+
+  if (dateFrom) {
+    conditions.push(gte(payout.transactionDate, new Date(dateFrom).toISOString()));
+  }
+
+  if (dateTo) {
+    conditions.push(lte(payout.transactionDate, new Date(dateTo).toISOString()));
+  }
+
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  if (status && status !== 'all') {
+    conditions.push(eq(payout.status, status));
+  }
+
+  if (cardBrand && cardBrand !== 'all') {
+    conditions.push(eq(payout.brand, cardBrand));
+  }
+
+  if (settlementDateFrom) {
+    conditions.push(gte(payout.settlementDate, settlementDateFrom));
+  }
+
+  if (settlementDateTo) {
+    conditions.push(lte(payout.settlementDate, settlementDateTo));
+  }
+
+  if (expectedSettlementDateFrom) {
+    conditions.push(gte(payout.expectedSettlementDate, expectedSettlementDateFrom));
+  }
+
+  if (expectedSettlementDateTo) {
+    conditions.push(lte(payout.expectedSettlementDate, expectedSettlementDateTo));
+  }
+
   const result = await db
     .select({
       merchant: merchants.name,
@@ -126,15 +178,7 @@ export async function getMerchantAgenda(
     })
     .from(payout)
     .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
-    .where(
-      and(
-        eq(
-          payout.expectedSettlementDate,
-          typeof maxDate == "string" ? maxDate : maxDate.toISOString()
-        ),
-        or(ilike(merchants.name, `%${search}%`))
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(payout.settlementDate))
     .limit(pageSize)
     .offset(offset);

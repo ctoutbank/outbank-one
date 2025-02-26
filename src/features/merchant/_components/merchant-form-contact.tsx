@@ -114,19 +114,21 @@ export default function MerchantFormcontact({
       const contactData = {
         ...data,
         idAddress: addressId,
+        idMerchant: idMerchant,
       };
-      const Idmerchant = idMerchant;
-      let idContact = data.id;
       contactData.phoneType = contactData.number?.startsWith("9") ? "C" : "P";
       console.log(contactData);
 
+      let merchantIdToRefresh = idMerchant;
+      
       if (data?.id) {
         await updateContactFormAction(contactData);
       } else {
-        idContact = await insertContactFormAction(contactData);
+        const newContactId = await insertContactFormAction(contactData);
+        merchantIdToRefresh = newContactId;
       }
 
-      refreshPage(Idmerchant || 0);
+      refreshPage(merchantIdToRefresh || 0);
     } catch (error) {
       console.error("Error submitting form:", error);
     }

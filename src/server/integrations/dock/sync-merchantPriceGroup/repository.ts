@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
-import { merchantPriceGroup, merchantTransactionPrice, merchantPrice } from "../../../../../drizzle/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { merchantPrice, merchantPriceGroup, merchantTransactionPrice } from "../../../../../drizzle/schema";
 import { MerchantPriceGroup, TransactionPrice } from "./types";
 
 export async function getMerchantPriceIdBySlug(slug: string) {

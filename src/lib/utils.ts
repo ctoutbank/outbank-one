@@ -14,7 +14,7 @@ export type Period = {
 };
 
 export function gateDateByViewMode(viewMode: string): Period {
-  const currentMonth = new Date().getMonth();
+  
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight
@@ -168,7 +168,8 @@ export function formatDateComplete(date: Date): string {
   return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
 }
 
-export function formatCurrency(number: number): string {
+export function formatCurrency(number: number | undefined | null): string {
+  if (number === undefined || number === null) return 'R$ 0,00';
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
 
@@ -196,6 +197,7 @@ export function translateStatus(status: string): string {
       return "Aprovado";
     default:
       return "";
+      
   }
 }
 

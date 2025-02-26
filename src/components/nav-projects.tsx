@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { ChevronRight, TypeIcon as type, LucideIcon } from "lucide-react";
+import { ChevronRight, LucideIcon } from "lucide-react";
 
 import {
   Collapsible,

@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Calendar } from "./calendar";
-import { DailyView } from "./dailyView";
 import {
   DailyAmount,
   GlobalSettlementResult,
   getMerchantAgendaTotal,
 } from "../server/merchantAgenda";
+import { Calendar } from "./calendar";
+import { DailyView } from "./dailyView";
 import ListFilter from "./receiptsFilter";
 
 // Exemplo de dados - substitua pelos dados reais da sua aplicação
@@ -24,9 +22,9 @@ export default function MerchantAgendaReceipts({
   dailyData: GlobalSettlementResult;
 }) {
   const [view, setView] = useState("month");
-  const [search, setSearch] = useState("");
+ 
 
-  const [monthTotal, setMonthTotal] = useState<Number>(0);
+  const [monthTotal, setMonthTotal] = useState<number>(0);
   const [actualDate, setActualDate] = useState<Date>(new Date());
 
   useEffect(() => {
@@ -34,7 +32,7 @@ export default function MerchantAgendaReceipts({
       try {
         const totalAmountByMonth = (await getMerchantAgendaTotal(
           actualDate
-        )) as Number;
+        )) as number;
         setMonthTotal(totalAmountByMonth || 0);
       } catch (error) {
         console.error("Failed to fetch total amount by month:", error);

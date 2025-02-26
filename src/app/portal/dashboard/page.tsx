@@ -27,8 +27,8 @@ export default async function SalesDashboard({
     period.to!
   );
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod?.from!,
-    previousPeriod?.to!
+    previousPeriod?.from ?? new Date(),
+    previousPeriod?.to ?? new Date()
   );
   console.log(
     "totalTransactionsPreviousPeriod",
@@ -48,12 +48,14 @@ export default async function SalesDashboard({
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
       <BaseBody title="Painel de Vendas" subtitle={`Visão geral das vendas`}>
+      <div className="mb-4 ml-1">
         <DashboardFilters
           dateRange={{
             from: period.from,
             to: period.to,
           }}
         />
+        </div>
         <Suspense fallback={<div>Carregando...</div>}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             <CardValue
