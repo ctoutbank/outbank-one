@@ -10,11 +10,11 @@ import { ArrowRight } from "lucide-react"
 
 export default function ContactForm() {
   return (
-    <section className="bg-black text-white py-16 px-4 md:px-8">
+    <section id="contact" className="bg-black text-white py-16 px-4 md:px-8">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Left Column */}
-          <div>
+          <div className="text-center lg:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
               CONTACT US
             </div>
