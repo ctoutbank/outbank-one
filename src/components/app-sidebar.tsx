@@ -9,6 +9,7 @@ import {
   User,
   Settings,
   Check,
+  Link,
 } from "lucide-react";
 import * as React from "react";
 
@@ -23,9 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
 
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  
   const data = {
     teams: [
       {
@@ -62,7 +61,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/portal/salesAgents",
         icon: User,
       },
-      
+      {
+        title: "Link de Pagamento",
+        url: "/portal/paymentLink",
+        icon: Link,
+      },
       {
         title: "Antecipações",
         url: "/portal/anticipations",

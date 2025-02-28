@@ -51,7 +51,15 @@ export function Navbar() {
           {/* Logo */}
           <div className="w-[120px]">
             <Link className="flex items-center justify-center" href="/">
-              <Image src="/box-logo.svg" alt="Logo Outbank" width={120} height={27} className="h-8 w-auto" priority />
+              <Image 
+                src="/box-logo.svg" 
+                alt="Logo Outbank" 
+                width={120} 
+                height={32}
+                className="w-auto h-8"
+                priority
+                quality={100}
+              />
             </Link>
           </div>
 
@@ -127,7 +135,15 @@ export function Navbar() {
                   transition={{ delay: 0.1, duration: 0.5 }}
                   className="mb-8"
                 >
-                  <Image src="/box-logo.svg" alt="Logo Outbank" width={120} height={27} className="h-8 w-auto" />
+                  <Image 
+                    src="/box-logo.svg" 
+                    alt="Logo Outbank" 
+                    width={120} 
+                    height={27} 
+                    className="h-8 w-auto"
+                    priority
+                    quality={100}
+                  />
                 </motion.div>
 
                 {/* Navigation Links */}

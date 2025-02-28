@@ -11,7 +11,7 @@ const HeroLandingPage = () => {
           src="/img-hero.svg"
           alt="Hero background"
           fill
-          className="object-cover"
+          className="object-cover md:object-contain md:translate-x-[5%] md:translate-y-[5%]"
           priority
         />
         {/* Dark overlay - darker on mobile, lighter on desktop */}

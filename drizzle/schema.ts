@@ -189,6 +189,32 @@ export const payout = pgTable("payout", {
 	}
 });
 
+export const merchantfile = pgTable("merchantfile", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "fl_merchantfile_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchant: bigint("id_merchant", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idFile: bigint("id_file", { mode: "number" }),
+	active: boolean().default(true),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	extension: varchar({ length: 10 }),
+}, (table) => {
+	return {
+		flMerchantfileIdMerchantFkey: foreignKey({
+			columns: [table.idMerchant],
+			foreignColumns: [merchants.id],
+			name: "fl_merchantfile_id_merchant_fkey"
+		}),
+		flMerchantfileIdFileFkey: foreignKey({
+			columns: [table.idFile],
+			foreignColumns: [file.id],
+			name: "fl_merchantfile_id_file_fkey"
+		}),
+	}
+});
+
 export const country = pgTable("country", {
 	code: varchar({ length: 5 }).primaryKey().notNull(),
 	name: varchar({ length: 20 }).notNull(),
@@ -255,6 +281,28 @@ export const merchantPixSettlementOrders = pgTable("merchant_pix_settlement_orde
 			columns: [table.idMerchantSettlement],
 			foreignColumns: [merchantSettlements.id],
 			name: "merchant_pix_settlement_orders_id_merchant_settlement_fkey"
+		}),
+	}
+});
+
+export const shoppingItems = pgTable("shopping_items", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "shopping_items_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	active: boolean().default(true),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idPaymentLink: bigint("id_payment_link", { mode: "number" }),
+	name: varchar({ length: 100 }),
+	quantity: integer(),
+	amount: numeric(),
+	slug: varchar({ length: 50 }),
+}, (table) => {
+	return {
+		shoppingItemsIdPaymentLinkFkey: foreignKey({
+			columns: [table.idPaymentLink],
+			foreignColumns: [paymentLink.id],
+			name: "shopping_items_id_payment_link_fkey"
 		}),
 	}
 });
@@ -752,4 +800,15 @@ export const merchantpixaccount = pgTable("merchantpixaccount", {
 			name: "merchantpixaccount_id_merchant_fkey"
 		}),
 	}
+});
+
+export const file = pgTable("file", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "file_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	fileName: varchar("file_name", { length: 200 }),
+	fileUrl: text("file_url"),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	extension: varchar({ length: 5 }),
 });

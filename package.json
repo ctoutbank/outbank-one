@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
     "@clerk/nextjs": "^6.3.4",
     "@fullcalendar/react": "^6.1.15",
     "@hookform/resolvers": "^3.9.1",
@@ -62,6 +63,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.54.1",
     "recharts": "^2.13.3",
+    "resend": "^4.1.2",
     "shadcn-ui": "^0.9.4",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",

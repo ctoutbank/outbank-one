@@ -1,0 +1,491 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { schemaPaymentLink } from "../schema/schema";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
+import {
+  DDMerchant,
+  insertPaymentLink,
+  PaymentLinkDetailForm,
+} from "../server/paymentLink";
+
+interface PaymentLinkFormProps {
+  paymentLink: PaymentLinkDetailForm;
+  merchant: DDMerchant[];
+}
+
+async function updatePaymentLinkFormAction(data: PaymentLinkDetailForm) {
+  console.log("updatePaymentLinkFormAction", data);
+  // TODO: Implement the update action
+  return data.id;
+}
+
+async function insertPaymentLinkFormAction(data: PaymentLinkDetailForm) {
+  console.log("insertPaymentLinkFormAction", data);
+  insertPaymentLink({
+    linkName: data.linkName,
+    dtExpiration: data.expiresAt,
+    idMerchant: Number(data.idMerchant),
+    linkUrl: data.linkUrl,
+    productType: "CREDIT",
+    totalAmount: data.totalAmount?.toString() || "0",
+    paymentLinkStatus: "PENDING",
+    dtinsert: new Date().toISOString(),
+    active: true,
+    dtupdate: new Date().toISOString(),
+    installments: data.installments,
+    pixEnabled: false,
+    shoppingItems: data.shoppingItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      idPaymentLink: 0,
+    })),
+  });
+  return "new-id";
+}
+
+export default function PaymentLinkForm({
+  paymentLink,
+  merchant,
+}: PaymentLinkFormProps) {
+  const router = useRouter();
+  const form = useForm<PaymentLinkDetailForm>({
+    resolver: zodResolver(schemaPaymentLink),
+    defaultValues: paymentLink,
+  });
+  console.log("aqui", paymentLink);
+
+  const [itemName, setItemName] = useState("");
+  const [itemQuantity, setItemQuantity] = useState("");
+  const [itemAmount, setItemAmount] = useState("");
+
+  const onSubmit = async (data: PaymentLinkDetailForm) => {
+    if (data?.id) {
+      await updatePaymentLinkFormAction(data);
+      router.refresh();
+    } else {
+      const newId = await insertPaymentLinkFormAction(data);
+      router.push(`/portal/paymentLink/${newId}`);
+    }
+  };
+
+  function TimeDiff(
+    date1: string,
+    date2: string
+  ): { type: string; value: string } {
+    const dt1 = new Date(date1);
+    const dt2 = new Date(date2);
+    const diff = Math.abs(dt2.getTime() - dt1.getTime());
+    const hour = diff / (1000 * 60 * 60);
+
+    if (hour > 24) {
+      return { type: "day", value: Math.round(hour / 24).toString() };
+    } else {
+      return { type: "hour", value: Math.round(hour).toString() };
+    }
+  }
+
+  const watch = form.watch;
+
+  const handleAddItem = () => {
+    if (!itemName || !itemQuantity || !itemAmount) return;
+
+    const newItem = {
+      name: itemName,
+      quantity: parseInt(itemQuantity),
+      amount: parseFloat(itemAmount).toString(),
+      idPaymentLink: 0,
+    };
+
+    form.setValue("shoppingItems", [
+      ...(form.getValues("shoppingItems") || []),
+      newItem,
+    ]);
+
+    // Reset input fields
+    setItemName("");
+    setItemQuantity("");
+    setItemAmount("");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <Card>
+          <CardContent className="pt-6">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                {/* Identificador Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Identificador</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="linkName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Identificador do link *</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="idMerchant"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do EC *</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {merchant.map((merchant) => (
+                                <SelectItem
+                                  key={merchant.id}
+                                  value={merchant.id.toString()}
+                                >
+                                  {merchant.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Mais opções Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Mais opções</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="expiresAt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Link expirará em</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={
+                              field.value ||
+                              TimeDiff(
+                                paymentLink.dtExpiration ||
+                                  new Date().toISOString(),
+                                paymentLink.dtinsert || new Date().toISOString()
+                              ).type
+                            }
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="day">Dia(s)</SelectItem>
+                              <SelectItem value="hour">Hora(s)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="diffNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-transparent">|</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={
+                              field.value ||
+                              TimeDiff(
+                                paymentLink.dtExpiration ||
+                                  new Date().toISOString(),
+                                paymentLink.dtinsert || new Date().toISOString()
+                              ).value
+                            }
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue defaultValue="1" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {[...Array(48)].map((_, i) => (
+                                <SelectItem
+                                  key={i + 1}
+                                  value={(i + 1).toString()}
+                                >
+                                  {i + 1}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="installments"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantidade máxima de parcelas</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue defaultValue="1" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="1">Crédito à vista</SelectItem>
+                              {[...Array(11)].map((_, i) => (
+                                <SelectItem
+                                  key={i + 2}
+                                  value={(i + 2).toString()}
+                                >
+                                  {i + 2}x
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Valor da Cobrança Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Valor da Cobrança</h3>
+                  <Tabs defaultValue="single" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                      <TabsTrigger value="single">VALOR ÚNICO</TabsTrigger>
+                      <TabsTrigger value="items">VALOR POR ITENS</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="single" className="mt-4">
+                      <FormField
+                        control={form.control}
+                        name="totalAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Valor total da cobrança *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                {...field}
+                                value={field.value ?? ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                    <TabsContent value="items" className="mt-4">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          <Input
+                            placeholder="Nome"
+                            value={itemName}
+                            onChange={(e) => setItemName(e.target.value)}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Quantidade"
+                            value={itemQuantity}
+                            onChange={(e) => setItemQuantity(e.target.value)}
+                          />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="Valor"
+                            value={itemAmount}
+                            onChange={(e) => setItemAmount(e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={handleAddItem}
+                        >
+                          Inserir item
+                        </Button>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Item</TableHead>
+                              <TableHead>Quantidade</TableHead>
+                              <TableHead>Valor Unid.</TableHead>
+                              <TableHead>Valor Total</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {form.watch("shoppingItems")?.map((item, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.amount}</TableCell>
+                                <TableCell>
+                                  {item.quantity * Number(item.amount)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                <div className="flex justify-between">
+                  <Link href="/portal/paymentLink">
+                    <Button type="button" variant="outline">
+                      Voltar
+                    </Button>
+                  </Link>
+
+                  <Button type="submit">Salvar</Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Summary Card */}
+      <Card className="w-full max-w-2xl">
+        <CardContent className="pt-6 space-y-8">
+          <div>
+            <h3 className="font-semibold text-lg text-slate-800">
+              Resumo da cobrança
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-col">
+              <span className="text-slate-600">Valor Total</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[2.5rem] font-semibold text-slate-800">
+                  {watch("totalAmount") || "0,00"}
+                </span>
+                <span className="text-slate-600">BRL</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-slate-600">Identificador</span>
+              <span className="text-slate-800">{watch("linkName") || "-"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-600">Nome do EC</span>
+              <span className="text-slate-800">
+                {watch("idMerchant") || "-"}
+              </span>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-slate-600">Link expirará em</span>
+              <span className="text-slate-800">
+                {watch("dtExpiration") || ""}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-600">Tipo de pagamento</span>
+              <span className="text-slate-800">
+                {watch("installments") == 1
+                  ? "Crédito à vista"
+                  : watch("installments") == null
+                  ? ""
+                  : watch("installments") + "x"}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-slate-600 mb-4">Itens cadastrados</h4>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Quantidade</TableHead>
+                  <TableHead>Valor Unid.</TableHead>
+                  <TableHead className="text-right">Valor Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-right text-slate-600">-</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -3,12 +3,8 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import { EmptyState } from "@/components/empty-state";
-import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnticipationList from "@/features/anticipations/_components/anticipation-list";
-import {
-  getMerchantAgenda
-} from "@/features/merchantAgenda/server/merchantAgenda";
 import { Search } from "lucide-react";
 
 export const revalidate = 0;
@@ -17,8 +13,6 @@ type AntecipationsProps = {
   page: string;
   pageSize: string;
   search: string;
-  dateFrom: string;
-  dateTo: string;
 };
 
 export default async function AntecipationsPage({
@@ -26,12 +20,7 @@ export default async function AntecipationsPage({
 }: {
   searchParams: AntecipationsProps;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
   const search = searchParams.search || "";
-
-  const merchantAgenda = await getMerchantAgenda(search, page, pageSize);
-  const totalRecords = merchantAgenda.totalCount;
 
   return (
     <>
@@ -74,14 +63,6 @@ export default async function AntecipationsPage({
             <div className="w-full overflow-x-auto">
               <AnticipationList></AnticipationList>
             </div>
-            {totalRecords > 0 && (
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/merchantAgenda"
-              />
-            )}
           </TabsContent>
           <TabsContent value="eventual" className="mt-6">
             <EmptyState
@@ -102,3 +83,11 @@ export default async function AntecipationsPage({
     </>
   );
 }
+/*   {totalRecords > 0 && (
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/merchantAgenda"
+              />
+            )}*/

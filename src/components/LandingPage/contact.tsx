@@ -27,50 +27,57 @@ export default function ContactForm() {
 
       {/* Main Content - Add relative and z-20 to appear above the background */}
       <div className="container mx-auto relative z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Left Column */}
-          <div className="text-center lg:text-left">
-            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left Column - Updated structure */}
+          <div className="space-y-8 text-center lg:text-left">
+            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block">
               CONTACT US
             </div>
             <h2 className="text-4xl md:text-5xl font-light leading-tight">
               Contact us to schedule a completely free personalized virtual consultation
             </h2>
+            {/* Added description text */}
+            <p className="text-gray-400 text-lg">
+              Let us understand your business needs and help you transform your digital presence.
+            </p>
           </div>
 
-          {/* Right Column - Form */}
+          {/* Right Column - Form with updated layout */}
           <div className="bg-[#080808] p-8 rounded-lg">
-            <h3 className="text-2xl font-medium mb-8">Input Form</h3>
-
             <form className="space-y-6">
-              {/* Full Name */}
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" placeholder="John Doe" className="bg-[#1C1C1C] border-0" />
+              {/* Two-column layout for shorter forms */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input id="fullName" placeholder="John Doe" className="bg-[#1C1C1C] border-0" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Corporate Email</Label>
+                  <Input id="email" type="email" placeholder="name@enterprise.com" className="bg-[#1C1C1C] border-0" />
+                </div>
               </div>
 
-              {/* Corporate Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Corporate Email</Label>
-                <Input id="email" type="email" placeholder="name@enterprise.com" className="bg-[#1C1C1C] border-0" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="industry">Industry</Label>
+                  <Select>
+                    <SelectTrigger className="bg-[#1C1C1C] border-0">
+                      <SelectValue placeholder="Select Industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tech">Technology</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company">Company Name</Label>
+                  <Input id="company" placeholder="Company name" className="bg-[#1C1C1C] border-0" />
+                </div>
               </div>
 
-              {/* Industry */}
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry</Label>
-                <Select>
-                  <SelectTrigger className="bg-[#1C1C1C] border-0">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tech">Technology</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="retail">Retail</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Phone Number */}
+              {/* Phone number in its own row */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone number</Label>
                 <div className="flex gap-2">
@@ -88,39 +95,34 @@ export default function ContactForm() {
                 </div>
               </div>
 
-              {/* Company Information */}
+              {/* Message area */}
               <div className="space-y-2">
-                <Label htmlFor="company">Company Information</Label>
-                <Input id="company" placeholder="Company name" className="bg-[#1C1C1C] border-0" />
-              </div>
-
-              {/* Describe your case */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2" htmlFor="case">
-                  Describe your case
-                </Label>
+                <Label htmlFor="case">How can we help?</Label>
                 <Textarea
                   id="case"
-                  placeholder="Tell us about your use case..."
-                  className="bg-[#1C1C1C] border-0 min-h-[120px]"
+                  placeholder="Tell us about your needs..."
+                  className="bg-[#1C1C1C] border-0 min-h-[100px]"
                 />
               </div>
 
-              {/* Checkboxes */}
-              <div className="flex gap-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="value1" />
-                  <Label htmlFor="value1">Value 1</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="value2" />
-                  <Label htmlFor="value2">Value 2</Label>
+              {/* Updated checkbox section */}
+              <div className="space-y-4">
+                <p className="text-sm text-gray-400">Additional Options</p>
+                <div className="flex gap-6">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="value1" />
+                    <Label htmlFor="value1" className="text-sm">Newsletter</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="value2" />
+                    <Label htmlFor="value2" className="text-sm">Terms & Conditions</Label>
+                  </div>
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none">
-                Next <ArrowRight className="ml-2 h-4 w-4" />
+              {/* Updated button */}
+              <Button className="w-full bg-white text-black hover:bg-white/90 rounded-md py-6 text-lg font-medium">
+                Schedule Consultation <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </form>
           </div>

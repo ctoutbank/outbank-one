@@ -11,7 +11,7 @@ import ServicesSection from "@/components/LandingPage/services";
 import SuccessStories from "@/components/LandingPage/success-stories";
 import { Navbar } from "@/components/navbar";
 
-export default function Component() {
+export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-black">
       <Navbar />
