@@ -10,7 +10,6 @@ const UploadSection = ({
   title,
   description,
   accept = "application/pdf,image/jpeg,image/jpg",
-  merchantId,
   onFileSelect,
 }: {
   title: string

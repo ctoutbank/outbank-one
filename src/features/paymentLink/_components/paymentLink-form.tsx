@@ -2,9 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { schemaPaymentLink } from "../schema/schema";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,11 +82,11 @@ export default function PaymentLinkForm({
   merchant,
 }: PaymentLinkFormProps) {
   const router = useRouter();
+  
   const form = useForm<PaymentLinkDetailForm>({
     resolver: zodResolver(schemaPaymentLink),
     defaultValues: paymentLink,
   });
-  console.log("aqui", paymentLink);
 
   const [itemName, setItemName] = useState("");
   const [itemQuantity, setItemQuantity] = useState("");
@@ -97,6 +97,7 @@ export default function PaymentLinkForm({
       await updatePaymentLinkFormAction(data);
       router.refresh();
     } else {
+      console.log("entrou aqui");
       const newId = await insertPaymentLinkFormAction(data);
       router.push(`/portal/paymentLink/${newId}`);
     }
