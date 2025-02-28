@@ -81,12 +81,12 @@ export default function ProductFeatures() {
     <section className="bg-black text-white py-16 px-4 md:px-8">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-16">
+        <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
             PRODUCTS
           </div>
           <h2 className="text-4xl md:text-5xl font-light mb-6">Your digital bank, plug & play</h2>
-          <p className="text-gray-200 text-lg max-w-3xl">
+          <p className="text-gray-200 text-lg max-w-3xl mx-auto md:mx-0">
             A complete banking platform for your company to create and offer innovative financial services.
           </p>
         </div>

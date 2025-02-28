@@ -382,7 +382,7 @@ export default function MerchantTabs({
       </TabsContent>
 
       <TabsContent value="documents">
-        <MerchantFormDocuments />
+        <MerchantFormDocuments merchantId={merchant.id.toString()} />
       </TabsContent>
       
     </Tabs>
