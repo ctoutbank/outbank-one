@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, merchants, payout, merchantPixSettlementOrders, merchantSettlements, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, paymentLink, merchantpixaccount } from "./schema";
+import { customers, paymentInstitution, settlements, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, paymentLink, merchantpixaccount } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -38,6 +38,7 @@ export const payoutRelations = relations(payout, ({one}) => ({
 
 export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	payouts: many(payout),
+	merchantfiles: many(merchantfile),
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
 	category: one(categories, {
 		fields: [merchants.idCategory],
@@ -67,6 +68,21 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	merchantSettlements: many(merchantSettlements),
 	paymentLinks: many(paymentLink),
 	merchantpixaccounts: many(merchantpixaccount),
+}));
+
+export const merchantfileRelations = relations(merchantfile, ({one}) => ({
+	merchant: one(merchants, {
+		fields: [merchantfile.idMerchant],
+		references: [merchants.id]
+	}),
+	file: one(file, {
+		fields: [merchantfile.idFile],
+		references: [file.id]
+	}),
+}));
+
+export const fileRelations = relations(file, ({many}) => ({
+	merchantfiles: many(merchantfile),
 }));
 
 export const merchantPixSettlementOrdersRelations = relations(merchantPixSettlementOrders, ({one}) => ({
