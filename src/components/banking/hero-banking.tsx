@@ -18,7 +18,7 @@ const HeroBanking = () => {
           src="/hero-banking.svg"
           alt="Hero background"
           fill
-          className="object-cover md:object-contain md:translate-x-[5%]"
+          className="object-cover md:object-contain md:translate-x-[5%] md:translate-y-[5%]"
           priority
           quality={100}
         />
@@ -27,11 +27,11 @@ const HeroBanking = () => {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 md:pt-32">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-32">
         <div className="flex flex-col lg:flex-row items-center justify-between">
           {/* Left Column - Text and Buttons */}
           <div className="w-full lg:max-w-md text-center lg:text-left">
-            <div className="bg-gray-600/20 text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-600/40 text-xs sm:text-sm rounded-2xl inline-block mb-4 sm:mb-6">
+            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
               BANKING
             </div>
             
@@ -48,11 +48,11 @@ const HeroBanking = () => {
                 onClick={() => {
                   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full sm:w-auto bg-white text-gray-900 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98] rounded-lg"
+                className="w-full sm:w-auto bg-white text-gray-900 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98] "
               >
                 Button CTA
               </button>
-              <button className="w-full sm:w-auto bg-gray-400/10 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] rounded-lg">
+              <button className="w-full sm:w-auto bg-gray-400/10 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] ">
                 Learn More
               </button>
             </div>

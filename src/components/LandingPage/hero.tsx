@@ -15,7 +15,7 @@ const HeroLandingPage = () => {
           priority
         />
         {/* Dark overlay - darker on mobile, lighter on desktop */}
-        <div className="absolute inset-0 bg-black/60 md:bg-transparent" />
+        <div className="absolute inset-0 bg-black/60 lg:bg-transparent" />
       </div>
 
       {/* Content Container */}

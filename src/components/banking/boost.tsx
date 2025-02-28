@@ -35,8 +35,8 @@ export default function BoostSection() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 md:pt-32">
         <div className="grid grid-cols-12 gap-4 sm:gap-8 items-start">
           {/* Left Column */}
-          <div className="col-span-12 lg:col-span-6 space-y-4 sm:space-y-6 flex flex-col items-center sm:items-start text-center sm:text-left">
-            <div className="bg-gray-600/20 text-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-600/40 text-xs sm:text-sm rounded-2xl">
+          <div className="col-span-12 lg:col-span-6 space-y-4 sm:space-y-6 flex flex-col items-center sm:items-start text-center sm:text-left md:mt-16">
+            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
               BOOST YOUR BUSINESS
             </div>
             <h1 className="text-3xl sm:text-5xl font-light text-white leading-tight max-w-[300px] sm:max-w-none">
@@ -47,7 +47,7 @@ export default function BoostSection() {
             </h1>
             <Button
               variant="outline"
-              className="bg-gray-100 text-black hover:bg-white/90 rounded-none py-2 sm:py-6 px-3 sm:px-8 h-auto text-xs sm:text-base mt-2 sm:mt-4 max-w-[240px] w-full sm:w-auto"
+              className="bg-gray-100 text-black hover:bg-white/90 rounded-none py-2 sm:py-6 px-3 sm:px-8  text-xs sm:text-base mt-2 sm:mt-4 max-w-[240px] w-full sm:w-auto"
             >
               <span className="flex-1">Button CTA</span>
               <ArrowRight className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-2 sm:ml-4" />
