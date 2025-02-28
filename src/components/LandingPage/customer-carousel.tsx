@@ -11,7 +11,7 @@ export default function CustomerCarousel() {
   )
 
   return (
-    <div className="w-full bg-[#080808] py-20">
+    <div className="w-full bg-[#080808] py-16">
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8">
           <p className="text-gray-300 text-md font-medium whitespace-nowrap self-center">

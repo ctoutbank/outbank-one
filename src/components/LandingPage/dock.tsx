@@ -19,7 +19,7 @@ export default function DockSection() {
           {/* Question 1 */}
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-              <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+              <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">Why choose Dock?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
@@ -33,7 +33,7 @@ export default function DockSection() {
           {/* Question 2 */}
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-              <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+              <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">What is Embedded Finance?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
@@ -47,7 +47,7 @@ export default function DockSection() {
           {/* Question 3 */}
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-              <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+              <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">How does Dock drive this transformation?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
@@ -61,7 +61,7 @@ export default function DockSection() {
           {/* Question 4 */}
             <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-            <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+            <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">What is the most searched question?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
@@ -74,7 +74,7 @@ export default function DockSection() {
           {/* Question 5 */}
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-            <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+            <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">What is the most searched question?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
@@ -87,7 +87,7 @@ export default function DockSection() {
           {/* Question 6 */}
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
-            <HelpCircle className="w-8 h-8 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-600/20" />
+            <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
               <h3 className="text-xl font-medium">What is the most searched question?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">

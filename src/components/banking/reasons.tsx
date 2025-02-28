@@ -58,7 +58,7 @@ export default function ReasonsSection() {
         {/* Content container with higher z-index */}
         <div className="container mx-auto relative z-20">
           {/* Header */}
-          <div className="max-w-4xl mb-16">
+          <div className="max-w-4xl mb-16 text-center md:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
               REASONS
             </div>
