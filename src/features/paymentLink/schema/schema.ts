@@ -1,38 +1,26 @@
 import { z } from "zod";
 
-// Schema for individual items in the payment
-export const PaymentItemSchema = z.object({
-  id: z.string().optional(),
+export const schemaShoppingItems = z.object({
+  slug: z.string().optional(),
   name: z.string().optional(),
-  quantity: z.string().optional(),
-  totalValue: z.string().optional(),
+  quantity: z.number().optional(),
+  amount: z.string().optional(),
+  idPaymentLink: z.number().optional(),
 });
 
-// Main schema for the payment link
 export const schemaPaymentLink = z.object({
-  id: z.string().optional(),
-
-  // Identificador section
-  linkIdentifier: z.string().optional(),
-  ecName: z.string().optional(),
-
-  // Mais opções section
-  dateOrDay: z.string().optional(),
-  expirationTime: z.string().optional(),
+  id: z.number().optional(),
+  linkName: z.string().optional(),
+  idMerchant: z.string().optional(),
+  dtExpiration: z.string().optional(),
   installments: z.string().optional(),
-  paymentType: z.string().optional(),
   totalAmount: z.string().optional(),
-  items: z.array(PaymentItemSchema).optional(),
-
-  // Additional fields
+  items: z.array(schemaShoppingItems).optional(),
   active: z.boolean().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  expirationDate: z.date().optional(),
+  dtinsert: z.string().optional(),
+  dtupdate: z.string().optional(),
 });
 
-// Type for the payment link based on the schema
 export type PaymentLinkSchema = z.infer<typeof schemaPaymentLink>;
 
-// Type for payment items based on the schema
-export type PaymentItemType = z.infer<typeof PaymentItemSchema>;
+export type ShoppingItemsSchema = z.infer<typeof schemaShoppingItems>;
