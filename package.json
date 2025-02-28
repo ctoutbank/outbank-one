@@ -62,6 +62,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.54.1",
     "recharts": "^2.13.3",
+    "resend": "^4.1.2",
     "shadcn-ui": "^0.9.4",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",

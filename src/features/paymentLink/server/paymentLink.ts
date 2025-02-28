@@ -1,8 +1,13 @@
 "use server";
 
+import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
-import { count, eq, ilike, or } from "drizzle-orm";
-import { merchants, paymentLink } from "../../../../drizzle/schema";
+import { and, count, eq, ilike, sql } from "drizzle-orm";
+import {
+  merchants,
+  paymentLink,
+  shoppingItems,
+} from "../../../../drizzle/schema";
 
 export interface PaymentLinkList {
   linksObject: {
@@ -26,9 +31,32 @@ export interface DDMerchant {
 
 export type PaymentLinkInsert = typeof paymentLink.$inferInsert;
 export type PaymentLinkDetail = typeof paymentLink.$inferSelect;
+export interface PaymentLinkDetailForm extends PaymentLinkDetail {
+  expiresAt?: string;
+  diffNumber?: string;
+  shoppingItems: ShoppingItems[];
+}
+
+export interface ShoppingItems {
+  slug?: string;
+  name: string;
+  quantity: number;
+  amount: string;
+  idPaymentLink: number;
+}
+
+export interface PaymentLinkDetailInsert extends PaymentLinkInsert {
+  shoppingItems: ShoppingItems[];
+}
+
+export interface PaymentLinkById extends PaymentLinkDetail {
+  shoppingItems: ShoppingItems[];
+}
 
 export async function getPaymentLinks(
-  search: string,
+  merchant: string,
+  identifier: string,
+  status: string,
   page: number,
   pageSize: number
 ): Promise<PaymentLinkList> {
@@ -49,9 +77,10 @@ export async function getPaymentLinks(
     .from(paymentLink)
     .leftJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
     .where(
-      or(
-        ilike(paymentLink.linkName, `%${search}%`),
-        ilike(merchants.name, `%${search}%`)
+      and(
+        ilike(paymentLink.linkName, `%${identifier}%`),
+        ilike(merchants.name, `%${merchant}%`),
+        status == "" ? undefined : eq(paymentLink.paymentLinkStatus, status)
       )
     )
     .limit(pageSize)
@@ -62,9 +91,10 @@ export async function getPaymentLinks(
     .from(paymentLink)
     .leftJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
     .where(
-      or(
-        ilike(paymentLink.linkName, `%${search}%`),
-        ilike(merchants.name, `%${search}%`)
+      and(
+        ilike(paymentLink.linkName, `%${identifier}%`),
+        ilike(merchants.name, `%${merchant}%`),
+        status == "" ? undefined : eq(paymentLink.paymentLinkStatus, status)
       )
     );
   const totalCount = totalCountResult[0]?.count || 0;
@@ -87,22 +117,75 @@ export async function getPaymentLinks(
 
 export async function getPaymentLinkById(
   id: number
-): Promise<PaymentLinkDetail | null> {
-  const result = await db
-    .select()
-    .from(paymentLink)
-    .where(eq(paymentLink.id, id));
+): Promise<PaymentLinkById | null> {
+  const result = await db.execute(sql`
+    SELECT 
+      p.id,
+      p.slug,
+      p.active,
+      p.dtinsert,
+      p.dtupdate,
+      p.link_name as "linkName",
+      p.dt_expiration as "dtExpiration",
+      p.total_amount as "totalAmount",
+      p.id_merchant as "idMerchant",
+      p.payment_link_status as "paymentLinkStatus",
+      p.product_type as "productType",
+      p.installments as "installments",
+      p.link_url as "linkUrl",    
+      COALESCE(
+        JSON_AGG(s.*) FILTER (WHERE s.id IS NOT NULL),
+        '[]'
+      ) AS "shoppingItems"
+    FROM payment_link p
+    LEFT JOIN shopping_items s ON s.id_payment_link = p.id
+    WHERE p.id = ${id}
+    GROUP BY p.id
+  `);
 
-  return result[0] || null;
+  return (result.rows[0] as unknown as PaymentLinkById) || null;
 }
 
-export async function insertPaymentLink(paymentLinks: PaymentLinkInsert) {
-  const result = await db
+export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
+  const paymentLinkIn: PaymentLinkInsert = {
+    slug: generateSlug(),
+    linkName: paymentLinks.linkName,
+    paymentLinkStatus: "PENDING",
+    idMerchant: paymentLinks.idMerchant,
+    dtinsert: new Date().toISOString(),
+    dtupdate: new Date().toISOString(),
+    totalAmount: paymentLinks.totalAmount,
+    dtExpiration: paymentLinks.dtExpiration,
+    installments: paymentLinks.installments,
+    active: true,
+    linkUrl: paymentLinks.linkUrl,
+    pixEnabled: paymentLinks.pixEnabled,
+    productType: paymentLinks.productType,
+    transactionSlug: paymentLinks.transactionSlug,
+  };
+
+  const resultPaymentLink = await db
     .insert(paymentLink)
-    .values(paymentLinks)
+    .values(paymentLinkIn)
     .returning({ id: paymentLink.id });
 
-  return result[0].id;
+  if (!paymentLinks.shoppingItems || paymentLinks.shoppingItems.length === 0) {
+    return resultPaymentLink[0].id;
+  }
+
+  const varShoppingItems: ShoppingItems[] = paymentLinks.shoppingItems.map(
+    (item) => ({
+      slug: generateSlug(),
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      idPaymentLink: resultPaymentLink[0].id,
+    })
+  );
+
+  await db.insert(shoppingItems).values(varShoppingItems);
+
+  return resultPaymentLink[0].id;
 }
 
 export async function updatePaymentLink(

@@ -1,8 +1,8 @@
-import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import PaginationRecords from "@/components/pagination-Records";
+import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-link-filter";
+import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
 
 export const revalidate = 0;
@@ -10,9 +10,9 @@ export const revalidate = 0;
 type PaymentLinkProps = {
   page: string;
   pageSize: string;
-  search: string;
-  sortField?: string;
-  sortOrder?: string;
+  merchant: string;
+  identifier: string;
+  status: string;
 };
 
 export default async function PaymentLinkPage({
@@ -22,11 +22,18 @@ export default async function PaymentLinkPage({
 }) {
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");
-  const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
+  const merchant = searchParams.merchant || "";
+  const identifier = searchParams.identifier || "";
+  const status = searchParams.status || "";
 
-  const paymentLinks = await getPaymentLinks(search, page, pageSize);
+  const paymentLinks = await getPaymentLinks(
+    merchant,
+    identifier,
+    status,
+    page,
+    pageSize
+  );
+
   const totalRecords = paymentLinks.totalCount;
 
   return (
@@ -41,13 +48,13 @@ export default async function PaymentLinkPage({
         title="Links de Pagamento"
         subtitle={`Visualização de todos os Links de Pagamento`}
       >
-        <ListFilter
-          pageName="portal/paymentLink"
-          search={search}
-          linkHref={"/portal/paymentLink/0"}
-          linkText={"Novo Link de Pagamento"}
-        />
-
+        <div className="mb-4">
+          <PaymentLinkFilter
+            identifier={identifier}
+            status={status}
+            merchant={merchant}
+          />
+        </div>
         <PaymentLinkList links={paymentLinks} />
 
         {totalRecords > 0 && (

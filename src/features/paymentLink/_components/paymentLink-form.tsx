@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { schemaPaymentLink } from "../schema/schema";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,31 +24,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DDMerchant, PaymentLinkDetail } from "../server/paymentLink";
 import Link from "next/link";
+import {
+  DDMerchant,
+  insertPaymentLink,
+  PaymentLinkDetailForm,
+} from "../server/paymentLink";
 
 interface PaymentLinkFormProps {
-  paymentLink: PaymentLinkDetail;
+  paymentLink: PaymentLinkDetailForm;
   merchant: DDMerchant[];
 }
 
-async function updatePaymentLinkFormAction(data: PaymentLinkDetail) {
+async function updatePaymentLinkFormAction(data: PaymentLinkDetailForm) {
   console.log("updatePaymentLinkFormAction", data);
   // TODO: Implement the update action
   return data.id;
 }
 
-async function insertPaymentLinkFormAction(data: PaymentLinkDetail) {
+async function insertPaymentLinkFormAction(data: PaymentLinkDetailForm) {
   console.log("insertPaymentLinkFormAction", data);
-  // TODO: Implement the insert action
+  insertPaymentLink({
+    linkName: data.linkName,
+    dtExpiration: data.expiresAt,
+    idMerchant: Number(data.idMerchant),
+    linkUrl: data.linkUrl,
+    productType: "CREDIT",
+    totalAmount: data.totalAmount?.toString() || "0",
+    paymentLinkStatus: "PENDING",
+    dtinsert: new Date().toISOString(),
+    active: true,
+    dtupdate: new Date().toISOString(),
+    installments: data.installments,
+    pixEnabled: false,
+    shoppingItems: data.shoppingItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      idPaymentLink: 0,
+    })),
+  });
   return "new-id";
 }
 
@@ -56,12 +82,17 @@ export default function PaymentLinkForm({
   merchant,
 }: PaymentLinkFormProps) {
   const router = useRouter();
-  const form = useForm<PaymentLinkDetail>({
+  const form = useForm<PaymentLinkDetailForm>({
     resolver: zodResolver(schemaPaymentLink),
     defaultValues: paymentLink,
   });
+  console.log("aqui", paymentLink);
 
-  const onSubmit = async (data: PaymentLinkDetail) => {
+  const [itemName, setItemName] = useState("");
+  const [itemQuantity, setItemQuantity] = useState("");
+  const [itemAmount, setItemAmount] = useState("");
+
+  const onSubmit = async (data: PaymentLinkDetailForm) => {
     if (data?.id) {
       await updatePaymentLinkFormAction(data);
       router.refresh();
@@ -70,7 +101,45 @@ export default function PaymentLinkForm({
       router.push(`/portal/paymentLink/${newId}`);
     }
   };
+
+  function TimeDiff(
+    date1: string,
+    date2: string
+  ): { type: string; value: string } {
+    const dt1 = new Date(date1);
+    const dt2 = new Date(date2);
+    const diff = Math.abs(dt2.getTime() - dt1.getTime());
+    const hour = diff / (1000 * 60 * 60);
+
+    if (hour > 24) {
+      return { type: "day", value: Math.round(hour / 24).toString() };
+    } else {
+      return { type: "hour", value: Math.round(hour).toString() };
+    }
+  }
+
   const watch = form.watch;
+
+  const handleAddItem = () => {
+    if (!itemName || !itemQuantity || !itemAmount) return;
+
+    const newItem = {
+      name: itemName,
+      quantity: parseInt(itemQuantity),
+      amount: parseFloat(itemAmount).toString(),
+      idPaymentLink: 0,
+    };
+
+    form.setValue("shoppingItems", [
+      ...(form.getValues("shoppingItems") || []),
+      newItem,
+    ]);
+
+    // Reset input fields
+    setItemName("");
+    setItemQuantity("");
+    setItemAmount("");
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -93,7 +162,7 @@ export default function PaymentLinkForm({
                         <FormItem>
                           <FormLabel>Identificador do link *</FormLabel>
                           <FormControl>
-                            <Input value={field.value || ""} />
+                            <Input {...field} value={field.value ?? ""} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -138,17 +207,24 @@ export default function PaymentLinkForm({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
-                      name="dtExpiration"
+                      name="expiresAt"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Link expirará em</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value || ""}
+                            defaultValue={
+                              field.value ||
+                              TimeDiff(
+                                paymentLink.dtExpiration ||
+                                  new Date().toISOString(),
+                                paymentLink.dtinsert || new Date().toISOString()
+                              ).type
+                            }
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Hora(s)" />
+                                <SelectValue placeholder="Selecione" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -162,15 +238,20 @@ export default function PaymentLinkForm({
                     />
                     <FormField
                       control={form.control}
-                      name="installments"
+                      name="diffNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-transparent">
-                            |
-                          </FormLabel>
+                          <FormLabel className="text-transparent">|</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value?.toString() || ""}
+                            defaultValue={
+                              field.value ||
+                              TimeDiff(
+                                paymentLink.dtExpiration ||
+                                  new Date().toISOString(),
+                                paymentLink.dtinsert || new Date().toISOString()
+                              ).value
+                            }
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -245,6 +326,7 @@ export default function PaymentLinkForm({
                               <Input
                                 type="number"
                                 step="0.01"
+                                {...field}
                                 value={field.value ?? ""}
                               />
                             </FormControl>
@@ -256,15 +338,30 @@ export default function PaymentLinkForm({
                     <TabsContent value="items" className="mt-4">
                       <div className="space-y-4">
                         <div className="grid grid-cols-3 gap-4">
-                          <Input placeholder="Nome" />
-                          <Input type="number" placeholder="Quantidade" />
+                          <Input
+                            placeholder="Nome"
+                            value={itemName}
+                            onChange={(e) => setItemName(e.target.value)}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Quantidade"
+                            value={itemQuantity}
+                            onChange={(e) => setItemQuantity(e.target.value)}
+                          />
                           <Input
                             type="number"
                             step="0.01"
                             placeholder="Valor"
+                            value={itemAmount}
+                            onChange={(e) => setItemAmount(e.target.value)}
                           />
                         </div>
-                        <Button type="button" variant="secondary">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={handleAddItem}
+                        >
                           Inserir item
                         </Button>
                         <Table>
@@ -276,7 +373,18 @@ export default function PaymentLinkForm({
                               <TableHead>Valor Total</TableHead>
                             </TableRow>
                           </TableHeader>
-                          <TableBody>{/* Add table rows here */}</TableBody>
+                          <TableBody>
+                            {form.watch("shoppingItems")?.map((item, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.amount}</TableCell>
+                                <TableCell>
+                                  {item.quantity * Number(item.amount)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
                         </Table>
                       </div>
                     </TabsContent>
@@ -299,52 +407,82 @@ export default function PaymentLinkForm({
       </div>
 
       {/* Summary Card */}
-      <Card>
-        <CardContent className="pt-6">
-          <h3 className="font-semibold text-lg mb-4">Resumo da cobrança</h3>
+      <Card className="w-full max-w-2xl">
+        <CardContent className="pt-6 space-y-8">
+          <div>
+            <h3 className="font-semibold text-lg text-slate-800">
+              Resumo da cobrança
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-col">
+              <span className="text-slate-600">Valor Total</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[2.5rem] font-semibold text-slate-800">
+                  {watch("totalAmount") || "0,00"}
+                </span>
+                <span className="text-slate-600">BRL</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Identificador:</span>
-              <span className="font-semibold">
-                {watch("linkName") || "N/A"}
+            <div className="flex justify-between">
+              <span className="text-slate-600">Identificador</span>
+              <span className="text-slate-800">{watch("linkName") || "-"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-600">Nome do EC</span>
+              <span className="text-slate-800">
+                {watch("idMerchant") || "-"}
               </span>
             </div>
+          </div>
 
-            <div className="flex justify-between items-center">
-              <span>Nome do EC:</span>
-              <span className="font-semibold">
-                {merchant.find(
-                  (m) => m.id.toString() === watch("idMerchant")?.toString()
-                )?.name || "N/A"}
-              </span>
-            </div>
+          <Separator />
 
-            <div className="flex justify-between items-center">
-              <span>Expiração:</span>
-              <span className="font-semibold">
-                {watch("dtExpiration") === "day"
-                  ? "Dia(s)"
-                  : watch("dtExpiration") === "hour"
-                  ? "Hora(s)"
-                  : ""}
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-slate-600">Link expirará em</span>
+              <span className="text-slate-800">
+                {watch("dtExpiration") || ""}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-slate-600">Tipo de pagamento</span>
+              <span className="text-slate-800">
+                {watch("installments") == 1
+                  ? "Crédito à vista"
+                  : watch("installments") == null
+                  ? ""
+                  : watch("installments") + "x"}
+              </span>
+            </div>
+          </div>
 
-            <div className="flex justify-between items-center">
-              <span>Parcelas:</span>
-              <span className="font-semibold">
-                {watch("installments") || ""}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span>Valor total:</span>
-              <span className="font-semibold">
-                {watch("totalAmount")
-                  ? `R$ ${parseFloat(watch("totalAmount") || "0").toFixed(2)}`
-                  : "N/A"}
-              </span>
-            </div>
+          <div>
+            <h4 className="text-slate-600 mb-4">Itens cadastrados</h4>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Quantidade</TableHead>
+                  <TableHead>Valor Unid.</TableHead>
+                  <TableHead className="text-right">Valor Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-slate-600">-</TableCell>
+                  <TableCell className="text-right text-slate-600">-</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

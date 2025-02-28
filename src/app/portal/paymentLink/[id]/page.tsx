@@ -1,7 +1,5 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import Categoriesform from "@/features/categories/_components/categories-form";
-import { getCategoryById } from "@/features/categories/server/category";
 import PaymentLinkForm from "@/features/paymentLink/_components/paymentLink-form";
 import {
   getMerchants,
@@ -38,7 +36,7 @@ export default async function CategoryDetail({
             paymentLinkById ?? {
               id: 0,
               slug: null,
-              active: null,
+              active: false,
               dtinsert: null,
               dtupdate: null,
               linkName: null,
@@ -51,6 +49,7 @@ export default async function CategoryDetail({
               linkUrl: null,
               pixEnabled: null,
               transactionSlug: null,
+              shoppingItems: [],
             }
           }
           merchant={merchants}

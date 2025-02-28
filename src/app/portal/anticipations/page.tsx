@@ -3,12 +3,8 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import { EmptyState } from "@/components/empty-state";
-import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnticipationList from "@/features/anticipations/_components/anticipation-list";
-import {
-  getMerchantAgenda
-} from "@/features/merchantAgenda/server/merchantAgenda";
 import { Search } from "lucide-react";
 
 export const revalidate = 0;
@@ -24,8 +20,6 @@ export default async function AntecipationsPage({
 }: {
   searchParams: AntecipationsProps;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
   const search = searchParams.search || "";
 
   return (
