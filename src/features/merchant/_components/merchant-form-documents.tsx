@@ -1,22 +1,29 @@
 "use client"
 
+
+
+import FileUploadTest from "@/components/fileUpload"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { uploadFile } from "@/server/upload"
 import { UploadIcon as FileUpload, Eye, Download, RefreshCw } from "lucide-react"
-import React from "react"
+import React, { useState } from "react"
+
 
 const UploadSection = ({
   title,
   description,
   accept = "application/pdf,image/jpeg,image/jpg",
+  fileType,
+  merchantId,
   onFileSelect,
 }: {
   title: string
   description?: string
   accept?: string
+  fileType?: string
   merchantId: number
-  onFileSelect: (file: File) => Promise<{ success: boolean; key: string } | undefined>
+  onFileSelect: (file: File, fileType: string) => Promise<{ success: boolean; key: string } | undefined>
 }) => {
   // Group all state variables together for better readability
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -37,12 +44,13 @@ const UploadSection = ({
       setError(null)
 
       try {
-        const result = await onFileSelect(file)
+        const result = await onFileSelect(file, fileType || "")
         setUploadedFile(file.name)
         // Construir a URL do arquivo no S3
         if (result?.success && result?.key) {
           const fileUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME || "file-upload-outbank"}.s3.${process.env.NEXT_PUBLIC_AWS_REGION || "us-east-2"}.amazonaws.com/${result.key}`
           setFileUrl(fileUrl)
+
         }
       } catch (err) {
         setError("Falha ao fazer upload. Tente novamente.")
@@ -211,20 +219,44 @@ interface MerchantFormDocumentsProps {
 }
 
 export default function MerchantFormDocuments({ merchantId }: MerchantFormDocumentsProps) {
-  const handleFileUpload = async (file: File): Promise<{ success: boolean; key: string } | undefined> => {
+  
+
+
+
+  const handleFileUpload = async (file: File, fileType: string): Promise<{ success: boolean; key: string } | undefined> => {
     const formData = new FormData()
-    formData.append("file", file)
-    formData.append("merchantId", merchantId)
+    formData.append("File", file)
+    formData.append("fileName", file.name)
 
     try {
-      const result = await uploadFile(formData)
+      const result = await uploadFile({
+        formData,
+        path: `merchants/${merchantId}`,
+        fileName: file.name,
+        fileType: fileType
+      })
       console.log("Upload realizado com sucesso:", result)
-      return result
+      if (!result) return undefined
+      return {
+        success: true,
+        key: result.fileURL
+      }
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error)
       throw error
     }
   }
+
+  // Função compatível com o onUploadComplete do FileUploader
+  const handleUploadComplete = (fileData: {
+    fileId: number;
+    fileURL: string;
+    fileName: string;
+    fileExtension: string;
+  }) => {
+    console.log("Upload completo:", fileData);
+    // Aqui você pode adicionar qualquer lógica adicional necessária após o upload
+  };
 
   // Section component to improve visual hierarchy
   const DocumentSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -252,6 +284,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="CNHDIGITAL"
               />
 
               <UploadSection
@@ -259,6 +292,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="CNHFRENTE"
               />
 
               <UploadSection
@@ -266,6 +300,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="CNHVERSO"
               />
             </DocumentSection>
 
@@ -276,6 +311,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Obrigatório para todos os cadastros. Para empresas com mais de um sócio a SELFIE é obrigatória apenas para o sócio majoritário."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="SELFIE"
               />
 
               <UploadSection
@@ -283,6 +319,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Para cadastros cujo responsável legal tenha no mínimo 16 e no máximo 17 anos."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="CARTAEMANCIPACAO"
               />
 
               <UploadSection
@@ -290,6 +327,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Para quando o responsável legal não for sócio majoritário."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="PROCURACAO"
               />
             </DocumentSection>
 
@@ -300,6 +338,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Retirado pela pessoa que está realizando o cadastro no momento da execução da tarefa."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="CARTAOCNPJ"
               />
 
               <UploadSection
@@ -307,6 +346,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Constando nome do responsável legal, quadro societário e atividades exercidas. Contrato Social, Estatuto, etc. Obrigatório para empresas S/A e LTDA."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="ESTATUTO"
               />
 
               <UploadSection
@@ -314,6 +354,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Este documento não é obrigatório! Todo o processo de assinatura de termo de adesão é feito pelo Estabelecimento no primeiro login no Portal. Utilize esse espaço caso tenha algum termo em fluxo específico."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="TERMOADESAO"
               />
             </DocumentSection>
 
@@ -324,6 +365,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="PDF com a pesquisa de KYC feita no BigBoost no momento do onboarding."
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="BIGBOOST"
               />
 
               <UploadSection
@@ -331,6 +373,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 description="Validação de Match da MasterCard para onboarding de Estabelecimentos Comerciais"
                 merchantId={Number(merchantId)}
                 onFileSelect={handleFileUpload}
+                fileType="MATCHMASTERCARD"
               />
 
               <div className="h-full flex flex-col">
@@ -358,9 +401,48 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                   description="Preenchimento não obrigatório. Utilize essa seção para inserir documentos pertinentes à sua operação."
                   merchantId={Number(merchantId)}
                   onFileSelect={handleFileUpload}
+                  fileType="OUTROS"
                 />
               </div>
+             
+            <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Upload de Documentos</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <FileUploadTest
+          title="CNH Digital"
+          description="Documento de Identificação"
+          entityType="merchant"
+          fileType="CNHDIGITAL"
+          entityId={Number(merchantId)}
+          onUploadComplete={handleUploadComplete}
+          acceptedFileTypes="application/pdf,image/jpeg,image/jpg"
+        />
+
+        <FileUploadTest
+          title="Comprovante de Residência"
+          description="Conta de luz, água ou telefone"
+          entityType="merchant"
+          fileType="COMPROVANTERESIDENCIA"
+          entityId={Number(merchantId)}
+          onUploadComplete={handleUploadComplete}
+          acceptedFileTypes="application/pdf,image/jpeg,image/jpg"
+        />
+
+        <FileUploadTest
+          title=""
+          description=""
+          entityType="merchant"
+          entityId={Number(merchantId)}
+          onUploadComplete={handleUploadComplete}
+          acceptedFileTypes="video/mp4"
+          maxSizeMB={50}
+        />
+      </div>
+    </div>
             </div>
+
+            
           </div>
         </CardContent>
       </Card>

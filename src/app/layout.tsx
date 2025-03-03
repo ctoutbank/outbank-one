@@ -1,12 +1,14 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
-
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Outbank One",
-  description: "Soluções de Pagamento de Próxima Geração",
+  title: "OutBank One",
+  description: "OutBank One - Plataforma de Gestão Financeira",
 };
 
 export default function RootLayout({
@@ -19,7 +21,10 @@ export default function RootLayout({
       <html lang="pt-BR" suppressHydrationWarning>
         <head />
 
-        <body className="">{children}</body>
+        <body className={inter.className}>
+          {children}
+          <Toaster richColors position="top-right" />
+        </body>
       </html>
     </ClerkProvider>
   );

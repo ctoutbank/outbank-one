@@ -811,4 +811,5 @@ export const file = pgTable("file", {
 	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	extension: varchar({ length: 5 }),
+	fileType: varchar("file_type", { length: 20 }),
 });
