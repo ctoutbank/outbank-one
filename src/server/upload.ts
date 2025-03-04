@@ -417,3 +417,44 @@ export async function createFileWithRelation(
     throw error // Propagar o erro original ao invés de criar um novo
   }
 }
+
+/**
+ * Obtém os arquivos por tipo de arquivo e entidade
+ */
+export async function getFilesByFileType(entityType: FileEntityType, entityId: number, fileType: string): Promise<FileItem[]> {
+  try {
+    if (entityType === "merchant") {
+      const files = await db
+        .select({
+          id: file.id,
+          fileName: file.fileName,
+          fileUrl: file.fileUrl,
+          extension: file.extension,
+          active: file.active,
+        })
+        .from(merchantfile)
+        .innerJoin(file, eq(merchantfile.idFile, file.id))
+        .where(and(
+          eq(merchantfile.idMerchant, entityId),
+          eq(merchantfile.active, true),
+          eq(file.active, true),
+          eq(file.fileType, fileType)
+        ));
+
+      return files
+        .filter(f => f.fileName !== null && f.fileUrl !== null && f.extension !== null)
+        .map(f => ({
+          id: f.id,
+          fileName: f.fileName as string,
+          fileUrl: f.fileUrl as string,
+          extension: f.extension as string,
+          active: f.active === true,
+        }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error(`Erro ao buscar arquivos do tipo ${fileType}:`, error);
+    return [];
+  }
+}
