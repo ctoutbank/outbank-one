@@ -30,7 +30,7 @@ export default function ContactForm() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left Column - Updated structure */}
           <div className="space-y-8 text-center lg:text-left">
-            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block">
+            <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block ">
               CONTACT US
             </div>
             <h2 className="text-4xl md:text-5xl font-light leading-tight">
