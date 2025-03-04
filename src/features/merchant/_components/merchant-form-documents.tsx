@@ -2,7 +2,7 @@
 
 
 
-import FileUpload1 from "@/components/fileUploadTest"
+import FileUpload from "@/components/fileUpload"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import React from "react"
@@ -49,7 +49,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Documentos de Identificação */}
             <DocumentSection title="Documentos de Identificação">
-              <FileUpload1
+              <FileUpload
                 title="CNH DIGITAL"
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 entityType="merchant"
@@ -60,7 +60,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="CNH FRENTE"
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 entityType="merchant"
@@ -69,7 +69,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 fileType="CNHFRENTE"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="CNH VERSO"
                 description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                 entityType="merchant"
@@ -81,7 +81,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
 
             {/* Documentos Pessoais */}
             <DocumentSection title="Documentos Pessoais">
-              <FileUpload1
+              <FileUpload
                 title="SELFIE"
                 description="Obrigatório para todos os cadastros. Para empresas com mais de um sócio a SELFIE é obrigatória apenas para o sócio majoritário."
                 entityType="merchant"
@@ -92,7 +92,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 acceptedFileTypes="image/jpeg,image/jpg"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="CARTA DE EMANCIPAÇÃO"
                 description="Para cadastros cujo responsável legal tenha no mínimo 16 e no máximo 17 anos."
                 entityType="merchant"
@@ -101,7 +101,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 fileType="CARTAEMANCIPACAO"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="PROCURAÇÃO"
                 description="Para quando o responsável legal não for sócio majoritário."
                 entityType="merchant"
@@ -113,7 +113,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
 
             {/* Documentos da Empresa */}
             <DocumentSection title="Documentos da Empresa">
-              <FileUpload1
+              <FileUpload
                 title="CARTÃO CNPJ DA RECEITA"
                 description="Retirado pela pessoa que está realizando o cadastro no momento da execução da tarefa."
                 entityType="merchant"
@@ -122,7 +122,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 fileType="CARTAOCNPJ"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="ESTATUTOS DA EMPRESA"
                 description="Constando nome do responsável legal, quadro societário e atividades exercidas. Contrato Social, Estatuto, etc. Obrigatório para empresas S/A e LTDA."
                 entityType="merchant"
@@ -130,10 +130,10 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 onUploadComplete={handleUploadComplete}
                 fileType="ESTATUTO"
                 maxSizeMB={10}
-                acceptedFileTypes="application/pdf"
+                acceptedFileTypes="pdf,png"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="TERMO DE ADESÃO"
                 description="Este documento não é obrigatório! Todo o processo de assinatura de termo de adesão é feito pelo Estabelecimento no primeiro login no Portal. Utilize esse espaço caso tenha algum termo em fluxo específico."
                 entityType="merchant"
@@ -145,7 +145,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
 
             {/* Documentos de Validação */}
             <DocumentSection title="Documentos de Validação">
-              <FileUpload1
+              <FileUpload
                 title="PESQUISA BIGBOOST"
                 description="PDF com a pesquisa de KYC feita no BigBoost no momento do onboarding."
                 entityType="merchant"
@@ -154,7 +154,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 fileType="BIGBOOST"
               />
 
-              <FileUpload1
+              <FileUpload
                 title="MATCH - MASTERCARD"
                 description="Validação de Match da MasterCard para onboarding de Estabelecimentos Comerciais"
                 entityType="merchant"
@@ -183,7 +183,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 Outros
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <FileUpload1
+                <FileUpload
                   title="OUTROS DOCUMENTOS"
                   description="Preenchimento não obrigatório. Utilize essa seção para inserir documentos pertinentes à sua operação."
                   entityType="merchant"

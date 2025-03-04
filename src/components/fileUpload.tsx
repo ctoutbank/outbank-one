@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
-import { Upload, FileText, Video, AlertCircle, Play, X } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Upload, FileText, Video, AlertCircle, Play, X, Eye, Download } from "lucide-react"
 import Image from "next/image"
-import { createFileWithRelation } from "@/server/upload"
+import { createFileWithRelation, getFilesByFileType} from "@/server/upload"
 
 interface FileUploadProps {
   title: string
@@ -31,25 +31,52 @@ interface FileWithCustomName extends File {
 export default function FileUpload({
   title,
   description,
-  acceptedFileTypes = "application/pdf,image/jpeg,image/jpg,video/mp4,text/plain",
+  acceptedFileTypes = "pdf,PDF,jpeg,JPEG,jpg,JPG,mp4,MP4,txt,TXT",
   maxSizeMB = 10,
-  initialFiles = [],
   entityType,
   entityId,
   fileType,
   onUploadComplete,
 }: FileUploadProps) {
-  const [files, setFiles] = useState<FileWithCustomName[]>(
-    initialFiles.map((file) => ({ ...file, customName: `${fileType || title}+${file.name}` })),
-  )
+  const [files, setFiles] = useState<FileWithCustomName[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [viewingImage, setViewingImage] = useState<string | null>(null)
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024
+
+  // Carregar arquivos existentes
+  useEffect(() => {
+    const loadExistingFiles = async () => {
+      if (fileType && entityId) {
+        try {
+          setIsLoading(true)
+          const existingFiles = await getFilesByFileType(entityType, entityId, fileType)
+          
+          const formattedFiles = existingFiles.map(file => ({
+            name: file.fileName,
+            customName: file.fileName,
+            type: `application/${file.extension.toLowerCase()}`,
+            size: 0,
+            fileURL: file.fileUrl,
+          } as FileWithCustomName))
+          
+          setFiles(formattedFiles)
+        } catch (error) {
+          console.error("Erro ao carregar arquivos existentes:", error)
+          setError("Erro ao carregar arquivos existentes")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadExistingFiles()
+  }, [entityType, entityId, fileType])
 
   const handleFileChange = async (selectedFiles: FileList | null) => {
     setError(null)
@@ -58,9 +85,13 @@ export default function FileUpload({
 
     const newFiles = Array.from(selectedFiles)
       .filter((file) => {
-        if (!acceptedFileTypes.includes(file.type)) {
+        // Extrair a extensão do arquivo
+        const fileExtension = file.name.split('.').pop()?.toLowerCase()
+        
+        // Verificar se a extensão está na lista de tipos aceitos
+        if (!acceptedFileTypes.toLowerCase().split(',').includes(fileExtension || '')) {
           setError(
-            `Tipo de arquivo não suportado: ${file.name}. Use: ${acceptedFileTypes.replace(/application\/|image\/|video\//g, "").toUpperCase()}`,
+            `Tipo de arquivo não suportado: ${file.name}. Use: ${acceptedFileTypes.replace(/,/g, ', ').toUpperCase()}`,
           )
           return false
         }
@@ -83,14 +114,7 @@ export default function FileUpload({
         for (const file of newFiles) {
           const formData = new FormData()
           formData.append("File", file)
-          formData.append("fileName",   fileType || title)
-
-          console.log("Enviando arquivo:", {
-            preix: fileType || title,
-            originalFileName: file.name,
-            fileType: file.type,
-            fileSize: file.size
-          })
+          formData.append("fileName", fileType || title)
 
           const result = await createFileWithRelation(
             formData,
@@ -107,7 +131,17 @@ export default function FileUpload({
           }
         }
 
-        setFiles((prevFiles) => [...prevFiles, ...newFiles])
+        // Recarregar os arquivos após o upload
+        const existingFiles = await getFilesByFileType(entityType, entityId, fileType || '')
+        const formattedFiles = existingFiles.map(file => ({
+          name: file.fileName,
+          customName: file.fileName,
+          type: `application/${file.extension.toLowerCase()}`,
+          size: 0,
+          fileURL: file.fileUrl,
+        } as FileWithCustomName))
+        
+        setFiles(formattedFiles)
       } catch (error) {
         console.error("Erro detalhado do upload:", error)
         setError("Erro ao fazer upload dos arquivos. Tente novamente.")
@@ -171,12 +205,27 @@ export default function FileUpload({
       return
     }
 
-    if (file.type.startsWith("image/")) {
-      setViewingImage(file.fileURL)
-    } else if (file.type.startsWith("video/")) {
-      setPlayingVideo(file.fileURL)
-    } else if (file.type === "application/pdf") {
-      window.open(file.fileURL, "_blank")
+    // Extrair a extensão do arquivo
+    const extension = file.name.split('.').pop()?.toLowerCase()
+
+    switch (extension) {
+      case 'pdf':
+        window.open(file.fileURL, '_blank')
+        break
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        setViewingImage(file.fileURL)
+        break
+      case 'mp4':
+      case 'mov':
+      case 'avi':
+        setPlayingVideo(file.fileURL)
+        break
+      default:
+        // Para outros tipos de arquivo, abrir em nova aba
+        window.open(file.fileURL, '_blank')
     }
   }
 
@@ -225,73 +274,114 @@ export default function FileUpload({
         <p className="text-sm text-gray-500 mt-1">{description}</p>
       </div>
 
-      <div
-        className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all ${
-          isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary hover:bg-gray-50"
-        } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={handleClick}
-      >
-        {isUploading ? (
-          <>
-            <div className="w-12 h-12 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-sm font-medium text-gray-700">ENVIANDO ARQUIVOS...</p>
-          </>
-        ) : (
-          <>
-            <Upload className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-sm font-medium text-gray-700">ARRASTE UM ARQUIVO</p>
-            <p className="text-xs text-gray-500 mt-1">ou clique para fazer o upload</p>
-            <p className="text-xs text-gray-400 mt-4">
-              {acceptedFileTypes.replace(/application\/|image\/|video\//g, "").toUpperCase()}
-              <br />
-              Tamanho máximo: {maxSizeMB}MB
-            </p>
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div className="mt-4 flex items-center text-red-500 text-sm bg-red-50 p-3 rounded-lg">
-          <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-          <span>{error}</span>
+      {isLoading ? (
+        <div className="flex justify-center items-center p-8">
+          <div className="w-8 h-8 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
         </div>
-      )}
-
-      {files.length > 0 && (
-        <div className="mt-6">
-          
-          <div className="space-y-2">
-            {files.map((file, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between bg-gray-50 p-3 rounded-lg cursor-pointer hover:bg-gray-100"
-                onClick={() => openFile(file)}
-              >
-                <div className="flex items-center space-x-3">
-                  {renderFilePreview(file)}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">{getTruncatedFileName(file.customName)}</p>
-                    <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)}MB</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeFile(index)
-                  }}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            ))}
+      ) : (
+        <>
+          <div
+            className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all ${
+              isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary hover:bg-gray-50"
+            } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={handleClick}
+          >
+            {isUploading ? (
+              <>
+                <div className="w-12 h-12 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-sm font-medium text-gray-700">ENVIANDO ARQUIVOS...</p>
+              </>
+            ) : (
+              <>
+                <Upload className="h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-sm font-medium text-gray-700">ARRASTE UM ARQUIVO</p>
+                <p className="text-xs text-gray-500 mt-1">ou clique para fazer o upload</p>
+                <p className="text-xs text-gray-400 mt-4">
+                  {acceptedFileTypes.replace(/application\/|image\/|video\//g, "").toUpperCase()}
+                  <br />
+                  Tamanho máximo: {maxSizeMB}MB
+                </p>
+              </>
+            )}
           </div>
-        </div>
+
+          {error && (
+            <div className="mt-4 flex items-center text-red-500 text-sm bg-red-50 p-3 rounded-lg">
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {files.length > 0 && (
+            <div className="mt-6">
+              <div className="space-y-2">
+                {files.map((file, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between bg-gray-50 p-3 rounded-lg hover:bg-gray-100"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {renderFilePreview(file)}
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">{getTruncatedFileName(file.customName)}</p>
+                        {file.size > 0 && (
+                          <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)}MB</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {/* Botão de Visualizar */}
+                      <button
+                        type="button"
+                        onClick={() => openFile(file)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        title="Visualizar"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </button>
+                      
+                      {/* Botão de Download */}
+                      <a
+                        href={file.fileURL}
+                        download={file.name}
+                        className="text-green-500 hover:text-green-700 transition-colors"
+                        title="Download"
+                      >
+                        <Download className="h-5 w-5" />
+                      </a>
+
+                      {/* Botão de Remover */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeFile(index)
+                        }}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Remover"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept={acceptedFileTypes}
+        onChange={(e) => handleFileChange(e.target.files)}
+        multiple
+      />
 
       {viewingImage && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -331,16 +421,6 @@ export default function FileUpload({
           </div>
         </div>
       )}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        accept={acceptedFileTypes}
-        onChange={(e) => handleFileChange(e.target.files)}
-        multiple
-      />
     </div>
   )
-}
-
+} 
