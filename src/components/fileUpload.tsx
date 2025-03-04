@@ -269,9 +269,13 @@ export default function FileUpload({
 
   return (
     <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-500 mt-1">{description}</p>
+      <div className="mb-4 h-[72px]">
+        <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 hover:cursor-help" title={title}>
+          {title}
+        </h3>
+        <p className="text-sm text-gray-500 mt-1 line-clamp-2 hover:cursor-help" title={description}>
+          {description}
+        </p>
       </div>
 
       {isLoading ? (
@@ -317,7 +321,7 @@ export default function FileUpload({
 
           {files.length > 0 && (
             <div className="mt-6">
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[130px] overflow-y-auto">
                 {files.map((file, index) => (
                   <div 
                     key={index} 
