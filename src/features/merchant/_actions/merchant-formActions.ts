@@ -10,9 +10,18 @@ import {
   AddressDetail,
   updateAddress,
   insertAddress,
+  getSlugById,
 } from "../server/merchant";
+import { legalNatures, categories, configurations } from "../../../../drizzle/schema";
 
 export async function insertMerchantFormAction(data: MerchantSchema) {
+  // Buscar os slugs usando a função genérica
+  const [legalNatureSlug, categorySlug, configurationSlug] = await Promise.all([
+    data.idLegalNature ? getSlugById(legalNatures, data.idLegalNature) : null,
+    data.idCategory ? getSlugById(categories, data.idCategory) : null,
+    data.idConfiguration ? getSlugById(configurations, data.idConfiguration) : null
+  ]);
+
   const merchantInsert: MerchantInsert = {
     slug: data.slug || "",
     active: data.active ?? true,
@@ -45,13 +54,13 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
     establishmentFormat: data.establishmentFormat || "",
     revenue: data.revenue?.toString() || "0",
     idCategory: data.idCategory || 0,
-    slugCategory: data.slugCategory || "",
-    idLegalNature: data.idLegalNature || 0,
-    slugLegalNature: data.slugLegalNature || "",
+    slugCategory: categorySlug || "",
+    idLegalNature: data.idLegalNature ? Number(data.idLegalNature) : 0,
+    slugLegalNature: legalNatureSlug || "",
     idSalesAgent: Number(data.idSalesAgent) || null,
     slugSalesAgent: data.slugSalesAgent || "",
     idConfiguration: Number(data.idConfiguration) || null,
-    slugConfiguration: data.slugConfiguration || "",
+    slugConfiguration: configurationSlug || "",
     idAddress: Number(data.idAddress) || 0,
   };
 
@@ -65,6 +74,13 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
   if (!data.id) {
     throw new Error("Cannot update merchant without an ID");
   }
+
+  // Buscar os slugs usando a função genérica
+  const [legalNatureSlug, categorySlug, configurationSlug] = await Promise.all([
+    data.idLegalNature ? getSlugById(legalNatures, data.idLegalNature) : null,
+    data.idCategory ? getSlugById(categories, data.idCategory) : null,
+    data.idConfiguration ? getSlugById(configurations, data.idConfiguration) : null
+  ]);
 
   const merchantUpdate: MerchantDetail = {
     slug: data.slug || "",
@@ -99,6 +115,12 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
     revenue: data.revenue || 0,
     idAddress: data.idAddress || 0,
     id: data.id || 0,
+    idLegalNature: data.idLegalNature || 0,
+    slugLegalNature: legalNatureSlug || "",
+    idCategory: data.idCategory || 0,
+    slugCategory: categorySlug || "",
+    idConfiguration: data.idConfiguration ||  0,
+    slugConfiguration: configurationSlug || "",
   };
   await updateMerchant(merchantUpdate);
 }

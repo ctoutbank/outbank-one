@@ -9,7 +9,7 @@ export const merchantPixAccountSchema = z.object({
     idRegistration: z.string().max(50).optional(),
     idAccount: z.string().max(20).optional(),
     bankNumber: z.string().max(10).optional(),
-    bankBranchNumber: z.string().max(10).optional(), 
+    bankBranchNumber: z.string().max(10).optional(),
     bankBranchDigit: z.string().max(1).optional(),
     bankAccountNumber: z.string().max(20).optional(),
     bankAccountDigit: z.string().max(1).optional(),
@@ -24,12 +24,6 @@ export const merchantPixAccountSchema = z.object({
     merchantcorporateName: z.string().max(255).optional(),
     merchantdocumentId: z.string().max(14).optional(),
     legalPerson: z.string().max(255).optional(),
-    bank: z.string().max(20).optional(),
-    accountType: z.string().max(20).optional(),
-   
-    
-    
-   
 });
 
 export type MerchantPixAccountSchema = z.infer<typeof merchantPixAccountSchema>;

@@ -6,6 +6,8 @@ import {  insertMerchantPixAccount, MerchantPixAccountInsert, MerchantPixAccount
 
 
 export async function insertMerchantPixAccountFormAction(data: MerchantPixAccountSchema) {
+    console.log("Dados recebidos no form:", data); // Debug
+
     const merchantPixAccountInsert: MerchantPixAccountInsert = {
         slug: data.slug || "",
         active: data.active || false,
@@ -13,22 +15,21 @@ export async function insertMerchantPixAccountFormAction(data: MerchantPixAccoun
         dtupdate: data.dtupdate?.toString() || new Date().toISOString(),
         idRegistration: data.idRegistration || "",
         idAccount: data.idAccount || "",
-        bankNumber: data.bankNumber || "",
-        bankBranchNumber: data.bankBranchNumber || "",
+        bankNumber: data.bankNumber, // Usar o valor do campo bank
+        bankBranchNumber: data.bankBranchNumber,
         bankBranchDigit: data.bankBranchDigit || "",
-        bankAccountNumber: data.bankAccountNumber || "",
+        bankAccountNumber: data.bankAccountNumber,
         bankAccountDigit: data.bankAccountDigit || "",
-        bankAccountType: data.bankAccountType || "",
+        bankAccountType: data.bankAccountType, // Usar o valor do campo accountType
         bankAccountStatus: data.bankAccountStatus || "",
         onboardingPixStatus: data.onboardingPixStatus || "",
         message: data.message || "",
         bankName: data.bankName || "",
-        idMerchant: data.idMerchant || 0,
+        idMerchant: data.idMerchant,
         slugMerchant: data.slugMerchant || "",
-               
-
     };
     
+    console.log("Dados para inserção:", merchantPixAccountInsert); // Debug
     const newId = await insertMerchantPixAccount(merchantPixAccountInsert);
     return newId;
 }

@@ -25,8 +25,9 @@ export default async function MerchantDetail({
   
  
   const legalNatures = await getLegalNaturesForDropdown();
+ 
 
-  console.log("legalNatures", legalNatures);
+ 
   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
   const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(merchant?.merchants.idMerchantPrice || 0);
   console.log('merchantPriceGroups:', JSON.stringify(merchantPriceGroups, null, 2));
