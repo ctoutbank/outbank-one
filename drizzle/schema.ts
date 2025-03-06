@@ -307,6 +307,16 @@ export const shoppingItems = pgTable("shopping_items", {
 	}
 });
 
+export const syncLog = pgTable("sync_log", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sync_log_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	syncType: varchar("sync_type", { length: 50 }),
+	dateTime: timestamp("date_time", { mode: 'string' }),
+	totalRecordsCreated: integer("total_records_created"),
+	totalRecordsUpdated: integer("total_records_updated"),
+	totalRecordsRetrieved: integer("total_records_retrieved"),
+});
+
 export const establishmentFormat = pgTable("establishment_format", {
 	code: varchar({ length: 10 }).primaryKey().notNull(),
 	name: varchar({ length: 50 }).notNull(),
@@ -750,6 +760,9 @@ export const paymentLink = pgTable("payment_link", {
 	linkUrl: varchar("link_url", { length: 255 }),
 	pixEnabled: boolean("pix_enabled"),
 	transactionSlug: varchar("transaction_slug", { length: 50 }),
+	isFromServer: boolean("is_from_server"),
+	modified: boolean(),
+	isDeleted: boolean("is_deleted"),
 }, (table) => {
 	return {
 		paymentLinkIdMerchantFkey: foreignKey({
@@ -811,4 +824,6 @@ export const file = pgTable("file", {
 	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	extension: varchar({ length: 5 }),
+	fileType: varchar("file_type", { length: 20 }),
+	slug: uuid().defaultRandom(),
 });

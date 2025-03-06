@@ -2,9 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { schemaPaymentLink } from "../schema/schema";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { PaymentLinkSchema, schemaPaymentLink } from "../schema/schema";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,11 +34,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/use-toast";
 import Link from "next/link";
 import {
   DDMerchant,
   insertPaymentLink,
+  PaymentLinkDetail,
   PaymentLinkDetailForm,
+  ShoppingItemsUpdate,
+  updatePaymentLink
 } from "../server/paymentLink";
 
 interface PaymentLinkFormProps {
@@ -46,59 +50,140 @@ interface PaymentLinkFormProps {
   merchant: DDMerchant[];
 }
 
-async function updatePaymentLinkFormAction(data: PaymentLinkDetailForm) {
-  console.log("updatePaymentLinkFormAction", data);
-  // TODO: Implement the update action
-  return data.id;
-}
-
-async function insertPaymentLinkFormAction(data: PaymentLinkDetailForm) {
-  console.log("insertPaymentLinkFormAction", data);
-  insertPaymentLink({
-    linkName: data.linkName,
-    dtExpiration: data.expiresAt,
-    idMerchant: Number(data.idMerchant),
-    linkUrl: data.linkUrl,
-    productType: "CREDIT",
-    totalAmount: data.totalAmount?.toString() || "0",
-    paymentLinkStatus: "PENDING",
-    dtinsert: new Date().toISOString(),
-    active: true,
-    dtupdate: new Date().toISOString(),
-    installments: data.installments,
-    pixEnabled: false,
-    shoppingItems: data.shoppingItems.map((item) => ({
-      name: item.name,
-      quantity: item.quantity,
-      amount: item.amount,
-      idPaymentLink: 0,
-    })),
-  });
-  return "new-id";
-}
-
 export default function PaymentLinkForm({
   paymentLink,
   merchant,
 }: PaymentLinkFormProps) {
   const router = useRouter();
-  
-  const form = useForm<PaymentLinkDetailForm>({
+
+  const form = useForm<PaymentLinkSchema>({
     resolver: zodResolver(schemaPaymentLink),
-    defaultValues: paymentLink,
+    defaultValues: {
+      id: paymentLink?.id || 0,
+      linkName: paymentLink?.linkName ?? "",
+      idMerchant: paymentLink?.idMerchant?.toString(),
+      dtExpiration: paymentLink?.dtExpiration ?? "-",
+      installments: paymentLink?.installments?.toString(),
+      totalAmount: paymentLink?.totalAmount ?? "",
+      shoppingItems: paymentLink?.shoppingItems ?? [],
+      pixEnabled: false,
+      productType: "CREDIT",
+      paymentLinkStatus: "PENDING",
+      active: paymentLink?.active ?? true,
+      dtinsert: paymentLink?.dtinsert
+        ? new Date(paymentLink.dtinsert).toISOString()
+        : new Date().toISOString(),
+      dtupdate: paymentLink?.dtupdate
+        ? new Date(paymentLink.dtupdate).toISOString()
+        : new Date().toISOString(),
+
+    },
   });
 
   const [itemName, setItemName] = useState("");
   const [itemQuantity, setItemQuantity] = useState("");
   const [itemAmount, setItemAmount] = useState("");
 
-  const onSubmit = async (data: PaymentLinkDetailForm) => {
+  const watchedShoppingItems = useWatch({
+    control: form.control,
+    name: "shoppingItems",
+  });
+
+  useEffect(() => {
+    if (watchedShoppingItems && watchedShoppingItems.length > 0) {
+      const total = watchedShoppingItems.reduce((acc, item) => {
+        const itemTotal = item.quantity * parseFloat(item.amount);
+        return acc + itemTotal;
+      }, 0);
+      form.setValue("totalAmount", total.toFixed(2));
+    }
+  }, [watchedShoppingItems, form]);
+
+  async function updatePaymentLinkFormAction(data: PaymentLinkSchema) {
+    console.log("updatePaymentLinkFormAction", data);
+    const paymentLinkDetailUpdate: PaymentLinkDetail = {
+      id: data.id || 0,
+      slug: data.slug || "",
+      linkName: data.linkName || "",
+      linkUrl: data.linkUrl || "",
+      active: true,
+      dtExpiration: addTimeToDate(
+        new Date().toISOString(),
+        Number(data.diffNumber),
+        data.expiresAt as "day" | "hour"
+      ),
+      idMerchant: Number(data.idMerchant),
+      productType: data.productType || "",
+      totalAmount: data.totalAmount?.toString() || "0",
+      paymentLinkStatus: data.paymentLinkStatus || "",
+      dtinsert: data.dtinsert || new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+      installments: Number(data.installments),
+      pixEnabled: false,
+      transactionSlug: data.transactionSlug || "",
+      isDeleted: null,
+      isFromServer: null,
+      modified: null,
+    };
+    let shoppingItemsUpdate: ShoppingItemsUpdate[] = [];
+    if (data.shoppingItems && data.shoppingItems.length > 0) {
+      shoppingItemsUpdate = data.shoppingItems?.map((shoppingItemUp) => ({
+        name: shoppingItemUp.name,
+        quantity: shoppingItemUp.quantity,
+        amount: shoppingItemUp.amount,
+        slug: shoppingItemUp.slug,
+        wasModified: !paymentLink.shoppingItems?.some(
+          (itemOld) => itemOld.slug === shoppingItemUp.slug
+        ),
+      }));
+    }
+
+    updatePaymentLink(paymentLinkDetailUpdate, shoppingItemsUpdate);
+    return data.id;
+  }
+
+  async function insertPaymentLinkFormAction(data: PaymentLinkSchema) {
+    console.log("insertPaymentLinkFormAction", data);
+    const newId = insertPaymentLink({
+      linkName: data.linkName,
+      dtExpiration: addTimeToDate(
+        new Date().toISOString(),
+        Number(data.diffNumber),
+        data.expiresAt as "day" | "hour"
+      ),
+      idMerchant: Number(data.idMerchant),
+      linkUrl: data.linkUrl,
+      productType: "CREDIT",
+      totalAmount: data.totalAmount?.toString() || "0",
+      paymentLinkStatus: "PENDING",
+      dtinsert: new Date().toISOString(),
+      active: true,
+      dtupdate: new Date().toISOString(),
+      installments: Number(data.installments),
+      pixEnabled: false,
+      shoppingItems: data.shoppingItems?.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        amount: item.amount,
+        idPaymentLink: 0,
+      })),
+    });
+    return newId;
+  }
+
+  const onSubmit = async (data: PaymentLinkSchema) => {
     if (data?.id) {
-      await updatePaymentLinkFormAction(data);
+      updatePaymentLinkFormAction(data);
       router.refresh();
     } else {
       console.log("entrou aqui");
       const newId = await insertPaymentLinkFormAction(data);
+      toast({
+        title: "sucesso",
+        description: "Link de pagamento cadastrado com sucesso",
+
+        variant: "sucesso",
+      });
       router.push(`/portal/paymentLink/${newId}`);
     }
   };
@@ -119,6 +204,22 @@ export default function PaymentLinkForm({
     }
   }
 
+  function addTimeToDate(
+    date: string,
+    value: number,
+    type: "day" | "hour"
+  ): string {
+    const newDate = new Date(date);
+
+    if (type === "day") {
+      newDate.setDate(newDate.getDate() + value);
+    } else if (type === "hour") {
+      newDate.setHours(newDate.getHours() + value);
+    }
+
+    return newDate.toISOString();
+  }
+
   const watch = form.watch;
 
   const handleAddItem = () => {
@@ -131,12 +232,9 @@ export default function PaymentLinkForm({
       idPaymentLink: 0,
     };
 
-    form.setValue("shoppingItems", [
-      ...(form.getValues("shoppingItems") || []),
-      newItem,
-    ]);
+    const updatedItems = [...(form.getValues("shoppingItems") || []), newItem];
+    form.setValue("shoppingItems", updatedItems);
 
-    // Reset input fields
     setItemName("");
     setItemQuantity("");
     setItemAmount("");
@@ -313,8 +411,8 @@ export default function PaymentLinkForm({
                   <h3 className="font-semibold text-lg">Valor da Cobrança</h3>
                   <Tabs defaultValue="single" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-                      <TabsTrigger value="single">VALOR ÚNICO</TabsTrigger>
-                      <TabsTrigger value="items">VALOR POR ITENS</TabsTrigger>
+                      <TabsTrigger value="single">Valor Único</TabsTrigger>
+                      <TabsTrigger value="items">Valor Por Itens</TabsTrigger>
                     </TabsList>
                     <TabsContent value="single" className="mt-4">
                       <FormField
@@ -381,7 +479,9 @@ export default function PaymentLinkForm({
                                 <TableCell>{item.quantity}</TableCell>
                                 <TableCell>{item.amount}</TableCell>
                                 <TableCell>
-                                  {item.quantity * Number(item.amount)}
+                                  {item.quantity !== undefined
+                                    ? item.quantity * Number(item.amount)
+                                    : 0}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -438,7 +538,11 @@ export default function PaymentLinkForm({
             <div className="flex justify-between">
               <span className="text-slate-600">Nome do EC</span>
               <span className="text-slate-800">
-                {watch("idMerchant") || "-"}
+                {(watch("idMerchant") !== undefined &&
+                  merchant.filter(
+                    (item) => item.id == Number(watch("idMerchant"))
+                  )[0].name) ||
+                  "-"}
               </span>
             </div>
           </div>
@@ -455,7 +559,7 @@ export default function PaymentLinkForm({
             <div className="flex justify-between">
               <span className="text-slate-600">Tipo de pagamento</span>
               <span className="text-slate-800">
-                {watch("installments") == 1
+                {watch("installments") == "1"
                   ? "Crédito à vista"
                   : watch("installments") == null
                   ? ""
@@ -476,12 +580,27 @@ export default function PaymentLinkForm({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="text-slate-600">-</TableCell>
-                  <TableCell className="text-slate-600">-</TableCell>
-                  <TableCell className="text-slate-600">-</TableCell>
-                  <TableCell className="text-right text-slate-600">-</TableCell>
-                </TableRow>
+                {watchedShoppingItems && watchedShoppingItems.length > 0 ? (
+                  watchedShoppingItems.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{item.amount}</TableCell>
+                      <TableCell className="text-right">
+                        {(item.quantity * parseFloat(item.amount)).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell className="text-slate-600">-</TableCell>
+                    <TableCell className="text-slate-600">-</TableCell>
+                    <TableCell className="text-slate-600">-</TableCell>
+                    <TableCell className="text-right text-slate-600">
+                      -
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
