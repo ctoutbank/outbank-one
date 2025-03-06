@@ -7,6 +7,9 @@ import CardProcessing from "@/components/cards/processing";
 import FlagLicense from "@/components/cards/flag-license";
 import CardSection from "@/components/cards/card-section";
 import DualCardSection from "@/components/cards/dual-card-section";
+import ConsignedCardSection from "@/components/cards/consigned-card";
+import ContactForm from "@/components/LandingPage/contact";
+import CardBenefitsCarousel from "@/components/cards/card-benefits-carousel";
 
 
 export default function CardsPage() {
@@ -67,6 +70,15 @@ export default function CardsPage() {
         </section>
         <section className="w-full max-w-7xl mx-auto">
           <DualCardSection />
+        </section>
+        <section className="w-full max-w-7xl mx-auto">
+          <ConsignedCardSection />
+        </section>
+        <section className="w-full max-w-7xl mx-auto">
+          <CardBenefitsCarousel />
+        </section>
+        <section className="w-full max-w-7xl mx-auto">
+          <ContactForm />
         </section>
         <section className="w-full max-w-7xl mx-auto">
           <Footer />

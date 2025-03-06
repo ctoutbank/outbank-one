@@ -21,7 +21,7 @@ export default async function PaymentLinkPage({
   searchParams: PaymentLinkProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const merchant = searchParams.merchant || "";
   const identifier = searchParams.identifier || "";
   const status = searchParams.status || "";
