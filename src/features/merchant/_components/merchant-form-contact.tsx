@@ -32,6 +32,10 @@ import {
 import { insertAddressFormAction } from "../_actions/merchant-formActions";
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
+import { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getMerchantAddressId } from "../server/adderres";
+
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
@@ -134,11 +138,102 @@ export default function MerchantFormcontact({
     }
   };
 
+  const [merchantAddress, setMerchantAddress] = useState<typeof addresses.$inferSelect | null>(null);
+  const [useEstablishmentAddress, setUseEstablishmentAddress] = useState(false);
+
+  const fetchMerchantAddress = async () => {
+    if (idMerchant) {
+      try {
+        console.log("Buscando endereço para o merchant ID:", idMerchant);
+        const address = await getMerchantAddressId(idMerchant);
+        console.log("Endereço do merchant:", address);
+        setMerchantAddress(address);
+        
+        if (useEstablishmentAddress && address) {
+          fillFormWithMerchantAddress(address);
+        }
+        
+        return address;
+      } catch (error) {
+        console.error("Erro ao buscar endereço do merchant:", error);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const fillFormWithMerchantAddress = (address: typeof addresses.$inferSelect) => {
+    console.log("Preenchendo formulário com endereço:", address);
+    
+    form1.setValue("street", address.streetAddress || "");
+    form1.setValue("number", address.streetNumber || "");
+    form1.setValue("complement", address.complement || "");
+    form1.setValue("neighborhood", address.neighborhood || "");
+    form1.setValue("city", address.city || "");
+    form1.setValue("state", address.state || "");
+    form1.setValue("zipCode", address.zipCode || "");
+    form1.setValue("country", address.country || "");
+    
+    console.log("Valores do formulário após preenchimento:", form1.getValues());
+  };
+
+  useEffect(() => {
+    fetchMerchantAddress();
+  }, [idMerchant]);
+
+  useEffect(() => {
+    if (useEstablishmentAddress && merchantAddress) {
+      fillFormWithMerchantAddress(merchantAddress);
+    } else if (!useEstablishmentAddress && Address) {
+      console.log("Restaurando valores do endereço do contato");
+      
+      form1.setValue("id", Address.id);
+      form1.setValue("street", Address.streetAddress || "");
+      form1.setValue("number", Address.streetNumber || "");
+      form1.setValue("complement", Address.complement || "");
+      form1.setValue("neighborhood", Address.neighborhood || "");
+      form1.setValue("city", Address.city || "");
+      form1.setValue("state", Address.state || "");
+      form1.setValue("zipCode", Address.zipCode || "");
+      form1.setValue("country", Address.country || "");
+      
+      console.log("Valores do formulário após restauração:", form1.getValues());
+    }
+  }, [useEstablishmentAddress, merchantAddress, form1, Address]);
+
   const onSubmitAddress = async (data: AddressSchema) => {
     try {
-      await insertAddressFormAction(data);
+      if (useEstablishmentAddress && merchantAddress) {
+        console.log("Usando endereço do estabelecimento para o contato");
+        
+        const contactData = {
+          ...form.getValues(),
+          idAddress: merchantAddress.id
+        };
+        
+        console.log("Atualizando contato com ID do endereço do merchant:", contactData);
+        
+        await updateContactFormAction(contactData);
+        
+        refreshPage(idMerchant);
+      } else {
+        if (data.id) {
+          await insertAddressFormAction(data);
+        } else {
+          const address = await insertAddressFormAction(data);
+          
+          const contactData = {
+            ...form.getValues(),
+            idAddress: address
+          };
+          
+          await updateContactFormAction(contactData);
+        }
+        
+        refreshPage(idMerchant);
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Erro ao submeter endereço:", error);
     }
   };
 
@@ -475,6 +570,28 @@ export default function MerchantFormcontact({
             <CardTitle>Endereço</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox 
+                id="useEstablishmentAddress" 
+                checked={useEstablishmentAddress}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  console.log("Checkbox alterada para:", isChecked);
+                  setUseEstablishmentAddress(isChecked);
+                  
+                  if (isChecked && merchantAddress) {
+                    fillFormWithMerchantAddress(merchantAddress);
+                  }
+                }}
+              />
+              <label
+                htmlFor="useEstablishmentAddress"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Usar endereço do estabelecimento
+              </label>
+            </div>
+
             <Form {...form1}>
               <form onSubmit={form1.handleSubmit(onSubmitAddress)}>
                 <FormField
@@ -488,8 +605,7 @@ export default function MerchantFormcontact({
                       <FormControl>
                         <Input
                           {...field}
-                          maxLength={8}
-                          value={field.value?.toString() || ""}
+                          disabled={useEstablishmentAddress}
                         />
                       </FormControl>
                       <FormMessage />
@@ -508,7 +624,7 @@ export default function MerchantFormcontact({
                       <FormControl>
                         <Input
                           {...field}
-                          value={field.value?.toString() || ""}
+                          disabled={useEstablishmentAddress}
                         />
                       </FormControl>
                       <FormMessage />
@@ -528,7 +644,7 @@ export default function MerchantFormcontact({
                         <FormControl>
                           <Input
                             {...field}
-                            value={field.value?.toString() || ""}
+                            disabled={useEstablishmentAddress}
                           />
                         </FormControl>
                         <FormMessage />
@@ -545,7 +661,7 @@ export default function MerchantFormcontact({
                         <FormControl>
                           <Input
                             {...field}
-                            value={field.value?.toString() || ""}
+                            disabled={useEstablishmentAddress}
                           />
                         </FormControl>
                         <FormMessage />
@@ -565,7 +681,7 @@ export default function MerchantFormcontact({
                       <FormControl>
                         <Input
                           {...field}
-                          value={field.value?.toString() || ""}
+                          disabled={useEstablishmentAddress}
                         />
                       </FormControl>
                       <FormMessage />
@@ -585,7 +701,7 @@ export default function MerchantFormcontact({
                         <FormControl>
                           <Input
                             {...field}
-                            value={field.value?.toString() || ""}
+                            disabled={useEstablishmentAddress}
                           />
                         </FormControl>
                         <FormMessage />
@@ -604,6 +720,7 @@ export default function MerchantFormcontact({
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value?.toString() || ""}
+                          disabled={useEstablishmentAddress}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -631,12 +748,6 @@ export default function MerchantFormcontact({
                             <SelectItem value="PB">PB</SelectItem>
                             <SelectItem value="PE">PE</SelectItem>
                             <SelectItem value="PI">PI</SelectItem>
-                            <SelectItem value="RN">RN</SelectItem>
-                            <SelectItem value="RO">RO</SelectItem>
-                            <SelectItem value="RR">RR</SelectItem>
-                            <SelectItem value="SC">SC</SelectItem>
-                            <SelectItem value="SE">SE</SelectItem>
-                            <SelectItem value="TO">TO</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -657,7 +768,7 @@ export default function MerchantFormcontact({
                         <Input
                           {...field}
                           defaultValue="Brasil"
-                          value={field.value?.toString() || ""}
+                          disabled={useEstablishmentAddress}
                         />
                       </FormControl>
                       <FormMessage />

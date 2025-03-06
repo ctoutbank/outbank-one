@@ -324,7 +324,9 @@ export async function deleteFileRelation(entityType: FileEntityType, entityId: n
         }
       }
     }
+  
 
+    
     // Aqui você pode adicionar mais implementações para outros tipos de entidades
     // Por exemplo:
     // if (entityType === "terminal") { ... }

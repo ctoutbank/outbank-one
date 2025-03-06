@@ -196,8 +196,8 @@ export default async function MerchantDetail({
               dtupdate: pixaccount?.dtupdate || "",
               idRegistration: pixaccount?.idRegistration || "",
               idAccount: pixaccount?.idAccount || "",
-              bankNumber: merchant?.pixaccounts?.bankNumber || "",
-              bankBranchNumber: merchant?.pixaccounts?.bankBranchNumber || "",
+              bankNumber: pixaccount?.bankNumber || "",
+              bankBranchNumber: pixaccount?.bankBranchNumber || "",
               bankBranchDigit: pixaccount?.bankBranchDigit || "",
               bankAccountNumber: pixaccount?.bankAccountNumber || "",
               bankAccountDigit: pixaccount?.bankAccountDigit || "",
@@ -212,6 +212,7 @@ export default async function MerchantDetail({
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
+            
           }}
 
           merchantPriceGroupProps={{
