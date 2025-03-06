@@ -18,7 +18,7 @@ const HeroBanking = () => {
           src="/hero-banking.svg"
           alt="Hero background"
           fill
-          className="object-cover md:object-contain md:translate-x-[5%] md:translate-y-[5%]"
+          className="object-cover md:object-contain md:translate-x-[5%] "
           priority
           quality={100}
         />

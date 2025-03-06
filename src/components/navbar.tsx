@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs"
+import { SignedIn, SignedOut } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Menu, X, ChevronRight, Phone, Mail } from "lucide-react"
@@ -43,20 +43,21 @@ export function Navbar() {
     <div className="relative z-[100]">
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 w-full bg-[#080808] border-b border-gray-400/20 transition-all duration-300 pointer-events-auto",
-          scrolled && "bg-black/80 backdrop-blur-sm",
+          "fixed left-0 right-0 z-50 w-full bg-gray-200/20 backdrop-blur-sm border border-gray-400/20 md:rounded-sm transition-all duration-300 pointer-events-auto max-w-7xl mx-auto",
+          !isOpen && "md:mt-6",
+          scrolled && "bg-gray-200/10 backdrop-blur-md",
         )}
       >
         <div className="max-w-[1440px] mx-auto h-16 flex items-center justify-between px-4 md:px-8">
           {/* Logo */}
-          <div className="w-[120px]">
+          <div className="w-[150px]">
             <Link className="flex items-center justify-center" href="/">
               <Image 
                 src="/box-logo.svg" 
                 alt="Logo Outbank" 
-                width={120} 
-                height={32}
-                className="w-auto h-8"
+                width={160} 
+                height={44}
+                className="w-auto h-11"
                 priority
                 quality={100}
               />
@@ -92,9 +93,9 @@ export function Navbar() {
               </Link>
             </SignedIn>
             <SignedOut>
-              <SignInButton>
-                <Button>Entrar</Button>
-              </SignInButton>
+              <Link href="/auth/sign-in">
+                <Button className=" text-black rounded-none bg-gray-100 hover:bg-gray-300  hover:scale-105 transition-all duration-300">Entrar</Button>
+              </Link>
             </SignedOut>
           </div>
 
@@ -218,7 +219,7 @@ export function Navbar() {
                     </Link>
                   </SignedIn>
                   <SignedOut>
-                    <SignInButton>
+                    <Link href="/auth/sign-in" onClick={() => setIsOpen(false)} className="block w-full">
                       <Button
                         className="w-full bg-white text-black hover:bg-white/90 
                                  text-lg py-6 rounded-lg font-medium
@@ -226,7 +227,7 @@ export function Navbar() {
                       >
                         Entrar
                       </Button>
-                    </SignInButton>
+                    </Link>
                   </SignedOut>
                 </motion.div>
               </div>

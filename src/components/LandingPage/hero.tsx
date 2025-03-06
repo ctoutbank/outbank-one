@@ -4,14 +4,15 @@ import Image from 'next/image'
 
 const HeroLandingPage = () => {
   return (
-    <div className="relative min-h-[600px] md:min-h-[700px]">
+    <div className="relative min-h-[600px] md:min-h-[700px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
           src="/img-hero.svg"
           alt="Hero background"
           fill
-          className="object-cover md:object-contain md:translate-x-[5%] md:translate-y-[5%]"
+          className="object-cover md:object-contain md:translate-x-[5%] "
+          style={{ pointerEvents: 'none' }}
           priority
         />
         {/* Dark overlay - darker on mobile, lighter on desktop */}
