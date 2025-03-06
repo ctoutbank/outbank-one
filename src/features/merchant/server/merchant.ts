@@ -307,6 +307,8 @@ export interface MerchantDetail {
   idConfiguration?: number;
   slugConfiguration?: string;
   idAddress?: number;
+  idLegalNature?: number;
+  slugLegalNature?: string;
 }
 
 // Função para inserir um novo merchant
@@ -353,6 +355,8 @@ export async function insertMerchant(
       idConfiguration: merchant.idConfiguration,
       slugConfiguration: merchant.slugConfiguration,
       idAddress: merchant.idAddress,
+      idLegalNature: merchant.idLegalNature,
+      slugLegalNature: merchant.slugLegalNature,
     })
     .returning({ id: merchants.id });
 
@@ -400,6 +404,8 @@ export async function updateMerchant(merchant: MerchantDetail): Promise<void> {
       idConfiguration: merchant.idConfiguration,
       slugConfiguration: merchant.slugConfiguration,
       idAddress: merchant.idAddress,
+      idLegalNature: merchant.idLegalNature,
+      slugLegalNature: merchant.slugLegalNature,
     })
     .where(eq(merchants.id, merchant.id));
 }
@@ -632,4 +638,23 @@ export type MerchantList = {
   cpAnticipationCount: number
   cnpAnticipationCount: number
   // ... any other existing properties ...
+}
+
+// Função genérica para buscar slug por ID
+export async function getSlugById(
+  table: typeof legalNatures | typeof categories | typeof configurations,
+  id: number
+): Promise<string | null> {
+  try {
+    const result = await db
+      .select({ slug: table.slug })
+      .from(table)
+      .where(eq(table.id, id))
+      .limit(1);
+
+    return result[0]?.slug || null;
+  } catch (error) {
+    console.error(`Erro ao buscar slug para id ${id}:`, error);
+    return null;
+  }
 }

@@ -4,7 +4,6 @@
 
 import FileUpload from "@/components/fileUpload"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import React from "react"
 
 
@@ -163,20 +162,19 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 fileType="MATCHMASTERCARD"
               />
 
-              <div className="h-full flex flex-col">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">LINK/PRINT CNP</h3>
-                  <p className="text-sm text-muted-foreground mt-1 min-h-[3rem]">
-                    Link da URL ou print de alguma rede social do PJ. Obrigatório para CNP
-                  </p>
-                </div>
-                <div className="flex-1 flex items-center mt-2">
-                  <Input placeholder="https://" className="w-full" />
-                </div>
-              </div>
+             <FileUpload
+                title="PRINT CNP"
+                description="Print de alguma rede social do PJ. Obrigatório para CNP"
+                entityType="merchant"
+                entityId={Number(merchantId)}
+                onUploadComplete={handleUploadComplete}
+                fileType="PRINTCNP"
+                maxSizeMB={5}
+                acceptedFileTypes="image/jpeg,image/jpg"
+                />
             </DocumentSection>
 
-            {/* Outros Documentos */}
+            {/*print de alguma rede social do PJ. Outros Documentos */}
             <div className="lg:col-span-3 pt-0">
               <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center">
                 <div className="w-0.5 h-5 bg-primary/40 rounded-full mr-3"></div>
