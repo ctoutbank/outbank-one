@@ -28,7 +28,7 @@ export default function ServicesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-4 md:mb-6">
+          <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
             SERVICES
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light max-w-7xl mx-auto md:mx-0">
