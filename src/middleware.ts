@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/banking",
   "/cards",
+  "/acquiring",
   "/auth/sign-in",
 ]);
 
