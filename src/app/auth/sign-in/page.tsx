@@ -7,12 +7,29 @@ const companies = [
     name: "Outbank",
     logo: "/box-logo.svg",
     mainImage: "/logo-icon.svg",
+    bgColors: {
+      from: "#080808",
+      to: "#121212",
+    },
   },
   {
-    name: "Banco Prisma",
+    name: "Banco-Prisma",
     logo: "/logo-prisma.svg",
     mainImage: "/sign-in-teste.png",
+    bgColors: {
+      from: "#1a365d",
+      to: "#2a4365",
+    },
   },
+  {
+    name: "Trusted-School",
+    logo: "/trusted-logo.png",
+    mainImage:"/trusted-logo-main.svg",
+    bgColors: {
+      from: "#1A0808",
+      to: "#2A1010",
+    },
+  }
 ]
 
 export default function SignInPage({
@@ -27,7 +44,9 @@ export default function SignInPage({
   return (
     <div className="min-h-screen flex">
       {/* Left Section - Illustration */}
-      <div className="hidden lg:flex w-2/3 bg-gradient-to-r from-[#080808] to-[#121212] relative p-8">
+      <div className={`hidden lg:flex w-2/3 relative p-8`} style={{
+        background: `linear-gradient(to right, ${currentCompany.bgColors.from}, ${currentCompany.bgColors.to})`
+      }}>
         {/* Logo */}
         <Link href="/" className="absolute top-8 left-8">
           <Image
@@ -55,7 +74,9 @@ export default function SignInPage({
       </div>
 
       {/* Right Section - Form */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/3 lg:px-12 xl:px-16 bg-gradient-to-r from-[#080808] to-[#121212]">
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/3 lg:px-12 xl:px-16" style={{
+        background: `linear-gradient(to right, ${currentCompany.bgColors.from}, ${currentCompany.bgColors.to})`
+      }}>
         <div className="w-full max-w-md mx-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 flex justify-center lg:justify-start">

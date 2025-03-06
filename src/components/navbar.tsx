@@ -43,7 +43,7 @@ export function Navbar() {
     <div className="relative z-[100]">
       <header
         className={cn(
-          "fixed left-0 right-0 z-50 w-full bg-gray-200/20 backdrop-blur-sm border border-gray-400/20 md:rounded-sm transition-all duration-300 pointer-events-auto max-w-7xl mx-auto",
+          "fixed left-0 right-0 z-50 w-full bg-gray-200/10 backdrop-blur-sm border border-gray-400/20 md:rounded-sm transition-all duration-300 pointer-events-auto max-w-7xl mx-auto",
           !isOpen && "md:mt-6",
           scrolled && "bg-gray-200/10 backdrop-blur-md",
         )}
@@ -72,7 +72,7 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   "text-sm font-semibold hover:underline underline-offset-4 transition-colors hover:scale-105 duration-300",
-                  pathname === link.href ? "text-white underline" : "text-muted-foreground hover:text-white",
+                  pathname === link.href ? "text-white underline scale-105" : "text-gray-300 hover:text-white",
                 )}
               >
                 {link.label}
