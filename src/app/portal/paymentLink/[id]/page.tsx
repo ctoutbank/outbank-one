@@ -8,7 +8,7 @@ import {
 
 export const revalidate = 0;
 
-export default async function CategoryDetail({
+export default async function PaymentLinkDetail({
   params,
 }: {
   params: { id: string };
@@ -50,6 +50,9 @@ export default async function CategoryDetail({
               pixEnabled: null,
               transactionSlug: null,
               shoppingItems: [],
+              isDeleted: null,
+              isFromServer: null,
+              modified: null
             }
           }
           merchant={merchants}
