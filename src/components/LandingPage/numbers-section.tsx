@@ -92,7 +92,7 @@ export default function NumbersSection() {
           >
             <div>
               <div className="mb-6 flex flex-row gap-2">
-                <img src="/pix-icon.svg" alt="PIX" className="w-5 h-5" />
+                <Image src="/pix-icon.svg" alt="PIX" width={20} height={20} className="w-5 h-5" quality={100} />
                 <p className="font-light text-sm">PIX</p>
               </div>
               <div className="text-4xl font-light mb-4">R$ 2,1B</div>
@@ -108,7 +108,7 @@ export default function NumbersSection() {
           >
             <div>
               <div className="mb-6 flex flex-row gap-2">
-              <img src="/digital-banking-icon.svg" alt="Digital Banking" className="w-5 h-5" />
+                <Image src="/digital-banking-icon.svg" alt="Digital Banking" width={20} height={20} className="w-5 h-5" quality={100} />
                 <p className="font-light text-sm">DIGITAL BANKING</p>
               </div>
               <div className="text-4xl font-light mb-4">+75M</div>
@@ -140,8 +140,8 @@ export default function NumbersSection() {
           >
             <div>
               <div className="mb-6 flex flex-row gap-2">
-                <img src="/dock-icon.svg" alt="Dock" className="w-5 h-5" />
-                <p className=" font-light text-sm">DOCK</p>
+                <Image src="/dock-icon.svg" alt="Dock" width={20} height={20} className="w-5 h-5" quality={100} />
+                <p className="font-light text-sm">DOCK</p>
               </div>
               <div className="text-4xl font-light mb-4">+400</div>
             </div>
@@ -162,13 +162,13 @@ export default function NumbersSection() {
               <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+ 30 Certified Networks</div>
               <div className="flex flex-wrap items-center gap-3 md:gap-4">
                 <motion.div whileHover={{ scale: 1.1 }}>
-                  <Image src="/visa.svg" alt="Visa" width={36} height={36} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
+                  <Image src="/visa.svg" alt="Visa" width={36} quality={100} height={36} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.1 }}>
-                  <Image src="/mastercard.svg" alt="Mastercard" width={40} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
+                  <Image src="/mastercard.svg" alt="Mastercard" width={40} quality={100} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.1 }}>
-                  <Image src="/elo.svg" alt="Elo" width={40} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
+                  <Image src="/elo.svg" alt="Elo" width={40} quality={100} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
                 </motion.div>
                 <p className="bg-gray-600/20 text-muted-foreground px-3 md:px-4 py-1.5 md:py-2 border border-gray-600/40 text-sm rounded-2xl inline-block">+27 networks</p>
               </div>

@@ -18,7 +18,7 @@ const HeroAcquiring = () => {
           quality={100}
         />
         {/* Dark overlay - darker on mobile, lighter on desktop */}
-        <div className="absolute inset-0 bg-black/60 md:bg-transparent" />
+        <div className="absolute inset-0 bg-black/80 md:bg-transparent" />
         {/* Gradient fade on the right side */}
         <div className="absolute inset-y-0 right-0 w-[40%] bg-gradient-to-l from-black to-transparent" />
       </div>
@@ -32,7 +32,7 @@ const HeroAcquiring = () => {
               ACQUIRING
             </div>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-100  mb-4 sm:mb-6 leading-tight">
             Become an acquirer and explore new revenue opportunities
             </h1>
             
@@ -48,7 +48,7 @@ const HeroAcquiring = () => {
               >
                 Button CTA
               </button>
-              <button className="w-full sm:w-auto bg-gray-400/10 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] ">
+              <button className="w-full sm:w-auto bg-gray-400/10 text-gray-100 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] ">
                 Learn More
               </button>
             </div>

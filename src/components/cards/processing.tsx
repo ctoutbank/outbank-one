@@ -69,7 +69,7 @@ export default function CardProcessing() {
                   className="flex items-center justify-between w-full py-4 text-left group"
                 >
                   <span className="text-xl font-semibold">{item.title}</span>
-                  <span className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-[#080808] to-gray-500/20 rounded group-hover:bg-white/5 transition-colors">
+                  <span className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-[#080808] to-gray-500/20 rounded group-hover:bg-white/10 transition-colors">
                     {openItem === index ? <Minus className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
                   </span>
                 </button>

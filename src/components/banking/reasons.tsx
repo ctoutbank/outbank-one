@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
 
 export default function ReasonsSection() {
@@ -77,12 +78,12 @@ export default function ReasonsSection() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-xl font-semibold">{reason.title}</h3>
-                  <img
+                  <Image
                     src="/logo-icon.svg"
                     alt="Logo icon"
                     width={40}
                     height={40}
-                    className="border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-400/10"
+                    className="border border-gray-700/20 p-1 rounded-sm bg-gradient-to-r from-[#080808] to-gray-400/10"
                   />
                 </div>
                 <p className="text-muted-foreground leading-relaxed">{reason.description}</p>
