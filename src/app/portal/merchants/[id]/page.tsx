@@ -25,8 +25,9 @@ export default async function MerchantDetail({
   
  
   const legalNatures = await getLegalNaturesForDropdown();
+ 
 
-  console.log("legalNatures", legalNatures);
+ 
   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
   const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(merchant?.merchants.idMerchantPrice || 0);
   console.log('merchantPriceGroups:', JSON.stringify(merchantPriceGroups, null, 2));
@@ -195,8 +196,8 @@ export default async function MerchantDetail({
               dtupdate: pixaccount?.dtupdate || "",
               idRegistration: pixaccount?.idRegistration || "",
               idAccount: pixaccount?.idAccount || "",
-              bankNumber: merchant?.pixaccounts?.bankNumber || "",
-              bankBranchNumber: merchant?.pixaccounts?.bankBranchNumber || "",
+              bankNumber: pixaccount?.bankNumber || "",
+              bankBranchNumber: pixaccount?.bankBranchNumber || "",
               bankBranchDigit: pixaccount?.bankBranchDigit || "",
               bankAccountNumber: pixaccount?.bankAccountNumber || "",
               bankAccountDigit: pixaccount?.bankAccountDigit || "",
@@ -211,6 +212,7 @@ export default async function MerchantDetail({
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
+            
           }}
 
           merchantPriceGroupProps={{

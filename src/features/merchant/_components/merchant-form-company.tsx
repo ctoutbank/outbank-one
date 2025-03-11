@@ -94,7 +94,8 @@ export default function MerchantFormCompany({
       mcc: Mcc || "",
       number: merchant?.number || "",
       areaCode: merchant?.areaCode || "",
-      legal_nature: DDLegalNature[0].label || "",
+      idLegalNature: merchant?.idLegalNature ? Number(merchant.idLegalNature) : undefined,
+      slugLegalNature: merchant?.slugLegalNature || "",
 
       // campos do endereço virão de outra tabela
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
@@ -161,6 +162,7 @@ export default function MerchantFormCompany({
 
       if (data?.id) {
         console.log("dataid", data.id);
+        console.log("merchantData", merchantData);
         await updateMerchantFormAction(merchantData);
       } else {
         idMerchant = await insertMerchantFormAction(merchantData);
@@ -589,7 +591,7 @@ export default function MerchantFormCompany({
                       />
                       <FormField
                         control={form.control}
-                        name="legal_nature"
+                        name="idLegalNature"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -597,8 +599,8 @@ export default function MerchantFormCompany({
                               <span className="text-red-500">*</span>
                             </FormLabel>
                             <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
+                              onValueChange={(value) => field.onChange(Number(value))}
+                              value={field.value?.toString()}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -607,7 +609,7 @@ export default function MerchantFormCompany({
                               </FormControl>
                               <SelectContent>
                                 {DDLegalNature.map((item) => (
-                                  <SelectItem key={item.value} value={item.label}>
+                                  <SelectItem key={item.value} value={item.value.toString()}>
                                     {item.label}
                                   </SelectItem>
                                 ))}

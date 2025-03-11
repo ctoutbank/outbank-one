@@ -15,6 +15,8 @@ import { updateMerchantPixAccountFormAction } from "../_actions/merchantPixAccou
 import { insertMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
 import { Button } from "@/components/ui/button"
 import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount"
+import { useEffect } from "react"
+
 interface MerchantProps {
   merchantpixaccount: typeof merchantpixaccount.$inferSelect,
   merchantcorporateName:string,
@@ -29,15 +31,18 @@ interface MerchantProps {
   
 
 
-export default function MerchantFormBank({ merchantpixaccount,merchantcorporateName,merchantdocumentId,legalPerson,idMerchant,setActiveTab,activeTab,DDAccountType,DDBank  }: MerchantProps) {
+
+export default function MerchantFormBank({ merchantpixaccount,merchantcorporateName,merchantdocumentId,idMerchant,setActiveTab,activeTab,DDAccountType,DDBank  }: MerchantProps) {
   const router = useRouter();
   
   const form = useForm<MerchantPixAccountSchema>({
+    
     resolver: zodResolver(merchantPixAccountSchema),
     defaultValues: {
+
       id: merchantpixaccount?.id ? Number(merchantpixaccount.id) : undefined,
       slug: merchantpixaccount?.slug || "",
-      active: merchantpixaccount?.active || false,
+      active: merchantpixaccount?.active || true,
       dtinsert: merchantpixaccount?.dtinsert ? new Date(merchantpixaccount.dtinsert) : undefined,
       dtupdate: merchantpixaccount?.dtupdate ? new Date(merchantpixaccount.dtupdate) : undefined,
       idRegistration: merchantpixaccount?.idRegistration || "",
@@ -55,11 +60,10 @@ export default function MerchantFormBank({ merchantpixaccount,merchantcorporateN
       idMerchant: idMerchant,
       slugMerchant: merchantpixaccount?.slugMerchant || "",
       useEstablishmentData: false,
-      merchantcorporateName: merchantcorporateName || "",
-      merchantdocumentId: merchantdocumentId || "",
-      legalPerson: legalPerson || "",
-      bank: merchantpixaccount?.bankNumber || "",
-      accountType: merchantpixaccount?.bankAccountType || "",
+      merchantcorporateName: "",
+      merchantdocumentId: "",
+      
+      
       
      
       
@@ -76,13 +80,51 @@ export default function MerchantFormBank({ merchantpixaccount,merchantcorporateN
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
 
+  // Efeito para observar mudanças na checkbox "Usar dados do Estabelecimento"
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      // Se a checkbox "Usar dados do Estabelecimento" foi alterada
+      if (name === "useEstablishmentData") {
+        const useEstablishmentData = value.useEstablishmentData;
+        
+        if (useEstablishmentData) {
+          // Se a checkbox foi marcada, preenche com os dados do merchant
+          form.setValue("merchantdocumentId", merchantdocumentId || "");
+          form.setValue("merchantcorporateName", merchantcorporateName || "");
+          console.log("Preenchendo com dados do merchant:", {
+            merchantdocumentId,
+            merchantcorporateName
+          });
+        } else {
+          // Se a checkbox foi desmarcada, limpa os campos
+          form.setValue("merchantdocumentId", "");
+          form.setValue("merchantcorporateName", "");
+          console.log("Limpando campos");
+        }
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, merchantdocumentId, merchantcorporateName]);
+
   const onSubmit = async (data: MerchantPixAccountSchema) => {
-    if (data.id) {
-      await updateMerchantPixAccountFormAction(data);
-    } else {
-      await insertMerchantPixAccountFormAction(data);
+    try {
+      console.log("Iniciando submit do formulário"); // Debug
+      console.log("Dados do formulário:", data); // Debug
+
+      if (data.id) {
+        console.log("Atualizando conta existente");
+        await updateMerchantPixAccountFormAction(data);
+      } else {
+        console.log("Criando nova conta");
+        await insertMerchantPixAccountFormAction(data);
+      }
+      
+      console.log("Operação concluída com sucesso");
+      refreshPage(idMerchant);
+    } catch (error) {
+      console.error("Erro no submit:", error);
     }
-    refreshPage(idMerchant);
   };
 
   return (
@@ -143,66 +185,94 @@ export default function MerchantFormBank({ merchantpixaccount,merchantcorporateN
           )}
         />
 <div className="grid grid-cols-2 gap-4">
-<FormField
-                        control={form.control}
-                        name="bank" 
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Banco <span className="text-red-500">*</span>
-                            </FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {DDBank.map((item) => (
-                                  <SelectItem key={item.value} value={item.value}>
-                                    {item.value} - {item.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="accountType" 
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Tipo de Conta <span className="text-red-500">*</span>
-                            </FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {DDAccountType.map((item) => (
-                                  <SelectItem key={item.value} value={item.value}>
-                                    {item.value} - {item.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      </div>
-      
+  <FormField
+    control={form.control}
+    name="bankNumber"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          Banco <span className="text-red-500">*</span>
+        </FormLabel>
+        <Select
+          onValueChange={(value) => {
+            // Define o bankNumber (value)
+            field.onChange(value);
+            
+            // Encontra o banco selecionado para obter a label
+            const selectedBank = DDBank.find(bank => bank.value === value);
+            
+            // Define o bankName (label)
+            if (selectedBank) {
+              form.setValue('bankName', selectedBank.label);
+              console.log("Banco selecionado:", { 
+                bankNumber: value, 
+                bankName: selectedBank.label 
+              });
+            }
+          }}
+          value={field.value || ""}
+        >
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            {DDBank.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.value} - {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  
+  {/* Campo oculto para bankName */}
+  <FormField
+    control={form.control}
+    name="bankName"
+    render={({ field }) => (
+      <FormItem className="hidden">
+        <FormControl>
+          <Input {...field} />
+        </FormControl>
+      </FormItem>
+    )}
+  />
+  
+  <FormField
+    control={form.control}
+    name="bankAccountType"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          Tipo de Conta <span className="text-red-500">*</span>
+        </FormLabel>
+        <Select
+          onValueChange={field.onChange}
+          value={field.value || ""}
+        >
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            {DDAccountType.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">

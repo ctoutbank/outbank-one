@@ -91,6 +91,7 @@ export default function MerchantFormOperations({
   const params = new URLSearchParams(searchParams || "");
 
   const refreshPage = (id: number) => {
+    params.set("tab", activeTab);
     setActiveTab(activeTab);
     //add new objects in searchParams
     router.push(`/portal/merchants/${id}?${params.toString()}`);
