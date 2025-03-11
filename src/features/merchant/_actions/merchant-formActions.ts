@@ -12,14 +12,20 @@ import {
   insertAddress,
   getSlugById,
 } from "../server/merchant";
-import { legalNatures, categories, configurations } from "../../../../drizzle/schema";
+import {
+  legalNatures,
+  categories,
+  configurations,
+} from "../../../../drizzle/schema";
 
 export async function insertMerchantFormAction(data: MerchantSchema) {
   // Buscar os slugs usando a função genérica
   const [legalNatureSlug, categorySlug, configurationSlug] = await Promise.all([
     data.idLegalNature ? getSlugById(legalNatures, data.idLegalNature) : null,
     data.idCategory ? getSlugById(categories, data.idCategory) : null,
-    data.idConfiguration ? getSlugById(configurations, data.idConfiguration) : null
+    data.idConfiguration
+      ? getSlugById(configurations, data.idConfiguration)
+      : null,
   ]);
 
   const merchantInsert: MerchantInsert = {
@@ -75,11 +81,20 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
     throw new Error("Cannot update merchant without an ID");
   }
 
+  console.log("data.idCategory", data.idCategory);
+  console.log("data.cnae", data.cnae);
+
   // Buscar os slugs usando a função genérica
+  // Sim, isso é mais performático do que fazer chamadas sequenciais
+  // Promise.all executa todas as promessas em paralelo e aguarda todas terminarem
+  // Em vez de esperar cada uma terminar antes de iniciar a próxima
+  // Isso reduz o tempo total de execução, especialmente em operações de I/O como consultas ao banco
   const [legalNatureSlug, categorySlug, configurationSlug] = await Promise.all([
     data.idLegalNature ? getSlugById(legalNatures, data.idLegalNature) : null,
     data.idCategory ? getSlugById(categories, data.idCategory) : null,
-    data.idConfiguration ? getSlugById(configurations, data.idConfiguration) : null
+    data.idConfiguration
+      ? getSlugById(configurations, data.idConfiguration)
+      : null,
   ]);
 
   const merchantUpdate: MerchantDetail = {
@@ -119,7 +134,7 @@ export async function updateMerchantFormAction(data: MerchantSchema) {
     slugLegalNature: legalNatureSlug || "",
     idCategory: data.idCategory || 0,
     slugCategory: categorySlug || "",
-    idConfiguration: data.idConfiguration ||  0,
+    idConfiguration: data.idConfiguration || undefined,
     slugConfiguration: configurationSlug || "",
   };
   await updateMerchant(merchantUpdate);
