@@ -217,7 +217,7 @@ export default function MerchantFormTax2({
   
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
+    <div className="w-full mx-auto p-4">
      
 
       {/* Header */}
@@ -338,7 +338,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.vista?.mdr}%
                         </div>
                       )}
@@ -359,7 +359,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela2_6?.mdr}%
                         </div>
                       )}
@@ -380,7 +380,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela7_12?.mdr}%
                         </div>
                       )}
@@ -401,7 +401,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.debit?.mdr}%
                         </div>
                       )}
@@ -422,7 +422,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.prepaid?.mdr}%
                         </div>
                       )}
@@ -434,8 +434,8 @@ export default function MerchantFormTax2({
             <div className="mt-8 bg-gray-50 rounded-lg p-4 ">
           <h2 className="text-lg font-semibold mb-6 text-gray-800">Taxa Pix</h2>
           <div className="flex gap-10">
-            <div className="flex flex-col items-center ">
-              <p className="text-sm text-left text-gray-600 mb-2">MDR</p>
+            <div className="flex flex-col items-center">
+              <p className="text-sm text-gray-600 mb-2">MDR</p>
               {isEditing ? (
                 <Input
                   value={merchantprice[0].cardPixMdr}
@@ -443,7 +443,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   {merchantprice[0].cardPixMdr}%
                 </div>
               )}
@@ -457,7 +457,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].cardPixMinimumCostFee}
                 </div>
               )}
@@ -471,7 +471,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].cardPixCeilingFee}
                 </div>
               )}
@@ -485,7 +485,7 @@ export default function MerchantFormTax2({
           className="w-24 h-8 text-sm border rounded px-2"
         />
       ) : (
-        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+        <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
           {merchantprice[0].eventualAnticipationFee}% ao mês
         </div>
       )}
@@ -539,7 +539,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.vista?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -560,7 +560,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela2_6?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -581,7 +581,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela7_12?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -602,7 +602,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.debit?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -623,7 +623,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.prepaid?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -635,7 +635,7 @@ export default function MerchantFormTax2({
             <div className="mt-8 bg-gray-50 rounded-lg p-4 ">
           <h2 className="text-lg font-semibold mb-6 text-gray-800">Taxa Pix</h2>
           <div className="flex gap-10">
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-left">
               <p className="text-sm text-gray-600 mb-2">MDR</p>
               {isEditing ? (
                 <Input
@@ -644,7 +644,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   {merchantprice[0].nonCardPixMdr}%
                 </div>
               )}
@@ -658,7 +658,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].nonCardPixMinimumCostFee}
                 </div>
               )}
@@ -672,13 +672,13 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].nonCardPixCeilingFee}
                 </div>
               )}
             </div>
             <div className="flex flex-col items-center">
-      <p className="text-sm text-gray-600 mb-2">Antecipação</p>
+      <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
       {isEditing ? (
         <Input
           value={merchantprice[0].eventualAnticipationFee}
@@ -686,7 +686,7 @@ export default function MerchantFormTax2({
           className="w-24 h-8 text-sm border rounded px-2"
         />
       ) : (
-        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+        <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
           {merchantprice[0].eventualAnticipationFee}% ao mês
         </div>
       )}
@@ -745,7 +745,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.vista?.mdr}%
                         </div>
                       )}
@@ -766,7 +766,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela2_6?.mdr}%
                         </div>
                       )}
@@ -787,7 +787,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela7_12?.mdr}%
                         </div>
                       )}
@@ -808,7 +808,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.debit?.mdr}%
                         </div>
                       )}
@@ -829,7 +829,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.prepaid?.mdr}%
                         </div>
                       )}
@@ -850,7 +850,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   {merchantprice[0].cardPixMdr}%
                 </div>
               )}
@@ -864,7 +864,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].cardPixMinimumCostFee}
                 </div>
               )}
@@ -878,7 +878,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].cardPixCeilingFee}
                 </div>
               )}
@@ -892,12 +892,13 @@ export default function MerchantFormTax2({
           className="w-24 h-8 text-sm border rounded px-2"
         />
       ) : (
-        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+        <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
           {merchantprice[0].eventualAnticipationFee}% ao mês
         </div>
       )}
     </div>
             
+         
           </div>
         </div>
           </div>
@@ -949,7 +950,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.vista?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -970,7 +971,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela2_6?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -991,7 +992,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.credit.parcela7_12?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -1012,7 +1013,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.debit?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -1033,7 +1034,7 @@ export default function MerchantFormTax2({
                           className="w-24 h-8 text-sm border rounded px-2"
                         />
                       ) : (
-                        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                        <div className="px-3 py-1 text-sm w-24">
                           {group.transactions.prepaid?.noCardTransactionMdr}%
                         </div>
                       )}
@@ -1054,7 +1055,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   {merchantprice[0].nonCardPixMdr}%
                 </div>
               )}
@@ -1068,7 +1069,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].nonCardPixMinimumCostFee}
                 </div>
               )}
@@ -1082,7 +1083,7 @@ export default function MerchantFormTax2({
                   className="w-24 h-8 text-sm border rounded px-2"
                 />
               ) : (
-                <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+                <div className="px-3 py-1 text-sm w-24">
                   R$ {merchantprice[0].nonCardPixCeilingFee}
                 </div>
               )}
@@ -1096,7 +1097,7 @@ export default function MerchantFormTax2({
           className="w-24 h-8 text-sm border rounded px-2"
         />
       ) : (
-        <div className="bg-gray-100 rounded px-3 py-1 text-sm w-24">
+        <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
           {merchantprice[0].eventualAnticipationFee}% ao mês
         </div>
       )}

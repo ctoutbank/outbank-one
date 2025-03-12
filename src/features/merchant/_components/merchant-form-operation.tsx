@@ -333,63 +333,7 @@ export default function MerchantFormOperations({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="theme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Tema do estabelecimento <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="SYSTEM DEFAULT"
-                        disabled
-                        value={field.value}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="accessProfile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Perfil de acesso <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o perfil" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="merchant-cp">
-                          Merchant CP sem Antecipação
-                        </SelectItem>
-                        <SelectItem value="teste-default">
-                          Teste Default
-                        </SelectItem>
-                        <SelectItem value="perfil-padrao">
-                          Perfil Padrão de EC
-                        </SelectItem>
-                        <SelectItem value="role-default">
-                          Role Default
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+             
             </CardContent>
           </Card>
           <div className="flex justify-end mt-4">

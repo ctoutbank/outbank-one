@@ -12,11 +12,14 @@ import {
 import { getAccountTypeForDropdown, getBankForDropdown, getMerchantPixAccountByMerchantId } from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
 
+
+
 export default async function MerchantDetail({
   params,
 }: {
   params: { id: string };
 }) {
+  
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
   const merchant = await getMerchantById(parseInt(params.id));
