@@ -13,13 +13,19 @@ import {
   addresses,
   configurations,
   contacts,
-  merchantpixaccount
+  merchantpixaccount,
 } from "../../../../drizzle/schema";
-import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
-import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount";
+import {
+  CnaeMccDropdown,
+  EstablishmentFormatDropdown,
+  LegalNatureDropdown,
+} from "../server/merchant";
+import {
+  accountTypeDropdown,
+  banckDropdown,
+} from "../server/merchantpixacount";
 import MerchantFormDocuments from "./merchant-form-documents";
 import MerchantFormTax2 from "./merchant-form-tax2";
-
 
 interface MerchantData {
   id: number;
@@ -160,9 +166,9 @@ interface MerchantTabsProps {
   cnaeMccList: CnaeMccDropdown[];
   legalNatures: LegalNatureDropdown[];
   establishmentFormatList: EstablishmentFormatDropdown[];
-  DDAccountType:accountTypeDropdown[],
-  DDBank:banckDropdown[],
-  
+  DDAccountType: accountTypeDropdown[];
+  DDBank: banckDropdown[];
+
   merchantPriceGroupProps: MerchantPriceGroupProps;
 }
 
@@ -177,7 +183,7 @@ export default function MerchantTabs({
   establishmentFormatList,
   DDAccountType,
   DDBank,
-  
+
   merchantPriceGroupProps,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
@@ -200,6 +206,8 @@ export default function MerchantTabs({
     setActiveTab(tab);
   }, [searchParams]);
   console.log("activeTab 2", activeTab);
+
+  console.log("timezone", merchant.timezone);
   return (
     <Tabs
       value={activeTab}
@@ -214,7 +222,6 @@ export default function MerchantTabs({
         <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
         <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
         <TabsTrigger value="documents">Documentos</TabsTrigger>
-        
       </TabsList>
 
       <TabsContent value="company">
@@ -236,7 +243,6 @@ export default function MerchantTabs({
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
           setActiveTab={setActiveTab}
-         
         />
       </TabsContent>
 
@@ -303,10 +309,12 @@ export default function MerchantTabs({
           hastop={merchant.hasTop}
           hasPix={merchant.hasPix}
           merhcnatSlug={merchant.slugCategory || ""}
-          timerzone={merchant.timezone || ""}
+          timezone={merchant.timezone || ""}
           idMerchant={merchant.id}
           setActiveTab={setActiveTab}
-          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
         />
       </TabsContent>
 
@@ -341,7 +349,9 @@ export default function MerchantTabs({
           merchantcorporateName={merchant.corporateName || ""}
           merchantdocumentId={merchant.idDocument || ""}
           legalPerson={merchant.legalPerson || ""}
-          activeTab={listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]}
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
           idMerchant={merchant.id}
           setActiveTab={setActiveTab}
           DDAccountType={DDAccountType}
@@ -354,37 +364,52 @@ export default function MerchantTabs({
       </TabsContent>
 
       <TabsContent value="rate">
-      <MerchantFormTax2 
-          merchantprice={[{
-            id: merchantPriceGroupProps?.merchantPrice?.id || 0,
-            name: merchantPriceGroupProps?.merchantPrice?.name || '',
-            active: merchantPriceGroupProps?.merchantPrice?.active || false,
-            dtinsert: merchantPriceGroupProps?.merchantPrice?.dtinsert || '',
-            dtupdate: merchantPriceGroupProps?.merchantPrice?.dtupdate || '',
-            tableType: merchantPriceGroupProps?.merchantPrice?.tableType || '',
-            slugMerchant: merchantPriceGroupProps?.merchantPrice?.slugMerchant || '',
-            compulsoryAnticipationConfig: merchantPriceGroupProps?.merchantPrice?.compulsoryAnticipationConfig || 0,
-            anticipationType: merchantPriceGroupProps?.merchantPrice?.anticipationType || '',
-            eventualAnticipationFee: merchantPriceGroupProps?.merchantPrice?.eventualAnticipationFee || 0,
-            cardPixMdr: merchantPriceGroupProps?.merchantPrice?.cardPixMdr || 0,
-            cardPixCeilingFee: merchantPriceGroupProps?.merchantPrice?.cardPixCeilingFee || 0,
-            cardPixMinimumCostFee: merchantPriceGroupProps?.merchantPrice?.cardPixMinimumCostFee || 0,
-            nonCardPixMdr: merchantPriceGroupProps?.merchantPrice?.nonCardPixMdr || 0,
-            nonCardPixCeilingFee: merchantPriceGroupProps?.merchantPrice?.nonCardPixCeilingFee || 0,
-            nonCardPixMinimumCostFee: merchantPriceGroupProps?.merchantPrice?.nonCardPixMinimumCostFee || 0,
-            merchantpricegroup: merchantPriceGroupProps?.merchantpricegroup || []
-          }]}
-         
-          
+        <MerchantFormTax2
+          merchantprice={[
+            {
+              id: merchantPriceGroupProps?.merchantPrice?.id || 0,
+              name: merchantPriceGroupProps?.merchantPrice?.name || "",
+              active: merchantPriceGroupProps?.merchantPrice?.active || false,
+              dtinsert: merchantPriceGroupProps?.merchantPrice?.dtinsert || "",
+              dtupdate: merchantPriceGroupProps?.merchantPrice?.dtupdate || "",
+              tableType:
+                merchantPriceGroupProps?.merchantPrice?.tableType || "",
+              slugMerchant:
+                merchantPriceGroupProps?.merchantPrice?.slugMerchant || "",
+              compulsoryAnticipationConfig:
+                merchantPriceGroupProps?.merchantPrice
+                  ?.compulsoryAnticipationConfig || 0,
+              anticipationType:
+                merchantPriceGroupProps?.merchantPrice?.anticipationType || "",
+              eventualAnticipationFee:
+                merchantPriceGroupProps?.merchantPrice
+                  ?.eventualAnticipationFee || 0,
+              cardPixMdr:
+                merchantPriceGroupProps?.merchantPrice?.cardPixMdr || 0,
+              cardPixCeilingFee:
+                merchantPriceGroupProps?.merchantPrice?.cardPixCeilingFee || 0,
+              cardPixMinimumCostFee:
+                merchantPriceGroupProps?.merchantPrice?.cardPixMinimumCostFee ||
+                0,
+              nonCardPixMdr:
+                merchantPriceGroupProps?.merchantPrice?.nonCardPixMdr || 0,
+              nonCardPixCeilingFee:
+                merchantPriceGroupProps?.merchantPrice?.nonCardPixCeilingFee ||
+                0,
+              nonCardPixMinimumCostFee:
+                merchantPriceGroupProps?.merchantPrice
+                  ?.nonCardPixMinimumCostFee || 0,
+              merchantpricegroup:
+                merchantPriceGroupProps?.merchantpricegroup || [],
+            },
+          ]}
           idMerchantPrice={merchant.idMerchantPrice || 0}
         />
-       
       </TabsContent>
 
       <TabsContent value="documents">
         <MerchantFormDocuments merchantId={merchant.id.toString()} />
       </TabsContent>
-      
     </Tabs>
   );
 }

@@ -21,7 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { insertConfigurationFormAction, updateConfigurationFormAction } from "@/features/configuration/_actions/configuration-formActions";
+import {
+  insertConfigurationFormAction,
+  updateConfigurationFormAction,
+} from "@/features/configuration/_actions/configuration-formActions";
 import {
   ConfigurationOperationsSchema,
   schemaConfigurationOperations,
@@ -32,6 +35,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { configurations } from "../../../../drizzle/schema";
 import { updateMerchantColumnsById } from "../server/merchant";
+import { timezones } from "@/lib/lookuptables";
 
 interface MerchantProps {
   Configuration: typeof configurations.$inferSelect;
@@ -39,11 +43,10 @@ interface MerchantProps {
   hastop: boolean;
   hasPix: boolean;
   merhcnatSlug: string;
-  timerzone: string;
+  timezone: string;
   idMerchant: number;
   setActiveTab: (tab: string) => void;
   activeTab: string;
-
 }
 
 export default function MerchantFormOperations({
@@ -52,12 +55,13 @@ export default function MerchantFormOperations({
   hastop,
   hasPix,
   merhcnatSlug,
-  timerzone,
+  timezone,
   setActiveTab,
   activeTab,
   idMerchant,
 }: MerchantProps) {
   const router = useRouter();
+  console.log("timezone", timezone);
 
   const form = useForm<ConfigurationOperationsSchema>({
     resolver: zodResolver(schemaConfigurationOperations),
@@ -81,7 +85,7 @@ export default function MerchantFormOperations({
       merhcnatSlug: merhcnatSlug,
       cardPresent: false,
       cardNotPresent: false,
-      timerzone: timerzone,
+      timezone: timezone,
       theme: "SYSTEM DEFAULT",
       accessProfile: "merchant-cp",
     },
@@ -109,7 +113,7 @@ export default function MerchantFormOperations({
       }
 
       console.log("idConfiguration", idConfiguration);
-  
+
       // Atualizar merchant com o ID da configuração (novo ou existente)
       await updateMerchantColumnsById(idMerchant, {
         idConfiguration: idConfiguration!, // Usar o ID obtido da criação ou o existente
@@ -117,7 +121,7 @@ export default function MerchantFormOperations({
         hasTop: data.hastop || false,
         hasPix: data.hasPix || false,
       });
-  
+
       refreshPage(idMerchant);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -162,7 +166,9 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={(value) => field.onChange(value === "true")}
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
@@ -192,7 +198,9 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={(value) => field.onChange(value === "true")}
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
@@ -255,7 +263,9 @@ export default function MerchantFormOperations({
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={(value) => field.onChange(value === "true")}
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         defaultValue={field.value ? "true" : "false"}
                         className="flex space-x-4"
                       >
@@ -284,28 +294,28 @@ export default function MerchantFormOperations({
             <CardContent className="space-y-4">
               <FormField
                 control={form.control}
-                name="timerzone"
+                name="timezone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
                       Timezone do Terminal{" "}
                       <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={
-                        field.value === "-0300" ? "UTC-03:00" : field.value
-                      }
-                    >
+                    <Select onValueChange={field.onChange} defaultValue="-0300">
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select timezone" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="UTC-03:00">
-                          (UTC-03:00) Brasilia
-                        </SelectItem>
+                        {timezones.map((timezone) => (
+                          <SelectItem
+                            key={timezone.value}
+                            value={timezone.value}
+                          >
+                            {timezone.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -339,7 +349,8 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Tema do estabelecimento <span className="text-red-500">*</span>
+                      Tema do estabelecimento{" "}
+                      <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -393,8 +404,8 @@ export default function MerchantFormOperations({
             </CardContent>
           </Card>
           <div className="flex justify-end mt-4">
-          <Button type="submit">Avançar</Button>
-        </div>  
+            <Button type="submit">Avançar</Button>
+          </div>
         </form>
       </Form>
     </div>

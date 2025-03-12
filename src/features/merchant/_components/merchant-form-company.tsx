@@ -46,6 +46,7 @@ import {
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
 } from "../server/merchant";
+import { states } from "@/lib/lookuptables";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -816,87 +817,14 @@ export default function MerchantFormCompany({
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="AC">
-                                      Acre (AC)
-                                    </SelectItem>
-                                    <SelectItem value="AL">
-                                      Alagoas (AL)
-                                    </SelectItem>
-                                    <SelectItem value="AP">
-                                      Amapá (AP)
-                                    </SelectItem>
-                                    <SelectItem value="AM">
-                                      Amazonas (AM)
-                                    </SelectItem>
-                                    <SelectItem value="BA">
-                                      Bahia (BA)
-                                    </SelectItem>
-                                    <SelectItem value="CE">
-                                      Ceará (CE)
-                                    </SelectItem>
-                                    <SelectItem value="DF">
-                                      Distrito Federal (DF)
-                                    </SelectItem>
-                                    <SelectItem value="ES">
-                                      Espírito Santo (ES)
-                                    </SelectItem>
-                                    <SelectItem value="GO">
-                                      Goiás (GO)
-                                    </SelectItem>
-                                    <SelectItem value="MA">
-                                      Maranhão (MA)
-                                    </SelectItem>
-                                    <SelectItem value="MT">
-                                      Mato Grosso (MT)
-                                    </SelectItem>
-                                    <SelectItem value="MS">
-                                      Mato Grosso do Sul (MS)
-                                    </SelectItem>
-                                    <SelectItem value="MG">
-                                      Minas Gerais (MG)
-                                    </SelectItem>
-                                    <SelectItem value="PA">
-                                      Pará (PA)
-                                    </SelectItem>
-                                    <SelectItem value="PB">
-                                      Paraíba (PB)
-                                    </SelectItem>
-                                    <SelectItem value="PR">
-                                      Paraná (PR)
-                                    </SelectItem>
-                                    <SelectItem value="PE">
-                                      Pernambuco (PE)
-                                    </SelectItem>
-                                    <SelectItem value="PI">
-                                      Piauí (PI)
-                                    </SelectItem>
-                                    <SelectItem value="RJ">
-                                      Rio de Janeiro (RJ)
-                                    </SelectItem>
-                                    <SelectItem value="RN">
-                                      Rio Grande do Norte (RN)
-                                    </SelectItem>
-                                    <SelectItem value="RS">
-                                      Rio Grande do Sul (RS)
-                                    </SelectItem>
-                                    <SelectItem value="RO">
-                                      Rondônia (RO)
-                                    </SelectItem>
-                                    <SelectItem value="RR">
-                                      Roraima (RR)
-                                    </SelectItem>
-                                    <SelectItem value="SC">
-                                      Santa Catarina (SC)
-                                    </SelectItem>
-                                    <SelectItem value="SP">
-                                      São Paulo (SP)
-                                    </SelectItem>
-                                    <SelectItem value="SE">
-                                      Sergipe (SE)
-                                    </SelectItem>
-                                    <SelectItem value="TO">
-                                      Tocantins (TO)
-                                    </SelectItem>
+                                    {states.map((state) => (
+                                      <SelectItem
+                                        key={state.value}
+                                        value={state.value}
+                                      >
+                                        {state.label}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
