@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount } from "./schema";
+import { customers, paymentInstitution, settlements, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -14,7 +14,9 @@ export const customersRelations = relations(customers, ({many}) => ({
 	settlements: many(settlements),
 	payouts: many(payout),
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
+	customerFunctions: many(customerFunctions),
 	merchantSettlements: many(merchantSettlements),
+	users: many(users),
 }));
 
 export const settlementsRelations = relations(settlements, ({one, many}) => ({
@@ -68,6 +70,7 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	merchantSettlements: many(merchantSettlements),
 	paymentLinks: many(paymentLink),
 	merchantpixaccounts: many(merchantpixaccount),
+	users: many(users),
 }));
 
 export const merchantfileRelations = relations(merchantfile, ({one}) => ({
@@ -132,6 +135,28 @@ export const paymentLinkRelations = relations(paymentLink, ({one, many}) => ({
 	}),
 }));
 
+export const profileFunctionsRelations = relations(profileFunctions, ({one}) => ({
+	profile: one(profiles, {
+		fields: [profileFunctions.idProfile],
+		references: [profiles.id]
+	}),
+	function: one(functions, {
+		fields: [profileFunctions.idFunctions],
+		references: [functions.id]
+	}),
+}));
+
+export const profilesRelations = relations(profiles, ({many}) => ({
+	profileFunctions: many(profileFunctions),
+	users: many(users),
+}));
+
+export const functionsRelations = relations(functions, ({many}) => ({
+	profileFunctions: many(profileFunctions),
+	moduleFunctions: many(moduleFunctions),
+	customerFunctions: many(customerFunctions),
+}));
+
 export const merchantTransactionPriceRelations = relations(merchantTransactionPrice, ({one}) => ({
 	merchantPriceGroup: one(merchantPriceGroup, {
 		fields: [merchantTransactionPrice.idMerchantPriceGroup],
@@ -144,6 +169,32 @@ export const merchantPriceGroupRelations = relations(merchantPriceGroup, ({one, 
 	merchantPrice: one(merchantPrice, {
 		fields: [merchantPriceGroup.idMerchantPrice],
 		references: [merchantPrice.id]
+	}),
+}));
+
+export const moduleFunctionsRelations = relations(moduleFunctions, ({one}) => ({
+	module: one(modules, {
+		fields: [moduleFunctions.idModule],
+		references: [modules.id]
+	}),
+	function: one(functions, {
+		fields: [moduleFunctions.idFunction],
+		references: [functions.id]
+	}),
+}));
+
+export const modulesRelations = relations(modules, ({many}) => ({
+	moduleFunctions: many(moduleFunctions),
+}));
+
+export const customerFunctionsRelations = relations(customerFunctions, ({one}) => ({
+	customer: one(customers, {
+		fields: [customerFunctions.idCustomer],
+		references: [customers.id]
+	}),
+	function: one(functions, {
+		fields: [customerFunctions.idFunctions],
+		references: [functions.id]
 	}),
 }));
 
@@ -198,6 +249,21 @@ export const merchantSettlementOrdersRelations = relations(merchantSettlementOrd
 export const merchantpixaccountRelations = relations(merchantpixaccount, ({one}) => ({
 	merchant: one(merchants, {
 		fields: [merchantpixaccount.idMerchant],
+		references: [merchants.id]
+	}),
+}));
+
+export const usersRelations = relations(users, ({one}) => ({
+	customer: one(customers, {
+		fields: [users.idCustomer],
+		references: [customers.id]
+	}),
+	profile: one(profiles, {
+		fields: [users.idProfile],
+		references: [profiles.id]
+	}),
+	merchant: one(merchants, {
+		fields: [users.idMerchant],
 		references: [merchants.id]
 	}),
 }));

@@ -56,7 +56,6 @@ export default async function PaymentLinkPage({
           />
         </div>
         <PaymentLinkList links={paymentLinks} />
-
         {totalRecords > 0 && (
           <PaginationRecords
             totalRecords={totalRecords}
