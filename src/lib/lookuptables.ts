@@ -74,8 +74,8 @@ const states: SelectItem[] = [
 ];
 
 const legalPersonTypes: SelectItem[] = [
-  { value: "JURIDICAL", label: "Pessoa Física" },
-  { value: "NATURE", label: "Pessoa Jurídica" },
+  { value: "JURIDICAL", label: "Pessoa Jurídica" },
+  { value: "NATURE", label: "Pessoa Física" },
 ];
 
 export { timezones, states, legalPersonTypes };

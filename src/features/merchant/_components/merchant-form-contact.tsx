@@ -77,7 +77,19 @@ export default function MerchantFormcontact({
       icDispatcher: Contact?.icDispatcher || "",
       icFederativeUnit: Contact?.icFederativeUnit || "",
     },
+    mode: "onChange",
   });
+
+  const icNumber = form.watch("icNumber");
+  const icDateIssuance = form.watch("icDateIssuance");
+  const icDispatcher = form.watch("icDispatcher");
+  const icFederativeUnit = form.watch("icFederativeUnit");
+
+  useEffect(() => {
+    if (!!icNumber || !!icDateIssuance || !!icDispatcher || !!icFederativeUnit) {
+      form.trigger(["icNumber", "icDateIssuance", "icDispatcher", "icFederativeUnit"]);
+    }
+  }, [icNumber, icDateIssuance, icDispatcher, icFederativeUnit, form]);
 
   const form1 = useForm<AddressSchema>({
     resolver: zodResolver(schemaAddress),
@@ -237,6 +249,8 @@ export default function MerchantFormcontact({
     }
   };
 
+  const anyRgFieldFilled = !!icNumber || !!icDateIssuance || !!icDispatcher || !!icFederativeUnit;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto">
@@ -330,6 +344,8 @@ export default function MerchantFormcontact({
               )}
             />
 
+            
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -337,10 +353,20 @@ export default function MerchantFormcontact({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Número do RG <span className="text-red-500">*</span>
+                      Número do RG {anyRgFieldFilled && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value?.toString() || ""} />
+                      <Input 
+                        {...field} 
+                        value={field.value?.toString() || ""} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (e.target.value) {
+                            // Se este campo for preenchido, validar todos os campos de RG
+                            form.trigger(["icNumber", "icDateIssuance", "icDispatcher", "icFederativeUnit"]);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -353,7 +379,7 @@ export default function MerchantFormcontact({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Data de emissão <span className="text-red-500">*</span>
+                      Data de emissão {anyRgFieldFilled && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -367,6 +393,10 @@ export default function MerchantFormcontact({
                         onChange={(e) => {
                           const date = new Date(e.target.value);
                           field.onChange(date);
+                          if (e.target.value) {
+                            // Se este campo for preenchido, validar todos os campos de RG
+                            form.trigger(["icNumber", "icDateIssuance", "icDispatcher", "icFederativeUnit"]);
+                          }
                         }}
                         max={new Date().toISOString().split("T")[0]}
                       />
@@ -384,10 +414,20 @@ export default function MerchantFormcontact({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Órgão expedidor <span className="text-red-500">*</span>
+                      Órgão expedidor {anyRgFieldFilled && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value?.toString() || ""} />
+                      <Input 
+                        {...field} 
+                        value={field.value?.toString() || ""} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (e.target.value) {
+                            // Se este campo for preenchido, validar todos os campos de RG
+                            form.trigger(["icNumber", "icDateIssuance", "icDispatcher", "icFederativeUnit"]);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -400,10 +440,16 @@ export default function MerchantFormcontact({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      UF <span className="text-red-500">*</span>
+                      UF {anyRgFieldFilled && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value) {
+                          // Se este campo for preenchido, validar todos os campos de RG
+                          form.trigger(["icNumber", "icDateIssuance", "icDispatcher", "icFederativeUnit"]);
+                        }
+                      }}
                       defaultValue={field.value?.toString() || ""}
                     >
                       <FormControl>

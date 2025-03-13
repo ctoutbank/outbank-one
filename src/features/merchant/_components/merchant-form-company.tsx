@@ -46,7 +46,7 @@ import {
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
 } from "../server/merchant";
-import { states } from "@/lib/lookuptables";
+import { legalPersonTypes, states } from "@/lib/lookuptables";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -63,7 +63,7 @@ interface MerchantProps {
 export default function MerchantFormCompany({
   merchant,
   address,
-  Cnae,
+  
   Mcc,
   DDLegalNature,
   DDEstablishmentFormat,
@@ -107,6 +107,7 @@ export default function MerchantFormCompany({
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
   });
+  console.log("legalPerson",merchant?.legalPerson)
 
   const form1 = useForm<AddressSchema>({
     resolver: zodResolver(schemaAddress),
@@ -640,6 +641,38 @@ export default function MerchantFormCompany({
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
+                        name="legalPerson"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Tipo de Pessoa <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {legalPersonTypes.map((item) => (
+                                  <SelectItem
+                                    key={item.value}
+                                    value={item.value}
+                                  >
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
                         name="establishmentFormat"
                         render={({ field }) => (
                           <FormItem>
@@ -671,6 +704,10 @@ export default function MerchantFormCompany({
                           </FormItem>
                         )}
                       />
+                    </div>
+                   
+                    <div className="grid grid-cols-2 gap-4">
+                     
                     </div>
                   </CardContent>
                 </Card>

@@ -473,6 +473,13 @@ export async function updateMerchantColumnsById(
   updates: Record<string, string | number | boolean | null>
 ): Promise<void> {
   try {
+    console.log(`Atualizando merchant ID ${id} com os seguintes dados:`, updates);
+    
+    // Verificar se o campo timezone está presente nos updates
+    if ('timezone' in updates) {
+      console.log(`Valor da timezone a ser atualizado: ${updates.timezone}`);
+    }
+    
     await db
       .update(merchants)
       .set({
@@ -482,6 +489,15 @@ export async function updateMerchantColumnsById(
       .where(eq(merchants.id, id));
 
     console.log(`Colunas atualizadas com sucesso para o ID ${id}`);
+    
+    // Verificar se a atualização foi bem-sucedida
+    const updatedMerchant = await db
+      .select()
+      .from(merchants)
+      .where(eq(merchants.id, id))
+      .limit(1);
+      
+    console.log(`Merchant atualizado:`, updatedMerchant[0]);
   } catch (error) {
     console.error(
       `Erro ao atualizar colunas para o ID ${id}:`,

@@ -87,7 +87,7 @@ export default function MerchantFormOperations({
       cardNotPresent: false,
       timezone: timezone,
       theme: "SYSTEM DEFAULT",
-      accessProfile: "merchant-cp",
+      
     },
   });
 
@@ -113,14 +113,21 @@ export default function MerchantFormOperations({
       }
 
       console.log("idConfiguration", idConfiguration);
+      console.log("Dados do formulário:", data);
+      console.log("Valor da timezone:", data.timezone);
 
       // Atualizar merchant com o ID da configuração (novo ou existente)
-      await updateMerchantColumnsById(idMerchant, {
+      const merchantUpdates = {
         idConfiguration: idConfiguration!, // Usar o ID obtido da criação ou o existente
         hasTef: data.hasTaf || false,
         hasTop: data.hastop || false,
         hasPix: data.hasPix || false,
-      });
+        timezone: data.timezone || "",
+      };
+      
+      console.log("Dados para atualização do merchant:", merchantUpdates);
+      
+      await updateMerchantColumnsById(idMerchant, merchantUpdates);
 
       refreshPage(idMerchant);
     } catch (error) {
@@ -301,7 +308,11 @@ export default function MerchantFormOperations({
                       Timezone do Terminal{" "}
                       <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue="-0300">
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value || "-0300"}
+                      defaultValue={field.value || "-0300"}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select timezone" />
@@ -365,42 +376,7 @@ export default function MerchantFormOperations({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="accessProfile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Perfil de acesso <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o perfil" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="merchant-cp">
-                          Merchant CP sem Antecipação
-                        </SelectItem>
-                        <SelectItem value="teste-default">
-                          Teste Default
-                        </SelectItem>
-                        <SelectItem value="perfil-padrao">
-                          Perfil Padrão de EC
-                        </SelectItem>
-                        <SelectItem value="role-default">
-                          Role Default
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            
             </CardContent>
           </Card>
           <div className="flex justify-end mt-4">

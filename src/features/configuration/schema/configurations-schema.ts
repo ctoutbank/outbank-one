@@ -30,7 +30,7 @@ export const schemaConfigurationOperations = z.object({
   cardNotPresent: z.boolean().optional(),
   timezone: z.string().optional(),
   theme: z.string().optional(),
-  accessProfile: z.string().optional(),
+ 
 });
 
 export type ConfigurationOperationsSchema = z.infer<
