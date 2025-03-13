@@ -177,7 +177,7 @@ export default function MerchantFormCompany({
       }
 
       refreshPage(idMerchant || 0);
-    } catch (error) {}
+    } catch (error) {console.log("error",error)}
   };
 
   const onSubmitAddress = async (data: AddressSchema) => {

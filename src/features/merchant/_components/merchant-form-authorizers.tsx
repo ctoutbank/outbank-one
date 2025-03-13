@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, CreditCard } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { CreditCard, Plus, Trash2 } from "lucide-react"
+import { useRef, useState } from "react"
 
 // Tipos de autorizadores disponíveis
 const AUTHORIZER_TYPES = [
@@ -34,8 +34,7 @@ interface AuthorizerData {
 function AuthorizerFormItem({
   id,
   initialData,
-  onRemove,
-  isRemovable,
+  
 }: {
   id: number
   initialData: AuthorizerData

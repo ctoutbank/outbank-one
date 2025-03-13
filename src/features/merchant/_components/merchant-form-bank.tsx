@@ -1,19 +1,17 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Landmark } from "lucide-react"
-import { merchantPixAccountSchema, MerchantPixAccountSchema } from "../schema/merchant-pixaccount-schema"
-import { merchantpixaccount } from "../../../../drizzle/schema"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Landmark } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { updateMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
-import { insertMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
-import { Button } from "@/components/ui/button"
+import { useForm } from "react-hook-form"
+import { merchantpixaccount } from "../../../../drizzle/schema"
+import { insertMerchantPixAccountFormAction, updateMerchantPixAccountFormAction } from "../_actions/merchantPixAccount-formActions"
+import { merchantPixAccountSchema, MerchantPixAccountSchema } from "../schema/merchant-pixaccount-schema"
 import { accountTypeDropdown, banckDropdown } from "../server/merchantpixacount"
 
 interface MerchantProps {
@@ -27,7 +25,7 @@ interface MerchantProps {
   setActiveTab: (tab: string) => void;
 }
   
-export default function MerchantFormBank({ merchantpixaccount,merchantcorporateName,merchantdocumentId,idMerchant,setActiveTab,activeTab,DDAccountType,DDBank  }: MerchantProps) {
+export default function MerchantFormBank({ merchantpixaccount,idMerchant,setActiveTab,activeTab,DDAccountType,DDBank  }: MerchantProps) {
   const router = useRouter();
   
   const form = useForm<MerchantPixAccountSchema>({

@@ -42,8 +42,7 @@ function ContactFormItem({
   initialData,
   initialAddress,
   idMerchant,
-  onRemove,
-  isRemovable,
+ 
   onFormReady,
 }: ContactFormItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
