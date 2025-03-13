@@ -2,7 +2,6 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import { getPaymentLinkById } from "@/features/paymentLink/server/paymentLink";
 import ProfilesForm from "@/features/users/_components/profiles-form";
-import { getModules, Module } from "@/features/users/server/profiles";
 
 export const revalidate = 0;
 
