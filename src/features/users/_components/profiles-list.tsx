@@ -1,87 +1,85 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export interface Functions {
-  id: number
-  name: string
+  id: number;
+  name: string;
 }
 
 export interface Group {
-  group: string
-  functions: Functions[]
+  group: string;
+  functions: Functions[];
 }
 
 export interface Module {
-  id: number
-  name: string
-  group: Group[]
+  id: number;
+  name: string;
+  group: Group[];
 }
 
 export interface ProfileDetailForm {
-  name: string
-  description: string
-  module: Module[]
+  name: string;
+  description: string;
+  module: Module[];
 }
 
 // Legacy types for backward compatibility
 export type Feature = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 export type Concept = {
-  id: string
-  name: string
-  description: string
-  features: Feature[]
-}
+  id: string;
+  name: string;
+  description: string;
+  features: Feature[];
+};
 
 export type ModuleOld = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 export type ModuleWithConcepts = {
-  module: ModuleOld
-  concepts: Concept[]
-}
+  module: ModuleOld;
+  concepts: Concept[];
+};
 
 export type Permission = {
-  conceptId: string
-  conceptName: string
-  features: string[]
-}
+  conceptId: string;
+  conceptName: string;
+  features: string[];
+};
 
 export type ModulePermission = {
-  moduleId: string
-  moduleName: string
-  permissions: Permission[]
-}
+  moduleId: string;
+  moduleName: string;
+  permissions: Permission[];
+};
 
 export type Role = {
-  id: string
-  name: string
-  description: string
-  isDefault?: boolean
-  modulePermissions: ModulePermission[]
-}
-
-
+  id: string;
+  name: string;
+  description: string;
+  isDefault?: boolean;
+  modulePermissions: ModulePermission[];
+};
 
 // Mock data for the example
 const mockProfiles: ProfileDetailForm[] = [
@@ -260,49 +258,30 @@ const mockProfiles: ProfileDetailForm[] = [
       },
     ],
   },
-]
+];
 
 export default function ProfilesList() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredProfiles = mockProfiles.filter((profile) => {
     return (
       profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       profile.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })
+    );
+  });
 
   const handleDelete = (profileName: string) => {
-    console.log("Delete profile:", profileName)
+    console.log("Delete profile:", profileName);
     // Here you would typically call your API to delete the profile
-  }
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Perfis de Acesso</h1>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar perfis..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-[250px]"
-            />
-          </div>
-          <Link href="/roles/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Perfil
-            </Button>
-          </Link>
-        </div>
-      </div>
-
+    <div>
       {filteredProfiles.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 border rounded-lg bg-muted/50">
-          <p className="text-muted-foreground text-center">Nenhum perfil encontrado com os filtros selecionados.</p>
+          <p className="text-muted-foreground text-center">
+            Nenhum perfil encontrado com os filtros selecionados.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -319,7 +298,9 @@ export default function ProfilesList() {
                         </span>
                       )}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">{profile.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {profile.description}
+                    </p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -335,7 +316,10 @@ export default function ProfilesList() {
                         </DropdownMenuItem>
                       </Link>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleDelete(profile.name)} className="text-destructive">
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(profile.name)}
+                        className="text-destructive"
+                      >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Excluir
                       </DropdownMenuItem>
@@ -346,21 +330,36 @@ export default function ProfilesList() {
               <Separator />
               <CardContent className="p-4">
                 {profile.module.length > 0 && (
-                  <Tabs defaultValue={profile.module[0].id.toString()} className="w-full">
+                  <Tabs
+                    defaultValue={profile.module[0].id.toString()}
+                    className="w-full"
+                  >
                     <TabsList className="mb-4">
                       {profile.module.map((module) => (
-                        <TabsTrigger key={module.id} value={module.id.toString()}>
+                        <TabsTrigger
+                          key={module.id}
+                          value={module.id.toString()}
+                        >
                           {module.name}
                         </TabsTrigger>
                       ))}
                     </TabsList>
 
                     {profile.module.map((module) => (
-                      <TabsContent key={module.id} value={module.id.toString()} className="mt-0">
+                      <TabsContent
+                        key={module.id}
+                        value={module.id.toString()}
+                        className="mt-0"
+                      >
                         <div className="space-y-2">
                           {module.group.map((group) => (
-                            <div key={group.group} className="pl-2 border-l-2 border-muted">
-                              <h4 className="font-medium text-sm">{group.group}</h4>
+                            <div
+                              key={group.group}
+                              className="pl-2 border-l-2 border-muted"
+                            >
+                              <h4 className="font-medium text-sm">
+                                {group.group}
+                              </h4>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {group.functions.map((func) => (
                                   <span
@@ -384,6 +383,5 @@ export default function ProfilesList() {
         </div>
       )}
     </div>
-  )
+  );
 }
-

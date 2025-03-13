@@ -387,11 +387,7 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
   };
 
   return (
-    <div className="container mx-auto py-6 px-4 w-full">
-      <h1 className="text-3xl font-bold mb-6">
-        Gerenciamento de Perfil de Acesso
-      </h1>
-
+    <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid md:grid-cols-3 gap-6">
