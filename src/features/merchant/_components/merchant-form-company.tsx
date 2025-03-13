@@ -41,7 +41,12 @@ import {
   insertMerchantFormAction,
   updateMerchantFormAction,
 } from "../_actions/merchant-formActions";
-import { CnaeMccDropdown, EstablishmentFormatDropdown, LegalNatureDropdown } from "../server/merchant";
+import {
+  CnaeMccDropdown,
+  EstablishmentFormatDropdown,
+  LegalNatureDropdown,
+} from "../server/merchant";
+import { legalPersonTypes, states } from "@/lib/lookuptables";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -53,13 +58,12 @@ interface MerchantProps {
   activeTab: string;
   DDEstablishmentFormat: EstablishmentFormatDropdown[];
   setActiveTab: (tab: string) => void;
-
 }
 
 export default function MerchantFormCompany({
   merchant,
   address,
-  Cnae,
+  
   Mcc,
   DDLegalNature,
   DDEstablishmentFormat,
@@ -70,7 +74,7 @@ export default function MerchantFormCompany({
   const [isRendered, setIsRendered] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const form = useForm<MerchantSchema>({
     resolver: zodResolver(schemaMerchant),
     defaultValues: {
@@ -90,17 +94,20 @@ export default function MerchantFormCompany({
       revenue: merchant?.revenue ? Number(merchant.revenue) : undefined,
       establishmentFormat: merchant?.establishmentFormat || "",
       legalPerson: merchant?.legalPerson || "",
-      cnae: Cnae || "",
+      cnae: String(merchant?.idCategory) || "",
       mcc: Mcc || "",
       number: merchant?.number || "",
       areaCode: merchant?.areaCode || "",
-      idLegalNature: merchant?.idLegalNature ? Number(merchant.idLegalNature) : undefined,
+      idLegalNature: merchant?.idLegalNature
+        ? Number(merchant.idLegalNature)
+        : undefined,
       slugLegalNature: merchant?.slugLegalNature || "",
 
       // campos do endereço virão de outra tabela
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
   });
+  console.log("legalPerson",merchant?.legalPerson)
 
   const form1 = useForm<AddressSchema>({
     resolver: zodResolver(schemaAddress),
@@ -163,15 +170,14 @@ export default function MerchantFormCompany({
       if (data?.id) {
         console.log("dataid", data.id);
         console.log("merchantData", merchantData);
+        merchantData.idCategory = Number(merchantData.cnae);
         await updateMerchantFormAction(merchantData);
       } else {
         idMerchant = await insertMerchantFormAction(merchantData);
       }
 
       refreshPage(idMerchant || 0);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    } catch (error) {console.log("error",error)}
   };
 
   const onSubmitAddress = async (data: AddressSchema) => {
@@ -236,7 +242,8 @@ export default function MerchantFormCompany({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Razão Social <span className="text-red-500">*</span>
+                              Razão Social{" "}
+                              <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input {...field} />
@@ -252,7 +259,8 @@ export default function MerchantFormCompany({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Nome Fantasia <span className="text-red-500">*</span>
+                              Nome Fantasia{" "}
+                              <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input {...field} />
@@ -263,7 +271,7 @@ export default function MerchantFormCompany({
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4 ">
-                      <div className="flex items-center mt-4">      
+                      <div className="flex items-center mt-4">
                         <FormField
                           control={form.control}
                           name="is_affiliate"
@@ -326,7 +334,7 @@ export default function MerchantFormCompany({
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="idCategory"
+                        name="cnae"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -357,7 +365,10 @@ export default function MerchantFormCompany({
                               <SelectContent>
                                 <SelectGroup>
                                   {DDCnaeMcc.map((item) => (
-                                    <SelectItem key={item.value} value={item.value}>
+                                    <SelectItem
+                                      key={item.value}
+                                      value={item.value}
+                                    >
                                       {item.label}
                                     </SelectItem>
                                   ))}
@@ -441,7 +452,7 @@ export default function MerchantFormCompany({
                           </FormItem>
                         )}
                       />
-                     
+
                       <FormField
                         control={form.control}
                         name="openingDays"
@@ -468,11 +479,13 @@ export default function MerchantFormCompany({
                                   <Checkbox
                                     id={id}
                                     checked={
-                                      (field.value || "0000000").charAt(index) ===
-                                      "1"
+                                      (field.value || "0000000").charAt(
+                                        index
+                                      ) === "1"
                                     }
                                     onCheckedChange={(checked) => {
-                                      const currentValue = field.value || "0000000";
+                                      const currentValue =
+                                        field.value || "0000000";
                                       const newValue =
                                         currentValue.substring(0, index) +
                                         (checked ? "1" : "0") +
@@ -599,7 +612,9 @@ export default function MerchantFormCompany({
                               <span className="text-red-500">*</span>
                             </FormLabel>
                             <Select
-                              onValueChange={(value) => field.onChange(Number(value))}
+                              onValueChange={(value) =>
+                                field.onChange(Number(value))
+                              }
                               value={field.value?.toString()}
                             >
                               <FormControl>
@@ -609,7 +624,10 @@ export default function MerchantFormCompany({
                               </FormControl>
                               <SelectContent>
                                 {DDLegalNature.map((item) => (
-                                  <SelectItem key={item.value} value={item.value.toString()}>
+                                  <SelectItem
+                                    key={item.value}
+                                    value={item.value.toString()}
+                                  >
                                     {item.label}
                                   </SelectItem>
                                 ))}
@@ -623,11 +641,44 @@ export default function MerchantFormCompany({
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="establishmentFormat" 
+                        name="legalPerson"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Formato de estabelecimento <span className="text-red-500">*</span>
+                              Tipo de Pessoa <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {legalPersonTypes.map((item) => (
+                                  <SelectItem
+                                    key={item.value}
+                                    value={item.value}
+                                  >
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
+                        name="establishmentFormat"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Formato de estabelecimento{" "}
+                              <span className="text-red-500">*</span>
                             </FormLabel>
                             <Select
                               onValueChange={field.onChange}
@@ -640,7 +691,10 @@ export default function MerchantFormCompany({
                               </FormControl>
                               <SelectContent>
                                 {DDEstablishmentFormat.map((item) => (
-                                  <SelectItem key={item.value} value={item.value}>
+                                  <SelectItem
+                                    key={item.value}
+                                    value={item.value}
+                                  >
                                     {item.value} - {item.label}
                                   </SelectItem>
                                 ))}
@@ -650,6 +704,10 @@ export default function MerchantFormCompany({
                           </FormItem>
                         )}
                       />
+                    </div>
+                   
+                    <div className="grid grid-cols-2 gap-4">
+                     
                     </div>
                   </CardContent>
                 </Card>
@@ -796,63 +854,14 @@ export default function MerchantFormCompany({
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="AC">Acre (AC)</SelectItem>
-                                    <SelectItem value="AL">Alagoas (AL)</SelectItem>
-                                    <SelectItem value="AP">Amapá (AP)</SelectItem>
-                                    <SelectItem value="AM">
-                                      Amazonas (AM)
-                                    </SelectItem>
-                                    <SelectItem value="BA">Bahia (BA)</SelectItem>
-                                    <SelectItem value="CE">Ceará (CE)</SelectItem>
-                                    <SelectItem value="DF">
-                                      Distrito Federal (DF)
-                                    </SelectItem>
-                                    <SelectItem value="ES">
-                                      Espírito Santo (ES)
-                                    </SelectItem>
-                                    <SelectItem value="GO">Goiás (GO)</SelectItem>
-                                    <SelectItem value="MA">
-                                      Maranhão (MA)
-                                    </SelectItem>
-                                    <SelectItem value="MT">
-                                      Mato Grosso (MT)
-                                    </SelectItem>
-                                    <SelectItem value="MS">
-                                      Mato Grosso do Sul (MS)
-                                    </SelectItem>
-                                    <SelectItem value="MG">
-                                      Minas Gerais (MG)
-                                    </SelectItem>
-                                    <SelectItem value="PA">Pará (PA)</SelectItem>
-                                    <SelectItem value="PB">Paraíba (PB)</SelectItem>
-                                    <SelectItem value="PR">Paraná (PR)</SelectItem>
-                                    <SelectItem value="PE">
-                                      Pernambuco (PE)
-                                    </SelectItem>
-                                    <SelectItem value="PI">Piauí (PI)</SelectItem>
-                                    <SelectItem value="RJ">
-                                      Rio de Janeiro (RJ)
-                                    </SelectItem>
-                                    <SelectItem value="RN">
-                                      Rio Grande do Norte (RN)
-                                    </SelectItem>
-                                    <SelectItem value="RS">
-                                      Rio Grande do Sul (RS)
-                                    </SelectItem>
-                                    <SelectItem value="RO">
-                                      Rondônia (RO)
-                                    </SelectItem>
-                                    <SelectItem value="RR">Roraima (RR)</SelectItem>
-                                    <SelectItem value="SC">
-                                      Santa Catarina (SC)
-                                    </SelectItem>
-                                    <SelectItem value="SP">
-                                      São Paulo (SP)
-                                    </SelectItem>
-                                    <SelectItem value="SE">Sergipe (SE)</SelectItem>
-                                    <SelectItem value="TO">
-                                      Tocantins (TO)
-                                    </SelectItem>
+                                    {states.map((state) => (
+                                      <SelectItem
+                                        key={state.value}
+                                        value={state.value}
+                                      >
+                                        {state.label}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />

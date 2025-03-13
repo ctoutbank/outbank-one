@@ -2,28 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MapPin, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { addresses, contacts } from "../../../../drizzle/schema";
 import {
   insertContactFormAction,
@@ -32,10 +17,7 @@ import {
 import { insertAddressFormAction } from "../_actions/merchant-formActions";
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
-import { useState, useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { getMerchantAddressId } from "../server/adderres";
-
+import { getContactByMerchantId } from "../server/contact";
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
@@ -43,6 +25,443 @@ interface MerchantProps {
   activeTab: string;
   idMerchant: number;
   setActiveTab: (tab: string) => void;
+}
+
+interface ContactFormItemProps {
+  id: number;
+  initialData: any;
+  initialAddress: any;
+  idMerchant: number;
+  onRemove: (id: number) => void;
+  isRemovable: boolean;
+  onFormReady: (id: number, contactForm: UseFormReturn<ContactSchema>, addressForm: UseFormReturn<AddressSchema>) => void;
+}
+
+function ContactFormItem({
+  id,
+  initialData,
+  initialAddress,
+  idMerchant,
+ 
+  onFormReady,
+}: ContactFormItemProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  
+  const contactForm = useForm<ContactSchema>({
+    resolver: zodResolver(schemaContact),
+    defaultValues: {
+      id: initialData?.id ? Number(initialData.id) : undefined,
+      idMerchant: idMerchant,
+      name: initialData?.name || "",
+      idDocument: initialData?.idDocument || "",
+      email: initialData?.email || "",
+      areaCode: initialData?.areaCode || "",
+      number: initialData?.number || "",
+      phoneType: initialData?.phoneType || "",
+      birthDate: initialData?.birthDate ? new Date(initialData.birthDate) : undefined,
+      mothersName: initialData?.mothersName || "",
+      isPartnerContact: initialData?.isPartnerContact || false,
+      isPep: initialData?.isPep || false,
+      slugMerchant: initialData?.slugMerchant || "",
+      idAddress: initialData?.idAddress,
+      icNumber: initialData?.icNumber || "",
+      icDateIssuance: initialData?.icDateIssuance ? new Date(initialData.icDateIssuance) : undefined,
+      icDispatcher: initialData?.icDispatcher || "",
+      icFederativeUnit: initialData?.icFederativeUnit || "",
+    },
+  });
+
+  const addressForm = useForm<AddressSchema>({
+    resolver: zodResolver(schemaAddress),
+    defaultValues: {
+      id: initialAddress?.id ? Number(initialAddress.id) : undefined,
+      zipCode: initialAddress?.zipCode || "",
+      street: initialAddress?.streetAddress || "",
+      number: initialAddress?.streetNumber || "",
+      complement: initialAddress?.complement || "",
+      neighborhood: initialAddress?.neighborhood || "",
+      city: initialAddress?.city || "",
+      state: initialAddress?.state || "",
+      country: initialAddress?.country || "Brasil",
+    },
+  });
+
+  const {
+    register: registerContact,
+    formState: { errors: errorsContact },
+    watch: watchContact,
+    trigger: triggerContact,
+  } = contactForm;
+
+  const {
+    register: registerAddress,
+    formState: { errors: errorsAddress },
+    watch: watchAddress,
+    trigger: triggerAddress,
+  } = addressForm;
+
+  useEffect(() => {
+    if (watchContact("name") && watchContact("idDocument")) {
+      triggerContact("name");
+      triggerContact("idDocument");
+    }
+  }, [watchContact, triggerContact]);
+
+  useEffect(() => {
+    if (
+      watchAddress("zipCode") &&
+      watchAddress("street") &&
+      watchAddress("number")
+    ) {
+      triggerAddress("zipCode");
+      triggerAddress("street");
+      triggerAddress("number");
+    }
+  }, [watchAddress, triggerAddress]);
+
+  useEffect(() => {
+    onFormReady(id, contactForm, addressForm);
+  }, [
+    id,
+    onFormReady,
+    contactForm,
+    addressForm,
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`name-${id}`}>
+                Nome <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`name-${id}`}
+                placeholder="Nome completo"
+                {...registerContact("name")}
+              />
+              {errorsContact.name && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.name.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor={`idDocument-${id}`}>
+                CPF <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`idDocument-${id}`}
+                placeholder="000.000.000-00"
+                {...registerContact("idDocument")}
+              />
+              {errorsContact.idDocument && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.idDocument.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor={`icNumber-${id}`}>RG</Label>
+              <Input
+                id={`icNumber-${id}`}
+                placeholder="00.000.000-0"
+                {...registerContact("icNumber")}
+              />
+              {errorsContact.icNumber && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.icNumber.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`email-${id}`}>
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`email-${id}`}
+                type="email"
+                placeholder="email@exemplo.com"
+                {...registerContact("email")}
+              />
+              {errorsContact.email && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.email.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor={`areaCode-${id}`}>
+                  DDD <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`areaCode-${id}`}
+                  placeholder="00"
+                  maxLength={2}
+                  {...registerContact("areaCode")}
+                />
+                {errorsContact.areaCode && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.areaCode.message}
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor={`number-${id}`}>
+                  Telefone <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`number-${id}`}
+                  placeholder="000000000"
+                  maxLength={9}
+                  {...registerContact("number")}
+                />
+                {errorsContact.number && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.number.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>É sócio?</Label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id={`isPartnerContact-yes-${id}`}
+                      value="true"
+                      {...registerContact("isPartnerContact")}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor={`isPartnerContact-yes-${id}`} className="text-sm">
+                      Sim
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id={`isPartnerContact-no-${id}`}
+                      value="false"
+                      {...registerContact("isPartnerContact")}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor={`isPartnerContact-no-${id}`} className="text-sm">
+                      Não
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>É PEP?</Label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id={`isPep-yes-${id}`}
+                      value="true"
+                      {...registerContact("isPep")}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor={`isPep-yes-${id}`} className="text-sm">
+                      Sim
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id={`isPep-no-${id}`}
+                      value="false"
+                      {...registerContact("isPep")}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor={`isPep-no-${id}`} className="text-sm">
+                      Não
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-md font-medium">Endereço</h3>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center space-x-1"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                <span className="text-sm">Recolher</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                <span className="text-sm">Expandir</span>
+              </>
+            )}
+          </Button>
+        </div>
+
+        {isExpanded && (
+          <div className="border rounded-md p-4 bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor={`zipCode-${id}`}>
+                  CEP <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`zipCode-${id}`}
+                  placeholder="00000-000"
+                  {...registerAddress("zipCode")}
+                />
+                {errorsAddress.zipCode && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.zipCode.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor={`street-${id}`}>
+                  Rua <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`street-${id}`}
+                  placeholder="Nome da rua"
+                  {...registerAddress("street")}
+                />
+                {errorsAddress.street && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.street.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <Label htmlFor={`number-address-${id}`}>
+                  Número <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`number-address-${id}`}
+                  placeholder="123"
+                  {...registerAddress("number")}
+                />
+                {errorsAddress.number && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.number.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`complement-${id}`}>Complemento</Label>
+                <Input
+                  id={`complement-${id}`}
+                  placeholder="Apto, Bloco, etc."
+                  {...registerAddress("complement")}
+                />
+                {errorsAddress.complement && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.complement.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`neighborhood-${id}`}>
+                  Bairro <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`neighborhood-${id}`}
+                  placeholder="Nome do bairro"
+                  {...registerAddress("neighborhood")}
+                />
+                {errorsAddress.neighborhood && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.neighborhood.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <Label htmlFor={`city-${id}`}>
+                  Cidade <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`city-${id}`}
+                  placeholder="Nome da cidade"
+                  {...registerAddress("city")}
+                />
+                {errorsAddress.city && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.city.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`state-${id}`}>
+                  Estado <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`state-${id}`}
+                  placeholder="UF"
+                  {...registerAddress("state")}
+                />
+                {errorsAddress.state && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.state.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`country-${id}`}>
+                  País <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`country-${id}`}
+                  placeholder="País"
+                  defaultValue="Brasil"
+                  {...registerAddress("country")}
+                />
+                {errorsAddress.country && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsAddress.country.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function MerchantFormcontact({
@@ -53,736 +472,190 @@ export default function MerchantFormcontact({
   setActiveTab,
 }: MerchantProps) {
   const router = useRouter();
-  const form = useForm<ContactSchema>({
-    resolver: zodResolver(schemaContact),
-    defaultValues: {
-      id: Contact?.id ? Number(Contact.id) : undefined,
-      name: Contact?.name || "",
-      idDocument: Contact?.idDocument || "",
-      email: Contact?.email || "",
-      areaCode: Contact?.areaCode || "",
-      number: Contact?.number || "",
-      phoneType: Contact?.phoneType || "",
-      birthDate: Contact?.birthDate ? new Date(Contact.birthDate) : undefined,
-      mothersName: Contact?.mothersName || "",
-      isPartnerContact: Contact?.isPartnerContact || false,
-      isPep: Contact?.isPep || false,
-      idMerchant: idMerchant,
-      slugMerchant: Contact?.slugMerchant || "",
-      idAddress: Contact?.idAddress || undefined,
-      icNumber: Contact?.icNumber || "",
-      icDateIssuance: Contact?.icDateIssuance
-        ? new Date(Contact.icDateIssuance)
-        : undefined,
-      icDispatcher: Contact?.icDispatcher || "",
-      icFederativeUnit: Contact?.icFederativeUnit || "",
-    },
-  });
-
-  const form1 = useForm<AddressSchema>({
-    resolver: zodResolver(schemaAddress),
-    defaultValues: {
-      id: Address?.id ? Number(Address.id) : undefined,
-      zipCode: Address?.zipCode || "",
-      street: Address?.streetAddress || "",
-      number: Address?.streetNumber || "",
-      complement: Address?.complement || "",
-      neighborhood: Address?.neighborhood || "",
-      city: Address?.city || "",
-      state: Address?.state || "",
-      country: Address?.country || "",
-    },
-  });
-
+  const [contacts, setContacts] = useState<Array<{
+    id: number;
+    data: any;
+    address: any;
+  }>>([
+    { id: 1, data: Contact, address: Address }
+  ]);
+  const [nextId, setNextId] = useState(2);
+  
+  // Armazenar referências aos formulários
+  const formRefs = useRef<{
+    [key: number]: {
+      contactForm: UseFormReturn<ContactSchema>;
+      addressForm: UseFormReturn<AddressSchema>;
+    }
+  }>({});
+  
+  const handleFormReady = useCallback((id: number, contactForm: UseFormReturn<ContactSchema>, addressForm: UseFormReturn<AddressSchema>) => {
+    formRefs.current[id] = { contactForm, addressForm };
+  }, []);
+  
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams || "");
+
+  // Carregar contatos existentes do merchant
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        // Buscar todos os contatos do merchant
+        const merchantContacts = await getContactByMerchantId(idMerchant);
+        
+        if (merchantContacts && merchantContacts.length > 0) {
+          console.log("Contatos carregados:", merchantContacts);
+          
+          // Inicializar a lista de contatos com os dados do banco
+          const contactsList = merchantContacts.map((contact, index) => ({
+            id: index + 1,
+            data: contact.contacts,
+            address: contact.addresses
+          }));
+          
+          // Atualizar o estado com todos os contatos
+          setContacts(contactsList);
+          
+          // Atualizar o próximo ID
+          setNextId(contactsList.length + 1);
+        } else if (Contact && Contact.id) {
+          // Se não encontrou contatos mas temos um contato inicial
+          console.log("Usando contato inicial:", Contact);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar contatos:", error);
+      }
+    };
+    
+    loadContacts();
+  }, [idMerchant, Contact]);
 
   const refreshPage = (id: number) => {
     params.set("tab", activeTab);
     setActiveTab(activeTab);
-    //add new objects in searchParams
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
 
-  const onSubmit = async (data: ContactSchema) => {
+  const addNewContact = () => {
+    setContacts([...contacts, { 
+      id: nextId, 
+      data: null, 
+      address: null 
+    }]);
+    setNextId(nextId + 1);
+  };
+
+  const removeContact = (id: number) => {
+    setContacts(contacts.filter(contact => contact.id !== id));
+    // Remover referência ao formulário
+    delete formRefs.current[id];
+  };
+
+  const onSubmit = async () => {
     try {
-      console.log("idMerchant", idMerchant);
-      const addressFormValid = await form1.trigger();
-      if (!addressFormValid) {
-        console.error("Formulário de endereço inválido");
+      // Validar todos os formulários
+      const formIds = Object.keys(formRefs.current).map(Number);
+      const formValidations = await Promise.all(
+        formIds.map(async (formId) => {
+          const { contactForm, addressForm } = formRefs.current[formId];
+          const isContactValid = await contactForm.trigger();
+          const isAddressValid = await addressForm.trigger();
+          return isContactValid && isAddressValid;
+        })
+      );
+
+      if (!formValidations.every(isValid => isValid)) {
+        console.error("Formulários inválidos");
         return;
       }
-      const addressData = form1.getValues();
-      const addressId = await insertAddressFormAction(addressData);
 
-      const contactData = {
-        ...data,
-        idAddress: addressId,
-        idMerchant: idMerchant,
-      };
-      contactData.phoneType = contactData.number?.startsWith("9") ? "C" : "P";
-      console.log(contactData);
+      // Processar cada formulário
+      for (const formId of formIds) {
+        const { contactForm, addressForm } = formRefs.current[formId];
+        const contactData = contactForm.getValues();
+        const addressData = addressForm.getValues();
 
-      let merchantIdToRefresh = idMerchant;
-      
-      if (data?.id) {
-        await updateContactFormAction(contactData);
-      } else {
-        const newContactId = await insertContactFormAction(contactData);
-        merchantIdToRefresh = newContactId;
-      }
+        // Salvar endereço
+        const addressId = await insertAddressFormAction(addressData);
 
-      refreshPage(merchantIdToRefresh || 0);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
-
-  const [merchantAddress, setMerchantAddress] = useState<typeof addresses.$inferSelect | null>(null);
-  const [useEstablishmentAddress, setUseEstablishmentAddress] = useState(false);
-
-  const fetchMerchantAddress = async () => {
-    if (idMerchant) {
-      try {
-        console.log("Buscando endereço para o merchant ID:", idMerchant);
-        const address = await getMerchantAddressId(idMerchant);
-        console.log("Endereço do merchant:", address);
-        setMerchantAddress(address);
-        
-        if (useEstablishmentAddress && address) {
-          fillFormWithMerchantAddress(address);
-        }
-        
-        return address;
-      } catch (error) {
-        console.error("Erro ao buscar endereço do merchant:", error);
-        return null;
-      }
-    }
-    return null;
-  };
-
-  const fillFormWithMerchantAddress = (address: typeof addresses.$inferSelect) => {
-    console.log("Preenchendo formulário com endereço:", address);
-    
-    form1.setValue("street", address.streetAddress || "");
-    form1.setValue("number", address.streetNumber || "");
-    form1.setValue("complement", address.complement || "");
-    form1.setValue("neighborhood", address.neighborhood || "");
-    form1.setValue("city", address.city || "");
-    form1.setValue("state", address.state || "");
-    form1.setValue("zipCode", address.zipCode || "");
-    form1.setValue("country", address.country || "");
-    
-    console.log("Valores do formulário após preenchimento:", form1.getValues());
-  };
-
-  useEffect(() => {
-    fetchMerchantAddress();
-  }, [idMerchant]);
-
-  useEffect(() => {
-    if (useEstablishmentAddress && merchantAddress) {
-      fillFormWithMerchantAddress(merchantAddress);
-    } else if (!useEstablishmentAddress && Address) {
-      console.log("Restaurando valores do endereço do contato");
-      
-      form1.setValue("id", Address.id);
-      form1.setValue("street", Address.streetAddress || "");
-      form1.setValue("number", Address.streetNumber || "");
-      form1.setValue("complement", Address.complement || "");
-      form1.setValue("neighborhood", Address.neighborhood || "");
-      form1.setValue("city", Address.city || "");
-      form1.setValue("state", Address.state || "");
-      form1.setValue("zipCode", Address.zipCode || "");
-      form1.setValue("country", Address.country || "");
-      
-      console.log("Valores do formulário após restauração:", form1.getValues());
-    }
-  }, [useEstablishmentAddress, merchantAddress, form1, Address]);
-
-  const onSubmitAddress = async (data: AddressSchema) => {
-    try {
-      if (useEstablishmentAddress && merchantAddress) {
-        console.log("Usando endereço do estabelecimento para o contato");
-        
-        const contactData = {
-          ...form.getValues(),
-          idAddress: merchantAddress.id
+        // Atualizar contato com o ID do endereço
+        const contactWithAddress = {
+          ...contactData,
+          idAddress: addressId,
+          idMerchant: idMerchant,
+          phoneType: contactData.number?.startsWith("9") ? "C" : "P"
         };
-        
-        console.log("Atualizando contato com ID do endereço do merchant:", contactData);
-        
-        await updateContactFormAction(contactData);
-        
-        refreshPage(idMerchant);
-      } else {
-        if (data.id) {
-          await insertAddressFormAction(data);
+
+        if (contactData.id) {
+          await updateContactFormAction(contactWithAddress);
         } else {
-          const address = await insertAddressFormAction(data);
-          
-          const contactData = {
-            ...form.getValues(),
-            idAddress: address
-          };
-          
-          await updateContactFormAction(contactData);
+          await insertContactFormAction(contactWithAddress);
         }
-        
-        refreshPage(idMerchant);
       }
+
+      refreshPage(idMerchant);
     } catch (error) {
-      console.error("Erro ao submeter endereço:", error);
+      console.error("Erro ao submeter formulários:", error);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto">
-        <Card className="w-full">
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <User className="w-5 h-5" />
-            <CardTitle>Dados Pessoais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="isPartnerContact"
-              render={({ field }: { field: any }) => (
-                <FormItem>
-                  <FormLabel>
-                    Sócio ou Proprietário{" "}
-                    <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) =>
-                        field.onChange(value === "true")
-                      }
-                      defaultValue={field.value ? "true" : "false"}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="owner-yes" />
-                        <Label htmlFor="owner-yes">Sim</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="owner-no" />
-                        <Label htmlFor="owner-no">Não</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+    <div className="space-y-8">
+      
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {contacts.map((contact, index) => (
+          <Card key={contact.id} className="w-full shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between bg-gray-50 py-3">
+              <div className="flex flex-row items-center space-x-2">
+                <User className="w-5 h-5 text-primary" />
+                <CardTitle className="text-lg">
+                  {contact.data?.name || `Responsável ${index + 1}`}
+                </CardTitle>
+              </div>
+              {contacts.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeContact(contact.id)}
+                  title="Remover responsável"
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
               )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isPep"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Se considera PEP (Pessoa Exposta Politicamente)?{" "}
-                    <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) =>
-                        field.onChange(value === "true")
-                      }
-                      defaultValue={field.value ? "true" : "false"}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="pep-yes" />
-                        <Label htmlFor="pep-yes">Sim</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="pep-no" />
-                        <Label htmlFor="pep-no">Não</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="idDocument"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    CPF <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      maxLength={11}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="icNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Número do RG <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value?.toString() || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </CardHeader>
+            <CardContent className="p-4">
+              <ContactFormItem
+                id={contact.id}
+                initialData={contact.data}
+                initialAddress={contact.address}
+                idMerchant={idMerchant}
+                onRemove={removeContact}
+                isRemovable={contacts.length > 1}
+                onFormReady={handleFormReady}
               />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-              <FormField
-                control={form.control}
-                name="icDateIssuance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Data de emissão <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={
-                          field.value
-                            ? field.value.toISOString().split("T")[0]
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          field.onChange(date);
-                        }}
-                        max={new Date().toISOString().split("T")[0]}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+      <div className="flex justify-center mt-6">
+        <Button
+          type="button"
+          onClick={addNewContact}
+          className="flex items-center space-x-2"
+          variant="outline"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Adicionar Responsável</span>
+        </Button>
+      </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="icDispatcher"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Órgão expedidor <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value?.toString() || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="icFederativeUnit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      UF <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value?.toString() || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PR">PR</SelectItem>
-                        <SelectItem value="SP">SP</SelectItem>
-                        <SelectItem value="RJ">RJ</SelectItem>
-                        <SelectItem value="AC">AC</SelectItem>
-                        <SelectItem value="AL">AL</SelectItem>
-                        <SelectItem value="AP">AP</SelectItem>
-                        <SelectItem value="AM">AM</SelectItem>
-                        <SelectItem value="BA">BA</SelectItem>
-                        <SelectItem value="CE">CE</SelectItem>
-                        <SelectItem value="DF">DF</SelectItem>
-                        <SelectItem value="ES">ES</SelectItem>
-                        <SelectItem value="GO">GO</SelectItem>
-                        <SelectItem value="MA">MA</SelectItem>
-                        <SelectItem value="MT">MT</SelectItem>
-                        <SelectItem value="MS">MS</SelectItem>
-                        <SelectItem value="MG">MG</SelectItem>
-                        <SelectItem value="PA">PA</SelectItem>
-                        <SelectItem value="PB">PB</SelectItem>
-                        <SelectItem value="PE">PE</SelectItem>
-                        <SelectItem value="PI">PI</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Nome Completo <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value?.toString() || ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="birthDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Data de Nascimento <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={
-                        field.value
-                          ? field.value.toISOString().split("T")[0]
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const date = new Date(e.target.value);
-                        field.onChange(date);
-                      }}
-                      max={new Date().toISOString().split("T")[0]}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mothersName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Nome da mãe <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value?.toString() || ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    E-mail <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      {...field}
-                      value={field.value?.toString() || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="areaCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Telefone (DDD) <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        maxLength={2}
-                        value={field.value?.toString() || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Número <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        maxLength={9}
-                        value={field.value?.toString() || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="w-full mt-4">
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <MapPin className="w-5 h-5" />
-            <CardTitle>Endereço</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Checkbox 
-                id="useEstablishmentAddress" 
-                checked={useEstablishmentAddress}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true;
-                  console.log("Checkbox alterada para:", isChecked);
-                  setUseEstablishmentAddress(isChecked);
-                  
-                  if (isChecked && merchantAddress) {
-                    fillFormWithMerchantAddress(merchantAddress);
-                  }
-                }}
-              />
-              <label
-                htmlFor="useEstablishmentAddress"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Usar endereço do estabelecimento
-              </label>
-            </div>
-
-            <Form {...form1}>
-              <form onSubmit={form1.handleSubmit(onSubmitAddress)}>
-                <FormField
-                  control={form1.control}
-                  name="zipCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        CEP <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={useEstablishmentAddress}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form1.control}
-                  name="street"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Rua <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={useEstablishmentAddress}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form1.control}
-                    name="number"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Número <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            disabled={useEstablishmentAddress}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form1.control}
-                    name="complement"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Complemento</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            disabled={useEstablishmentAddress}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form1.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Bairro <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={useEstablishmentAddress}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form1.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Cidade <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            disabled={useEstablishmentAddress}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form1.control}
-                    name="state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Estado <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value?.toString() || ""}
-                          disabled={useEstablishmentAddress}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="PR">PR</SelectItem>
-                            <SelectItem value="SP">SP</SelectItem>
-                            <SelectItem value="RJ">RJ</SelectItem>
-                            <SelectItem value="AC">AC</SelectItem>
-                            <SelectItem value="AL">AL</SelectItem>
-                            <SelectItem value="AP">AP</SelectItem>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="BA">BA</SelectItem>
-                            <SelectItem value="CE">CE</SelectItem>
-                            <SelectItem value="DF">DF</SelectItem>
-                            <SelectItem value="ES">ES</SelectItem>
-                            <SelectItem value="GO">GO</SelectItem>
-                            <SelectItem value="MA">MA</SelectItem>
-                            <SelectItem value="MT">MT</SelectItem>
-                            <SelectItem value="MS">MS</SelectItem>
-                            <SelectItem value="MG">MG</SelectItem>
-                            <SelectItem value="PA">PA</SelectItem>
-                            <SelectItem value="PB">PB</SelectItem>
-                            <SelectItem value="PE">PE</SelectItem>
-                            <SelectItem value="PI">PI</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form1.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        País <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          defaultValue="Brasil"
-                          disabled={useEstablishmentAddress}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Avançar</Button>
-        </div>
-      </form>
-    </Form>
+      <div className="flex justify-end mt-8">
+        <Button type="submit" onClick={onSubmit} className="px-6">
+          Avançar
+        </Button>
+      </div>
+    </div>
   );
 }

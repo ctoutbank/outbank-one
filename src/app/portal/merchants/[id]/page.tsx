@@ -9,63 +9,93 @@ import {
   getLegalNaturesForDropdown,
   getMerchantById,
 } from "@/features/merchant/server/merchant";
-import { getAccountTypeForDropdown, getBankForDropdown, getMerchantPixAccountByMerchantId } from "@/features/merchant/server/merchantpixacount";
+import {
+  getAccountTypeForDropdown,
+  getBankForDropdown,
+  getMerchantPixAccountByMerchantId,
+} from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
+
+
 
 export default async function MerchantDetail({
   params,
 }: {
   params: { id: string };
 }) {
+  
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
   const merchant = await getMerchantById(parseInt(params.id));
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
-  
- 
-  const legalNatures = await getLegalNaturesForDropdown();
- 
 
- 
+  const legalNatures = await getLegalNaturesForDropdown();
+
   const contact = await getContactByMerchantId(merchant?.merchants.id || 0);
-  const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(merchant?.merchants.idMerchantPrice || 0);
-  console.log('merchantPriceGroups:', JSON.stringify(merchantPriceGroups, null, 2));
+  const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(
+    merchant?.merchants.idMerchantPrice || 0
+  );
+  console.log(
+    "merchantPriceGroups:",
+    JSON.stringify(merchantPriceGroups, null, 2)
+  );
   const configurations = await getConfigurationsByMerchantId(
     merchant?.merchants.id || 0
   );
-  const pixaccount = await getMerchantPixAccountByMerchantId(merchant?.merchants.id || 0);
+  const pixaccount = await getMerchantPixAccountByMerchantId(
+    merchant?.merchants.id || 0
+  );
 
   const formattedMerchantPriceGroups = {
     merchantPrice: {
       id: merchantPriceGroups?.[0]?.merchantPrice?.id || 0,
-      name: merchantPriceGroups?.[0]?.merchantPrice?.name || '',
+      name: merchantPriceGroups?.[0]?.merchantPrice?.name || "",
       active: merchantPriceGroups?.[0]?.merchantPrice?.active || false,
-      dtinsert: merchantPriceGroups?.[0]?.merchantPrice?.dtinsert || '',
-      dtupdate: merchantPriceGroups?.[0]?.merchantPrice?.dtupdate || '',
-      tableType: merchantPriceGroups?.[0]?.merchantPrice?.tableType || '',
-      slugMerchant: merchantPriceGroups?.[0]?.merchantPrice?.slugMerchant || '',
-      compulsoryAnticipationConfig: merchantPriceGroups?.[0]?.merchantPrice?.compulsoryAnticipationConfig || 0,
-      eventualAnticipationFee: Number(merchantPriceGroups?.[0]?.merchantPrice?.eventualAnticipationFee) || 0,
-      nonCardPixMinimumCostFee: Number(merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixMinimumCostFee) || 0,
-      anticipationType: merchantPriceGroups?.[0]?.merchantPrice?.anticipationType || '',
-      cardPixMdr: Number(merchantPriceGroups?.[0]?.merchantPrice?.cardPixMdr) || 0,
-      cardPixCeilingFee: Number(merchantPriceGroups?.[0]?.merchantPrice?.cardPixCeilingFee) || 0,
-      cardPixMinimumCostFee: Number(merchantPriceGroups?.[0]?.merchantPrice?.cardPixMinimumCostFee) || 0,
-      nonCardPixMdr: Number(merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixMdr) || 0,
-      nonCardPixCeilingFee: Number(merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixCeilingFee) || 0
+      dtinsert: merchantPriceGroups?.[0]?.merchantPrice?.dtinsert || "",
+      dtupdate: merchantPriceGroups?.[0]?.merchantPrice?.dtupdate || "",
+      tableType: merchantPriceGroups?.[0]?.merchantPrice?.tableType || "",
+      slugMerchant: merchantPriceGroups?.[0]?.merchantPrice?.slugMerchant || "",
+      compulsoryAnticipationConfig:
+        merchantPriceGroups?.[0]?.merchantPrice?.compulsoryAnticipationConfig ||
+        0,
+      eventualAnticipationFee:
+        Number(
+          merchantPriceGroups?.[0]?.merchantPrice?.eventualAnticipationFee
+        ) || 0,
+      nonCardPixMinimumCostFee:
+        Number(
+          merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixMinimumCostFee
+        ) || 0,
+      anticipationType:
+        merchantPriceGroups?.[0]?.merchantPrice?.anticipationType || "",
+      cardPixMdr:
+        Number(merchantPriceGroups?.[0]?.merchantPrice?.cardPixMdr) || 0,
+      cardPixCeilingFee:
+        Number(merchantPriceGroups?.[0]?.merchantPrice?.cardPixCeilingFee) || 0,
+      cardPixMinimumCostFee:
+        Number(
+          merchantPriceGroups?.[0]?.merchantPrice?.cardPixMinimumCostFee
+        ) || 0,
+      nonCardPixMdr:
+        Number(merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixMdr) || 0,
+      nonCardPixCeilingFee:
+        Number(merchantPriceGroups?.[0]?.merchantPrice?.nonCardPixCeilingFee) ||
+        0,
     },
-    merchantpricegroup: merchantPriceGroups?.map(group => ({
-      id: group.priceGroup?.id || 0,
-      name: group.priceGroup?.brand || '',
-      active: group.priceGroup?.active || false,
-      dtinsert: group.priceGroup?.dtinsert || '',
-      dtupdate: group.priceGroup?.dtupdate || '',
-      idMerchantPrice: group.merchantPrice?.id || 0,
-      listMerchantTransactionPrice: typeof group.transactionPrices === 'string' 
-        ? JSON.parse(group.transactionPrices) 
-        : group.transactionPrices || []
-    })) || []
+    merchantpricegroup:
+      merchantPriceGroups?.map((group) => ({
+        id: group.priceGroup?.id || 0,
+        name: group.priceGroup?.brand || "",
+        active: group.priceGroup?.active || false,
+        dtinsert: group.priceGroup?.dtinsert || "",
+        dtupdate: group.priceGroup?.dtupdate || "",
+        idMerchantPrice: group.merchantPrice?.id || 0,
+        listMerchantTransactionPrice:
+          typeof group.transactionPrices === "string"
+            ? JSON.parse(group.transactionPrices)
+            : group.transactionPrices || [],
+      })) || [],
   };
 
   return (
@@ -84,7 +114,6 @@ export default async function MerchantDetail({
             : "Adicionar Estabelecimento"
         }
       >
-      
         <MerchantTabs
           merchant={{
             id: merchant?.merchants?.id || 0,
@@ -98,12 +127,14 @@ export default async function MerchantDetail({
             slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
             openingHour: merchant?.merchants?.openingHour || "",
             closingHour: merchant?.merchants?.closingHour || "",
-            municipalRegistration: merchant?.merchants?.municipalRegistration || "",
+            municipalRegistration:
+              merchant?.merchants?.municipalRegistration || "",
             stateSubcription: merchant?.merchants?.stateSubcription || "",
             idDocument: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
             corporateName: merchant?.merchants?.corporateName || "",
-            riskAnalysisStatusJustification: merchant?.merchants?.riskAnalysisStatusJustification || "",
+            riskAnalysisStatusJustification:
+              merchant?.merchants?.riskAnalysisStatusJustification || "",
             openingDate: merchant?.merchants?.openingDate || "",
             inclusion: merchant?.merchants?.inclusion || "",
             openingDays: merchant?.merchants?.openingDays || null,
@@ -182,8 +213,10 @@ export default async function MerchantDetail({
               active: configurations?.active || false,
               dtinsert: configurations?.dtinsert || "",
               dtupdate: configurations?.dtupdate || "",
-              lockCpAnticipationOrder: configurations?.lockCpAnticipationOrder || false,
-              lockCnpAnticipationOrder: configurations?.lockCnpAnticipationOrder || false,
+              lockCpAnticipationOrder:
+                configurations?.lockCpAnticipationOrder || false,
+              lockCnpAnticipationOrder:
+                configurations?.lockCnpAnticipationOrder || false,
               url: configurations?.url || "",
             },
           }}
@@ -212,9 +245,7 @@ export default async function MerchantDetail({
             merchantcorporateName: merchant?.merchants?.corporateName || "",
             merchantdocumentId: merchant?.merchants?.idDocument || "",
             legalPerson: merchant?.merchants?.legalPerson || "",
-            
           }}
-
           merchantPriceGroupProps={{
             merchantPrice: {
               id: formattedMerchantPriceGroups.merchantPrice.id,
@@ -223,19 +254,33 @@ export default async function MerchantDetail({
               dtinsert: formattedMerchantPriceGroups.merchantPrice.dtinsert,
               dtupdate: formattedMerchantPriceGroups.merchantPrice.dtupdate,
               tableType: formattedMerchantPriceGroups.merchantPrice.tableType,
-              slugMerchant: formattedMerchantPriceGroups.merchantPrice.slugMerchant,
-              compulsoryAnticipationConfig: formattedMerchantPriceGroups.merchantPrice.compulsoryAnticipationConfig,
-              anticipationType: formattedMerchantPriceGroups.merchantPrice.anticipationType,
-              eventualAnticipationFee: formattedMerchantPriceGroups.merchantPrice.eventualAnticipationFee,
+              slugMerchant:
+                formattedMerchantPriceGroups.merchantPrice.slugMerchant,
+              compulsoryAnticipationConfig:
+                formattedMerchantPriceGroups.merchantPrice
+                  .compulsoryAnticipationConfig,
+              anticipationType:
+                formattedMerchantPriceGroups.merchantPrice.anticipationType,
+              eventualAnticipationFee:
+                formattedMerchantPriceGroups.merchantPrice
+                  .eventualAnticipationFee,
               cardPixMdr: formattedMerchantPriceGroups.merchantPrice.cardPixMdr,
-              cardPixCeilingFee: formattedMerchantPriceGroups.merchantPrice.cardPixCeilingFee,
-              cardPixMinimumCostFee: formattedMerchantPriceGroups.merchantPrice.cardPixMinimumCostFee,
-              nonCardPixMdr: formattedMerchantPriceGroups.merchantPrice.nonCardPixMdr,
-              nonCardPixCeilingFee: formattedMerchantPriceGroups.merchantPrice.nonCardPixCeilingFee,
-              nonCardPixMinimumCostFee: formattedMerchantPriceGroups.merchantPrice.nonCardPixMinimumCostFee,
-              merchantpricegroup: formattedMerchantPriceGroups.merchantpricegroup
+              cardPixCeilingFee:
+                formattedMerchantPriceGroups.merchantPrice.cardPixCeilingFee,
+              cardPixMinimumCostFee:
+                formattedMerchantPriceGroups.merchantPrice
+                  .cardPixMinimumCostFee,
+              nonCardPixMdr:
+                formattedMerchantPriceGroups.merchantPrice.nonCardPixMdr,
+              nonCardPixCeilingFee:
+                formattedMerchantPriceGroups.merchantPrice.nonCardPixCeilingFee,
+              nonCardPixMinimumCostFee:
+                formattedMerchantPriceGroups.merchantPrice
+                  .nonCardPixMinimumCostFee,
+              merchantpricegroup:
+                formattedMerchantPriceGroups.merchantpricegroup,
             },
-            merchantpricegroup: formattedMerchantPriceGroups.merchantpricegroup
+            merchantpricegroup: formattedMerchantPriceGroups.merchantpricegroup,
           }}
           establishmentFormatList={establishmentFormatList}
           DDAccountType={DDAccountType}
