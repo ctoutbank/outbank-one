@@ -169,7 +169,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      TEF Terminal <span className="text-red-500">*</span>
+                      Terminal TEF <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
@@ -200,7 +200,7 @@ export default function MerchantFormOperations({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Terminal Tap On Phone{" "}
+                      Terminal Pagamento por Aproximação{" "}
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
@@ -238,7 +238,7 @@ export default function MerchantFormOperations({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="ml-2">Card Not Present</FormLabel>
+                      <FormLabel className="ml-2">Cartão Não Presente</FormLabel>
                     </div>
                   </FormItem>
                 )}
