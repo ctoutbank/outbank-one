@@ -1,0 +1,347 @@
+"use server";
+
+import { generateSlug } from "@/lib/utils";
+import { db } from "@/server/db";
+import { and, eq, sql } from "drizzle-orm";
+import {
+  functions,
+  moduleFunctions,
+  modules,
+  profileFunctions,
+  profiles,
+} from "../../../../drizzle/schema";
+
+export interface Functions {
+  id: number;
+  name: string;
+}
+
+export interface Group {
+  group: string;
+  functions: Functions[];
+}
+
+export interface Module {
+  id: number;
+  name: string;
+  group: Group[];
+}
+
+export interface ProfileDetailForm {
+  id: number;
+  name: string;
+  description: string;
+  module: Module[];
+}
+
+export interface ProfileList {
+  profiles: {
+    id: number;
+    slug: string;
+    name: string;
+    functions: Module[];
+  }[];
+  totalCount: number;
+}
+
+export async function getProfiles(
+  name: string,
+  page: number,
+  pageSize: number
+): Promise<ProfileList> {
+  const offset = (page - 1) * pageSize;
+
+  const result = await db.execute(sql`
+    SELECT 
+      p.id,
+      p.slug,
+      p.name,
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', m.id,
+              'name', m.name,
+              'group', (
+                SELECT json_agg(
+                  json_build_object(
+                    'group', f."group",
+                    'functions', (
+                      SELECT json_agg(
+                        json_build_object(
+                          'id', f2.id,
+                          'name', f2.name
+                        )
+                      )
+                      FROM ${functions} f2
+                      JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_function
+                      WHERE mf2.id_module = m.id AND f2."group" = f."group"
+                      AND EXISTS (
+                        SELECT 1 FROM ${profileFunctions} pf2
+                        WHERE pf2.id_profile = p.id AND pf2.id_functions = f2.id
+                      )
+                    )
+                  )
+                )
+                FROM ${functions} f
+                JOIN ${moduleFunctions} mf ON f.id = mf.id_function
+                WHERE mf.id_module = m.id
+                GROUP BY f."group"
+              )
+            )
+          )
+          FROM ${modules} m
+          WHERE EXISTS (
+            SELECT 1 FROM ${moduleFunctions} mf
+            JOIN ${profileFunctions} pf ON mf.id_function = pf.id_functions
+            WHERE pf.id_profile = p.id AND mf.id_module = m.id
+          )
+        ), '[]'
+      ) as modules
+    FROM ${profiles} p
+    WHERE p.name ILIKE ${`%${name}%`}
+    ORDER BY p.id DESC
+    LIMIT ${pageSize}
+    OFFSET ${offset}
+  `);
+
+  const totalCountResult = await db.execute(sql`
+    SELECT count(*) as count
+    FROM ${profiles} p
+    WHERE p.name ILIKE ${`%${name}%`}
+  `);
+  const totalCount: number = (totalCountResult.rows[0]?.count as number) || 0;
+
+  const profilesList = result.rows.map((row: any) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    functions: row.modules || [],
+  }));
+
+  return { profiles: profilesList, totalCount };
+}
+
+export async function getProfileById(id: number): Promise<{
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  module: Module[];
+} | null> {
+  const result = await db.execute(sql`
+    SELECT 
+      p.id,
+      p.slug,
+      p.name,
+      p.description,
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', m.id,
+              'name', m.name,
+              'group', (
+                SELECT json_agg(
+                  json_build_object(
+                    'group', f."group",
+                    'functions', (
+                      SELECT json_agg(
+                        json_build_object(
+                          'id', f2.id,
+                          'name', f2.name
+                        )
+                      )
+                      FROM ${functions} f2
+                      JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_functions
+                      WHERE mf2.id_module = m.id AND f2."group" = f."group"
+                      AND EXISTS (
+                        SELECT 1 FROM ${profileFunctions} pf2
+                        WHERE pf2.id_profile = p.id AND pf2.id_functions = f2.id
+                      )
+                    )
+                  )
+                )
+                FROM ${functions} f
+                JOIN ${moduleFunctions} mf ON f.id = mf.id_functions
+                WHERE mf.id_module = m.id
+                GROUP BY f."group"
+              )
+            )
+          )
+          FROM ${modules} m
+          WHERE EXISTS (
+            SELECT 1 FROM ${moduleFunctions} mf
+            JOIN ${profileFunctions} pf ON mf.id_function = pf.id_functions
+            WHERE pf.id_profile = p.id AND mf.id_module = m.id
+          )
+        ), '[]'
+      ) as modules
+    FROM ${profiles} p
+    WHERE p.id = ${id}
+  `);
+
+  if (result.rows.length === 0) return null;
+
+  const row = result.rows[0] as any;
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    module: row.modules || [],
+  };
+}
+
+export async function insertProfile(
+  profileData: ProfileDetailForm
+): Promise<number> {
+  const newProfile = {
+    slug: generateSlug(),
+    name: profileData.name,
+    description: profileData.description,
+    dtinsert: new Date().toISOString(),
+    dtupdate: new Date().toISOString(),
+    active: true,
+  };
+
+  const profileResult = await db
+    .insert(profiles)
+    .values(newProfile)
+    .returning({ id: profiles.id });
+  const profileId = profileResult[0].id;
+
+  // Process modules and their associated functions
+  for (const moduleVar of profileData.module) {
+    for (const groupItem of moduleVar.group) {
+      for (const func of groupItem.functions) {
+        // First, verify that the function belongs to the specified module
+        const moduleFunction = await db
+          .select()
+          .from(moduleFunctions)
+          .where(
+            and(
+              eq(moduleFunctions.idModule, moduleVar.id),
+              eq(moduleFunctions.idFunction, func.id)
+            )
+          );
+
+        if (moduleFunction.length > 0) {
+          await db.insert(profileFunctions).values({
+            slug: generateSlug(),
+            idProfile: profileId,
+            idFunctions: func.id,
+            dtinsert: new Date().toISOString(),
+            dtupdate: new Date().toISOString(),
+            active: true,
+          });
+        }
+      }
+    }
+  }
+
+  return profileId;
+}
+
+export async function updateProfile(
+  id: number,
+  profileData: Partial<ProfileDetailForm>
+): Promise<void> {
+  // Update basic profile data
+  const updateData: any = {};
+
+  if (profileData.name) {
+    updateData.name = profileData.name;
+  }
+
+  if (profileData.description) {
+    updateData.description = profileData.description;
+  }
+
+  updateData.dtupdate = new Date().toISOString();
+
+  await db.update(profiles).set(updateData).where(eq(profiles.id, id));
+
+  if (profileData.module && profileData.module.length > 0) {
+    // Remove current profile-function associations
+    await db.delete(profileFunctions).where(eq(profileFunctions.idProfile, id));
+
+    // Insert new associations based on module data
+    for (const moduleVar of profileData.module) {
+      for (const groupItem of moduleVar.group) {
+        for (const func of groupItem.functions) {
+          // First, verify that the function belongs to the specified module
+          const moduleFunction = await db
+            .select()
+            .from(moduleFunctions)
+            .where(
+              and(
+                eq(moduleFunctions.idModule, moduleVar.id),
+                eq(moduleFunctions.idFunction, func.id)
+              )
+            );
+
+          if (moduleFunction.length > 0) {
+            // The function belongs to this module, so add it to the profile
+            await db.insert(profileFunctions).values({
+              slug: generateSlug(),
+              idProfile: id,
+              idFunctions: func.id,
+              dtinsert: new Date().toISOString(),
+              dtupdate: new Date().toISOString(),
+              active: true,
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
+export async function deleteProfile(id: number): Promise<void> {
+  // Delete associations in profile_functions
+  await db.delete(profileFunctions).where(eq(profileFunctions.idProfile, id));
+
+  // Delete the profile
+  await db.delete(profiles).where(eq(profiles.id, id));
+}
+
+export async function getModules(): Promise<Module[]> {
+  const result = await db.execute(sql`
+    SELECT 
+      m.id, 
+      m.name,
+      (
+        SELECT json_agg(
+          json_build_object(
+            'group', f."group",
+            'functions', (
+              SELECT json_agg(
+                json_build_object(
+                  'id', f2.id,
+                  'name', f2.name
+                )
+              )
+              FROM ${functions} f2
+              JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_function
+              WHERE mf2.id_module = m.id AND f2."group" = f."group"
+            )
+          )
+        )
+        FROM ${functions} f
+        JOIN ${moduleFunctions} mf ON f.id = mf.id_function
+        WHERE mf.id_module = m.id
+        GROUP BY f."group"
+      ) as groups
+    FROM ${modules} m
+    ORDER BY m.id DESC
+  `);
+
+  const modulesList = result.rows.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    group: row.groups || [],
+  }));
+
+  return modulesList;
+}
