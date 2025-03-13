@@ -26,7 +26,7 @@ export default async function UserDetail({
         breadcrumbItems={[{ title: "Usuários", url: "/portal/users" }]}
       />
       <BaseBody
-        title="Usário"
+        title="Usuário"
         subtitle={params?.id ? "Editar Usuário" : "Adicionar Usuário"}
       >
         <UserForm
