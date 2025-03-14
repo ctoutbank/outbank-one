@@ -56,7 +56,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 onUploadComplete={handleUploadComplete}
                 fileType="CNHDIGITAL"
                 maxSizeMB={2}
-                acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif"
+                acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
               />
 
               <FileUpload
@@ -66,6 +66,8 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 entityId={Number(merchantId)}
                 onUploadComplete={handleUploadComplete}
                 fileType="CNHFRENTE"
+                maxSizeMB={10}
+                acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif"
               />
 
               <FileUpload
@@ -75,6 +77,8 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 entityId={Number(merchantId)}
                 onUploadComplete={handleUploadComplete}
                 fileType="CNHVERSO"
+                maxSizeMB={5}
+                acceptedFileTypes="JPG,PNG"
               />
             </DocumentSection>
 
@@ -151,6 +155,8 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 entityId={Number(merchantId)}
                 onUploadComplete={handleUploadComplete}
                 fileType="BIGBOOST"
+                maxSizeMB={2}
+                acceptedFileTypes="PNG"
               />
 
               <FileUpload
@@ -170,7 +176,7 @@ export default function MerchantFormDocuments({ merchantId }: MerchantFormDocume
                 onUploadComplete={handleUploadComplete}
                 fileType="PRINTCNP"
                 maxSizeMB={5}
-                acceptedFileTypes="image/jpeg,image/jpg"
+                acceptedFileTypes="image/jpeg,image/jpg,JPG"
                 />
             </DocumentSection>
 

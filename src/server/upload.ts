@@ -70,23 +70,7 @@ export async function uploadFile(uploadFileRequest: UploadFileRequest): Promise<
 
         // Formatar o nome do arquivo usando o título fornecido
         const formattedFileName = formatFileName(uploadFileRequest.fileName, fileObject.name, uploadFileRequest.fileType)
-
-        // Inserir registro na tabela file para obter o ID
         const fileExtension = getFileExtension(fileObject.name)
-        const [newFile] = await db.insert(file).values({
-            fileName: formattedFileName,
-            extension: fileExtension,
-            fileType: uploadFileRequest.fileType,
-            active: true,
-        }).returning({ id: file.id })
-
-        if (!newFile || !newFile.id) {
-            console.error("Falha ao inserir registro de arquivo no banco de dados")
-            return null
-        }
-
-        const fileId = Number(newFile.id)
-        console.log("Arquivo registrado no banco de dados com ID:", fileId)
         
         // Preparar o upload para o S3
         const arrayBuffer = await fileObject.arrayBuffer()
@@ -99,23 +83,37 @@ export async function uploadFile(uploadFileRequest: UploadFileRequest): Promise<
             formattedFileName: formattedFileName
         })
 
+        // Enviar arquivo para o S3 primeiro
         const putObjectParams = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME || "",
             Key: key,
             Body: fileBuffer,
         })
 
-        // Enviar arquivo para o S3
         await s3Client.send(putObjectParams)
         const BUCKET_URL = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`
         const finalURL = `${BUCKET_URL}/${key}`
 
-        console.log("Arquivo enviado para S3, atualizando URL no banco:", finalURL)
+        console.log("Arquivo enviado para S3, criando registro no banco:", finalURL)
 
-        // Atualizar o URL do arquivo no banco de dados
-        await db.update(file)
-            .set({ fileUrl: finalURL })
-            .where(eq(file.id, fileId))
+        // Depois de fazer o upload, criar o registro no banco de dados com a URL já definida
+        const [newFile] = await db.insert(file).values({
+            fileName: formattedFileName,
+            extension: fileExtension,
+            fileType: uploadFileRequest.fileType,
+            fileUrl: finalURL,
+            active: true,
+        }).returning({ id: file.id })
+
+        if (!newFile || !newFile.id) {
+            console.error("Falha ao inserir registro de arquivo no banco de dados")
+           
+            // já que o registro no banco falhou
+            return null
+        }
+
+        const fileId = Number(newFile.id)
+        console.log("Arquivo registrado no banco de dados com ID:", fileId)
 
         return {
             fileExtension,
