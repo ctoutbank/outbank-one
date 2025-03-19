@@ -67,18 +67,22 @@ export async function getUsers(
   const userListParams = {
     limit: pageSize,
     offset: offset,
-    orderBy: "+created_at" as any,
-    emailAddress: [email],
-    query: firstName ? (lastName ? firstName + " " + lastName : firstName) : "",
+    emailAddress: email ? [email] : undefined,
+    query: firstName
+      ? lastName
+        ? firstName + " " + lastName
+        : firstName
+      : undefined,
   };
+  console.log(userListParams);
   const clerk = await clerkClient();
   const clerkResult = (await clerk.users.getUserList(userListParams)).data;
- 
+  console.log(clerkResult);
 
   const conditions = [
-    eq(users.idMerchant, merchant),
-    eq(users.idCustomer, customer),
-    eq(users.idProfile, profile),
+    merchant ? eq(users.idMerchant, merchant) : undefined,
+    customer ? eq(users.idCustomer, customer) : undefined,
+    profile ? eq(users.idProfile, profile) : undefined,
   ];
   if (clerkResult.length == 0) {
     return {
