@@ -42,7 +42,7 @@ function ContactFormItem({
   initialData,
   initialAddress,
   idMerchant,
- 
+  
   onFormReady,
 }: ContactFormItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
