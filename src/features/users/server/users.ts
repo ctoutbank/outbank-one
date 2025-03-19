@@ -3,7 +3,7 @@
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { clerkClient } from "@clerk/nextjs/server";
-import { count, eq, and, desc, inArray } from "drizzle-orm";
+import { count, eq, and, desc, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import {
   customers,
@@ -71,10 +71,9 @@ export async function getUsers(
     emailAddress: [email],
     query: firstName ? (lastName ? firstName + " " + lastName : firstName) : "",
   };
-
-  const clerkResult = (
-    await (await clerkClient()).users.getUserList(userListParams)
-  ).data;
+  const clerk = await clerkClient();
+  const clerkResult = (await clerk.users.getUserList(userListParams)).data;
+ 
 
   const conditions = [
     eq(users.idMerchant, merchant),
@@ -301,4 +300,30 @@ export async function getDDCustomers(): Promise<DD[]> {
     .select({ id: customers.id, name: customers.name })
     .from(customers);
   return result as DD[];
+}
+
+export async function getUserGroupPermissions(
+  userSlug: string,
+  group: string
+): Promise<string[]> {
+  try {
+    const result = await db.execute(sql`
+      SELECT DISTINCT f.name
+      FROM users u
+      JOIN profiles p ON u.id_profile = p.id
+      JOIN profile_functions pf ON p.id = pf.id_profile
+      JOIN functions f ON pf.id_functions = f.id
+      WHERE u.slug = ${userSlug}
+        AND f."group" = ${group}
+        AND u.active = true
+        AND p.active = true
+        AND pf.active = true
+      ORDER BY f.name
+    `);
+
+    return result.rows.map((row: any) => row.name);
+  } catch (error) {
+    console.error("Error getting user group permissions:", error);
+    return [];
+  }
 }

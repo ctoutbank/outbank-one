@@ -2,6 +2,7 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import { getPaymentLinkById } from "@/features/paymentLink/server/paymentLink";
 import ProfilesForm from "@/features/users/_components/profiles-form";
+import { getModules, getProfileById, ModuleSelect } from "@/features/users/server/profiles";
 
 export const revalidate = 0;
 
@@ -10,8 +11,8 @@ export default async function PaymentLinkDetail({
 }: {
   params: { id: string };
 }) {
-  const paymentLinkById = await getPaymentLinkById(parseInt(params.id));
-
+  const profile = await getProfileById(parseInt(params.id));
+  const modules: ModuleSelect[] = await getModules();
 
   return (
     <>
@@ -20,9 +21,9 @@ export default async function PaymentLinkDetail({
       />
       <BaseBody
         title="Perfis"
-        subtitle={paymentLinkById?.id ? "Editar Perfil" : "Adicionar Perfil"}
+        subtitle={profile?.id ? "Editar Perfil" : "Adicionar Perfil"}
       >
-        <ProfilesForm></ProfilesForm>
+        <ProfilesForm profile={profile} availableModules={modules}></ProfilesForm>
       </BaseBody>
     </>
   );
