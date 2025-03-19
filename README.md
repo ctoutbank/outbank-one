@@ -1,8 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Outbank-One
+
+## Overview
+
+Outbank-One is a comprehensive banking and financial services platform that provides digital banking solutions, card processing capabilities, and financial management tools. The platform offers a range of services from digital accounts and card issuance to backoffice management and loyalty programs.
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Technologies](#technologies)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Deployment](#deployment)
+- [License](#license)
+
+## Features
+
+## Architecture
+
+Outbank-One is built on a modern web application architecture:
+
+- **Frontend**: Next.js-based application with React components
+- **Backend**: Next.js API routes with serverless functions
+- **Database**: PostgreSQL database hosted on Neon (serverless Postgres)
+- **Authentication**: Clerk for user authentication and management
+- **Storage**: AWS S3 for file storage
+
+### Folder Structure
+
+- `/src/components` - React components organized by feature
+- `/src/server` - Server-side code including database configuration
+- `/src/app` - Next.js app router pages and layouts
+
+## Technologies
+
+### Frontend
+
+- **Framework**: Next.js 14
+- **UI Components**:
+  - React 18
+  - Radix UI components
+  - Tailwind CSS for styling
+  - shadcn/ui component library
+- **Data Visualization**: Recharts
+- **Form Handling**: React Hook Form with Zod validation
+
+### Backend
+
+- **Server**: Next.js API routes
+- **Database**: PostgreSQL with Neon serverless
+- **ORM**: Drizzle ORM
+- **Authentication**: Clerk
+- **Email**: Resend
+
+### DevOps
+
+- **Deployment**: Vercel Platform
+- **Database Hosting**: Neon Tech (PostgreSQL)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js (latest LTS version)
+- npm, yarn, pnpm, or bun
+- PostgreSQL database (or Neon account)
+
+### Installation
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/outbank-one.git
+cd outbank-one
+```
+
+2. Install dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+3. Set up environment variables
+
+```bash
+# Create a .env.local file with the following variables:
+# Database connection
+DATABASE_URL=your_database_url
+# Clerk authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+# AWS S3 (if using file uploads)
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_REGION=your_aws_region
+AWS_BUCKET_NAME=your_bucket_name
+```
+
+4. Start the development server
 
 ```bash
 npm run dev
@@ -16,21 +119,21 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Outbank-One provides a comprehensive banking platform with multiple modules:
 
-## Learn More
+1. **Digital Banking**: Manage accounts, transfers, and payments
+2. **Card Management**: Issue and manage different types of cards
+3. **Business Banking**: Corporate account management and payment processing
+4. **Backoffice**: Administrative tools for managing the platform
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The easiest way to deploy Outbank-One is to use the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For database deployment, the project is configured to work with [Neon](https://neon.tech) serverless PostgreSQL.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Specify your license here]

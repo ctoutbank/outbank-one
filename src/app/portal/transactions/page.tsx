@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getTransactions } from "@/server/db/transaction";
+import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import TransactionsExport from "./transactions-export";
 
 export default async function Transactions() {

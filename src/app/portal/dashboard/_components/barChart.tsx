@@ -16,7 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { GetTotalTransactionsByMonthResult } from "@/server/db/transaction";
+import { GetTotalTransactionsByMonthResult } from "@/features/transactions/serverActions/transaction";
 
 const chartConfig = {
   count: {

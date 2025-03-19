@@ -1,9 +1,8 @@
+"use client";
 
-"use client"; 
-
-import { Button } from '@/components/ui/button';
-import { main } from '@/server/integrations/dock/sync-settlements/main';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { main } from "@/server/integrations/dock/sync-settlements/main";
+import { useState } from "react";
 
 export default function AsyncButtonsSettlement() {
   const [loading, setLoading] = useState(false);
@@ -17,36 +16,28 @@ export default function AsyncButtonsSettlement() {
 
     try {
       await main();
-      setSuccess('Sincronização realizada com sucesso!');
+      setSuccess("Sincronização realizada com sucesso!");
     } catch (err) {
-      setError('Erro ao realizar a sincronização.');
+      setError("Erro ao realizar a sincronização.");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
- 
-
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Sincronização</h1>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {/* <Button 
-         
-          disabled={false}
-          className="bg-blue-500 hover:bg-blue-600"
-        >
-          
-        </Button> */}
 
-        <Button 
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <Button
           onClick={handleSync}
           disabled={loading}
-          className={`bg-green-500 hover:bg-green-600 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-green-500 hover:bg-green-600 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          Settlement {loading ? 'Sincronizando...' : 'Sincronizar'}
+          Settlement {loading ? "Sincronizando..." : "Sincronizar"}
         </Button>
       </div>
 

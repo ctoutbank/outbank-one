@@ -1,8 +1,8 @@
 "use server";
 
 import { and, count, desc, gte, lte, sql, sum } from "drizzle-orm";
-import { transactions } from "../../../drizzle/schema";
-import { db } from "./index";
+import { transactions } from "../../../../drizzle/schema";
+import { db } from "../../../server/db/index";
 
 export type TransactionList = {
   transactions: Transaction[];
@@ -39,7 +39,10 @@ export type GetTotalTransactionsByMonthResult = {
   date?: Date;
 };
 
-export async function getTotalTransactions(dateFrom: Date | null, dateTo: Date | null) {
+export async function getTotalTransactions(
+  dateFrom: Date | null,
+  dateTo: Date | null
+) {
   const result = await db
     .select({ sum: sum(transactions.totalAmount), count: count() })
     .from(transactions)
