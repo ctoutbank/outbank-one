@@ -61,7 +61,7 @@ export async function getTaxas(
         nome ? ilike(taxas.nome, `%${nome}%`) : undefined,
         status ? eq(taxas.active, status === "ACTIVE") : undefined,
         tipo ? ilike(taxas.tipo, `%${tipo}%`) : undefined,
-        valor ? ilike(taxas.valor?.toString() || "", `%${valor}%`) : undefined
+        valor ? ilike(taxas.valor || "", `%${valor}%`) : undefined
       )
     )
     .orderBy(
@@ -85,7 +85,7 @@ export async function getTaxas(
     dtinsert: taxa.dtinsert ? new Date(taxa.dtinsert) : new Date(),
     dtupdate: taxa.dtupdate ? new Date(taxa.dtupdate) : new Date(),
     tipo: taxa.tipo || "",
-    valor: taxa.valor || 0,
+    valor: Number(taxa.valor) || 0,
     descricao: taxa.descricao || "",
   }));
 

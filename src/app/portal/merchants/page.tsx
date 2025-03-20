@@ -6,7 +6,12 @@ import { MerchantDashboardButton } from "@/features/merchant/_components/merchan
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import { getMerchants } from "@/features/merchant/server/merchant";
-import { getMerchantRegistrationsByPeriod, getMerchantRegistrationSummary, getMerchantTransactionData, getMerchantTypeData } from "@/features/merchant/server/merchant-dashboard";
+import {
+  getMerchantRegistrationsByPeriod,
+  getMerchantRegistrationSummary,
+  getMerchantTransactionData,
+  getMerchantTypeData,
+} from "@/features/merchant/server/merchant-dashboard";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
@@ -33,7 +38,7 @@ export default async function MerchantsPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
-  
+
   // Buscar dados dos merchants
   const merchants = await getMerchants(
     search,
@@ -44,7 +49,7 @@ export default async function MerchantsPage({
     searchParams.state
   );
   const totalRecords = merchants.totalCount;
-  
+
   // Buscar dados dos gráficos
   const registrationData = await getMerchantRegistrationsByPeriod();
   const registrationSummary = await getMerchantRegistrationSummary();
@@ -64,7 +69,7 @@ export default async function MerchantsPage({
     registrationData,
     registrationSummary,
     transactionData,
-    typeData
+    typeData,
   };
 
   return (
