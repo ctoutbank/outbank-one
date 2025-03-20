@@ -15,15 +15,15 @@ import {
   getMerchantPixAccountByMerchantId,
 } from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
-
-
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export default async function MerchantDetail({
   params,
 }: {
   params: { id: string };
 }) {
-  
+  await checkPagePermission("Estabelecimentos", "Editar");
+
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
   const merchant = await getMerchantById(parseInt(params.id));

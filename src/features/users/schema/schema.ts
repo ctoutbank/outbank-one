@@ -6,7 +6,17 @@ export const schemaUser = z.object({
   firstName: z.string().min(1, "O nome é obrigatório"),
   lastName: z.string().min(1, "O sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
-  password: z.string().min(8, "senha é obrigatória, mínimo 8 caracteres"),
+  password: z.string().superRefine((val, ctx) => {
+    const url = typeof window !== "undefined" ? window.location.pathname : "";
+    if (url.endsWith("/0")) {
+      if (!val || val.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha é obrigatória",
+        });
+      }
+    }
+  }),
   idProfile: z.string().min(1, "o perfil é obrigatório"),
   idMerchant: z.string().optional(),
   idCustomer: z.string().optional(),

@@ -9,6 +9,9 @@ import { getMerchants } from "@/features/merchant/server/merchant";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
+
+export const revalidate = 0;
 
 type MerchantProps = {
   page?: string;
@@ -17,13 +20,15 @@ type MerchantProps = {
   status?: string;
   state?: string;
   establishment?: string;
-}
+};
 
 export default async function MerchantsPage({
   searchParams,
 }: {
   searchParams: MerchantProps;
 }) {
+  await checkPagePermission("Estabelecimentos");
+
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "12");
   const search = searchParams.search || "";
@@ -36,7 +41,7 @@ export default async function MerchantsPage({
     searchParams.state
   );
   const totalRecords = merchants.totalCount;
-  
+
   const merchantData = {
     totalMerchants: merchants.totalCount,
     activeMerchants: merchants.active_count || 0,
@@ -48,11 +53,12 @@ export default async function MerchantsPage({
     totalCnpAnticipation: merchants.cnp_anticipation_count || 0,
   };
 
-
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Estabelecimentos", url: "/portal/merchants" }]}
+        breadcrumbItems={[
+          { title: "Estabelecimentos", url: "/portal/merchants" },
+        ]}
       />
 
       <BaseBody
@@ -80,7 +86,7 @@ export default async function MerchantsPage({
               </Link>
             </Button>
           </div>
-          
+
           <MerchantList list={merchants} />
           {totalRecords > 0 && (
             <PaginationRecords

@@ -26,7 +26,9 @@ import {
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
 
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  
   const data = {
     teams: [
       {

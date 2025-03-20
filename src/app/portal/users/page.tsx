@@ -58,7 +58,7 @@ export default async function UsersPage({
     page,
     pageSize
   );
-  console.log(users);
+ 
   const profiles = await getProfiles(profileName, page, pageSize);
   const DDCustomer = await getDDCustomers();
   const DDProfile = await getDDProfiles();
@@ -88,19 +88,9 @@ export default async function UsersPage({
         }
       >
         <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="border-b w-full justify-start rounded-none h-12 bg-transparent p-0 mb-6">
-            <TabsTrigger
-              value="users"
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary h-12 px-6 font-medium"
-            >
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger
-              value="profile"
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary h-12 px-6 font-medium"
-            >
-              Perfis
-            </TabsTrigger>
+          <TabsList className="mb-6">
+            <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="profile">Perfis</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-0">

@@ -8,6 +8,7 @@ import { TransactionsFilter } from "@/features/transactions/_components/transact
 import TransactionsList from "@/features/transactions/_components/transactions-list";
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import TransactionsExport from "./transactions-export";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 type TransactionsProps = {
   page?: string;
@@ -25,6 +26,8 @@ export default async function TransactionsPage({
 }: {
   searchParams: TransactionsProps;
 }) {
+  await checkPagePermission("Transações");
+
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";

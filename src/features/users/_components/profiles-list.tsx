@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { deleteProfile, type ProfileList } from "../server/profiles";
@@ -23,13 +22,8 @@ interface ProfilesListProps {
 }
 
 export default function ProfilesList({ profileList }: ProfilesListProps) {
-  const [searchTerm, setSearchTerm] = useState("");
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
-
-  const filteredProfiles = profileList.profiles?.filter((profile) => {
-    return profile.name.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
+  const profile = profileList.profiles;
   const handleDelete = async (profileId: number) => {
     try {
       setIsDeleting(profileId);
@@ -44,7 +38,7 @@ export default function ProfilesList({ profileList }: ProfilesListProps) {
   return (
     <div>
       <div className="grid gap-4">
-        {filteredProfiles?.map((profile) => (
+        {profile?.map((profile) => (
           <Card key={profile.id}>
             <CardHeader className="p-4">
               <div className="flex items-start justify-between">
@@ -105,24 +99,27 @@ export default function ProfilesList({ profileList }: ProfilesListProps) {
                       value={module.id.toString()}
                       className="mt-0"
                     >
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {module.group?.map((group) => (
-                          <div
-                            key={group.id}
-                            className="pl-2 border-l-2 border-muted"
-                          >
-                            <h4 className="font-medium text-sm">{group.id}</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {group.functions?.map((func) => (
-                                <span
-                                  key={func.id}
-                                  className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
-                                >
-                                  {func.name}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
+                          <Card key={group.id} className="overflow-hidden">
+                            <CardHeader className="p-3 pb-1">
+                              <h4 className="font-medium text-sm">
+                                {group.id}
+                              </h4>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-1">
+                              <div className="flex flex-wrap gap-1">
+                                {group.functions?.map((func) => (
+                                  <span
+                                    key={func.id}
+                                    className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
+                                  >
+                                    {func.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
                     </TabsContent>

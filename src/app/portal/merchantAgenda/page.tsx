@@ -11,10 +11,11 @@ import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merc
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import {
   getMerchantAgenda,
-  getMerchantAgendaExcelData
+  getMerchantAgendaExcelData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -40,6 +41,8 @@ export default async function MerchantAgendaPage({
 }: {
   searchParams: MerchantAgendaProps;
 }) {
+  await checkPagePermission("Agenda Lojista");
+
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
@@ -114,35 +117,57 @@ export default async function MerchantAgendaPage({
                     cardBrandIn={searchParams.cardBrand}
                     settlementDateFromIn={searchParams.settlementDateFrom}
                     settlementDateToIn={searchParams.settlementDateTo}
-                    expectedSettlementDateFromIn={searchParams.expectedSettlementDateFrom}
-                    expectedSettlementDateToIn={searchParams.expectedSettlementDateTo}
+                    expectedSettlementDateFromIn={
+                      searchParams.expectedSettlementDateFrom
+                    }
+                    expectedSettlementDateToIn={
+                      searchParams.expectedSettlementDateTo
+                    }
                   />
                   <MerchantAgendaDashboardButton>
                     <div className="ml-1">
-                    <MerchantAgendaDashboardContent
-                     totalMerchant={merchantAgenda.merchantAgenda.length}
-                     date={new Date()}
-                     totalSales={merchantAgenda.merchantAgenda.length}
-                     grossAmount={merchantAgenda.merchantAgenda.reduce((acc, item) => acc + item.grossAmount, 0)}
-                     taxAmount={merchantAgenda.merchantAgenda.reduce((acc, item) => acc + item.feeAmount, 0)}
-                     settledInstallments={merchantAgenda.merchantAgenda.filter(item => item.settlementDate).length}
-                     pendingInstallments={merchantAgenda.merchantAgenda.filter(item => !item.settlementDate).length}
-                     settledGrossAmount={merchantAgenda.merchantAgenda
-                       .filter(item => item.settlementDate)
-                       .reduce((acc, item) => acc + item.grossAmount, 0)}
-                     settledTaxAmount={merchantAgenda.merchantAgenda
-                       .filter(item => item.settlementDate)
-                       .reduce((acc, item) => acc + item.feeAmount, 0)}
-                     anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
-                     anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
-                     toSettleInstallments={merchantAgenda.merchantAgenda.filter(item => !item.settlementDate).length}
-                     toSettleGrossAmount={merchantAgenda.merchantAgenda
-                       .filter(item => !item.settlementDate)
-                       .reduce((acc, item) => acc + item.grossAmount, 0)}
-                     toSettleTaxAmount={merchantAgenda.merchantAgenda
-                       .filter(item => !item.settlementDate)
-                       .reduce((acc, item) => acc + item.feeAmount, 0)}
-   />
+                      <MerchantAgendaDashboardContent
+                        totalMerchant={merchantAgenda.merchantAgenda.length}
+                        date={new Date()}
+                        totalSales={merchantAgenda.merchantAgenda.length}
+                        grossAmount={merchantAgenda.merchantAgenda.reduce(
+                          (acc, item) => acc + item.grossAmount,
+                          0
+                        )}
+                        taxAmount={merchantAgenda.merchantAgenda.reduce(
+                          (acc, item) => acc + item.feeAmount,
+                          0
+                        )}
+                        settledInstallments={
+                          merchantAgenda.merchantAgenda.filter(
+                            (item) => item.settlementDate
+                          ).length
+                        }
+                        pendingInstallments={
+                          merchantAgenda.merchantAgenda.filter(
+                            (item) => !item.settlementDate
+                          ).length
+                        }
+                        settledGrossAmount={merchantAgenda.merchantAgenda
+                          .filter((item) => item.settlementDate)
+                          .reduce((acc, item) => acc + item.grossAmount, 0)}
+                        settledTaxAmount={merchantAgenda.merchantAgenda
+                          .filter((item) => item.settlementDate)
+                          .reduce((acc, item) => acc + item.feeAmount, 0)}
+                        anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
+                        anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
+                        toSettleInstallments={
+                          merchantAgenda.merchantAgenda.filter(
+                            (item) => !item.settlementDate
+                          ).length
+                        }
+                        toSettleGrossAmount={merchantAgenda.merchantAgenda
+                          .filter((item) => !item.settlementDate)
+                          .reduce((acc, item) => acc + item.grossAmount, 0)}
+                        toSettleTaxAmount={merchantAgenda.merchantAgenda
+                          .filter((item) => !item.settlementDate)
+                          .reduce((acc, item) => acc + item.feeAmount, 0)}
+                      />
                     </div>
                   </MerchantAgendaDashboardButton>
                 </div>
