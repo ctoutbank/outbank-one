@@ -58,7 +58,7 @@ export default async function UsersPage({
     page,
     pageSize
   );
-
+  console.log(users);
   const profiles = await getProfiles(profileName, page, pageSize);
   const DDCustomer = await getDDCustomers();
   const DDProfile = await getDDProfiles();
@@ -149,8 +149,8 @@ export default async function UsersPage({
                 profileName={profileName}
               />
             </div>
-            <ProfilesList></ProfilesList>
-            {totalProfilesRecords > 0 && (
+            <ProfilesList profileList={profiles}></ProfilesList>
+            {totalProfilesRecords && totalProfilesRecords > 0 && (
               <div>
                 <PaginationRecords
                   totalRecords={totalProfilesRecords}

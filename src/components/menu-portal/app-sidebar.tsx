@@ -11,6 +11,7 @@ import {
   Check,
   Link,
   PieChart,
+  Bolt,
 } from "lucide-react";
 import * as React from "react";
 
@@ -94,6 +95,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Histórico",
             url: "/portal/settlements/history",
+          },
+        ],
+      },
+      {
+        title: "Configurações de Conta",
+        url: "",
+        icon: Bolt,
+        items: [
+          {
+            title: "Perfis e Usuários",
+            url: "/portal/users",
           },
         ],
       },

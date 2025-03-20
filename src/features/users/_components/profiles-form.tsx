@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Plus, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,214 +41,59 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-
 import Link from "next/link";
-export interface Functions {
-  id: number;
-  name: string;
-}
+import {
+  type ProfileDetailForm,
+  type ModuleSelect,
+  type Functions,
+  updateProfile,
+  insertProfile,
+} from "../server/profiles";
+import type { ProfileSchema } from "../schema/schema";
+import { z } from "zod";
 
-export interface Group {
-  group: string;
-  functions: Functions[];
-}
-
-export interface Module {
-  id: number;
-  name: string;
-  group: Group[];
-}
-
-export interface ProfileDetailForm {
-  name: string;
-  description: string;
-  module: Module[];
-}
-
-// Legacy types for backward compatibility
-export type Feature = {
-  id: string;
-  name: string;
-};
-
-export type Concept = {
-  id: string;
-  name: string;
-  description: string;
-  features: Feature[];
-};
-
-export type ModuleOld = {
-  id: string;
-  name: string;
-};
-
-export type ModuleWithConcepts = {
-  module: ModuleOld;
-  concepts: Concept[];
-};
-
-export type Permission = {
-  conceptId: string;
-  conceptName: string;
-  features: string[];
-};
-
-export type ModulePermission = {
-  moduleId: string;
-  moduleName: string;
-  permissions: Permission[];
-};
-
-export type Role = {
-  id: string;
-  name: string;
-  description: string;
-  isDefault?: boolean;
-  modulePermissions: ModulePermission[];
-};
-
-// Schema for profile validation
-export const schemaProfile = z.object({
-  id: z.number().optional(),
-  slug: z.string().optional(),
-  name: z.string().min(1, "O nome é obrigatório"),
-  description: z
-    .string()
-    .min(1, "A descrição é obrigatória")
-    .max(500, "Limite de 500 caracteres"),
-  functions: z.array(
-    z
-      .string()
-      .min(1, "Funcionalidade inválida")
-      .min(1, "Ao menos uma funcionalidade deve ser selecionada")
-  ),
-});
-
-type ProfileFormValues = z.infer<typeof schemaProfile>;
-
-// Mock data for available modules and functions
-const availableModules: Module[] = [
-  {
-    id: 1,
-    name: "Adquirência",
-    group: [
-      {
-        group: "Agenda de Antecipações",
-        functions: [
-          { id: 1, name: "Listar" },
-          { id: 2, name: "Criar" },
-          { id: 3, name: "Editar" },
-          { id: 4, name: "Excluir" },
-        ],
-      },
-      {
-        group: "Gestão de Lojistas",
-        functions: [
-          { id: 5, name: "Listar" },
-          { id: 6, name: "Criar" },
-          { id: 7, name: "Editar" },
-          { id: 8, name: "Desativar" },
-        ],
-      },
-      {
-        group: "Transações",
-        functions: [
-          { id: 9, name: "Visualizar" },
-          { id: 10, name: "Cancelar" },
-          { id: 11, name: "Estornar" },
-        ],
-      },
-      {
-        group: "Terminais",
-        functions: [
-          { id: 12, name: "Listar" },
-          { id: 13, name: "Configurar" },
-          { id: 14, name: "Bloquear" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Banco",
-    group: [
-      {
-        group: "Contas",
-        functions: [
-          { id: 15, name: "Listar" },
-          { id: 16, name: "Criar" },
-          { id: 17, name: "Editar" },
-          { id: 18, name: "Bloquear" },
-        ],
-      },
-      {
-        group: "Transferências",
-        functions: [
-          { id: 19, name: "Listar" },
-          { id: 20, name: "Criar" },
-          { id: 21, name: "Aprovar" },
-          { id: 22, name: "Cancelar" },
-        ],
-      },
-      {
-        group: "Cartões",
-        functions: [
-          { id: 23, name: "Listar" },
-          { id: 24, name: "Emitir" },
-          { id: 25, name: "Bloquear" },
-          { id: 26, name: "Definir Limites" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Administração",
-    group: [
-      {
-        group: "Usuários",
-        functions: [
-          { id: 27, name: "Listar" },
-          { id: 28, name: "Criar" },
-          { id: 29, name: "Editar" },
-          { id: 30, name: "Desativar" },
-        ],
-      },
-      {
-        group: "Perfis de Acesso",
-        functions: [
-          { id: 31, name: "Listar" },
-          { id: 32, name: "Criar" },
-          { id: 33, name: "Editar" },
-          { id: 34, name: "Excluir" },
-        ],
-      },
-    ],
-  },
-];
-
-// Props interface for the component
 interface ProfileFormProps {
   profile?: ProfileDetailForm;
+  availableModules: ModuleSelect[]; // Alterado de DD[] | null para Module[]
 }
 
-export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
+export default function ProfileManagement({
+  profile,
+  availableModules = [],
+}: ProfileFormProps) {
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
-  const [selectedModules, setSelectedModules] = useState<Module[]>(
+  const [selectedModules, setSelectedModules] = useState<ModuleSelect[]>(
     profile?.module || []
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  console.log(profile);
 
-  // Initialize form with default values or existing profile data
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(schemaProfile),
+  const form = useForm<{
+    id?: number;
+    name: string;
+    description: string;
+    functions: string[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        id: z.number().optional(),
+        name: z.string().min(1, "O nome é obrigatório"),
+        description: z
+          .string()
+          .min(1, "A descrição é obrigatória")
+          .max(500, "Limite de 500 caracteres"),
+        functions: z
+          .array(z.string())
+          .min(1, "Selecione pelo menos uma funcionalidade"),
+      })
+    ),
     defaultValues: profile
       ? {
-          id: profile.module[0]?.id,
+          id: profile.id,
           name: profile.name,
           description: profile.description,
-          functions: profile.module.flatMap((module) =>
+          functions: profile.module?.flatMap((module) =>
             module.group.flatMap((group) =>
               group.functions.map((func) => func.id.toString())
             )
@@ -274,77 +118,84 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
     );
   };
 
-  // Add a module to the form
   const handleAddModule = () => {
     if (!selectedModule) return;
-
-    const moduleToAdd = availableModules.find((m) => m.id === selectedModule);
+    const moduleToAdd = availableModules.find((m) => m.id == selectedModule);
     if (!moduleToAdd) return;
-
     setSelectedModules([...selectedModules, moduleToAdd]);
     setSelectedModule(null);
     setActiveTab(moduleToAdd.id);
+    console.log(selectedModules);
   };
 
-  // Remove a module from the form
   const handleRemoveModule = (moduleId: number) => {
     const updatedModules = selectedModules.filter((m) => m.id !== moduleId);
     setSelectedModules(updatedModules);
 
-    // Update active tab if needed
     if (activeTab === moduleId) {
       setActiveTab(updatedModules.length > 0 ? updatedModules[0].id : null);
     }
-  };
 
-  // Toggle a function selection
-  const handleFunctionToggle = (functionId: number, checked: boolean) => {
     const currentFunctions = form.getValues().functions || [];
+    const moduleToRemove = selectedModules.find((m) => m.id === moduleId);
 
-    if (checked) {
-      form.setValue("functions", [...currentFunctions, functionId.toString()]);
-    } else {
-      form.setValue(
-        "functions",
-        currentFunctions.filter((id) => id !== functionId.toString())
+    if (moduleToRemove) {
+      const functionsToRemove = new Set(
+        moduleToRemove.group.flatMap((group) =>
+          group.functions.map((func) => func.id.toString())
+        )
       );
+
+      const updatedFunctions = currentFunctions.filter(
+        (id) => !functionsToRemove.has(id)
+      );
+      form.setValue("functions", updatedFunctions);
     }
   };
 
-  // Check if a function is selected
-  const isFunctionSelected = (functionId: number) => {
-    const functions = form.getValues().functions || [];
-    return functions.includes(functionId.toString());
-  };
-
-  // Select all functions in a group
   const handleSelectAllFunctions = (
+    moduleId: number,
+    groupId: string,
     groupFunctions: Functions[],
     checked: boolean
   ) => {
-    const currentFunctions = form.getValues().functions || [];
-    const functionIds = groupFunctions.map((f) => f.id.toString());
+    form.setValue(
+      "functions",
+      [
+        ...(form.getValues().functions || []),
+        ...groupFunctions.map((f) => f.id.toString()),
+      ].filter((v, i, a) => a.indexOf(v) === i)
+    );
 
     if (checked) {
-      // Add all functions that aren't already selected
-      const newFunctions = [...currentFunctions];
-      functionIds.forEach((id) => {
-        if (!newFunctions.includes(id)) {
-          newFunctions.push(id);
+      // Adicionar todas as funções que não estão selecionadas
+      const newFunctions = [...(form.getValues().functions || [])];
+      groupFunctions.forEach((id) => {
+        if (!newFunctions.includes(id.toString())) {
+          newFunctions.push(id.toString());
         }
       });
       form.setValue("functions", newFunctions);
     } else {
-      // Remove all functions from this group
+      // Remover todas as funções deste grupo
+      const functionsToRemove = new Set(
+        groupFunctions.map((f) => f.id.toString())
+      );
       form.setValue(
         "functions",
-        currentFunctions.filter((id) => !functionIds.includes(id))
+        form
+          .getValues()
+          .functions?.filter((id) => !functionsToRemove.has(id)) || []
       );
     }
   };
 
   // Check if all functions in a group are selected
-  const areAllFunctionsSelected = (groupFunctions: Functions[]) => {
+  const areAllFunctionsSelected = (
+    moduleId: number,
+    groupId: string,
+    groupFunctions: Functions[]
+  ) => {
     const functions = form.getValues().functions || [];
     return groupFunctions.every((func) =>
       functions.includes(func.id.toString())
@@ -352,38 +203,90 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
   };
 
   // Get the count of selected functions in a group
-  const getSelectedFunctionsCount = (groupFunctions: Functions[]) => {
+  const getSelectedFunctionsCount = (
+    moduleId: number,
+    groupId: string,
+    groupFunctions: Functions[]
+  ) => {
     const functions = form.getValues().functions || [];
     return groupFunctions.filter((func) =>
       functions.includes(func.id.toString())
     ).length;
   };
 
-  const onSubmit = (data: ProfileFormValues) => {
-    console.log("Form submitted:", data);
+  // Atualizar apenas a função onSubmit para converter para o novo formato
+  const onSubmit = async (data: {
+    id?: number;
+    name: string;
+    description: string;
+    functions: string[];
+  }) => {
+    try {
+      setIsSubmitting(true);
 
-    // Convert form data to ProfileDetailForm structure
-    const profileData: ProfileDetailForm = {
-      name: data.name,
-      description: data.description,
-      module: selectedModules
-        .map((module) => ({
-          ...module,
-          group: module.group
-            .map((group) => ({
-              ...group,
-              functions: group.functions.filter((func) =>
-                data.functions.includes(func.id.toString())
-              ),
-            }))
-            .filter((group) => group.functions.length > 0),
-        }))
-        .filter((module) => module.group.length > 0),
-    };
+      // Construir o objeto ProfileSchema
+      const profileSchema: ProfileSchema = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        module: selectedModules
+          .map((module) => {
+            // Para cada módulo selecionado
+            return {
+              id: module.id,
+              // Para cada grupo no módulo
+              group: module.group
+                .map((group) => {
+                  // Filtrar apenas as funções selecionadas neste grupo
+                  const selectedFunctions = group.functions
+                    .filter((func) =>
+                      data.functions.includes(func.id.toString())
+                    )
+                    .map((func) => func.id.toString());
 
-    console.log("Structured profile data:", profileData);
+                  // Retornar o grupo com as funções selecionadas
+                  return {
+                    id: group.id,
+                    functions: selectedFunctions,
+                  };
+                })
+                .filter((g) => g.functions.length > 0), // Remover grupos sem funções selecionadas
+            };
+          })
+          .filter((m) => m.group && m.group.length > 0), // Remover módulos sem grupos
+      };
 
-    // Here you would typically send this data to your API
+      // Converter para o formato esperado pela API
+      const profileData: ProfileDetailForm = {
+        id: data.id || 0,
+        name: data.name,
+        description: data.description,
+        module: selectedModules
+          .map((module) => ({
+            ...module,
+            group: module.group
+              .map((group) => ({
+                ...group,
+                functions: group.functions.filter((func) =>
+                  data.functions.includes(func.id.toString())
+                ),
+              }))
+              .filter((group) => group.functions.length > 0),
+          }))
+          .filter((module) => module.group.length > 0),
+      };
+
+      // Check if we're creating or updating
+      if (profileData.id) {
+        await updateProfile(profileData.id, profileData);
+      } else {
+        await insertProfile(profileData);
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -488,7 +391,7 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
                             <SelectValue placeholder="Selecione um módulo" />
                           </SelectTrigger>
                           <SelectContent>
-                            {getAvailableModules().map((module) => (
+                            {getAvailableModules()?.map((module) => (
                               <SelectItem
                                 key={module.id}
                                 value={module.id.toString()}
@@ -505,6 +408,7 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
                                 onClick={handleAddModule}
                                 disabled={!selectedModule}
                                 className="bg-primary"
+                                type="button"
                               >
                                 <Plus className="h-4 w-4 mr-1" />
                                 Adicionar
@@ -583,24 +487,26 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
                             <TabsContent
                               key={module.id}
                               value={module.id.toString()}
-                              className="mt-0"
+                              className="mt-0 "
                             >
-                              <div className="space-y-4">
+                              <div className="space-y-4 h-[500px] overflow-y-auto">
                                 {module.group.map((group) => (
                                   <Card
-                                    key={group.group}
+                                    key={group.id}
                                     className="overflow-hidden border-l-4 border-l-primary"
                                   >
                                     <CardHeader className="py-4 px-6 bg-muted/30">
                                       <div className="flex items-center justify-between">
                                         <div>
                                           <CardTitle className="text-lg">
-                                            {group.group}
+                                            {group.id}
                                           </CardTitle>
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <Badge variant="outline">
                                             {getSelectedFunctionsCount(
+                                              module.id,
+                                              group.id,
                                               group.functions
                                             )}
                                             /{group.functions.length} permissões
@@ -611,19 +517,23 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
                                     <CardContent className="p-6">
                                       <div className="flex items-center space-x-2 mb-4">
                                         <Checkbox
-                                          id={`select-all-${module.id}-${group.group}`}
+                                          id={`select-all-${module.id}-${group.id}`}
                                           checked={areAllFunctionsSelected(
+                                            module.id,
+                                            group.id,
                                             group.functions
                                           )}
                                           onCheckedChange={(checked) =>
                                             handleSelectAllFunctions(
+                                              module.id,
+                                              group.id,
                                               group.functions,
                                               checked as boolean
                                             )
                                           }
                                         />
                                         <Label
-                                          htmlFor={`select-all-${module.id}-${group.group}`}
+                                          htmlFor={`select-all-${module.id}-${group.id}`}
                                           className="font-medium"
                                         >
                                           Selecionar todas as permissões
@@ -631,28 +541,54 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
                                       </div>
                                       <div className="grid grid-cols-2 gap-3 pl-6">
                                         {group.functions.map((func) => (
-                                          <div
+                                          <FormField
                                             key={func.id}
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <Checkbox
-                                              id={`${module.id}-${group.group}-${func.id}`}
-                                              checked={isFunctionSelected(
-                                                func.id
-                                              )}
-                                              onCheckedChange={(checked) =>
-                                                handleFunctionToggle(
-                                                  func.id,
-                                                  checked as boolean
-                                                )
-                                              }
-                                            />
-                                            <Label
-                                              htmlFor={`${module.id}-${group.group}-${func.id}`}
-                                            >
-                                              {func.name}
-                                            </Label>
-                                          </div>
+                                            control={form.control}
+                                            name="functions"
+                                            render={({ field }) => {
+                                              const functionId =
+                                                func.id.toString();
+                                              return (
+                                                <FormItem
+                                                  key={func.id}
+                                                  className="flex flex-row items-start space-x-2 space-y-0"
+                                                >
+                                                  <FormControl>
+                                                    <Checkbox
+                                                      id={`${module.id}-${group.id}-${func.id}`}
+                                                      checked={field.value?.includes(
+                                                        functionId
+                                                      )}
+                                                      onCheckedChange={(
+                                                        checked
+                                                      ) => {
+                                                        if (checked) {
+                                                          field.onChange([
+                                                            ...field.value,
+                                                            functionId,
+                                                          ]);
+                                                        } else {
+                                                          field.onChange(
+                                                            field.value?.filter(
+                                                              (value) =>
+                                                                value !==
+                                                                functionId
+                                                            )
+                                                          );
+                                                        }
+                                                      }}
+                                                    />
+                                                  </FormControl>
+                                                  <FormLabel
+                                                    htmlFor={`${module.id}-${group.id}-${func.id}`}
+                                                    className="font-normal"
+                                                  >
+                                                    {func.name}
+                                                  </FormLabel>
+                                                </FormItem>
+                                              );
+                                            }}
+                                          />
                                         ))}
                                       </div>
                                     </CardContent>
@@ -670,15 +606,24 @@ export default function ProfileManagement({ profile }: ProfileFormProps = {}) {
             </div>
           </div>
 
+          <FormField
+            control={form.control}
+            name="functions"
+            render={({ field }) => (
+              <FormItem className="hidden">
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex justify-between">
-            <Link href="/roles">
+            <Link href="/portal/users">
               <Button type="button" variant="outline" size="lg">
-                Cancelar
+                Voltar
               </Button>
             </Link>
-            <Button type="submit" size="lg">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar
+            <Button type="submit" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </form>

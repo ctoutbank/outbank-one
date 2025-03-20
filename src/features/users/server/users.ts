@@ -3,7 +3,7 @@
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { clerkClient } from "@clerk/nextjs/server";
-import { count, eq, and, desc, inArray } from "drizzle-orm";
+import { count, eq, and, desc, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import {
   customers,
@@ -67,19 +67,22 @@ export async function getUsers(
   const userListParams = {
     limit: pageSize,
     offset: offset,
-    orderBy: "+created_at" as any,
-    emailAddress: [email],
-    query: firstName ? (lastName ? firstName + " " + lastName : firstName) : "",
+    emailAddress: email ? [email] : undefined,
+    query: firstName
+      ? lastName
+        ? firstName + " " + lastName
+        : firstName
+      : undefined,
   };
-
-  const clerkResult = (
-    await (await clerkClient()).users.getUserList(userListParams)
-  ).data;
+  console.log(userListParams);
+  const clerk = await clerkClient();
+  const clerkResult = (await clerk.users.getUserList(userListParams)).data;
+  console.log(clerkResult);
 
   const conditions = [
-    eq(users.idMerchant, merchant),
-    eq(users.idCustomer, customer),
-    eq(users.idProfile, profile),
+    merchant ? eq(users.idMerchant, merchant) : undefined,
+    customer ? eq(users.idCustomer, customer) : undefined,
+    profile ? eq(users.idProfile, profile) : undefined,
   ];
   if (clerkResult.length == 0) {
     return {
@@ -301,4 +304,30 @@ export async function getDDCustomers(): Promise<DD[]> {
     .select({ id: customers.id, name: customers.name })
     .from(customers);
   return result as DD[];
+}
+
+export async function getUserGroupPermissions(
+  userSlug: string,
+  group: string
+): Promise<string[]> {
+  try {
+    const result = await db.execute(sql`
+      SELECT DISTINCT f.name
+      FROM users u
+      JOIN profiles p ON u.id_profile = p.id
+      JOIN profile_functions pf ON p.id = pf.id_profile
+      JOIN functions f ON pf.id_functions = f.id
+      WHERE u.slug = ${userSlug}
+        AND f."group" = ${group}
+        AND u.active = true
+        AND p.active = true
+        AND pf.active = true
+      ORDER BY f.name
+    `);
+
+    return result.rows.map((row: any) => row.name);
+  } catch (error) {
+    console.error("Error getting user group permissions:", error);
+    return [];
+  }
 }
