@@ -15,17 +15,11 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Merchantlist } from "../server/merchant";
 
-
-
-
 export default function MerchantList({ list }: { list: Merchantlist }) {
-  
-//exportar para excel
- 
+  //exportar para excel
+
   return (
     <div>
-     
-
       <div className="border rounded-lg mt-2">
         <Table>
           <TableHeader>
@@ -66,7 +60,11 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                       {merchant.name}
                     </Link>
                     <span className="text-sm text-muted-foreground">
-                      ({merchant.cnpj.slice(0, 11) + "-" + merchant.cnpj.slice(11)})
+                      (
+                      {merchant.cnpj.slice(0, 11) +
+                        "-" +
+                        merchant.cnpj.slice(11)}
+                      )
                     </span>
                   </div>
                 </TableCell>
@@ -79,15 +77,15 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                   </div>
                 </TableCell>
                 <TableCell>
-                    <Badge
+                  <Badge
                     variant={
                       merchant.kic_status === "APPROVED"
-                      ? "success"
-                      : merchant.kic_status === "PENDING"
-                      ? "pending"
-                      : "destructive"
+                        ? "success"
+                        : merchant.kic_status === "PENDING"
+                        ? "pending"
+                        : "destructive"
                     }
-                    >
+                  >
                     {translateStatus(merchant.kic_status)}
                   </Badge>
                 </TableCell>
@@ -115,9 +113,18 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col whitespace-nowrap">
-                    <span>{new Date(merchant.dtinsert).toLocaleDateString('pt-BR')}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(merchant.dtinsert).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</span>
-                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">{merchant.email}</span>
+                    <span>
+                      {new Date(merchant.dtinsert).toLocaleDateString("pt-BR") +
+                        ", " +
+                        new Date(merchant.dtinsert).toLocaleTimeString(
+                          "pt-BR",
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}
+                    </span>
+
+                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                      {merchant.email}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>{merchant.sales_agent}</TableCell>
@@ -127,7 +134,6 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                     {merchant.active ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
-               
               </TableRow>
             ))}
           </TableBody>
