@@ -1,51 +1,103 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import PaginationRecords from "@/components/pagination-Records";
+import PageSizeSelector from "@/components/page-size-selector";
+import { TransactionsDashboardButton } from "@/features/transactions/_components/transactions-dashboard-button";
+import { TransactionsDashboardContent } from "@/features/transactions/_components/transactions-dashboard-content";
+import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
+import TransactionsList from "@/features/transactions/_components/transactions-list";
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import TransactionsExport from "./transactions-export";
 
-export default async function Transactions() {
-  const transactionList = await getTransactions();
+type TransactionsProps = {
+  page?: string;
+  pageSize?: string;
+  search?: string;
+  status?: string;
+  merchant?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  productType?: string;
+};
+
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: TransactionsProps;
+}) {
+  const page = parseInt(searchParams.page || "1");
+  const pageSize = parseInt(searchParams.pageSize || "20");
+  const search = searchParams.search || "";
+
+  // Buscar dados de transações com os filtros
+  const transactionList = await getTransactions(
+    search,
+    page,
+    pageSize,
+    searchParams.status,
+    searchParams.merchant,
+    searchParams.dateFrom,
+    searchParams.dateTo,
+    searchParams.productType
+  );
+
+  const totalRecords = transactionList.totalCount;
+
+  // Dados para o dashboard
+  const dashboardData = {
+    totalTransactions: transactionList.totalCount,
+    approvedTransactions: transactionList.approved_count,
+    pendingTransactions: transactionList.pending_count,
+    rejectedTransactions: transactionList.rejected_count,
+    totalAmount: transactionList.total_amount,
+    revenue: transactionList.revenue,
+  };
 
   return (
     <>
-      <BaseHeader breadcrumbItems={[]} />
+      <BaseHeader
+        breadcrumbItems={[{ title: "Transações", url: "/portal/transactions" }]}
+      />
       <BaseBody
         title="Transações"
-        subtitle={`visualização de todas as transações`}
+        subtitle={`Visualização de todas as transações`}
       >
-        <TransactionsExport transactions={transactionList.transactions} />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Estabelecimento</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactionList.transactions.map((transaction) => (
-              <TableRow key={transaction.slug}>
-                <TableCell>
-                  {transaction.dtInsert
-                    ? new Date(transaction.dtInsert).toLocaleString()
-                    : "N/A"}
-                </TableCell>
-                <TableCell>{transaction.merchantName}</TableCell>
-                <TableCell>{transaction.totalAmount}</TableCell>
-                <TableCell>{transaction.transactionStatus}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <TransactionsFilter
+                statusIn={searchParams.status}
+                merchantIn={searchParams.merchant}
+                dateFromIn={searchParams.dateFrom}
+                dateToIn={searchParams.dateTo}
+                productTypeIn={searchParams.productType}
+              />
+              <TransactionsDashboardButton>
+                <div className="-ml-28">
+                  <TransactionsDashboardContent {...dashboardData} />
+                </div>
+              </TransactionsDashboardButton>
+            </div>
+            <TransactionsExport />
+          </div>
+
+          <TransactionsList transactions={transactionList.transactions} />
+
+          {totalRecords > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/transactions"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/transactions"
+              />
+            </div>
+          )}
+        </div>
       </BaseBody>
     </>
   );
