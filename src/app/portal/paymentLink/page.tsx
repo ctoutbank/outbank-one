@@ -21,7 +21,7 @@ export default async function PaymentLinkPage({
 }: {
   searchParams: PaymentLinkProps;
 }) {
-  await checkPagePermission("Links de Pagamento");
+  await checkPagePermission("Link de Pagamentos");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");

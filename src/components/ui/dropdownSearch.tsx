@@ -55,9 +55,9 @@ export default function ComboboxDemo({
             aria-expanded={open}
             className="w-full justify-between mb-4"
           >
-            {value
+            {value != undefined && value != "" && value != "0"
               ? frameworks.find((framework) => framework.value === value)?.label
-              : "Select framework..."}
+              : "Selecione..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>

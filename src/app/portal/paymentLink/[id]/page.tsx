@@ -52,7 +52,7 @@ export default async function PaymentLinkDetail({
               shoppingItems: [],
               isDeleted: null,
               isFromServer: null,
-              modified: null
+              modified: null,
             }
           }
           merchant={merchants}
