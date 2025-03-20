@@ -1,10 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Plus, Save, Trash2 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,17 +41,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import {
-  type ProfileDetailForm,
-  type ModuleSelect,
-  type Functions,
-  updateProfile,
-  insertProfile,
-} from "../server/profiles";
-import type { ProfileSchema } from "../schema/schema";
 import { z } from "zod";
+import type { ProfileSchema } from "../schema/schema";
+import {
+  type Functions,
+  insertProfile,
+  type ModuleSelect,
+  type ProfileDetailForm,
+  updateProfile,
+} from "../server/profiles";
 
 interface ProfileFormProps {
   profile?: ProfileDetailForm;
