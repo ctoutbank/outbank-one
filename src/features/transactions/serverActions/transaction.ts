@@ -27,7 +27,7 @@ export async function getTransactions(
   dateTo?: string,
   productType?: string
 ): Promise<TransactionList> {
-  let conditions = [];
+  const conditions = [];
 
   if (search) {
     conditions.push(like(transactions.slug, `%${search}%`));
