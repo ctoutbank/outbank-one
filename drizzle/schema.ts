@@ -2,10 +2,10 @@ import {
   pgTable,
   varchar,
   bigint,
-  boolean,
-  timestamp,
   unique,
   serial,
+  boolean,
+  timestamp,
   char,
   integer,
   foreignKey,
@@ -25,39 +25,14 @@ export const customers = pgTable("customers", {
     length: 50,
   }),
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "customers_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
-});
-
-export const salesAgents = pgTable("sales_agents", {
-  // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "sales_agents_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
-  slug: varchar({ length: 50 }),
-  active: boolean(),
-  dtinsert: timestamp({ mode: "string" }),
-  dtupdate: timestamp({ mode: "string" }),
-  firstName: varchar("first_name", { length: 255 }),
-  lastName: varchar("last_name", { length: 255 }),
-  documentId: varchar("document_id", { length: 50 }),
-  email: varchar({ length: 255 }),
-  slugCustomer: varchar("slug_customer", { length: 50 }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "customers_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
 });
 
 export const terminals = pgTable(
@@ -94,16 +69,14 @@ export const paymentInstitution = pgTable(
   "payment_institution",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "payment_institution_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "payment_institution_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     name: varchar({ length: 255 }),
     idCustomer: varchar("id_customer", { length: 20 }),
@@ -126,16 +99,14 @@ export const paymentInstitution = pgTable(
 
 export const configurations = pgTable("configurations", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "configurations_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "configurations_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   active: boolean(),
   dtinsert: timestamp({ mode: "string" }),
@@ -154,16 +125,14 @@ export const settlements = pgTable(
   "settlements",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "settlements_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "settlements_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -215,22 +184,60 @@ export const settlements = pgTable(
 
 export const bank = pgTable("bank", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "bank_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "bank_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   active: boolean(),
   dtinsert: timestamp({ mode: "string" }),
   dtupdate: timestamp({ mode: "string" }),
   name: varchar({ length: 255 }),
   number: varchar({ length: 10 }),
 });
+
+export const salesAgents = pgTable(
+  "sales_agents",
+  {
+    // You can use { mode: "bigint" } if numbers are exceeding js number limitations
+    id: bigint({ mode: "number" })
+      .primaryKey()
+      .generatedAlwaysAsIdentity({
+        name: "sales_agents_id_seq",
+        startWith: 1,
+        increment: 1,
+        minValue: 1,
+        maxValue: 9223372036854775807,
+        cache: 1,
+      }),
+    slug: varchar({ length: 50 }),
+    active: boolean(),
+    dtinsert: timestamp({ mode: "string" }),
+    dtupdate: timestamp({ mode: "string" }),
+    firstName: varchar("first_name", { length: 255 }),
+    lastName: varchar("last_name", { length: 255 }),
+    documentId: varchar("document_id", { length: 50 }),
+    email: varchar({ length: 255 }),
+    slugCustomer: varchar("slug_customer", { length: 50 }),
+    // You can use { mode: "bigint" } if numbers are exceeding js number limitations
+    idAddress: bigint("id_address", { mode: "number" }),
+    birthDate: date("birth_date"),
+    phone: varchar({ length: 20 }),
+    cpf: varchar({ length: 20 }),
+  },
+  (table) => {
+    return {
+      salesAgentsIdAddressFkey: foreignKey({
+        columns: [table.idAddress],
+        foreignColumns: [addresses.id],
+        name: "sales_agents_id_address_fkey",
+      }),
+    };
+  }
+);
 
 export const payout = pgTable(
   "payout",
@@ -302,16 +309,14 @@ export const merchantfile = pgTable(
   "merchantfile",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "fl_merchantfile_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "fl_merchantfile_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
     idMerchant: bigint("id_merchant", { mode: "number" }),
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
@@ -351,16 +356,14 @@ export const merchantPixSettlementOrders = pgTable(
   "merchant_pix_settlement_orders",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchant_pix_settlement_orders_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchant_pix_settlement_orders_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -440,16 +443,14 @@ export const shoppingItems = pgTable(
   "shopping_items",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "shopping_items_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "shopping_items_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     dtupdate: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     active: boolean().default(true),
@@ -473,16 +474,14 @@ export const shoppingItems = pgTable(
 
 export const syncLog = pgTable("sync_log", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "sync_log_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "sync_log_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   syncType: varchar("sync_type", { length: 50 }),
   dateTime: timestamp("date_time", { mode: "string" }),
   totalRecordsCreated: integer("total_records_created"),
@@ -492,16 +491,14 @@ export const syncLog = pgTable("sync_log", {
 
 export const profiles = pgTable("profiles", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "profiles_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "profiles_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
   dtupdate: timestamp({ mode: "string" }),
@@ -514,16 +511,14 @@ export const profileFunctions = pgTable(
   "profile_functions",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "profile_functions_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "profile_functions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     dtupdate: timestamp({ mode: "string" }),
@@ -551,16 +546,14 @@ export const profileFunctions = pgTable(
 
 export const functions = pgTable("functions", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "functions_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "functions_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
   dtupdate: timestamp({ mode: "string" }),
@@ -606,16 +599,14 @@ export const merchantTransactionPrice = pgTable(
   "merchant_transaction_price",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchant_transaction_price_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchant_transaction_price_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -735,16 +726,14 @@ export const transactionCycles = pgTable("transaction_cycles", {
 
 export const modules = pgTable("modules", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "modules_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "modules_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
   dtupdate: timestamp({ mode: "string" }),
@@ -756,16 +745,14 @@ export const moduleFunctions = pgTable(
   "module_functions",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "module_functions_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "module_functions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     dtupdate: timestamp({ mode: "string" }),
@@ -795,16 +782,14 @@ export const customerFunctions = pgTable(
   "customer_functions",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "customer_functions_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "customer_functions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     dtupdate: timestamp({ mode: "string" }),
@@ -832,16 +817,14 @@ export const customerFunctions = pgTable(
 
 export const addresses = pgTable("addresses", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "addresses_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "addresses_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   streetAddress: varchar("street_address", { length: 255 }),
   streetNumber: varchar("street_number", { length: 10 }),
   complement: varchar({ length: 100 }),
@@ -854,16 +837,14 @@ export const addresses = pgTable("addresses", {
 
 export const categories = pgTable("categories", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "categories_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "categories_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   active: boolean(),
   dtinsert: timestamp({ mode: "string" }),
@@ -879,16 +860,14 @@ export const categories = pgTable("categories", {
 
 export const merchantPrice = pgTable("merchant_price", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "merchant_price_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "merchant_price_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   active: boolean(),
   dtinsert: timestamp({ mode: "string" }),
@@ -911,16 +890,14 @@ export const merchants = pgTable(
   "merchants",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchants_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchants_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1003,16 +980,14 @@ export const merchantPriceGroup = pgTable(
   "merchant_price_group",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchant_price_group_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchant_price_group_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1037,16 +1012,14 @@ export const contacts = pgTable(
   "contacts",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "contacts_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "contacts_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     name: varchar({ length: 255 }),
     idDocument: varchar("id_document", { length: 20 }),
     email: varchar({ length: 255 }),
@@ -1085,16 +1058,14 @@ export const merchantSettlements = pgTable(
   "merchant_settlements",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchantsettlements_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchantsettlements_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1189,16 +1160,14 @@ export const merchantSettlementOrders = pgTable(
   "merchant_settlement_orders",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchant_settlement_orders_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchant_settlement_orders_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1258,16 +1227,14 @@ export const paymentLink = pgTable(
   "payment_link",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "payment_link_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "payment_link_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1300,16 +1267,14 @@ export const paymentLink = pgTable(
 
 export const legalNatures = pgTable("legal_natures", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "legal_natures_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "legal_natures_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   slug: varchar({ length: 50 }),
   active: boolean(),
   dtinsert: timestamp({ mode: "string" }),
@@ -1322,16 +1287,14 @@ export const merchantpixaccount = pgTable(
   "merchantpixaccount",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "merchantpixaccount_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "merchantpixaccount_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     active: boolean(),
     dtinsert: timestamp({ mode: "string" }),
@@ -1364,16 +1327,14 @@ export const merchantpixaccount = pgTable(
 
 export const file = pgTable("file", {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  id: bigint({ mode: "number" })
-    .primaryKey()
-    .generatedAlwaysAsIdentity({
-      name: "file_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 9223372036854775807,
-      cache: 1,
-    }),
+  id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+    name: "file_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 9223372036854775807,
+    cache: 1,
+  }),
   fileName: varchar("file_name", { length: 200 }),
   fileUrl: text("file_url"),
   active: boolean(),
@@ -1388,16 +1349,14 @@ export const users = pgTable(
   "users",
   {
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    id: bigint({ mode: "number" })
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "users_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 9223372036854775807,
-        cache: 1,
-      }),
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({
+      name: "users_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 9223372036854775807,
+      cache: 1,
+    }),
     slug: varchar({ length: 50 }),
     dtinsert: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
     dtupdate: timestamp({ mode: "string" }),

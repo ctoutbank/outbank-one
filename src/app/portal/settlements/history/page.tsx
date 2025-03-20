@@ -25,7 +25,7 @@ export default async function SettlementsPage({
   searchParams: HistoryProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "12");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const status = searchParams.status;
   const dateFrom = searchParams.dateFrom;
   const dateTo = searchParams.dateTo;

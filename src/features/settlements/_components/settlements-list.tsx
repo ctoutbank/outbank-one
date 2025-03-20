@@ -60,11 +60,11 @@ export default function MerchantSettlementsList({
           <TableHeader>
             <TableRow>
               <TableHead className="font-semibold w-[20%] min-w-[180px] text-black">Estabelecimento</TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">Valor Líquido Recebíveis</TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">Valor Líquido Antecipação</TableHead>
-              <TableHead className="font-semibold w-[12%] min-w-[120px] text-center text-black">Valor de Ajuste</TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">Valor Pendente</TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">Valor Total de Liquidação</TableHead>
+              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">R$ Liq. Recebíveis</TableHead>
+              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">R$ Liq. Antecipação</TableHead>
+              <TableHead className="font-semibold w-[12%] min-w-[120px] text-center text-black">R$ Ajuste</TableHead>
+              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">R$ Pendente</TableHead>
+              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">R$ Total Liquidação</TableHead>
               <TableHead className="font-semibold w-[8%] min-w-[100px] text-center text-black">Status</TableHead>
             </TableRow>
           </TableHeader>

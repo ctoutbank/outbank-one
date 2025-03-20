@@ -12,6 +12,8 @@ export default async function SalesAgentsDetail({
 }: { params: { id: string } }) {
     const agent = await getSalesAgentById(parseInt(params.id));
     
+    console.log("Dados do agente carregados:", JSON.stringify(agent, null, 2));
+    
     return (
         <>
          <BaseHeader
@@ -37,6 +39,10 @@ export default async function SalesAgentsDetail({
                     : new Date(),
                 documentId: agent?.documentId || "",
                 slugCustomer: agent?.slugCustomer || "",
+                idAddress: agent?.idAddress || undefined,
+                cpf: agent?.cpf || "",
+                phone: agent?.phone || "",
+                birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
             }} />
       
 
