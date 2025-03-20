@@ -235,7 +235,7 @@ export async function updateUser(id: number, data: UserInsert) {
     await clerk.users.updateUser(existingUser[0].idClerk || "", {
       firstName: data.firstName,
       lastName: data.lastName,
-      password: data.password,
+      ...(data.password ? { password: data.password } : {}),
     });
 
     await db
