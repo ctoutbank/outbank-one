@@ -1,11 +1,12 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaginationRecords from "@/components/pagination-Records";
+import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
 import { MerchantDashboardButton } from "@/features/merchant/_components/merchant-dashboard-button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import { getMerchants } from "@/features/merchant/server/merchant";
+import { getMerchantRegistrationsByPeriod, getMerchantRegistrationSummary, getMerchantTransactionData, getMerchantTypeData } from "@/features/merchant/server/merchant-dashboard";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
@@ -25,8 +26,10 @@ export default async function MerchantsPage({
   searchParams: MerchantProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "12");
+  const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
+  
+  // Buscar dados dos merchants
   const merchants = await getMerchants(
     search,
     page,
@@ -37,6 +40,12 @@ export default async function MerchantsPage({
   );
   const totalRecords = merchants.totalCount;
   
+  // Buscar dados dos gráficos
+  const registrationData = await getMerchantRegistrationsByPeriod();
+  const registrationSummary = await getMerchantRegistrationSummary();
+  const transactionData = await getMerchantTransactionData();
+  const typeData = await getMerchantTypeData();
+  
   const merchantData = {
     totalMerchants: merchants.totalCount,
     activeMerchants: merchants.active_count || 0,
@@ -46,6 +55,11 @@ export default async function MerchantsPage({
     rejectedKyc: merchants.rejected_kyc_count || 0,
     totalCpAnticipation: merchants.cp_anticipation_count || 0,
     totalCnpAnticipation: merchants.cnp_anticipation_count || 0,
+    // Dados para os gráficos
+    registrationData,
+    registrationSummary,
+    transactionData,
+    typeData
   };
 
 
@@ -83,7 +97,7 @@ export default async function MerchantsPage({
           
           <MerchantList list={merchants} />
           {totalRecords > 0 && (
-            <PaginationRecords
+            <PaginationWithSizeSelector
               totalRecords={totalRecords}
               currentPage={page}
               pageSize={pageSize}

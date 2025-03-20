@@ -1,4 +1,4 @@
-import { pgTable, varchar, bigint, boolean, timestamp, unique, serial, char, integer, foreignKey, numeric, date, uuid, text, time } from "drizzle-orm/pg-core"
+import { pgTable, varchar, bigint, unique, serial, boolean, timestamp, char, integer, foreignKey, numeric, date, uuid, text, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -10,20 +10,6 @@ export const customers = pgTable("customers", {
 	settlementManagementType: varchar("settlement_management_type", { length: 50 }),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customers_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-});
-
-export const salesAgents = pgTable("sales_agents", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	firstName: varchar("first_name", { length: 255 }),
-	lastName: varchar("last_name", { length: 255 }),
-	documentId: varchar("document_id", { length: 50 }),
-	email: varchar({ length: 255 }),
-	slugCustomer: varchar("slug_customer", { length: 50 }),
 });
 
 export const terminals = pgTable("terminals", {
@@ -140,6 +126,33 @@ export const bank = pgTable("bank", {
 	dtupdate: timestamp({ mode: 'string' }),
 	name: varchar({ length: 255 }),
 	number: varchar({ length: 10 }),
+});
+
+export const salesAgents = pgTable("sales_agents", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	firstName: varchar("first_name", { length: 255 }),
+	lastName: varchar("last_name", { length: 255 }),
+	documentId: varchar("document_id", { length: 50 }),
+	email: varchar({ length: 255 }),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idAddress: bigint("id_address", { mode: "number" }),
+	birthDate: date("birth_date"),
+	phone: varchar({ length: 20 }),
+	cpf: varchar({ length: 20 }),
+}, (table) => {
+	return {
+		salesAgentsIdAddressFkey: foreignKey({
+			columns: [table.idAddress],
+			foreignColumns: [addresses.id],
+			name: "sales_agents_id_address_fkey"
+		}),
+	}
 });
 
 export const payout = pgTable("payout", {

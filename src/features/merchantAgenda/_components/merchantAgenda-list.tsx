@@ -46,15 +46,15 @@ export default function MerchantAgendaList({
             <TableHead className="text-black">Tipo</TableHead>
             <TableHead className="text-black">Bandeira</TableHead>
             <TableHead className="text-black">Parcela</TableHead>
-            <TableHead className="text-black">Valor Bruto da Parcela</TableHead>
+            <TableHead className="text-black">R$ Bruto Parcela</TableHead>
             <TableHead className="text-black">Taxa (%)</TableHead>
             <TableHead className="text-black">Taxa (R$) </TableHead>
-            <TableHead className="text-black">Valor Líquido da Parcela</TableHead>
+            <TableHead className="text-black">R$ Líquido Parcela</TableHead>
             <TableHead className="text-black">Data Prevista de Liquidação </TableHead>
-            <TableHead className="text-black">Valor Total de Liquidação </TableHead>
+            <TableHead className="text-black">R$ Total Liquidação </TableHead>
             <TableHead className="text-black">Data de Liquidação</TableHead>
             <TableHead className="text-black">Data Efetiva do Pagamento</TableHead>
-            <TableHead className="text-black">Número do Pagamento</TableHead>
+            <TableHead className="text-black">Nº Pagamento</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
