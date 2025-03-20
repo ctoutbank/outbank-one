@@ -28,7 +28,7 @@ export default async function SalesAgentsPage({
 }: {
   searchParams: SalesAgentProps;
 }) {
-  await checkPagePermission("Agentes de Vendas");
+  await checkPagePermission("Configurar Consultor Comercial");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "12");
