@@ -32,7 +32,7 @@ export default async function SettlementsPage({
   await checkPagePermission("Liquidações");
 
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
   const settlementSlug = searchParams.settlementSlug || "";
   const merchantSettlements = await getMerchantSettlements(

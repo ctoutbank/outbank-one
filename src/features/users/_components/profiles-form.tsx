@@ -2,9 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { Badge } from "@/components/ui/badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +46,9 @@ import {
 import Link from "next/link";
 import { z } from "zod";
 import {
+  type Functions,
+  insertProfile,
+  type ModuleSelect,
   type Functions,
   insertProfile,
   type ModuleSelect,

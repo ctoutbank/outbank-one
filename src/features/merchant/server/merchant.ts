@@ -32,7 +32,7 @@ export interface Merchantlist {
     kic_status: string;
     addressname: string;
     time_zone: string;
-
+    dtinsert: string;
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
     

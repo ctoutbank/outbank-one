@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, salesAgents, configurations, addresses, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users } from "./schema";
+import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -25,6 +25,20 @@ export const settlementsRelations = relations(settlements, ({one, many}) => ({
 		references: [customers.id]
 	}),
 	merchantSettlements: many(merchantSettlements),
+}));
+
+export const salesAgentsRelations = relations(salesAgents, ({one, many}) => ({
+	address: one(addresses, {
+		fields: [salesAgents.idAddress],
+		references: [addresses.id]
+	}),
+	merchants: many(merchants),
+}));
+
+export const addressesRelations = relations(addresses, ({many}) => ({
+	salesAgents: many(salesAgents),
+	merchants: many(merchants),
+	contacts: many(contacts),
 }));
 
 export const payoutRelations = relations(payout, ({one}) => ({
@@ -206,17 +220,8 @@ export const legalNaturesRelations = relations(legalNatures, ({many}) => ({
 	merchants: many(merchants),
 }));
 
-export const salesAgentsRelations = relations(salesAgents, ({many}) => ({
-	merchants: many(merchants),
-}));
-
 export const configurationsRelations = relations(configurations, ({many}) => ({
 	merchants: many(merchants),
-}));
-
-export const addressesRelations = relations(addresses, ({many}) => ({
-	merchants: many(merchants),
-	contacts: many(contacts),
 }));
 
 export const merchantPriceRelations = relations(merchantPrice, ({many}) => ({
