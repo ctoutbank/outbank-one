@@ -26,7 +26,7 @@ export default async function TransactionsPage({
 }: {
   searchParams: TransactionsProps;
 }) {
-  await checkPagePermission("Transações");
+  await checkPagePermission("Lançamentos Financeiros");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");

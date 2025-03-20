@@ -20,7 +20,7 @@ export default async function ReceiptsPage({
 }: {
   searchParams: ReceiptsProps;
 }) {
-  await checkPagePermission("Recebimentos");
+  await checkPagePermission("Antecipações de Recebíveis");
 
   const merchantAgendaReceipts = await getMerchantAgendaReceipts(
     searchParams.search || null

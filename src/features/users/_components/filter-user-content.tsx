@@ -56,6 +56,36 @@ export function FilterUserContent({
   return (
     <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* First Name - Input */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Nome</h3>
+          <Input
+            placeholder="Nome do usuário"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </div>
+
+        {/* Last Name - Input */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Sobrenome</h3>
+          <Input
+            placeholder="Sobrenome do usuário"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </div>
+
+        {/* Email - Input */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Email</h3>
+          <Input
+            placeholder="Email do usuário"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
         {/* Merchant - Dropdown Search */}
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Estabelecimento</h3>
@@ -104,36 +134,6 @@ export function FilterUserContent({
             }
             onChange={setProfile}
             value={profile}
-          />
-        </div>
-
-        {/* Email - Input */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Email</h3>
-          <Input
-            placeholder="Email do usuário"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        {/* First Name - Input */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Nome</h3>
-          <Input
-            placeholder="Nome do usuário"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-        </div>
-
-        {/* Last Name - Input */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Sobrenome</h3>
-          <Input
-            placeholder="Sobrenome do usuário"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
           />
         </div>
       </div>
