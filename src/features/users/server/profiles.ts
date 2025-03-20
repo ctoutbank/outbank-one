@@ -17,31 +17,36 @@ export interface Functions {
 }
 
 export interface Group {
-  group: string;
+  id: string;
   functions: Functions[];
 }
 
-export interface Module {
+export interface ModuleDetail {
+  id: number;
+  group: Group[];
+}
+
+export interface ModuleSelect {
   id: number;
   name: string;
   group: Group[];
 }
 
 export interface ProfileDetailForm {
-  id: number;
-  name: string;
-  description: string;
-  module: Module[];
+  id?: number;
+  name?: string;
+  description?: string;
+  module?: ModuleSelect[];
 }
 
 export interface ProfileList {
-  profiles: {
+  profiles?: {
     id: number;
     slug: string;
     name: string;
-    functions: Module[];
+    functions: ModuleSelect[];
   }[];
-  totalCount: number;
+  totalCount?: number;
 }
 
 export async function getProfiles(
@@ -65,40 +70,39 @@ export async function getProfiles(
               'group', (
                 SELECT json_agg(
                   json_build_object(
-                    'group', f."group",
-                    'functions', (
-                      SELECT json_agg(
-                        json_build_object(
-                          'id', f2.id,
-                          'name', f2.name
-                        )
-                      )
-                      FROM ${functions} f2
-                      JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_function
-                      WHERE mf2.id_module = m.id AND f2."group" = f."group"
-                      AND EXISTS (
-                        SELECT 1 FROM ${profileFunctions} pf2
-                        WHERE pf2.id_profile = p.id AND pf2.id_functions = f2.id
-                      )
-                    )
+                    'id', f_grp."group",
+                    'functions', f_grp.functions
                   )
                 )
-                FROM ${functions} f
-                JOIN ${moduleFunctions} mf ON f.id = mf.id_function
-                WHERE mf.id_module = m.id
-                GROUP BY f."group"
+                FROM (
+                  SELECT 
+                    f."group",
+                    json_agg(
+                      json_build_object(
+                        'id', f.id,
+                        'name', f.name
+                      )
+                    ) AS functions
+                  FROM functions f
+                  JOIN module_functions mf ON f.id = mf.id_function
+                  JOIN profile_functions pf ON pf.id_functions = f.id
+                  WHERE mf.id_module = m.id
+                    AND pf.id_profile = p.id
+                  GROUP BY f."group"
+                ) f_grp
               )
             )
           )
-          FROM ${modules} m
-          WHERE EXISTS (
-            SELECT 1 FROM ${moduleFunctions} mf
-            JOIN ${profileFunctions} pf ON mf.id_function = pf.id_functions
-            WHERE pf.id_profile = p.id AND mf.id_module = m.id
+          FROM modules m
+          WHERE m.id IN (
+            SELECT DISTINCT mf.id_module
+            FROM module_functions mf
+            JOIN profile_functions pf ON mf.id_function = pf.id_functions
+            WHERE pf.id_profile = p.id
           )
         ), '[]'
-      ) as modules
-    FROM ${profiles} p
+      ) AS modules
+    FROM profiles p
     WHERE p.name ILIKE ${`%${name}%`}
     ORDER BY p.id DESC
     LIMIT ${pageSize}
@@ -106,8 +110,8 @@ export async function getProfiles(
   `);
 
   const totalCountResult = await db.execute(sql`
-    SELECT count(*) as count
-    FROM ${profiles} p
+    SELECT count(*) AS count
+    FROM profiles p
     WHERE p.name ILIKE ${`%${name}%`}
   `);
   const totalCount: number = (totalCountResult.rows[0]?.count as number) || 0;
@@ -122,13 +126,16 @@ export async function getProfiles(
   return { profiles: profilesList, totalCount };
 }
 
-export async function getProfileById(id: number): Promise<{
-  id: number;
-  slug: string;
-  name: string;
-  description: string;
-  module: Module[];
-} | null> {
+export async function getProfileById(id: number): Promise<
+  | {
+      id: number;
+      slug: string;
+      name: string;
+      description: string;
+      module: ModuleSelect[];
+    }
+  | undefined
+> {
   const result = await db.execute(sql`
     SELECT 
       p.id,
@@ -144,44 +151,43 @@ export async function getProfileById(id: number): Promise<{
               'group', (
                 SELECT json_agg(
                   json_build_object(
-                    'group', f."group",
-                    'functions', (
-                      SELECT json_agg(
-                        json_build_object(
-                          'id', f2.id,
-                          'name', f2.name
-                        )
-                      )
-                      FROM ${functions} f2
-                      JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_functions
-                      WHERE mf2.id_module = m.id AND f2."group" = f."group"
-                      AND EXISTS (
-                        SELECT 1 FROM ${profileFunctions} pf2
-                        WHERE pf2.id_profile = p.id AND pf2.id_functions = f2.id
-                      )
-                    )
+                    'id', f_grp."group",
+                    'functions', f_grp.functions
                   )
                 )
-                FROM ${functions} f
-                JOIN ${moduleFunctions} mf ON f.id = mf.id_functions
-                WHERE mf.id_module = m.id
-                GROUP BY f."group"
+                FROM (
+                  SELECT 
+                    f."group",
+                    json_agg(
+                      json_build_object(
+                        'id', f.id,
+                        'name', f.name
+                      )
+                    ) AS functions
+                  FROM functions f
+                  JOIN module_functions mf ON f.id = mf.id_function
+                  JOIN profile_functions pf ON pf.id_functions = f.id
+                  WHERE mf.id_module = m.id
+                    AND pf.id_profile = p.id
+                  GROUP BY f."group"
+                ) f_grp
               )
             )
           )
-          FROM ${modules} m
-          WHERE EXISTS (
-            SELECT 1 FROM ${moduleFunctions} mf
-            JOIN ${profileFunctions} pf ON mf.id_function = pf.id_functions
-            WHERE pf.id_profile = p.id AND mf.id_module = m.id
+          FROM modules m
+          WHERE m.id IN (
+            SELECT DISTINCT mf.id_module
+            FROM module_functions mf
+            JOIN profile_functions pf ON mf.id_function = pf.id_functions
+            WHERE pf.id_profile = p.id
           )
         ), '[]'
-      ) as modules
-    FROM ${profiles} p
+      ) AS modules
+    FROM profiles p
     WHERE p.id = ${id}
   `);
 
-  if (result.rows.length === 0) return null;
+  if (result.rows.length === 0) return;
 
   const row = result.rows[0] as any;
   return {
@@ -212,7 +218,7 @@ export async function insertProfile(
   const profileId = profileResult[0].id;
 
   // Process modules and their associated functions
-  for (const moduleVar of profileData.module) {
+  for (const moduleVar of profileData.module ? profileData.module : []) {
     for (const groupItem of moduleVar.group) {
       for (const func of groupItem.functions) {
         // First, verify that the function belongs to the specified module
@@ -306,35 +312,37 @@ export async function deleteProfile(id: number): Promise<void> {
   await db.delete(profiles).where(eq(profiles.id, id));
 }
 
-export async function getModules(): Promise<Module[]> {
+export async function getModules(): Promise<ModuleSelect[]> {
   const result = await db.execute(sql`
     SELECT 
       m.id, 
       m.name,
-      (
+     (
         SELECT json_agg(
           json_build_object(
-            'group', f."group",
+            'id', f."group",
             'functions', (
               SELECT json_agg(
                 json_build_object(
-                  'id', f2.id,
+                   'id', f2.id,
                   'name', f2.name
                 )
               )
               FROM ${functions} f2
-              JOIN ${moduleFunctions} mf2 ON f2.id = mf2.id_function
+              JOIN ${moduleFunctions} mf2 ON mf2.id_function = f2.id
               WHERE mf2.id_module = m.id AND f2."group" = f."group"
             )
           )
         )
-        FROM ${functions} f
-        JOIN ${moduleFunctions} mf ON f.id = mf.id_function
-        WHERE mf.id_module = m.id
-        GROUP BY f."group"
-      ) as groups
+        FROM (
+          SELECT DISTINCT f."group"
+          FROM ${functions} f
+          JOIN ${moduleFunctions} mf ON mf.id_function = f.id
+          WHERE mf.id_module = m.id
+        ) f
+      ) AS groups
     FROM ${modules} m
-    ORDER BY m.id DESC
+    ORDER BY m.id DESC;
   `);
 
   const modulesList = result.rows.map((row: any) => ({

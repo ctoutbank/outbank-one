@@ -10,10 +10,12 @@ import {
   Settings,
   Check,
   Link,
+  PieChart,
+  Bolt,
 } from "lucide-react";
 import * as React from "react";
 
-import { NavMain } from "@/components/nav-projects";
+import { NavMain } from "@/components/menu-portal/nav-projects";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -35,6 +37,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     navMain: [
       {
+        title: "Dashboard",
+        url: "/portal/dashboard",
+        icon: PieChart,
+      },
+      {
         title: "Estabelecimentos",
         url: "/portal/merchants",
         icon: HomeIcon,
@@ -50,8 +57,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: DollarSign,
         items: [
           {
-            title: "Painel de Vendas",
-            url: "/portal/dashboard",
+            title: "Transações",
+            url: "/portal/transactions",
+          },
+          {
+            title: "Arquivos EDI",
+            url: "/portal/edis",
           },
         ],
       },
@@ -84,6 +95,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Histórico",
             url: "/portal/settlements/history",
+          },
+        ],
+      },
+      {
+        title: "Configurações de Conta",
+        url: "",
+        icon: Bolt,
+        items: [
+          {
+            title: "Perfis e Usuários",
+            url: "/portal/users",
           },
         ],
       },

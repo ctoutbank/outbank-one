@@ -6,7 +6,7 @@ import DashboardFilters from "./_components/dashboard-filters";
 import {
   getTotalTransactions,
   getTotalTransactionsByMonth,
-} from "@/server/db/transaction";
+} from "@/features/transactions/serverActions/transaction";
 import { BarChartCustom } from "./_components/barChart";
 import { gateDateByViewMode } from "@/lib/utils";
 import { Suspense } from "react";
@@ -40,21 +40,19 @@ export default async function SalesDashboard({
     period.to!
   );
 
- 
-
   return (
     <>
       <BaseHeader
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
       <BaseBody title="Painel de Vendas" subtitle={`Visão geral das vendas`}>
-      <div className="mb-4 ml-1">
-        <DashboardFilters
-          dateRange={{
-            from: period.from,
-            to: period.to,
-          }}
-        />
+        <div className="mb-4 ml-1">
+          <DashboardFilters
+            dateRange={{
+              from: period.from,
+              to: period.to,
+            }}
+          />
         </div>
         <Suspense fallback={<div>Carregando...</div>}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">

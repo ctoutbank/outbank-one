@@ -179,7 +179,7 @@ export default function UserForm({
                     Perfil <span className="text-destructive">*</span>
                   </FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    onValueChange={(value) => field.onChange(value)}
                     defaultValue={field.value ? field.value.toString() : ""}
                   >
                     <FormControl>
@@ -221,73 +221,75 @@ export default function UserForm({
               )}
             />
 
-            {form.watch("isEstablishment") ? (
-              <FormField
-                control={form.control}
-                name="idMerchant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Estabelecimento{" "}
-                      <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o estabelecimento" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {merchants.map((merchant) => (
-                          <SelectItem
-                            key={merchant.id}
-                            value={merchant.id.toString()}
-                          >
-                            {merchant.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="idCustomer"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Cliente <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {customers.map((customer) => (
-                          <SelectItem
-                            key={customer.id}
-                            value={customer.id.toString()}
-                          >
-                            {customer.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {form.watch("isEstablishment") && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="idMerchant"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Estabelecimento{" "}
+                        <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o estabelecimento" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {merchants.map((merchant) => (
+                            <SelectItem
+                              key={merchant.id}
+                              value={merchant.id.toString()}
+                            >
+                              {merchant.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="idCustomer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Cliente <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o cliente" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {customers.map((customer) => (
+                            <SelectItem
+                              key={customer.id}
+                              value={customer.id.toString()}
+                            >
+                              {customer.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -295,7 +297,7 @@ export default function UserForm({
         <div className="flex justify-between">
           <Link href="/portal/users">
             <Button type="button" variant="outline">
-              Cancelar
+              Voltar
             </Button>
           </Link>
           <Button type="submit" disabled={isLoading}>
