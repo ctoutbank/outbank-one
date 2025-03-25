@@ -9,7 +9,6 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { DD } from "../server/users";
 
-
 type UserFilterProps = {
   // Filter values
   merchant?: string;
@@ -115,12 +114,12 @@ export function UserFilter({
   };
 
   const activeFiltersCount =
-    (merchant ? 1 : 0) +
-    (customer ? 1 : 0) +
-    (email ? 1 : 0) +
-    (firstName ? 1 : 0) +
-    (lastName ? 1 : 0) +
-    (profile ? 1 : 0);
+    (merchant != "0" ? 1 : 0) +
+    (customer != "0" ? 1 : 0) +
+    (email != "" ? 1 : 0) +
+    (firstName != "" ? 1 : 0) +
+    (lastName != "" ? 1 : 0) +
+    (profile != "0" ? 1 : 0);
 
   return (
     <div className="flex items-center justify-between">

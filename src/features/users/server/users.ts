@@ -235,7 +235,7 @@ export async function updateUser(id: number, data: UserInsert) {
     await clerk.users.updateUser(existingUser[0].idClerk || "", {
       firstName: data.firstName,
       lastName: data.lastName,
-      password: data.password,
+      ...(data.password ? { password: data.password } : {}),
     });
 
     await db
@@ -317,7 +317,7 @@ export async function getUserGroupPermissions(
       JOIN profiles p ON u.id_profile = p.id
       JOIN profile_functions pf ON p.id = pf.id_profile
       JOIN functions f ON pf.id_functions = f.id
-      WHERE u.slug = ${userSlug}
+      WHERE u.id_clerk = ${userSlug}
         AND f."group" = ${group}
         AND u.active = true
         AND p.active = true

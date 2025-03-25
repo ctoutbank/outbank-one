@@ -13,6 +13,7 @@ import {
 } from "@/features/settlements/server/settlements";
 import { Fill, Font } from "exceljs";
 import { formatDate } from "@/lib/utils";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -28,6 +29,8 @@ export default async function SettlementsPage({
 }: {
   searchParams: CategoryProps;
 }) {
+  await checkPagePermission("Liquidação");
+
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";

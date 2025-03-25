@@ -1,12 +1,6 @@
-import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaginationRecords from "@/components/pagination-Records";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileFilter } from "@/features/users/_components/filter-profile";
-import ProfilesList from "@/features/users/_components/profiles-list";
-import { UserFilter } from "@/features/users/_components/user-filter";
-import UsersList from "@/features/users/_components/users-list";
+import UserTabs from "@/features/users/_components/user-tabs";
 import { getProfiles } from "@/features/users/server/profiles";
 import {
   getDDCustomers,
@@ -14,7 +8,6 @@ import {
   getDDProfiles,
   getUsers,
 } from "@/features/users/server/users";
-import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -58,7 +51,7 @@ export default async function UsersPage({
     page,
     pageSize
   );
-  console.log(users);
+
   const profiles = await getProfiles(profileName, page, pageSize);
   const DDCustomer = await getDDCustomers();
   const DDProfile = await getDDProfiles();
@@ -87,81 +80,25 @@ export default async function UsersPage({
             : "Visualização de todos os Perfis"
         }
       >
-        <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="border-b w-full justify-start rounded-none h-12 bg-transparent p-0 mb-6">
-            <TabsTrigger
-              value="users"
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary h-12 px-6 font-medium"
-            >
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger
-              value="profile"
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary h-12 px-6 font-medium"
-            >
-              Perfis
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users" className="mt-0">
-            <div className="mb-4">
-              <UserFilter
-                customer={customerId}
-                customerOptions={DDCustomer}
-                email={email}
-                firstName={firstName}
-                lastName={lastName}
-                merchant={merchantId}
-                merchantOptions={DDMerchant}
-                newButtonLabel="Novo Usuário"
-                newButtonUrl="/portal/users/0"
-                profile={profileId}
-                profileOptions={DDProfile}
-                showNewButton={true}
-              />
-            </div>
-
-            {totalUsersRecords > 0 ? (
-              <div>
-                <UsersList users={users} />
-                <PaginationRecords
-                  totalRecords={totalUsersRecords}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/users"
-                />
-              </div>
-            ) : (
-              <EmptyState
-                icon={Search}
-                title={"Nenhum resultado encontrado"}
-                description={""}
-              ></EmptyState>
-            )}
-          </TabsContent>
-
-          <TabsContent value="profile" className="mt-0">
-            <div className="mb-4">
-              <ProfileFilter
-                showNewButton={true}
-                newButtonLabel="Novo Perfil"
-                newButtonUrl="/portal/users/profile/0"
-                profileName={profileName}
-              />
-            </div>
-            <ProfilesList profileList={profiles}></ProfilesList>
-            {totalProfilesRecords && totalProfilesRecords > 0 && (
-              <div>
-                <PaginationRecords
-                  totalRecords={totalProfilesRecords}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/users"
-                />
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        <UserTabs
+          users={users}
+          profiles={profiles}
+          DDCustomer={DDCustomer}
+          DDProfile={DDProfile}
+          DDMerchant={DDMerchant}
+          totalUsersRecords={totalUsersRecords}
+          totalProfilesRecords={totalProfilesRecords}
+          page={page}
+          pageSize={pageSize}
+          email={email}
+          firstName={firstName}
+          lastName={lastName}
+          activeTab={activeTab}
+          profileId={profileId}
+          customerId={customerId}
+          merchantId={merchantId}
+          profileName={profileName}
+        />
       </BaseBody>
     </>
   );

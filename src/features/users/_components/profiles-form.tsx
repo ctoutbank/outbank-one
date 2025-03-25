@@ -2,10 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,11 +45,10 @@ import {
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { z } from "zod";
-import type { ProfileSchema } from "../schema/schema";
 import {
-  type Functions,
+  Functions,
   insertProfile,
-  type ModuleSelect,
+  ModuleSelect,
   type ProfileDetailForm,
   updateProfile,
 } from "../server/profiles";
@@ -223,38 +224,6 @@ export default function ProfileManagement({
   }) => {
     try {
       setIsSubmitting(true);
-
-      // Construir o objeto ProfileSchema
-      const profileSchema: ProfileSchema = {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        module: selectedModules
-          .map((module) => {
-            // Para cada módulo selecionado
-            return {
-              id: module.id,
-              // Para cada grupo no módulo
-              group: module.group
-                .map((group) => {
-                  // Filtrar apenas as funções selecionadas neste grupo
-                  const selectedFunctions = group.functions
-                    .filter((func) =>
-                      data.functions.includes(func.id.toString())
-                    )
-                    .map((func) => func.id.toString());
-
-                  // Retornar o grupo com as funções selecionadas
-                  return {
-                    id: group.id,
-                    functions: selectedFunctions,
-                  };
-                })
-                .filter((g) => g.functions.length > 0), // Remover grupos sem funções selecionadas
-            };
-          })
-          .filter((m) => m.group && m.group.length > 0), // Remover módulos sem grupos
-      };
 
       // Converter para o formato esperado pela API
       const profileData: ProfileDetailForm = {
@@ -605,16 +574,6 @@ export default function ProfileManagement({
               </Card>
             </div>
           </div>
-
-          <FormField
-            control={form.control}
-            name="functions"
-            render={({ field }) => (
-              <FormItem className="hidden">
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <div className="flex justify-between">
             <Link href="/portal/users">

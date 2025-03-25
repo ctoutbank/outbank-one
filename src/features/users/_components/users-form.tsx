@@ -63,6 +63,16 @@ export default function UserForm({
   const onSubmit = async (data: UserSchema) => {
     try {
       setIsLoading(true);
+
+      // Validação adicional da senha
+      if (!user?.id && !data.password) {
+        form.setError("password", {
+          type: "manual",
+          message: "Senha é obrigatória para novos usuários",
+        });
+        return;
+      }
+
       const userData: UserDetailForm = {
         id: data.id || 0,
         slug: data.slug || "",
@@ -156,12 +166,17 @@ export default function UserForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Senha <span className="text-destructive">*</span>
+                    Senha{" "}
+                    {!user?.id && <span className="text-destructive">*</span>}
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Digite a senha"
+                      placeholder={
+                        user?.id
+                          ? "Digite a nova senha (opcional)"
+                          : "Digite a senha"
+                      }
                       {...field}
                     />
                   </FormControl>

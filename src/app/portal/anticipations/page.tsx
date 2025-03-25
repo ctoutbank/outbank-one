@@ -1,10 +1,10 @@
+import { EmptyState } from "@/components/empty-state";
 import ListFilter from "@/components/filter";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-
-import { EmptyState } from "@/components/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnticipationList from "@/features/anticipations/_components/anticipation-list";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Search } from "lucide-react";
 
 export const revalidate = 0;
@@ -22,6 +22,8 @@ export default async function AntecipationsPage({
 }) {
   const search = searchParams.search || "";
 
+  await checkPagePermission("Antecipações de Recebíveis");
+
   return (
     <>
       <BaseHeader
@@ -36,25 +38,10 @@ export default async function AntecipationsPage({
         className="overflow-x-hidden"
       >
         <Tabs defaultValue="compulsory" className="w-full">
-          <TabsList className="border-b rounded-none w-full justify-start h-auto bg-transparent overflow-x-auto">
-            <TabsTrigger
-              value="compulsory"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              COMPULSÓRIA
-            </TabsTrigger>
-            <TabsTrigger
-              value="eventual"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              EVENTUAL
-            </TabsTrigger>
-            <TabsTrigger
-              value="report"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-2"
-            >
-              RELATÓRIO
-            </TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="compulsory">COMPULSÓRIA</TabsTrigger>
+            <TabsTrigger value="eventual">EVENTUAL</TabsTrigger>
+            <TabsTrigger value="report">RELATÓRIO</TabsTrigger>
           </TabsList>
           <TabsContent value="compulsory" className="mt-6 overflow-x-hidden">
             <ListFilter pageName="portal/merchantAgenda" search={search} />
