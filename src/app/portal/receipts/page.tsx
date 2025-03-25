@@ -20,17 +20,28 @@ export default async function ReceiptsPage({
 }: {
   searchParams: ReceiptsProps;
 }) {
+  const currentDate = searchParams.date 
+    ? new Date(searchParams.date) 
+    : new Date();
+    
   const merchantAgendaReceipts = await getMerchantAgendaReceipts(
-    searchParams.search
+    searchParams.search,
+    currentDate
   );
-  const dailyAmounts: DailyAmount[] = merchantAgendaReceipts.map((receipt) => ({
-    date: receipt.day as string,
-    amount: receipt.totalAmount as number,
-  }));
+
+  // Garante que os dados estão no formato correto para o calendário
+  const dailyAmounts: DailyAmount[] = merchantAgendaReceipts.map((receipt) => {
+    return {
+      date: String(receipt.day),
+      amount: Number(receipt.totalAmount) || 0,
+    };
+  }).filter(item => item.amount > 0); // Remove dias sem valores
+
   const dailyData = await getGlobalSettlement(
     searchParams.search,
     searchParams.date
   );
+
   return (
     <>
       <BaseHeader

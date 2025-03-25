@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users } from "./schema";
+import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users, reports, reportFilters, reportFiltersParam } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -271,4 +271,23 @@ export const usersRelations = relations(users, ({one}) => ({
 		fields: [users.idMerchant],
 		references: [merchants.id]
 	}),
+}));
+
+export const reportFiltersRelations = relations(reportFilters, ({one}) => ({
+	report: one(reports, {
+		fields: [reportFilters.idReport],
+		references: [reports.id]
+	}),
+	reportFiltersParam: one(reportFiltersParam, {
+		fields: [reportFilters.idReportFilterParam],
+		references: [reportFiltersParam.id]
+	}),
+}));
+
+export const reportsRelations = relations(reports, ({many}) => ({
+	reportFilters: many(reportFilters),
+}));
+
+export const reportFiltersParamRelations = relations(reportFiltersParam, ({many}) => ({
+	reportFilters: many(reportFilters),
 }));
