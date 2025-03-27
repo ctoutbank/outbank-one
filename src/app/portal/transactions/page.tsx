@@ -7,8 +7,9 @@ import { TransactionsDashboardContent } from "@/features/transactions/_component
 import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
 import TransactionsList from "@/features/transactions/_components/transactions-list";
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
-import TransactionsExport from "./transactions-export";
+import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import TransactionsExportPdf from "@/features/transactions/reports/transactions-export-pdf";
 
 type TransactionsProps = {
   page?: string;
@@ -82,6 +83,7 @@ export default async function TransactionsPage({
               </TransactionsDashboardButton>
             </div>
             <TransactionsExport />
+            <TransactionsExportPdf />
           </div>
 
           <TransactionsList transactions={transactionList.transactions} />

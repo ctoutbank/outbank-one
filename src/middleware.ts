@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   "/cards",
   "/acquiring",
   "/auth/sign-in",
+  "/api/export-pdf",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
