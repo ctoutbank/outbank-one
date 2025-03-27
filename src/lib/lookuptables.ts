@@ -78,4 +78,15 @@ const legalPersonTypes: SelectItem[] = [
   { value: "NATURE", label: "Pessoa Física" },
 ];
 
-export { timezones, states, legalPersonTypes };
+
+const week: SelectItem[] = [
+  { value: "DOM", label: "Domingo" },
+  { value: "SEG", label: "Segunda" },
+  { value: "TER", label: "Terça" },
+  { value: "QUA", label: "Quarta" },
+  { value: "QUI", label: "Quinta" },
+  { value: "SEX", label: "Sexta" },
+  { value: "SAB", label: "Sábado" },
+];
+
+export { timezones, states, legalPersonTypes, week };

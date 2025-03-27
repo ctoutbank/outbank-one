@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,10 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ReportsList } from "@/features/reports/server/reports";
-import { ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 
 export default function ReportList({ Reports }: { Reports: ReportsList }) {
   const formatDateTime = (date: Date) => {
@@ -102,8 +101,8 @@ export default function ReportList({ Reports }: { Reports: ReportsList }) {
                     : "-"}
                 </TableCell>
                 <TableCell>
-                  {report.recurrenceHour 
-                    ? report.recurrenceHour.substring(0, 5) 
+                  {report.shippingTime 
+                    ? report.shippingTime.substring(0, 5) 
                     : "-"}
                 </TableCell>
               </TableRow>
