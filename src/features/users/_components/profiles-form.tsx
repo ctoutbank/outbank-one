@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
+import { toast } from "sonner";
 import { z } from "zod";
 import {
   type Functions,
@@ -50,9 +51,7 @@ import {
   type ModuleSelect,
   type ProfileDetailForm,
   updateProfile,
-  getModules,
 } from "../server/profiles";
-import { toast } from "sonner";
 
 interface ProfileFormProps {
   profile?: ProfileDetailForm;
