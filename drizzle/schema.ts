@@ -1010,13 +1010,16 @@ export const reports = pgTable("reports", {
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "reports_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
 	title: varchar({ length: 200 }).notNull(),
 	recurrenceCode: varchar("recurrence_code", { length: 10 }),
-	recurrenceHour: time("recurrence_hour"),
+	shippingTime: time("shipping_time"),
 	periodCode: varchar("period_code", { length: 10 }),
 	emails: text(),
 	formatCode: varchar("format_code", { length: 10 }),
 	reportType: varchar("report_type", { length: 10 }),
 	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dayWeek: varchar("day_week", { length: 10 }),
+	startPeriodTime: time("start_period_time"),
+	dayMonth: varchar("day_month", { length: 20 }),
 });
 
 export const reportFilters = pgTable("report_filters", {

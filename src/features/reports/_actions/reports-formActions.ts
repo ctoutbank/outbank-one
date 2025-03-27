@@ -13,17 +13,24 @@ import {
 } from "../server/reports";
 
 export async function insertReportFormAction(data: ReportSchema) {
+  console.log("Dados recebidos no insertReportFormAction:", data);
+  
   const reportInsert: ReportInsert = {
     title: data.title,
     recurrenceCode: data.recurrenceCode || null,
-    recurrenceHour: data.recurrenceHour || null,
+    shippingTime: data.shippingTime || null,
     periodCode: data.periodCode || null,
+    dayWeek: data.dayWeek || null,
+    dayMonth: data.dayMonth || null,
+    startPeriodTime: data.startPeriodTime || null,
     emails: data.emails || null,
     formatCode: data.formatCode || null,
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
   };
+
+  console.log("Dados a serem inseridos:", reportInsert);
 
   const newId = await insertReport(reportInsert);
   
@@ -50,18 +57,25 @@ export async function updateReportFormAction(data: ReportSchema) {
     throw new Error("Cannot update report without an ID");
   }
 
+  console.log("Dados recebidos no updateReportFormAction:", data);
+
   const reportUpdate: ReportDetail = {
     id: data.id,
     title: data.title,
     recurrenceCode: data.recurrenceCode || null,
-    recurrenceHour: data.recurrenceHour || null,
+    shippingTime: data.shippingTime || null,
     periodCode: data.periodCode || null,
+    dayWeek: data.dayWeek || null,
+    dayMonth: data.dayMonth || null,
+    startPeriodTime: data.startPeriodTime || null,
     emails: data.emails || null,
     formatCode: data.formatCode || null,
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
   };
+
+  console.log("Dados a serem atualizados:", reportUpdate);
 
   await updateReport(reportUpdate);
   

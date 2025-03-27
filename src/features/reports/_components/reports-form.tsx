@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -14,7 +16,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { insertReportFormAction, updateReportFormAction } from "../_actions/reports-formActions";
@@ -25,8 +26,7 @@ import {
   Recorrence,
   ReportTypeDD
 } from "../server/reports";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { week } from "@/lib/lookuptables";
 
 
 interface ReportsFormProps {
@@ -48,8 +48,11 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
       id: report.id,
       title: report.title || "",
       recurrenceCode: report.recurrenceCode || "",
-      recurrenceHour: report.recurrenceHour || "",
+      shippingTime: report.shippingTime || "",
       periodCode: report.periodCode || "",
+      dayWeek: report.dayWeek || "",
+      dayMonth: report.dayMonth || "",
+      startPeriodTime: report.startPeriodTime || "",
       emails: report.emails || "",
       formatCode: report.formatCode || "",
       reportType: report.reportType || "",
@@ -61,17 +64,28 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
   
   
   const onSubmit = async (data: ReportSchema) => {
+    // Log para depuração
+    console.log("Dados do formulário:", data);
+    
+    // Certifique-se de que os campos de horário estão formatados corretamente
+    const formattedData = {
+      ...data,
+      shippingTime: data.shippingTime || undefined,
+      startPeriodTime: data.startPeriodTime || undefined
+    };
+    
+    // Log dos dados formatados
+    console.log("Dados formatados:", formattedData);
              
-      if (data.id) {
-        await updateReportFormAction(data);
-        toast.success("Relatório atualizado com sucesso");
-        router.refresh();
-      } else {
-        const newId = await insertReportFormAction(data);
-        toast.success("Relatório criado com sucesso");
-        router.push(`/portal/reports/${newId}`);
-      }
-   
+    if (formattedData.id) {
+      await updateReportFormAction(formattedData);
+      toast.success("Relatório atualizado com sucesso");
+      router.refresh();
+    } else {
+      const newId = await insertReportFormAction(formattedData);
+      toast.success("Relatório criado com sucesso");
+      router.push(`/portal/reports/${newId}`);
+    }
   };
   
   return (
@@ -151,54 +165,33 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <FormField
-                control={form.control}
-                name="recurrenceCode"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Recorrência</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value || ""}
-                        className="flex flex-row space-x-4"
-                      >
-                        {recorrence?.map((type) => (
-                          <div key={type.code} className="flex items-center space-x-2">
-                            <RadioGroupItem value={type.code} id={`recurrence-${type.code}`} />
-                            <Label htmlFor={`recurrence-${type.code}`}>{type.name}</Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="recurrenceHour"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Horário</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
+              <div className="grid grid-cols-4 gap-4 mt-4">
+            <FormField
                 control={form.control}
                 name="periodCode"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Período</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        
+                        // Definir automaticamente a recorrência com base no período
+                        let recorrenceValue = "";
+                        
+                        if ( value === "DT" || value === "DA") {
+                          recorrenceValue = "DIA"; // Diário
+                        } else if (value === "SA" || value === "SR") {
+                            recorrenceValue = "SEM"; // Semanal
+                          } else if (value === "MR" || value === "MA") {
+                            recorrenceValue = "MES"; // Mensal
+                          } 
+                        // Atualizar o valor do campo de recorrência
+                        form.setValue("recurrenceCode", recorrenceValue);
+                        
+                        // Forçar a atualização do formulário para refletir a mudança
+                        form.trigger("recurrenceCode");
+                      }}
                       defaultValue={field.value || ""}
                     >
                       <FormControl>
@@ -218,6 +211,134 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="recurrenceCode"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Recorrência</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex flex-row space-x-4 p-2 border rounded-md bg-muted/50"
+                        disabled={true}
+                      >
+                        {recorrence?.map((type) => (
+                          <div key={type.code} className="flex items-center space-x-2">
+                            <RadioGroupItem 
+                              value={type.code} 
+                              id={`recurrence-${type.code}`}
+                              
+                            />
+                            <Label htmlFor={`recurrence-${type.code}`}>{type.name}</Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {(form.watch("periodCode") === "SA" || form.watch("periodCode") === "SR") && (
+                <FormField
+                  control={form.control}
+                  name="dayWeek"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Dia da Semana</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50"
+                        >
+                          {week.map((day) => (
+                            <div key={day.value} className="flex items-center space-x-2">
+                              <RadioGroupItem 
+                                value={day.value} 
+                                id={`day-${day.value}`}
+                              />
+                              <Label htmlFor={`day-${day.value}`}>{day.label}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              
+              {(form.watch("periodCode") === "MA" || form.watch("periodCode") === "MR") && (
+                <FormField
+                  control={form.control}
+                  name="dayMonth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dia do Mês</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {(form.watch("periodCode") === "DT") && (
+                <FormField
+                  control={form.control}
+                  name="startPeriodTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horário Inicial</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value || ""}
+                          onBlur={field.onBlur}
+                          onChange={(e) => {
+                            console.log("Novo valor de startPeriodTime:", e.target.value);
+                            field.onChange(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              
+
+              <FormField
+                control={form.control}
+                name="shippingTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horário de Envio</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="time" 
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value || ""}
+                        onBlur={field.onBlur}
+                        onChange={(e) => {
+                          console.log("Novo valor de shippingTime:", e.target.value);
+                          field.onChange(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+             
             </div>
 
             <div className="mt-4">

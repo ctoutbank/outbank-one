@@ -10,9 +10,12 @@ export type ReportFull = {
   title: string;
   recurrenceCode: string | null;
   recurrenceName?: string | null;
-  recurrenceHour: string | null; 
+  shippingTime: string | null;
+ 
   periodCode: string | null;
   periodName?: string | null;
+  dayWeek?: string | null;
+  dayMonth?: string | null;
   emails: string | null;
   formatCode: string | null;
   formatName?: string | null;
@@ -86,7 +89,8 @@ export async function getReports(
       title: reports.title,
       recurrenceCode: reports.recurrenceCode,
       recurrenceName: recurrenceTypes.name,
-      recurrenceHour: reports.recurrenceHour,
+      shippingTime: reports.shippingTime,
+   
       periodCode: reports.periodCode,
       periodName: periodTypes.name,
       emails: reports.emails,
@@ -95,7 +99,10 @@ export async function getReports(
       reportType: reports.reportType,
       reportTypeName: reportTypes.name,
       dtinsert: reports.dtinsert,
-      dtupdate: reports.dtupdate
+      dtupdate: reports.dtupdate,
+      startPeriodTime: reports.startPeriodTime,
+      dayWeek: reports.dayWeek,
+      dayMonth: reports.dayMonth,
     })
     .from(reports)
     .leftJoin(recurrenceTypes, eq(reports.recurrenceCode, recurrenceTypes.code))
@@ -120,14 +127,17 @@ export async function getReports(
       title: report.title,
       recurrenceCode: report.recurrenceCode || null,
       recurrenceName: report.recurrenceName || null,
-      recurrenceHour: report.recurrenceHour || null,
+      shippingTime: report.shippingTime || null,
       periodCode: report.periodCode || null,
       periodName: report.periodName || null,
+      dayWeek: report.dayWeek || null,
+      dayMonth: report.dayMonth || null,
       emails: report.emails || null,
       formatCode: report.formatCode || null,
       formatName: report.formatName || null,
       reportType: report.reportType || null,
       reportTypeName: report.reportTypeName || null,
+      startPeriodTime: report.startPeriodTime || null,
       dtinsert: report.dtinsert
         ? new Date(report.dtinsert)
         : new Date(),
@@ -177,11 +187,14 @@ export async function updateReport(
     .set({
       title: report.title,
       recurrenceCode: report.recurrenceCode,
-      recurrenceHour: report.recurrenceHour,
+      shippingTime: report.shippingTime,
       periodCode: report.periodCode,
+      dayWeek: report.dayWeek,
+      dayMonth: report.dayMonth,
       emails: report.emails,
       formatCode: report.formatCode,
       reportType: report.reportType,
+      startPeriodTime: report.startPeriodTime,
       dtupdate: new Date().toISOString()
     })
     .where(eq(reports.id, report.id));
