@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, customerFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users, reports, reportFilters, reportFiltersParam } from "./schema";
+import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users, reports, reportFilters, reportFiltersParam, customerFunctions } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -14,9 +14,9 @@ export const customersRelations = relations(customers, ({many}) => ({
 	settlements: many(settlements),
 	payouts: many(payout),
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
-	customerFunctions: many(customerFunctions),
 	merchantSettlements: many(merchantSettlements),
 	users: many(users),
+	customerFunctions: many(customerFunctions),
 }));
 
 export const settlementsRelations = relations(settlements, ({one, many}) => ({
@@ -201,17 +201,6 @@ export const modulesRelations = relations(modules, ({many}) => ({
 	moduleFunctions: many(moduleFunctions),
 }));
 
-export const customerFunctionsRelations = relations(customerFunctions, ({one}) => ({
-	customer: one(customers, {
-		fields: [customerFunctions.idCustomer],
-		references: [customers.id]
-	}),
-	function: one(functions, {
-		fields: [customerFunctions.idFunctions],
-		references: [functions.id]
-	}),
-}));
-
 export const categoriesRelations = relations(categories, ({many}) => ({
 	merchants: many(merchants),
 }));
@@ -290,4 +279,15 @@ export const reportsRelations = relations(reports, ({many}) => ({
 
 export const reportFiltersParamRelations = relations(reportFiltersParam, ({many}) => ({
 	reportFilters: many(reportFilters),
+}));
+
+export const customerFunctionsRelations = relations(customerFunctions, ({one}) => ({
+	customer: one(customers, {
+		fields: [customerFunctions.idCustomer],
+		references: [customers.id]
+	}),
+	function: one(functions, {
+		fields: [customerFunctions.idFunctions],
+		references: [functions.id]
+	}),
 }));

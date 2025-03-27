@@ -2,6 +2,8 @@ import { getfileFormats, getperiodTypes, getRecorrenceTypes, getReportById, getr
 import ReportForm from "@/features/reports/_components/reports-form";
 import BaseHeader from "@/components/layout/base-header";
 import BaseBody from "@/components/layout/base-body";
+import FilterTableAndForm from "@/features/reports/filter/filter-table";
+import { getReportFilterParams, getReportFilters } from "@/features/reports/filter/filter-Actions";
 
 export const revalidate = 0;
 
@@ -23,6 +25,8 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const periods = await getperiodTypes();
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
+  const filters = await getReportFilters(report?.id || 0);
+  const reportFilterParams = await getReportFilterParams();
 
   console.log("recorrence", recorrence);
   
@@ -55,6 +59,12 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
           period={periods}
           fileFormat={fileFormat}
           reportType={reportType}
+        />
+        <FilterTableAndForm
+          reportId={report?.id || 0}
+          reportFilterParams={reportFilterParams}
+          reportTypeDD={reportType}
+          filter={filters}
         />
       </BaseBody>
     </>

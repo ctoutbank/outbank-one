@@ -186,3 +186,4 @@ export default function Categoriesform({ categories }: CategoriesProps) {
     </Card>
   );
 }
+  

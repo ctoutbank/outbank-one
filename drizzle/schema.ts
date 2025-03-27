@@ -346,6 +346,17 @@ export const profiles = pgTable("profiles", {
 	description: varchar({ length: 500 }),
 });
 
+export const functions = pgTable("functions", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }),
+	active: boolean().default(true),
+	name: varchar({ length: 255 }),
+	group: varchar({ length: 150 }),
+});
+
 export const profileFunctions = pgTable("profile_functions", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "profile_functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -370,17 +381,6 @@ export const profileFunctions = pgTable("profile_functions", {
 			name: "profile_functions_id_functions_fkey"
 		}),
 	}
-});
-
-export const functions = pgTable("functions", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }),
-	active: boolean().default(true),
-	name: varchar({ length: 255 }),
-	group: varchar({ length: 150 }),
 });
 
 export const establishmentFormat = pgTable("establishment_format", {
@@ -552,32 +552,6 @@ export const moduleFunctions = pgTable("module_functions", {
 			columns: [table.idFunction],
 			foreignColumns: [functions.id],
 			name: "module_functions_id_function_fkey"
-		}),
-	}
-});
-
-export const customerFunctions = pgTable("customer_functions", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customer_functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }),
-	active: boolean().default(true),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idCustomer: bigint("id_customer", { mode: "number" }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idFunctions: bigint("id_functions", { mode: "number" }),
-}, (table) => {
-	return {
-		customerFunctionsIdCustomerFkey: foreignKey({
-			columns: [table.idCustomer],
-			foreignColumns: [customers.id],
-			name: "customer_functions_id_customer_fkey"
-		}),
-		customerFunctionsIdFunctionsFkey: foreignKey({
-			columns: [table.idFunctions],
-			foreignColumns: [functions.id],
-			name: "customer_functions_id_functions_fkey"
 		}),
 	}
 });
@@ -1054,4 +1028,30 @@ export const reportFiltersParam = pgTable("report_filters_param", {
 	name: varchar({ length: 100 }).notNull(),
 	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const customerFunctions = pgTable("customer_functions", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customer_functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }),
+	active: boolean().default(true),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idFunctions: bigint("id_functions", { mode: "number" }),
+}, (table) => {
+	return {
+		customerFunctionsIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "customer_functions_id_customer_fkey"
+		}),
+		customerFunctionsIdFunctionsFkey: foreignKey({
+			columns: [table.idFunctions],
+			foreignColumns: [functions.id],
+			name: "customer_functions_id_functions_fkey"
+		}),
+	}
 });
