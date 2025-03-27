@@ -1,23 +1,43 @@
 "use server"
 
 import { db } from "@/server/db";
-import { reportFilters, reportFiltersParam } from "../../../../drizzle/schema";
+import { reportFilters, reportFiltersParam, reportTypes } from "../../../../drizzle/schema";
 
 import { eq } from "drizzle-orm";
 
 export async function getReportFilters(
     reportId: number
-  ): Promise<ReportFilterDetail[]> {
-    return await db
-      .select()
+  ): Promise<ReportFilterDetailWithTypeName[]> {
+    const result = await db
+      .select({
+        id: reportFilters.id,
+        idReport: reportFilters.idReport,
+        idReportFilterParam: reportFilters.idReportFilterParam,
+        value: reportFilters.value,
+        dtinsert: reportFilters.dtinsert,
+        dtupdate: reportFilters.dtupdate,
+        typeName: reportTypes.name
+      })
       .from(reportFilters)
+      .leftJoin(
+        reportFiltersParam,
+        eq(reportFilters.idReportFilterParam, reportFiltersParam.id)
+      )
+      .leftJoin(
+        reportTypes,
+        eq(reportFiltersParam.type, reportTypes.code)
+      )
       .where(eq(reportFilters.idReport, reportId))
       .orderBy(reportFilters.id);
+      
+    return result;
   }
 
 
 
- export type ReportFilterDetail = typeof reportFilters.$inferSelect;
+ export type ReportFilterDetail = typeof reportFilters.$inferSelect & { typeName: string | null };
+
+ export type ReportFilterDetailWithTypeName = ReportFilterDetail & { typeName: string | null };
 export type ReportFilterInsert = typeof reportFilters.$inferInsert;
 
 export type ReportFilterParamDetail = typeof reportFiltersParam.$inferSelect;
@@ -76,9 +96,22 @@ export async function insertReportFilter(
     return result[0] || null;
   }
 
-  export async function getReportFilterById(id: number): Promise<ReportFilterDetail | null> {
-    const result = await db.select().from(reportFilters).where(eq(reportFilters.id, id)).limit(1);
+  export async function getReportFilterById(id: number): Promise<(ReportFilterDetail & { typeName: string | null }) | null> {
+    const result = await db
+      .select({
+        id: reportFilters.id,
+        idReport: reportFilters.idReport,
+        idReportFilterParam: reportFilters.idReportFilterParam,
+        value: reportFilters.value,
+        dtinsert: reportFilters.dtinsert,
+        dtupdate: reportFilters.dtupdate,
+        typeName: reportTypes.name
+      })
+      .from(reportFilters)
+      .leftJoin(reportFiltersParam, eq(reportFilters.idReportFilterParam, reportFiltersParam.id))
+      .leftJoin(reportTypes, eq(reportFiltersParam.type, reportTypes.code))
+      .where(eq(reportFilters.id, id))
+      .limit(1);
     return result[0] || null;
   }
-  
 

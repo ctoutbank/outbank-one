@@ -7,6 +7,7 @@ export const SchemaReportFilter = z.object({
     value: z.string().min(1, "Valor é obrigatório"),
     dtinsert: z.date().optional(),
     dtupdate: z.date().optional(),
+    typeName: z.string().optional(),
   });
   
   export type ReportFilterSchema = z.infer<typeof SchemaReportFilter>; 

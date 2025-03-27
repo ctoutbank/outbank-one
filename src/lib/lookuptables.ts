@@ -89,4 +89,7 @@ const week: SelectItem[] = [
   { value: "SAB", label: "Sábado" },
 ];
 
+
+
+
 export { timezones, states, legalPersonTypes, week };

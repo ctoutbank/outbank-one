@@ -5,15 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 import { ReportTypeDD } from "../server/reports";
-import { deleteReportFilter, getReportFilterById, ReportFilterDetail, ReportFilterParamDetail } from "./filter-Actions";
+import { deleteReportFilter, getReportFilterById, ReportFilterDetail, ReportFilterDetailWithTypeName, ReportFilterParamDetail } from "./filter-Actions";
 import FilterForm from "./filter-form";
 import { ReportFilterSchema } from "./schema";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface FilterTableAndFormProps {
-    filter: ReportFilterDetail[];
+    filter: ReportFilterDetailWithTypeName[];
     reportId: number;
     reportFilterParams: ReportFilterParamDetail[];
     reportTypeDD: ReportTypeDD[];
+    
 }
 
 export default function FilterTableAndForm({ filter, reportId, reportFilterParams, reportTypeDD }: FilterTableAndFormProps) {
@@ -38,7 +40,8 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
                 id: currentRecord.id,
                 idReport: currentRecord.idReport,
                 dtinsert: currentRecord.dtinsert ? new Date(currentRecord.dtinsert) : undefined,
-                dtupdate: currentRecord.dtupdate ? new Date(currentRecord.dtupdate) : undefined
+                dtupdate: currentRecord.dtupdate ? new Date(currentRecord.dtupdate) : undefined,
+                typeName: currentRecord.typeName || ''
             });
         }
         setOpen(true);
@@ -52,10 +55,10 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
 
     return (
         <div>
-            <div className="basis-1/2 text-right px-7">
+            <div className="basis-1/2 text-left px-7">
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger onClick={handleNewReportFilter}>
-                        <div className="h-8 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90">
+                        <div className="h-8 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 float-right">
                             Novo Filtro
                         </div>
                     </DialogTrigger>
@@ -79,46 +82,52 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
                     </DialogContent>
                 </Dialog>
             </div>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[100px]">ID</TableHead>
-                        <TableHead>Parâmetro</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Data de Inserção</TableHead>
-                        <TableHead>Data de Atualização</TableHead>
-                        <TableHead>Ações</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {filter?.map((record) => (
-                        <TableRow key={record.id}>
-                            <TableCell>{record.id}</TableCell>
-                            <TableCell>{reportFilterParams.find(p => p.id === record.idReportFilterParam)?.name}</TableCell>
-                            <TableCell>{record.value}</TableCell>
-                            <TableCell>
-                                {record.dtinsert ? new Date(record.dtinsert).toLocaleDateString() : '-'}
-                            </TableCell>
-                            <TableCell>
-                                {record.dtupdate ? new Date(record.dtupdate).toLocaleDateString() : '-'}
-                            </TableCell>
-                            <TableCell className="flex justify-end gap-4">
-                                <Button
-                                    onClick={() => handleEditReportFilter(record)}
-                                >
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant={"destructive"}
-                                    onClick={() => handleDeleteReportFilter(record)}
-                                >
-                                    Excluir
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            
+            <Card>
+                <CardContent className="pt-6">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                
+                                <TableHead>Parâmetro</TableHead>
+                                <TableHead>Tipo</TableHead>
+                                <TableHead>Data de Inserção</TableHead>
+                                <TableHead>Data de Atualização</TableHead>
+                                <TableHead>Ações</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filter?.map((record) => (
+                                <TableRow key={record.id}>
+                                   
+                                    <TableCell>{reportFilterParams.find(p => p.id === record.idReportFilterParam)?.name}</TableCell>
+                                    <TableCell>{record.typeName}</TableCell>
+                                    <TableCell>
+                                        {record.dtinsert ? new Date(record.dtinsert).toLocaleDateString() : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {record.dtupdate ? new Date(record.dtupdate).toLocaleDateString() : '-'}
+                                    </TableCell>
+                                    <TableCell>{record.value}</TableCell>
+                                    <TableCell className="flex justify-end gap-4">
+                                        <Button
+                                            onClick={() => handleEditReportFilter(record)}
+                                        >
+                                            Editar
+                                        </Button>
+                                        <Button className=""
+                                            variant={"destructive"}
+                                            onClick={() => handleDeleteReportFilter(record)}
+                                        >
+                                            Excluir
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 }

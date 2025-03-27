@@ -2,8 +2,8 @@ import { useRouter } from "next/navigation";
 import { insertReportFilter, ReportFilterParamDetail, updateReportFilter } from "./filter-Actions";
 import { ReportFilterSchema, SchemaReportFilter } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, useForm } from "react-hook-form";
-import { FormField, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { Form, FormField, FormMessage } from "@/components/ui/form";
 import { FormLabel } from "@/components/ui/form";
 import { FormItem } from "@/components/ui/form";
 import { FormControl } from "@/components/ui/form";
@@ -59,11 +59,12 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                 idReport: reportId,
                 dtinsert: (data.dtinsert || new Date()).toISOString(),
                 dtupdate: (data.dtinsert || new Date()).toISOString(),
+                typeName: data.typeName || null
             });
             router.refresh();
             closeDialog();
         } else {
-            const newId = await insertReportFilter({
+             await insertReportFilter({
                 ...data,
                 idReport: reportId,
                 idReportFilterParam: data.idReportFilterParam,
@@ -71,7 +72,8 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                 dtinsert: (data.dtinsert || new Date()).toISOString(),
                 dtupdate: (data.dtinsert || new Date()).toISOString(),
             });
-            router.push(`/portal/reports/${reportId}/filters/${newId}`);
+            router.push(`/portal/reports/${reportId}`);
+
             closeDialog();
         }
     };
