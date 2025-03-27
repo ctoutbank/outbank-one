@@ -23,6 +23,7 @@ const getGroupFromUrl = (url: string): string => {
     categories: "Categorias",
     legalNatures: "Natureza Juridica",
     history: "Liquidação",
+    reports: "Relatório",
   };
 
   return groupMappings[lastSegment] || lastSegment;
@@ -118,6 +119,11 @@ const menuData = {
       title: "Recebimentos",
       url: "/portal/receipts",
       icon: "Check",
+    },
+    {
+      title: "Relatórios",
+      url: "/portal/reports",
+      icon: "FileText",
     },
     {
       title: "Configurações",
