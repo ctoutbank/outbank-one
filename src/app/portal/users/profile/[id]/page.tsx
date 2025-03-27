@@ -14,8 +14,9 @@ export default async function PaymentLinkDetail({
 }: {
   params: { id: string };
 }) {
-  const profile = await getProfileById(parseInt(params.id));
-  const modules: ModuleSelect[] = await getModules();
+  const profileId = parseInt(params.id);
+  const profile = await getProfileById(profileId);
+  const modules: ModuleSelect[] = await getModules(profileId || undefined);
 
   return (
     <>
