@@ -68,7 +68,7 @@ export async function getProfiles(
       p.description,
       p.dtinsert,
       p.dtupdate,
-      5 as users,
+      (SELECT COUNT(*) FROM users u WHERE u.id_profile = p.id AND u.active = true) as users,
       COALESCE(
         (
           SELECT json_agg(
@@ -164,24 +164,33 @@ export async function getProfileById(id: number): Promise<
                 SELECT json_agg(
                   json_build_object(
                     'id', f_grp."group",
-                    'functions', f_grp.functions
+                    'functions', (
+                      SELECT json_agg(
+                        json_build_object(
+                          'id', f.id,
+                          'name', f.name,
+                          'selected', (
+                            SELECT EXISTS (
+                              SELECT 1 
+                              FROM profile_functions pf 
+                              WHERE pf.id_functions = f.id 
+                                AND pf.id_profile = p.id
+                            )
+                          )
+                        )
+                      )
+                      FROM functions f
+                      JOIN module_functions mf ON f.id = mf.id_function
+                      WHERE mf.id_module = m.id 
+                        AND f."group" = f_grp."group"
+                    )
                   )
                 )
                 FROM (
-                  SELECT 
-                    f."group",
-                    json_agg(
-                      json_build_object(
-                        'id', f.id,
-                        'name', f.name
-                      )
-                    ) AS functions
+                  SELECT DISTINCT f."group"
                   FROM functions f
                   JOIN module_functions mf ON f.id = mf.id_function
-                  JOIN profile_functions pf ON pf.id_functions = f.id
                   WHERE mf.id_module = m.id
-                    AND pf.id_profile = p.id
-                  GROUP BY f."group"
                 ) f_grp
               )
             )
@@ -324,7 +333,7 @@ export async function deleteProfile(id: number): Promise<void> {
   await db.delete(profiles).where(eq(profiles.id, id));
 }
 
-export async function getModules(): Promise<ModuleSelect[]> {
+export async function getModules(profileId?: number): Promise<ModuleSelect[]> {
   const result = await db.execute(sql`
     SELECT 
       m.id, 
@@ -354,6 +363,16 @@ export async function getModules(): Promise<ModuleSelect[]> {
         ) f
       ) AS groups
     FROM ${modules} m
+    WHERE ${
+      profileId
+        ? sql`m.id NOT IN (
+      SELECT DISTINCT mf.id_module
+      FROM module_functions mf
+      JOIN profile_functions pf ON mf.id_function = pf.id_functions
+      WHERE pf.id_profile = ${profileId}
+    )`
+        : sql`1=1`
+    }
     ORDER BY m.id DESC;
   `);
 
