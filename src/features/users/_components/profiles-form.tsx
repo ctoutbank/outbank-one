@@ -50,6 +50,7 @@ import {
   type ModuleSelect,
   type ProfileDetailForm,
   updateProfile,
+  getModules,
 } from "../server/profiles";
 import { toast } from "sonner";
 
@@ -78,7 +79,9 @@ export default function ProfileManagement({
   }>({
     resolver: zodResolver(
       z.object({
-        id: z.number().optional(),
+        id: z
+          .union([z.string().transform((val) => Number(val)), z.number()])
+          .optional(),
         name: z.string().min(1, "O nome é obrigatório"),
         description: z
           .string()
@@ -96,7 +99,9 @@ export default function ProfileManagement({
           description: profile.description,
           functions: profile.module?.flatMap((module) =>
             module.group.flatMap((group) =>
-              group.functions.map((func) => func.id.toString())
+              group.functions
+                .filter((func: any) => func.selected)
+                .map((func) => func.id.toString())
             )
           ),
         }
@@ -106,6 +111,9 @@ export default function ProfileManagement({
           functions: [],
         },
   });
+
+  // Watch for changes in functions to trigger re-render
+  form.watch("functions");
 
   // Set active tab to first module if available and not already set
   if (selectedModules.length > 0 && !activeTab) {
@@ -160,34 +168,21 @@ export default function ProfileManagement({
     groupFunctions: Functions[],
     checked: boolean
   ) => {
-    form.setValue(
-      "functions",
-      [
-        ...(form.getValues().functions || []),
-        ...groupFunctions.map((f) => f.id.toString()),
-      ].filter((v, i, a) => a.indexOf(v) === i)
-    );
+    const currentFunctions = form.getValues().functions || [];
+    const functionIds = groupFunctions.map((f) => f.id.toString());
 
     if (checked) {
-      // Adicionar todas as funções que não estão selecionadas
-      const newFunctions = [...(form.getValues().functions || [])];
-      groupFunctions.forEach((id) => {
-        if (!newFunctions.includes(id.toString())) {
-          newFunctions.push(id.toString());
-        }
-      });
+      // Add all functions that aren't already selected
+      const newFunctions = Array.from(
+        new Set([...currentFunctions, ...functionIds])
+      );
       form.setValue("functions", newFunctions);
     } else {
-      // Remover todas as funções deste grupo
-      const functionsToRemove = new Set(
-        groupFunctions.map((f) => f.id.toString())
+      // Remove all functions from this group
+      const updatedFunctions = currentFunctions.filter(
+        (id) => !functionIds.includes(id)
       );
-      form.setValue(
-        "functions",
-        form
-          .getValues()
-          .functions?.filter((id) => !functionsToRemove.has(id)) || []
-      );
+      form.setValue("functions", updatedFunctions);
     }
   };
 
@@ -197,9 +192,9 @@ export default function ProfileManagement({
     groupId: string,
     groupFunctions: Functions[]
   ) => {
-    const functions = form.getValues().functions || [];
+    const selectedFunctions = form.getValues().functions || [];
     return groupFunctions.every((func) =>
-      functions.includes(func.id.toString())
+      selectedFunctions.includes(func.id.toString())
     );
   };
 
@@ -209,13 +204,12 @@ export default function ProfileManagement({
     groupId: string,
     groupFunctions: Functions[]
   ) => {
-    const functions = form.getValues().functions || [];
+    const selectedFunctions = form.getValues().functions || [];
     return groupFunctions.filter((func) =>
-      functions.includes(func.id.toString())
+      selectedFunctions.includes(func.id.toString())
     ).length;
   };
 
-  // Atualizar apenas a função onSubmit para converter para o novo formato
   const onSubmit = async (data: {
     id?: number;
     name: string;
@@ -230,8 +224,9 @@ export default function ProfileManagement({
         ...data,
         module: selectedModules,
       };
-
+      console.log(profileData);
       if (data.id) {
+        console.log(profileData);
         await updateProfile(data.id, profileData);
         toast.success("Perfil atualizado com sucesso!");
       } else {
@@ -245,6 +240,9 @@ export default function ProfileManagement({
       setIsSubmitting(false);
     }
   };
+
+  console.log("Form is valid:", form.formState.isValid);
+  console.log("Form errors:", form.formState.errors);
 
   return (
     <div>
@@ -286,7 +284,7 @@ export default function ProfileManagement({
                     control={form.control}
                     name="description"
                     render={({ field }) => (
-                      <FormItem className="w-1/3">
+                      <FormItem className="w-2/3">
                         <FormLabel>
                           Descrição do Perfil{" "}
                           <span className="text-destructive">*</span>
@@ -302,59 +300,6 @@ export default function ProfileManagement({
                       </FormItem>
                     )}
                   />
-
-                  {/* Add Module Section - Moved inside Basic Info */}
-                  <div className="pt-2 w-1/2">
-                    <div className="flex justify-center flex-col gap-2">
-                      <div className="flex-shrink-0">
-                        <Label className="text-base">Adicionar Módulo</Label>
-                      </div>
-                      <div className="flex flex-1 gap-2">
-                        <Select
-                          value={selectedModule?.toString() || ""}
-                          onValueChange={(value) =>
-                            setSelectedModule(Number.parseInt(value))
-                          }
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Selecione um módulo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getAvailableModules()?.map((module) => (
-                              <SelectItem
-                                key={module.id}
-                                value={module.id.toString()}
-                              >
-                                {module.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                onClick={handleAddModule}
-                                disabled={!selectedModule}
-                                className="bg-primary h-9"
-                                type="button"
-                                size="sm"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Adicionar
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Adicionar módulo ao perfil</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Selecione um módulo para adicionar ao perfil de acesso
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -397,6 +342,51 @@ export default function ProfileManagement({
                       )}
                     </div>
 
+                    {/* Module Selection Dropdown */}
+                    <div className="flex items-center gap-2 pb-4">
+                      <div className="flex-1">
+                        <Select
+                          value={selectedModule?.toString() || ""}
+                          onValueChange={(value) =>
+                            setSelectedModule(Number.parseInt(value))
+                          }
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Selecione um módulo para adicionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getAvailableModules()?.map((module) => (
+                              <SelectItem
+                                key={module.id}
+                                value={module.id.toString()}
+                              >
+                                {module.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handleAddModule}
+                              disabled={!selectedModule}
+                              className="bg-primary h-9"
+                              type="button"
+                              size="sm"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Adicionar Módulo
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Adicionar módulo ao perfil</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+
                     {selectedModules.length === 0 ? (
                       <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-muted/50">
                         <p className="text-muted-foreground text-center">
@@ -425,15 +415,17 @@ export default function ProfileManagement({
                             ))}
                           </TabsList>
                           {activeTab && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ml-auto text-muted-foreground hover:text-destructive"
-                              onClick={() => handleRemoveModule(activeTab)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Remover módulo
-                            </Button>
+                            <div className="ml-auto">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() => handleRemoveModule(activeTab)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Remover módulo
+                              </Button>
+                            </div>
                           )}
                         </div>
 
@@ -565,7 +557,15 @@ export default function ProfileManagement({
                   Voltar
                 </Button>
               </Link>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSubmitting}
+                onClick={() => {
+                  console.log("Button clicked");
+                  form.handleSubmit(onSubmit)();
+                }}
+              >
                 {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>
             </div>
