@@ -12,7 +12,7 @@ import {
   sql,
   sum,
   gte,
-  lte
+  lte,
 } from "drizzle-orm";
 import { merchants, payout } from "../../../../drizzle/schema";
 
@@ -118,26 +118,30 @@ export async function getMerchantAgenda(
       payout.expectedSettlementDate,
       typeof maxDate == "string" ? maxDate : maxDate.toISOString()
     ),
-    or(ilike(merchants.name, `%${search}%`))
+    or(ilike(merchants.name, `%${search}%`)),
   ];
 
   if (dateFrom) {
-    conditions.push(gte(payout.transactionDate, new Date(dateFrom).toISOString()));
+    conditions.push(
+      gte(payout.transactionDate, new Date(dateFrom).toISOString())
+    );
   }
 
   if (dateTo) {
-    conditions.push(lte(payout.transactionDate, new Date(dateTo).toISOString()));
+    conditions.push(
+      lte(payout.transactionDate, new Date(dateTo).toISOString())
+    );
   }
 
   if (establishment) {
     conditions.push(ilike(merchants.name, `%${establishment}%`));
   }
 
-  if (status && status !== 'all') {
+  if (status && status !== "all") {
     conditions.push(eq(payout.status, status));
   }
 
-  if (cardBrand && cardBrand !== 'all') {
+  if (cardBrand && cardBrand !== "all") {
     conditions.push(eq(payout.brand, cardBrand));
   }
 
@@ -150,11 +154,15 @@ export async function getMerchantAgenda(
   }
 
   if (expectedSettlementDateFrom) {
-    conditions.push(gte(payout.expectedSettlementDate, expectedSettlementDateFrom));
+    conditions.push(
+      gte(payout.expectedSettlementDate, expectedSettlementDateFrom)
+    );
   }
 
   if (expectedSettlementDateTo) {
-    conditions.push(lte(payout.expectedSettlementDate, expectedSettlementDateTo));
+    conditions.push(
+      lte(payout.expectedSettlementDate, expectedSettlementDateTo)
+    );
   }
 
   const result = await db
@@ -369,7 +377,7 @@ export async function getGlobalSettlement(
       WHERE DATE(settlement_date) = DATE('${date}')
     ),
     global_total AS (
-      SELECT SUM(settlement_amount) AS global_settlement_total
+      SELECT SUM(receivable_amount) AS global_settlement_total
       FROM payout_filtered
     ),
     merchant_totals AS (

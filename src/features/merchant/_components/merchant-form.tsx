@@ -27,19 +27,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, MapPin, User } from "lucide-react";
 
 import { useForm } from "react-hook-form";
-import { AddressSchema, MerchantSchema, schemaMerchant } from "../schema/merchant-schema";
+import {
+  AddressSchema,
+  MerchantSchema,
+  schemaMerchant,
+} from "../schema/merchant-schema";
 import TransactionFees from "./merchantedittaxa";
 
 import { useRouter } from "next/navigation";
 import { insertMerchantFormAction } from "../_actions/merchant-formActions";
 import { updateMerchantFormAction } from "../_actions/merchant-formActions";
+import { toast } from "sonner";
 
 interface MerchantProps {
   merchant: MerchantSchema | undefined;
   address: AddressSchema | undefined;
 }
 
-export default function MerchantForm({ merchant}: MerchantProps) {
+export default function MerchantForm({ merchant }: MerchantProps) {
   const router = useRouter();
   const form = useForm<MerchantSchema>({
     resolver: zodResolver(schemaMerchant),
@@ -48,14 +53,18 @@ export default function MerchantForm({ merchant}: MerchantProps) {
 
   const onSubmit = async (data: MerchantSchema) => {
     try {
+      toast.loading("Salvando estabelecimento...");
       if (data?.id) {
         await updateMerchantFormAction(data);
+        toast.success("Estabelecimento atualizado com sucesso!");
       } else {
         await insertMerchantFormAction(data);
+        toast.success("Estabelecimento criado com sucesso!");
       }
       router.push("/merchants");
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Erro ao salvar estabelecimento. Tente novamente.");
     }
   };
 
@@ -251,14 +260,19 @@ export default function MerchantForm({ merchant}: MerchantProps) {
                           <div key={id} className="flex items-center space-x-2">
                             <Checkbox
                               id={id}
-                              checked={Array.isArray(field.value) && field.value.includes(id)}
+                              checked={
+                                Array.isArray(field.value) &&
+                                field.value.includes(id)
+                              }
                               onCheckedChange={(checked) => {
-                                const current = Array.isArray(field.value) ? field.value : [];
+                                const current = Array.isArray(field.value)
+                                  ? field.value
+                                  : [];
                                 const updated = checked
                                   ? [...current, id]
-                                  : Array.isArray(current) 
-                                    ? current.filter((day: string) => day !== id)
-                                    : [];
+                                  : Array.isArray(current)
+                                  ? current.filter((day: string) => day !== id)
+                                  : [];
                                 field.onChange(updated);
                               }}
                             />

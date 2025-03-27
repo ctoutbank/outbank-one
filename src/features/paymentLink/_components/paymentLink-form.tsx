@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/use-toast";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   DDMerchant,
@@ -42,7 +42,7 @@ import {
   PaymentLinkDetail,
   PaymentLinkDetailForm,
   ShoppingItemsUpdate,
-  updatePaymentLink
+  updatePaymentLink,
 } from "../server/paymentLink";
 
 interface PaymentLinkFormProps {
@@ -76,7 +76,6 @@ export default function PaymentLinkForm({
       dtupdate: paymentLink?.dtupdate
         ? new Date(paymentLink.dtupdate).toISOString()
         : new Date().toISOString(),
-
     },
   });
 
@@ -172,19 +171,20 @@ export default function PaymentLinkForm({
   }
 
   const onSubmit = async (data: PaymentLinkSchema) => {
-    if (data?.id) {
-      updatePaymentLinkFormAction(data);
-      router.refresh();
-    } else {
-      console.log("entrou aqui");
-      const newId = await insertPaymentLinkFormAction(data);
-      toast({
-        title: "sucesso",
-        description: "Link de pagamento cadastrado com sucesso",
-
-        variant: "sucesso",
-      });
-      router.push(`/portal/paymentLink/${newId}`);
+    try {
+      toast.loading("Salvando link de pagamento...");
+      if (data?.id) {
+        await updatePaymentLinkFormAction(data);
+        toast.success("Link de pagamento atualizado com sucesso!");
+        router.refresh();
+      } else {
+        const newId = await insertPaymentLinkFormAction(data);
+        toast.success("Link de pagamento criado com sucesso!");
+        router.push(`/portal/paymentLink/${newId}`);
+      }
+    } catch (error) {
+      console.error("Erro ao salvar link de pagamento:", error);
+      toast.error("Erro ao salvar link de pagamento. Tente novamente.");
     }
   };
 

@@ -8,6 +8,7 @@ import {
   getDDProfiles,
   getUsers,
 } from "@/features/users/server/users";
+import { cache } from "react";
 
 export const revalidate = 0;
 
@@ -22,8 +23,55 @@ type UsersPageProps = {
   profileName: string;
   merchant: string;
   customer: string;
-  name: string; // For profile search
 };
+
+// Envolvendo as funções em cache
+const getCachedUsers = cache(getUsers);
+const getCachedProfiles = cache(getProfiles);
+const getCachedDDCustomers = cache(getDDCustomers);
+const getCachedDDProfiles = cache(getDDProfiles);
+const getCachedDDMerchants = cache(getDDMerchants);
+
+// Componentes separados para cada tab
+async function UsersTabContent({
+  email,
+  firstName,
+  lastName,
+  profile,
+  customer,
+  merchant,
+  page,
+  pageSize,
+}: UsersPageProps) {
+  const users = await getCachedUsers(
+    email,
+    firstName,
+    lastName,
+    Number(profile),
+    Number(customer),
+    Number(merchant),
+    Number(page),
+    Number(pageSize)
+  );
+  const DDCustomer = await getCachedDDCustomers();
+  const DDProfile = await getCachedDDProfiles();
+  const DDMerchant = await getCachedDDMerchants();
+
+  return { users, DDCustomer, DDProfile, DDMerchant };
+}
+
+async function ProfilesTabContent({
+  profileName,
+  page,
+  pageSize,
+}: {
+  profileName: string;
+  page: number;
+  pageSize: number;
+}) {
+  const profiles = await getCachedProfiles(profileName, page, pageSize);
+  return { profiles };
+}
 
 export default async function UsersPage({
   searchParams,
@@ -36,29 +84,36 @@ export default async function UsersPage({
   const firstName = searchParams.firstName || "";
   const lastName = searchParams.lastName || "";
   const activeTab = searchParams.tab || "users";
-  const profileId = searchParams.profileName || "0";
+  const profileId = searchParams.profile || "0";
   const customerId = searchParams.customer || "0";
   const merchantId = searchParams.merchant || "0";
-  const profileName = searchParams.name || "";
+  const profileName = searchParams.profileName || "";
 
-  const users = await getUsers(
-    email,
-    firstName,
-    lastName,
-    Number(profileId),
-    Number(customerId),
-    Number(merchantId),
-    page,
-    pageSize
-  );
+  let usersData, profilesData;
 
-  const profiles = await getProfiles(profileName, page, pageSize);
-  const DDCustomer = await getDDCustomers();
-  const DDProfile = await getDDProfiles();
-  const DDMerchant = await getDDMerchants();
-
-  const totalUsersRecords = users.totalCount;
-  const totalProfilesRecords = profiles.totalCount;
+  if (activeTab === "users") {
+    usersData = await UsersTabContent({
+      email,
+      firstName,
+      lastName,
+      profile: profileId,
+      customer: customerId,
+      merchant: merchantId,
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+      tab: activeTab,
+      profileName: profileName,
+    });
+    profilesData = { profiles: { items: [], totalCount: 0 } }; // dados vazios
+  } else {
+    profilesData = await ProfilesTabContent({ profileName, page, pageSize });
+    usersData = {
+      users: { items: [], totalCount: 0 },
+      DDCustomer: [],
+      DDProfile: [],
+      DDMerchant: [],
+    }; // dados vazios
+  }
 
   return (
     <>
@@ -81,13 +136,13 @@ export default async function UsersPage({
         }
       >
         <UserTabs
-          users={users}
-          profiles={profiles}
-          DDCustomer={DDCustomer}
-          DDProfile={DDProfile}
-          DDMerchant={DDMerchant}
-          totalUsersRecords={totalUsersRecords}
-          totalProfilesRecords={totalProfilesRecords}
+          users={usersData.users}
+          profiles={profilesData.profiles}
+          DDCustomer={usersData.DDCustomer || []}
+          DDProfile={usersData.DDProfile || []}
+          DDMerchant={usersData.DDMerchant || []}
+          totalUsersRecords={usersData.users?.totalCount || 0}
+          totalProfilesRecords={profilesData.profiles?.totalCount || 0}
           page={page}
           pageSize={pageSize}
           email={email}

@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 import { schemaUser, UserSchema } from "../schema/schema";
 import { DD, InsertUser, updateUser, UserDetailForm } from "../server/users";
+import { toast } from "sonner";
 
 interface UserFormProps {
   user?: UserDetailForm;
@@ -63,6 +64,7 @@ export default function UserForm({
   const onSubmit = async (data: UserSchema) => {
     try {
       setIsLoading(true);
+      toast.loading("Salvando usuário...");
 
       // Validação adicional da senha
       if (!user?.id && !data.password) {
@@ -70,6 +72,7 @@ export default function UserForm({
           type: "manual",
           message: "Senha é obrigatória para novos usuários",
         });
+        toast.error("Senha é obrigatória para novos usuários");
         return;
       }
 
@@ -91,12 +94,15 @@ export default function UserForm({
 
       if (data.id && data.id > 0) {
         await updateUser(data.id, userData);
+        toast.success("Usuário atualizado com sucesso!");
       } else {
         await InsertUser(userData);
+        toast.success("Usuário criado com sucesso!");
         router.push("/portal/users");
       }
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
+      toast.error("Erro ao salvar usuário. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
