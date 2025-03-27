@@ -32,7 +32,7 @@ export interface Merchantlist {
     kic_status: string;
     addressname: string;
     time_zone: string;
-
+    dtinsert: string;
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
     
@@ -307,6 +307,8 @@ export interface MerchantDetail {
   idConfiguration?: number;
   slugConfiguration?: string;
   idAddress?: number;
+  idLegalNature?: number;
+  slugLegalNature?: string;
 }
 
 // Função para inserir um novo merchant
@@ -353,6 +355,8 @@ export async function insertMerchant(
       idConfiguration: merchant.idConfiguration,
       slugConfiguration: merchant.slugConfiguration,
       idAddress: merchant.idAddress,
+      idLegalNature: merchant.idLegalNature,
+      slugLegalNature: merchant.slugLegalNature,
     })
     .returning({ id: merchants.id });
 
@@ -400,6 +404,8 @@ export async function updateMerchant(merchant: MerchantDetail): Promise<void> {
       idConfiguration: merchant.idConfiguration,
       slugConfiguration: merchant.slugConfiguration,
       idAddress: merchant.idAddress,
+      idLegalNature: merchant.idLegalNature,
+      slugLegalNature: merchant.slugLegalNature,
     })
     .where(eq(merchants.id, merchant.id));
 }
@@ -467,6 +473,13 @@ export async function updateMerchantColumnsById(
   updates: Record<string, string | number | boolean | null>
 ): Promise<void> {
   try {
+    console.log(`Atualizando merchant ID ${id} com os seguintes dados:`, updates);
+    
+    // Verificar se o campo timezone está presente nos updates
+    if ('timezone' in updates) {
+      console.log(`Valor da timezone a ser atualizado: ${updates.timezone}`);
+    }
+    
     await db
       .update(merchants)
       .set({
@@ -476,6 +489,15 @@ export async function updateMerchantColumnsById(
       .where(eq(merchants.id, id));
 
     console.log(`Colunas atualizadas com sucesso para o ID ${id}`);
+    
+    // Verificar se a atualização foi bem-sucedida
+    const updatedMerchant = await db
+      .select()
+      .from(merchants)
+      .where(eq(merchants.id, id))
+      .limit(1);
+      
+    console.log(`Merchant atualizado:`, updatedMerchant[0]);
   } catch (error) {
     console.error(
       `Erro ao atualizar colunas para o ID ${id}:`,
@@ -632,4 +654,23 @@ export type MerchantList = {
   cpAnticipationCount: number
   cnpAnticipationCount: number
   // ... any other existing properties ...
+}
+
+// Função genérica para buscar slug por ID
+export async function getSlugById(
+  table: typeof legalNatures | typeof categories | typeof configurations,
+  id: number
+): Promise<string | null> {
+  try {
+    const result = await db
+      .select({ slug: table.slug })
+      .from(table)
+      .where(eq(table.id, id))
+      .limit(1);
+
+    return result[0]?.slug || null;
+  } catch (error) {
+    console.error(`Erro ao buscar slug para id ${id}:`, error);
+    return null;
+  }
 }

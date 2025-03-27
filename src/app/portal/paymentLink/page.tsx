@@ -4,6 +4,7 @@ import PaginationRecords from "@/components/pagination-Records";
 import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-link-filter";
 import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -20,8 +21,10 @@ export default async function PaymentLinkPage({
 }: {
   searchParams: PaymentLinkProps;
 }) {
+  await checkPagePermission("Link de Pagamentos");
+
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const merchant = searchParams.merchant || "";
   const identifier = searchParams.identifier || "";
   const status = searchParams.status || "";
@@ -56,7 +59,6 @@ export default async function PaymentLinkPage({
           />
         </div>
         <PaymentLinkList links={paymentLinks} />
-
         {totalRecords > 0 && (
           <PaginationRecords
             totalRecords={totalRecords}

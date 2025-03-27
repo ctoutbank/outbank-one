@@ -9,12 +9,9 @@ export const schemaConfiguration = z.object({
   url: z.string().optional(),
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
-
 });
 
 export type ConfigurationSchema = z.infer<typeof schemaConfiguration>;
-
-
 
 export const schemaConfigurationOperations = z.object({
   id: z.number().optional(),
@@ -31,10 +28,11 @@ export const schemaConfigurationOperations = z.object({
   merhcnatSlug: z.string().optional(),
   cardPresent: z.boolean().optional(),
   cardNotPresent: z.boolean().optional(),
-  timerzone: z.string().optional(),
+  timezone: z.string().optional(),
   theme: z.string().optional(),
-  accessProfile: z.string().optional(),
-
+ 
 });
 
-export type ConfigurationOperationsSchema = z.infer<typeof schemaConfigurationOperations>;
+export type ConfigurationOperationsSchema = z.infer<
+  typeof schemaConfigurationOperations
+>;

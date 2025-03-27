@@ -1,5 +1,4 @@
-
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/menu-portal/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 
 import { SidebarProvider } from "@/components/ui/sidebar";

@@ -7,6 +7,7 @@ import {
   DailyAmount,
   GlobalSettlementResult,
   getMerchantAgendaTotal,
+  getMerchantAgendaReceipts,
 } from "../server/merchantAgenda";
 import { Calendar } from "./calendar";
 import { DailyView } from "./dailyView";
@@ -15,31 +16,46 @@ import ListFilter from "./receiptsFilter";
 // Exemplo de dados - substitua pelos dados reais da sua aplicação
 
 export default function MerchantAgendaReceipts({
-  monthlyData,
+  monthlyData: initialMonthlyData,
   dailyData,
 }: {
   monthlyData: DailyAmount[];
   dailyData: GlobalSettlementResult;
 }) {
   const [view, setView] = useState("month");
- 
-
   const [monthTotal, setMonthTotal] = useState<number>(0);
   const [actualDate, setActualDate] = useState<Date>(new Date());
+  const [monthlyData, setMonthlyData] = useState<DailyAmount[]>(initialMonthlyData);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchTotalAmountByMonth = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
+        // Busca o total do mês
         const totalAmountByMonth = (await getMerchantAgendaTotal(
           actualDate
         )) as number;
         setMonthTotal(totalAmountByMonth || 0);
+        
+        // Busca os dados diários para o mês
+        const receipts = await getMerchantAgendaReceipts(null, actualDate);
+        
+        // Converte para o formato esperado pelo calendário
+        const dailyAmounts: DailyAmount[] = receipts.map((receipt) => ({
+          date: String(receipt.day),
+          amount: Number(receipt.totalAmount) || 0,
+        })).filter(item => item.amount > 0);
+        
+        setMonthlyData(dailyAmounts);
       } catch (error) {
-        console.error("Failed to fetch total amount by month:", error);
+        console.error("Falha ao buscar dados mensais:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchTotalAmountByMonth();
+    fetchData();
   }, [actualDate]);
 
   return (
@@ -72,7 +88,12 @@ export default function MerchantAgendaReceipts({
       </div>
 
       {view === "month" ? (
-        <Calendar monthlyData={monthlyData} handleMonthChange={setActualDate} />
+        <Calendar 
+          monthlyData={monthlyData} 
+          handleMonthChange={setActualDate} 
+          dailyData={dailyData}
+          isLoading={isLoading}
+        />
       ) : (
         <DailyView dailyData={dailyData} />
       )}
