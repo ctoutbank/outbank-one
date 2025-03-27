@@ -13,6 +13,7 @@ import {
   PieChart,
   Bolt,
   File,
+  FileText,
   LucideIcon,
 } from "lucide-react";
 import * as React from "react";
@@ -45,6 +46,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   PieChart,
   Bolt,
   File,
+  FileText,
 };
 
 interface MenuItem {
