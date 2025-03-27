@@ -1,10 +1,8 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { getTransactions } from "../serverActions/transaction";
 import { Button } from "@/components/ui/button";
 import { File } from "lucide-react";
-import { exportToPDF } from "@/lib/export-pdf";
+import { useSearchParams } from "next/navigation";
 
 export default function TransactionsExportPdf() {
   const searchParams = useSearchParams();
@@ -20,23 +18,22 @@ export default function TransactionsExportPdf() {
     const dateTo = searchParams.get("dateTo") || undefined;
     const productType = searchParams.get("productType") || undefined;
 
-    // Faz consulta direta ao banco de dados com os filtros aplicados
-    const transactionList = await getTransactions(
-      search,
-      page,
-      pageSize,
-      status,
-      merchant,
-      dateFrom,
-      dateTo,
-      productType
-    );
-
     console.log("Exportando transações para PDF...");
 
     try {
+      // Construir a URL com os parâmetros de consulta
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (status) queryParams.append("status", status);
+      if (merchant) queryParams.append("merchant", merchant);
+      if (dateFrom) queryParams.append("dateFrom", dateFrom);
+      if (dateTo) queryParams.append("dateTo", dateTo);
+      if (productType) queryParams.append("productType", productType);
+      queryParams.append("page", page.toString());
+      queryParams.append("pageSize", pageSize.toString());
+
       // Preparar os dados para enviar para a API
-      const response = await fetch("/api/export-pdf");
+      const response = await fetch(`/api/export-pdf?${queryParams.toString()}`);
 
       if (!response.ok) {
         throw new Error(`Erro na resposta: ${response.status}`);

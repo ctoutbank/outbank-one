@@ -1,7 +1,12 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import type { DailyAmount, GlobalSettlementResult, PaymentMethodData, BrandData } from "@/features/merchantAgenda/server/merchantAgenda";
+import type {
+  DailyAmount,
+  GlobalSettlementResult,
+  PaymentMethodData,
+  BrandData,
+} from "@/features/merchantAgenda/server/merchantAgenda";
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -48,40 +53,44 @@ const FIXED_BRANDS = [
 
 // Paleta de cores para métodos de pagamento
 const paymentMethodColors: Record<string, string> = {
-  "DEBIT": "text-emerald-600",
-  "CREDIT": "text-amber-600",
-  "CREDIT_2": "text-yellow-600",
-  "CREDIT_3": "text-orange-600",
-  "PIX": "text-cyan-600",
-  "PREPAYMENT": "text-indigo-600",
-  "CASH": "text-gray-600"
+  DEBIT: "text-emerald-600",
+  CREDIT: "text-amber-600",
+  CREDIT_2: "text-yellow-600",
+  CREDIT_3: "text-orange-600",
+  PIX: "text-cyan-600",
+  PREPAYMENT: "text-indigo-600",
+  CASH: "text-gray-600",
 };
 
 // Paleta de cores para bandeiras
 const brandColors: Record<string, string> = {
-  "VISA": "text-blue-600",
-  "MASTERCARD": "text-red-600",
-  "ELO": "text-green-600",
-  "HIPERCARD": "text-purple-600",
-  "AMEX": "text-sky-600",
-  "CABAL": "text-gray-600"
+  VISA: "text-blue-600",
+  MASTERCARD: "text-red-600",
+  ELO: "text-green-600",
+  HIPERCARD: "text-purple-600",
+  AMEX: "text-sky-600",
+  CABAL: "text-gray-600",
 };
 
-export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading = false }: CalendarProps) {
+export function Calendar({
+  monthlyData,
+  handleMonthChange,
+  isLoading = false,
+}: CalendarProps) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
   const [statsLoading, setStatsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function loadDailyStatistics() {
       if (monthlyData.length === 0) return;
-      
+
       setStatsLoading(true);
       try {
         // Para cada dia com dados, carregue as estatísticas
         const datesWithData = monthlyData
-          .filter(day => day.amount > 0)
-          .map(day => day.date);
-          
+          .filter((day) => day.amount > 0)
+          .map((day) => day.date);
+
         // Obter estatísticas via server action importada
         const stats = await fetchDailyStats(datesWithData);
         setDailyStats(stats);
@@ -91,7 +100,7 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
         setStatsLoading(false);
       }
     }
-    
+
     loadDailyStatistics();
   }, [monthlyData]);
 
@@ -102,49 +111,56 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
     }).format(amount),
     date,
     extendedProps: {
-      amount
-    }
+      amount,
+    },
   }));
-  
+
   const handleDatesSet = (arg: DatesSetArg) => {
     // Usa diretamente a data do FullCalendar
     handleMonthChange(arg.view.currentStart);
   };
-  
+
   // Função para obter cor baseada no tipo de método de pagamento
   const getPaymentMethodColor = (methodId: string): string => {
     return paymentMethodColors[methodId] || "text-gray-600";
   };
-  
+
   // Função para obter cor baseada na bandeira
   const getBrandColor = (brandId: string): string => {
     return brandColors[brandId] || "text-gray-600";
   };
-  
+
   // Função para obter a porcentagem de um método de pagamento
-  const getPaymentMethodPercentage = (methodId: string, dayStats: any): number => {
+  const getPaymentMethodPercentage = (
+    methodId: string,
+    dayStats: any
+  ): number => {
     if (!dayStats || !dayStats.paymentMethods) return 0;
-    const method = dayStats.paymentMethods.find((m: PaymentMethodData) => m.name === methodId);
+    const method = dayStats.paymentMethods.find(
+      (m: PaymentMethodData) => m.name === methodId
+    );
     return method ? Math.round(method.percentage) : 0;
   };
-  
+
   // Função para obter a porcentagem de uma bandeira
   const getBrandPercentage = (brandId: string, dayStats: any): number => {
     if (!dayStats || !dayStats.brands) return 0;
     const brand = dayStats.brands.find((b: BrandData) => b.name === brandId);
     return brand ? Math.round(brand.percentage) : 0;
   };
-  
+
   // Função para formatar a porcentagem com largura fixa
   const formatPercentage = (value: number): string => {
     return `${value}%`;
   };
-  
+
   return (
     <Card className="p-4 overflow-hidden">
       {isLoading && (
         <div className="text-center mb-4 p-2 bg-muted rounded">
-          <div className="text-sm text-muted-foreground">Carregando dados do mês...</div>
+          <div className="text-sm text-muted-foreground">
+            Carregando dados do mês...
+          </div>
         </div>
       )}
       <FullCalendar
@@ -161,14 +177,16 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
         dayHeaderFormat={{ weekday: "short" }}
         eventContent={(eventInfo) => {
           const date = new Date(eventInfo.event.startStr);
-         
-          
+
           const hasData = eventInfo.event.extendedProps.amount > 0;
           const formattedDate = date.toISOString().split("T")[0];
-          
+
           // Obtém estatísticas para o dia atual
-          const dayStats = dailyStats[formattedDate] || { paymentMethods: [], brands: [] };
-                    
+          const dayStats = dailyStats[formattedDate] || {
+            paymentMethods: [],
+            brands: [],
+          };
+
           return (
             <div className="p-2 h-full flex flex-col">
               <div className="text-xs text-muted-foreground capitalize mb-1">
@@ -185,14 +203,20 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
                       currency: "BRL",
                     }).format(eventInfo.event.extendedProps.amount)}
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-x-1 text-[0.6rem] mt-1">
                     {/* Coluna 1: Todos os métodos de pagamento */}
                     <div className="flex flex-col space-y-0.5">
                       {FIXED_PAYMENT_METHODS.map((method) => (
                         <div key={method.id} className="flex items-center">
-                          <div className={`font-medium ${getPaymentMethodColor(method.id)} w-7 text-right`}>
-                            {formatPercentage(getPaymentMethodPercentage(method.id, dayStats))}
+                          <div
+                            className={`font-medium ${getPaymentMethodColor(
+                              method.id
+                            )} w-7 text-right`}
+                          >
+                            {formatPercentage(
+                              getPaymentMethodPercentage(method.id, dayStats)
+                            )}
                           </div>
                           <div className="ml-1 w-[4.5rem] truncate text-muted-foreground">
                             {method.name}
@@ -200,13 +224,19 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Coluna 2: Todas as bandeiras */}
                     <div className="flex flex-col space-y-0.5">
                       {FIXED_BRANDS.map((brand) => (
                         <div key={brand.id} className="flex items-center">
-                          <div className={`font-medium ${getBrandColor(brand.id)} w-7 text-right`}>
-                            {formatPercentage(getBrandPercentage(brand.id, dayStats))}
+                          <div
+                            className={`font-medium ${getBrandColor(
+                              brand.id
+                            )} w-7 text-right`}
+                          >
+                            {formatPercentage(
+                              getBrandPercentage(brand.id, dayStats)
+                            )}
                           </div>
                           <div className="ml-1 w-[4.5rem] truncate text-muted-foreground">
                             {brand.name}
@@ -215,7 +245,7 @@ export function Calendar({ monthlyData, handleMonthChange, dailyData, isLoading 
                       ))}
                     </div>
                   </div>
-                  
+
                   {statsLoading && (
                     <div className="text-xs text-muted-foreground mt-1 text-center">
                       Carregando...

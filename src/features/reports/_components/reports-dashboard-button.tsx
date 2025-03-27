@@ -1,14 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ChevronRight } from "lucide-react";
+import { ChevronRight, LayoutGrid } from "lucide-react";
 import { useState } from "react";
-import { ReportsDashboardContent } from "./reports-dashboard-content";
 
 export function ReportsDashboardButton({
-  children
+  children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -30,4 +29,4 @@ export function ReportsDashboardButton({
       {isExpanded && <div className="-ml-28">{children}</div>}
     </div>
   );
-} 
+}

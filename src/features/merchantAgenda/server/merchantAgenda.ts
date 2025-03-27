@@ -6,14 +6,13 @@ import {
   count,
   desc,
   eq,
+  gte,
   ilike,
+  lte,
   max,
   or,
   sql,
   sum,
-  gte,
-  lte,
-  SQL
 } from "drizzle-orm";
 import { merchants, payout } from "../../../../drizzle/schema";
 
@@ -107,12 +106,6 @@ export interface MerchantAgendaExcelData {
 }
 
 // Cache para armazenar dados de meses passados
-interface CacheData {
-  receipts: { day: string; totalAmount: number }[];
-  total: number;
-}
-
-const monthlyDataCache: Map<string, CacheData> = new Map();
 
 export async function getMerchantAgenda(
   search: string,
@@ -144,26 +137,30 @@ export async function getMerchantAgenda(
       payout.expectedSettlementDate,
       typeof maxDate == "string" ? maxDate : maxDate.toISOString()
     ),
-    or(ilike(merchants.name, `%${search}%`))
+    or(ilike(merchants.name, `%${search}%`)),
   ];
 
   if (dateFrom) {
-    conditions.push(gte(payout.transactionDate, new Date(dateFrom).toISOString()));
+    conditions.push(
+      gte(payout.transactionDate, new Date(dateFrom).toISOString())
+    );
   }
 
   if (dateTo) {
-    conditions.push(lte(payout.transactionDate, new Date(dateTo).toISOString()));
+    conditions.push(
+      lte(payout.transactionDate, new Date(dateTo).toISOString())
+    );
   }
 
   if (establishment) {
     conditions.push(ilike(merchants.name, `%${establishment}%`));
   }
 
-  if (status && status !== 'all') {
+  if (status && status !== "all") {
     conditions.push(eq(payout.status, status));
   }
 
-  if (cardBrand && cardBrand !== 'all') {
+  if (cardBrand && cardBrand !== "all") {
     conditions.push(eq(payout.brand, cardBrand));
   }
 
@@ -176,11 +173,15 @@ export async function getMerchantAgenda(
   }
 
   if (expectedSettlementDateFrom) {
-    conditions.push(gte(payout.expectedSettlementDate, expectedSettlementDateFrom));
+    conditions.push(
+      gte(payout.expectedSettlementDate, expectedSettlementDateFrom)
+    );
   }
 
   if (expectedSettlementDateTo) {
-    conditions.push(lte(payout.expectedSettlementDate, expectedSettlementDateTo));
+    conditions.push(
+      lte(payout.expectedSettlementDate, expectedSettlementDateTo)
+    );
   }
 
   const result = await db
@@ -293,35 +294,49 @@ export async function getMerchantAgendaInfo(): Promise<{
   };
 }
 
-export async function getMerchantAgendaReceipts(search: string | null, date?: Date) {
-  let whereConditions = [];
-  
+export async function getMerchantAgendaReceipts(
+  search: string | null,
+  date?: Date
+) {
+  const whereConditions = [];
+
   if (search) {
     whereConditions.push(ilike(merchants.name, `%${search}%`));
   }
-  
+
   if (date) {
-    const firstDayOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
-    const lastDayOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
+    const firstDayOfMonth = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), 1)
+    );
+    const lastDayOfMonth = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth() + 1, 0)
+    );
     const today = new Date();
-    
+
     // Permite visualizar meses passados, mas restringe datas futuras
     if (firstDayOfMonth > today) {
       return [];
     }
 
-    whereConditions.push(gte(payout.settlementDate, firstDayOfMonth.toISOString()));
-    whereConditions.push(lte(payout.settlementDate, 
-      firstDayOfMonth.getMonth() === today.getMonth() && 
-      firstDayOfMonth.getFullYear() === today.getFullYear() 
-        ? today.toISOString() 
-        : lastDayOfMonth.toISOString()
-    ));
+    whereConditions.push(
+      gte(payout.settlementDate, firstDayOfMonth.toISOString())
+    );
+    whereConditions.push(
+      lte(
+        payout.settlementDate,
+        firstDayOfMonth.getMonth() === today.getMonth() &&
+          firstDayOfMonth.getFullYear() === today.getFullYear()
+          ? today.toISOString()
+          : lastDayOfMonth.toISOString()
+      )
+    );
   }
-  
+
   // Mantém o filtro de dias da semana apenas para exibição no calendário
-  whereConditions.push(sql`EXTRACT(DOW FROM ${payout.settlementDate}) NOT IN (0, 6)`);
-  
+  whereConditions.push(
+    sql`EXTRACT(DOW FROM ${payout.settlementDate}) NOT IN (0, 6)`
+  );
+
   const merchantAgendaReceipts = await db
     .select({
       day: sql`DATE(${payout.settlementDate})`.as("day"),
@@ -337,10 +352,14 @@ export async function getMerchantAgendaReceipts(search: string | null, date?: Da
 }
 
 export async function getMerchantAgendaTotal(date: Date) {
-  const firstDayOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
-  const lastDayOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
+  const firstDayOfMonth = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), 1)
+  );
+  const lastDayOfMonth = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth() + 1, 0)
+  );
   const today = new Date();
-  
+
   // Permite visualizar meses passados, mas restringe datas futuras
   if (firstDayOfMonth > today) {
     return 0;
@@ -354,10 +373,11 @@ export async function getMerchantAgendaTotal(date: Date) {
     .where(
       and(
         gte(payout.settlementDate, firstDayOfMonth.toISOString()),
-        lte(payout.settlementDate, 
-          firstDayOfMonth.getMonth() === today.getMonth() && 
-          firstDayOfMonth.getFullYear() === today.getFullYear() 
-            ? today.toISOString() 
+        lte(
+          payout.settlementDate,
+          firstDayOfMonth.getMonth() === today.getMonth() &&
+            firstDayOfMonth.getFullYear() === today.getFullYear()
+            ? today.toISOString()
             : lastDayOfMonth.toISOString()
         )
       )
@@ -712,17 +732,20 @@ export async function getDailyStatistics(date: string): Promise<{
 
   try {
     const result = await db.execute(query);
-    const stats = result.rows[0]?.result as { 
-      paymentMethods?: PaymentMethodData[]; 
-      brands?: BrandData[]; 
-    } || { paymentMethods: [], brands: [] };
-    
+    const stats = (result.rows[0]?.result as {
+      paymentMethods?: PaymentMethodData[];
+      brands?: BrandData[];
+    }) || { paymentMethods: [], brands: [] };
+
     return {
       paymentMethods: stats.paymentMethods || [],
-      brands: stats.brands || []
+      brands: stats.brands || [],
     };
   } catch (error) {
-    console.error("Erro ao executar consulta SQL para estatísticas diárias:", error);
+    console.error(
+      "Erro ao executar consulta SQL para estatísticas diárias:",
+      error
+    );
     return {
       paymentMethods: [],
       brands: [],
