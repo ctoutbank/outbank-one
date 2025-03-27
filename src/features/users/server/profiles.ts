@@ -45,6 +45,10 @@ export interface ProfileList {
     slug: string;
     name: string;
     functions: ModuleSelect[];
+    description: string;
+    dtinsert: string;
+    dtupdate: string;
+    users: number;
   }[];
   totalCount?: number;
 }
@@ -61,6 +65,10 @@ export async function getProfiles(
       p.id,
       p.slug,
       p.name,
+      p.description,
+      p.dtinsert,
+      p.dtupdate,
+      5 as users,
       COALESCE(
         (
           SELECT json_agg(
@@ -120,6 +128,10 @@ export async function getProfiles(
     id: row.id,
     slug: row.slug,
     name: row.name,
+    description: row.description,
+    dtinsert: row.dtinsert,
+    dtupdate: row.dtupdate,
+    users: row.users,
     functions: row.modules || [],
   }));
 

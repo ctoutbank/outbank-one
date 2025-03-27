@@ -55,15 +55,13 @@ export default function UserTabs({
   const handleTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    // Clear all search params except tab
+    // Clear all search params
     Array.from(params.keys()).forEach((key) => {
-      if (key !== "tab") {
-        params.delete(key);
-      }
+      params.delete(key);
     });
 
     params.set("tab", value);
-    router.push(`/portal/users?${params.toString()}`);
+    router.replace(`/portal/users?${params.toString()}`);
   };
 
   return (

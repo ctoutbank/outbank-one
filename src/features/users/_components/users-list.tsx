@@ -41,12 +41,12 @@ export default function UsersList({ users }: { users: UserList }) {
         <TableBody>
           {users.userObject?.map((user) => (
             <TableRow
-              key={user.id}
+              key={user.email}
               className="hover:bg-muted/30 transition-colors"
             >
               <TableCell className="py-3">
                 <a
-                  href={`/portal/users/${user.id}`}
+                  href={`/portal/users/${user.idClerk}`}
                   className="text-primary hover:underline"
                 >
                   {user.email}

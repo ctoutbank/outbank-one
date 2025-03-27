@@ -18,7 +18,7 @@ export default async function UserDetail({
   const ddMerchant = await getDDMerchants();
   const ddProfile = await getDDProfiles();
   const ddCustomer = await getDDCustomers();
-  const user = await getUserById(Number(params.id));
+  const user = await getUserById(params.id);
 
   return (
     <>

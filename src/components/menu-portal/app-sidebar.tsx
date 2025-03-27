@@ -13,8 +13,10 @@ import {
   PieChart,
   Bolt,
   File,
+  LucideIcon,
 } from "lucide-react";
 import * as React from "react";
+import { useEffect, useState } from "react";
 
 import { NavMain } from "@/components/menu-portal/nav-projects";
 import { TeamSwitcher } from "@/components/team-switcher";
@@ -24,139 +26,117 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
+import { getAuthorizedMenu } from "@/features/menu/actions";
 
+// Icon mapping
+const iconMap: { [key: string]: LucideIcon } = {
+  Calculator,
+  DollarSign,
+  DollarSignIcon,
+  HomeIcon,
+  Landmark,
+  User,
+  Settings,
+  Check,
+  Link,
+  PieChart,
+  Bolt,
+  File,
+};
+
+interface MenuItem {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  items?: {
+    title: string;
+    url: string;
+  }[];
+}
+
+interface MenuData {
+  teams: {
+    name: string;
+    logo: LucideIcon;
+    plan: string;
+  }[];
+  navMain: MenuItem[];
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  
-  const data = {
-    teams: [
-      {
-        name: "Banco Prisma",
-        logo: DollarSignIcon,
-        plan: "Empresarial",
-      },
-    ],
-    navMain: [
-      {
-        title: "Dashboard",
-        url: "/portal/dashboard",
-        icon: PieChart,
-      },
-      {
-        title: "Estabelecimentos",
-        url: "/portal/merchants",
-        icon: HomeIcon,
-      },
-      {
-        title: "Terminais",
-        url: "/portal/terminals",
-        icon: Calculator,
-      },
-      {
-        title: "Vendas",
-        url: "/portal/transactions",
-        icon: DollarSign,
-        items: [
-          {
-            title: "Transações",
-            url: "/portal/transactions",
-          },
-          {
-            title: "Arquivos EDI",
-            url: "/portal/edis",
-          },
-        ],
-      },
+  const [menuData, setMenuData] = useState<MenuData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-      {
-        title: "Consultores Comerciais",
-        url: "/portal/salesAgents",
-        icon: User,
-      },
-      {
-        title: "Link de Pagamento",
-        url: "/portal/paymentLink",
-        icon: Link,
-      },
-      {
-        title: "Antecipações",
-        url: "/portal/anticipations",
-        icon: DollarSign,
-      },
+  useEffect(() => {
+    async function loadMenu() {
+      try {
+        const data = await getAuthorizedMenu();
 
-      {
-        title: "Liquidação",
-        url: "",
-        icon: Landmark,
-        items: [
-          {
-            title: "Hoje",
-            url: "/portal/settlements",
-          },
-          {
-            title: "Histórico",
-            url: "/portal/settlements/history",
-          },
-        ],
-      },
-      {
-        title: "Configurações de Conta",
-        url: "",
-        icon: Bolt,
-        items: [
-          {
-            title: "Perfis e Usuários",
-            url: "/portal/users",
-          },
-        ],
-      },
-      {
-        title: "Agenda dos Lojistas",
-        url: "/portal/merchantAgenda",
-        icon: Check,
-      },
-      {
-        title: "Recebimentos",
-        url: "/portal/receipts",
-        icon: Check,
-      },
-      {
-        title: "Taxas",
-        url: "/portal/tax",
-        icon: DollarSign,
-      },
-      {
-        title: "Relatórios",
-        url: "/portal/reports",
-        icon: File,
-      },
-      {
-        title: "Configurações",
-        url: "/portal/categories",
-        icon: Settings,
-        items: [
-          {
-            title: "Categorias",
-            url: "/portal/categories",
-          },
-          {
-            title: "Natureza Jurídica",
-            url: "/portal/legalNatures",
-          },
-        ],
-      },
-    ],
-  };
+        // Transform the menu data to include actual icon components
+        const transformedData = {
+          teams: data.teams.map((team: any) => ({
+            ...team,
+            logo: iconMap[team.logo] || DollarSignIcon,
+          })),
+          navMain: data.navMain.map((item: any) => ({
+            ...item,
+            icon: item.icon ? iconMap[item.icon] : undefined,
+          })),
+        };
+
+        setMenuData(transformedData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMenu();
+  }, []);
+
+  if (loading) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <div className="h-10 w-full animate-pulse bg-muted rounded-md" />
+        </SidebarHeader>
+        <SidebarContent>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <SidebarMenuSkeleton key={i} showIcon />
+          ))}
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="h-10 w-full animate-pulse bg-muted rounded-md" />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  }
+
+  if (error || !menuData) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarContent>
+          <div className="p-4 text-center text-destructive">
+            {error || "Failed to load menu"}
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={menuData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={menuData.navMain} />
       </SidebarContent>
       <SidebarFooter>
         <UserButton />

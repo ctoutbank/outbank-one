@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 export async function checkPagePermission(
   group: string,
-  permission: string = "Ver lista"
+  permission: string = "Listar"
 ) {
   const user = await currentUser();
   console.log("user", user);

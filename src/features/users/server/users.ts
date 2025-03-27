@@ -34,6 +34,7 @@ export interface UserList {
         status: boolean;
         merchantName: string;
         customerName: string;
+        idClerk: string;
       }[]
     | null;
   totalCount: number;
@@ -104,7 +105,7 @@ export async function getUsers(
       status: users.active,
       merchantName: merchants.name,
       customerName: customers.name,
-      clerkId: users.idClerk,
+      idClerk: users.idClerk,
     })
     .from(users)
     .leftJoin(merchants, eq(users.idMerchant, merchants.id))
@@ -117,7 +118,7 @@ export async function getUsers(
 
   const userObject = result.map((dbUser) => {
     const clerkData = clerkResult.find(
-      (clerk: any) => clerk.id === dbUser.clerkId
+      (clerk: any) => clerk.id === dbUser.idClerk
     );
 
     return {
@@ -130,6 +131,7 @@ export async function getUsers(
       status: dbUser.status || true,
       merchantName: dbUser.merchantName || "",
       customerName: dbUser.customerName || "",
+      idClerk: dbUser.idClerk || "",
     };
   });
 
@@ -253,12 +255,14 @@ export async function updateUser(id: number, data: UserInsert) {
   }
 }
 
-export async function getUserById(id: number): Promise<UserDetailForm | null> {
-  const userDb = await db.select().from(users).where(eq(users.id, id));
-  console.log(
-    "condição",
-    userDb == undefined || userDb == null || userDb[0] == undefined
-  );
+export async function getUserById(
+  idClerk: string
+): Promise<UserDetailForm | null> {
+  const userDb = await db
+    .select()
+    .from(users)
+    .where(eq(users.idClerk, idClerk));
+
   if (userDb == undefined || userDb == null || userDb[0] == undefined) {
     return null;
   } else {

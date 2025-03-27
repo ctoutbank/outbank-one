@@ -22,6 +22,7 @@ import {
   insertConfigurationFormAction,
   updateConfigurationFormAction,
 } from "../_actions/configuration-formActions";
+import { toast } from "sonner";
 
 interface ConfigurationFormProps {
   initialData?: ConfigurationSchema;
@@ -46,15 +47,19 @@ export function ConfigurationForm({
 
   async function onSubmit(data: ConfigurationSchema) {
     try {
+      toast.loading("Salvando configuração...");
       if (isEditing) {
         await updateConfigurationFormAction(data);
+        toast.success("Configuração atualizada com sucesso!");
       } else {
         await insertConfigurationFormAction(data);
+        toast.success("Configuração criada com sucesso!");
       }
       router.push("/portal/configurations");
       router.refresh();
     } catch (error) {
       console.error("Error saving configuration:", error);
+      toast.error("Erro ao salvar configuração. Tente novamente.");
     }
   }
 
