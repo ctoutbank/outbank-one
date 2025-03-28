@@ -5,19 +5,19 @@ import {
   ReportInsert,
   insertReport,
   updateReport,
-  deleteReportFilters
+  deleteReportFilters,
 } from "../server/reports";
 import {
   ReportFilterDetail,
   ReportFilterInsert,
   insertReportFilter,
   updateReportFilter,
-  deleteReportFilter
+  deleteReportFilter,
 } from "../filter/filter-Actions";
 
 export async function insertReportFormAction(data: ReportSchema) {
   console.log("Dados recebidos no insertReportFormAction:", data);
-  
+
   const reportInsert: ReportInsert = {
     title: data.title,
     recurrenceCode: data.recurrenceCode || null,
@@ -36,7 +36,7 @@ export async function insertReportFormAction(data: ReportSchema) {
   console.log("Dados a serem inseridos:", reportInsert);
 
   const newId = await insertReport(reportInsert);
-  
+
   // Adicionar filtros, se houver
   if (data.filters && data.filters.length > 0) {
     for (const filter of data.filters) {
@@ -47,11 +47,11 @@ export async function insertReportFormAction(data: ReportSchema) {
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
       };
-      
+
       await insertReportFilter(filterInsert);
     }
   }
-  
+
   return newId;
 }
 
@@ -81,11 +81,11 @@ export async function updateReportFormAction(data: ReportSchema) {
   console.log("Dados a serem atualizados:", reportUpdate);
 
   await updateReport(reportUpdate);
-  
+
   // Atualizar filtros
   // Primeiro, remover filtros existentes
   await deleteReportFilters(data.id);
-  
+
   // Adicionar novos filtros
   if (data.filters && data.filters.length > 0) {
     for (const filter of data.filters) {
@@ -96,7 +96,7 @@ export async function updateReportFormAction(data: ReportSchema) {
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
       };
-      
+
       await insertReportFilter(filterInsert);
     }
   }
@@ -129,6 +129,7 @@ export async function updateReportFilterAction(data: ReportFilterSchema) {
     idReport: data.idReport!,
     idReportFilterParam: data.idReportFilterParam,
     value: data.value,
+    typeName: null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
   };
@@ -138,4 +139,4 @@ export async function updateReportFilterAction(data: ReportFilterSchema) {
 
 export async function deleteReportFilterAction(filterId: number) {
   await deleteReportFilter(filterId);
-} 
+}

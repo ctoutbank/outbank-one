@@ -6,7 +6,6 @@ import {
   periodTypes,
   recurrenceTypes,
   reportFilters,
-  reportFiltersParam,
   reports,
   reportTypes,
 } from "../../../../drizzle/schema";
@@ -39,8 +38,6 @@ export interface ReportsList {
 
 export type ReportDetail = typeof reports.$inferSelect;
 export type ReportInsert = typeof reports.$inferInsert;
-
-
 
 export async function getReports(
   search: string,
@@ -155,8 +152,6 @@ export async function getReportById(id: number): Promise<ReportDetail | null> {
   return result[0] || null;
 }
 
-
-
 export async function insertReport(report: ReportInsert): Promise<number> {
   const result = await db.insert(reports).values(report).returning({
     id: reports.id,
@@ -183,9 +178,6 @@ export async function updateReport(report: ReportDetail): Promise<void> {
     })
     .where(eq(reports.id, report.id));
 }
-
-
-
 
 export async function deleteReportFilter(filterId: number): Promise<void> {
   await db.delete(reportFilters).where(eq(reportFilters.id, filterId));
