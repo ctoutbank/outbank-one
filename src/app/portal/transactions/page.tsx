@@ -60,12 +60,9 @@ export default async function TransactionsPage({
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Transações", url: "/portal/transactions" }]}
+        breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
       />
-      <BaseBody
-        title="Transações"
-        subtitle={`Visualização de todas as transações`}
-      >
+      <BaseBody title="Vendas" subtitle={`Visualização de todas as vendas`}>
         <div className="flex flex-col space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">

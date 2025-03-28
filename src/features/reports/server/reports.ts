@@ -40,10 +40,7 @@ export interface ReportsList {
 export type ReportDetail = typeof reports.$inferSelect;
 export type ReportInsert = typeof reports.$inferInsert;
 
-export type ReportFilterDetail = typeof reportFilters.$inferSelect;
-export type ReportFilterInsert = typeof reportFilters.$inferInsert;
 
-export type ReportFilterParamDetail = typeof reportFiltersParam.$inferSelect;
 
 export async function getReports(
   search: string,
@@ -158,15 +155,7 @@ export async function getReportById(id: number): Promise<ReportDetail | null> {
   return result[0] || null;
 }
 
-export async function getReportFilters(
-  reportId: number
-): Promise<ReportFilterDetail[]> {
-  return await db
-    .select()
-    .from(reportFilters)
-    .where(eq(reportFilters.idReport, reportId))
-    .orderBy(reportFilters.id);
-}
+
 
 export async function insertReport(report: ReportInsert): Promise<number> {
   const result = await db.insert(reports).values(report).returning({
@@ -195,28 +184,8 @@ export async function updateReport(report: ReportDetail): Promise<void> {
     .where(eq(reports.id, report.id));
 }
 
-export async function insertReportFilter(
-  filter: ReportFilterInsert
-): Promise<number> {
-  const result = await db.insert(reportFilters).values(filter).returning({
-    id: reportFilters.id,
-  });
 
-  return result[0].id;
-}
 
-export async function updateReportFilter(
-  filter: ReportFilterDetail
-): Promise<void> {
-  await db
-    .update(reportFilters)
-    .set({
-      idReportFilterParam: filter.idReportFilterParam,
-      value: filter.value,
-      dtupdate: new Date().toISOString(),
-    })
-    .where(eq(reportFilters.id, filter.id));
-}
 
 export async function deleteReportFilter(filterId: number): Promise<void> {
   await db.delete(reportFilters).where(eq(reportFilters.id, filterId));

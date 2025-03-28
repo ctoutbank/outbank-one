@@ -5,7 +5,7 @@ import { LayoutGrid, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
 export function SalesAgentDashboardButton({
-  children
+  children  
 }: {
   children: React.ReactNode
 }) {

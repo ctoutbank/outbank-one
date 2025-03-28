@@ -1,16 +1,19 @@
-import { ReportSchema, ReportFilterSchema } from "../schema/schema";
+import { ReportSchema } from "../schema/schema";
+import { ReportFilterSchema } from "../filter/schema";
 import {
   ReportDetail,
   ReportInsert,
   insertReport,
   updateReport,
+  deleteReportFilters
+} from "../server/reports";
+import {
   ReportFilterDetail,
   ReportFilterInsert,
   insertReportFilter,
   updateReportFilter,
-  deleteReportFilter,
-  deleteReportFilters
-} from "../server/reports";
+  deleteReportFilter
+} from "../filter/filter-Actions";
 
 export async function insertReportFormAction(data: ReportSchema) {
   console.log("Dados recebidos no insertReportFormAction:", data);

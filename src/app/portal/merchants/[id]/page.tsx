@@ -286,6 +286,7 @@ export default async function MerchantDetail({
           DDAccountType={DDAccountType}
           DDBank={DDBank}
         />
+        
       </BaseBody>
     </>
   );

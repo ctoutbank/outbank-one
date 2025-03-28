@@ -32,11 +32,3 @@ export const SchemaReport = z.object({
 
 export type ReportSchema = z.infer<typeof SchemaReport>;
 
-export const SchemaReportFilter = z.object({
-  id: z.number().optional(),
-  idReport: z.number().optional(),
-  idReportFilterParam: z.number().min(1, "Parâmetro de filtro é obrigatório"),
-  value: z.string().min(1, "Valor é obrigatório"),
-});
-
-export type ReportFilterSchema = z.infer<typeof SchemaReportFilter>; 
