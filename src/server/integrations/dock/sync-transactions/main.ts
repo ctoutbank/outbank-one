@@ -89,7 +89,9 @@ async function fetchData(offset: number) {
         },
       }
     ); // Replace with your API URL
+
     const data: GetTransactionsResponse = await response.json();
+    console.log(data);
     return data.objects;
   } catch (error: any) {
     console.error("Error fetching API data:", error.message);

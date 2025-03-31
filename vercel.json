@@ -1,12 +1,22 @@
 {
     "crons": [
+      
       {
-        "path": "/api/cron/send-transaction-report",
-        "schedule": "0 0 * * *"
+        "path": "/api/cron/report-schedule",
+        "schedule": "*/5 * * * *"
+      },
+      {
+        "path": "/api/cron/report-execution",
+        "schedule": "*/5 * * * *"
       },
       {
         "path": "/api/cron/sync-transactions",
         "schedule": "*/5 * * * *"
-      }
+      },
+      {
+        "path": "/api/cron/sync-terminals",
+        "schedule": "0 0 * * *"
+      },
+      
     ]
   }
