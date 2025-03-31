@@ -90,6 +90,25 @@ const week: SelectItem[] = [
 ];
 
 
+const Status: SelectItem[] = [
+  { value: "CANCELED", label: "Cancelada" },
+  { value: "EXPIRED", label: "Expirada" },
+  { value: "PENDING", label: "Pendente" },
+  { value: "DENIED", label: "Negada" },
+  { value: "PRE_AUTHORIZED", label: "Pré-autorizada" },
+  { value: "AUTHORIZED", label: "Autorizada" },
+  { value: "APPROVED", label: "Aprovada" },
+  { value: "REJECTED", label: "Rejeitada" },
+  { value: "FAILED", label: "Falhou" },
+];
 
+const ProductType: SelectItem[] = [
+  { value: "DEBIT", label: "Débito" },
+  { value: "CREDIT", label: "Crédito" },
+  { value: "VOUCHER", label: "Voucher" },
+  { value: "PIX", label: "PIX" },
+  { value: "PREPAID_CREDIT", label: "Crédito Pré-pago" },
+  { value: "PREPAID_DEBIT", label: "Débito Pré-pago" },
+];
 
-export { timezones, states, legalPersonTypes, week };
+export { timezones, states, legalPersonTypes, week, Status, ProductType };

@@ -1,9 +1,9 @@
 "use server"
 
 import { db } from "@/server/db";
-import { reportFilters, reportFiltersParam, reportTypes } from "../../../../drizzle/schema";
+import { brand, reportFilters, reportFiltersParam, reportTypes, reports, merchants } from "../../../../drizzle/schema";
 
-import { eq } from "drizzle-orm";
+import { eq, or, ilike } from "drizzle-orm";
 
 export async function getReportFilters(
     reportId: number
@@ -115,3 +115,192 @@ export async function insertReportFilter(
     return result[0] || null;
   }
 
+  export type BrandOption = {
+    code: string;
+    name: string;
+  };
+  
+  export async function getAllBrands(): Promise<BrandOption[]> {
+    try {
+      const results = await db
+        .select({
+          code: brand.code,
+          name: brand.name,
+        })
+        .from(brand)
+        .orderBy(brand.name);
+  
+      return results;
+    } catch (error) {
+      console.error("Erro ao buscar brands:", error);
+      return [];
+    }
+  }
+
+  export async function getReportTypeByReportId(reportId: number): Promise<string | null> {
+    const result = await db
+      .select({
+        reportType: reports.reportType
+      })
+      .from(reports)
+      .where(eq(reports.id, reportId))
+      .limit(1);
+    
+    return result[0]?.reportType || null;
+  }
+
+  export async function getReportFilterParamsByType(type: string): Promise<ReportFilterParamDetail[]> {
+    const result = await db
+      .select()
+      .from(reportFiltersParam)
+      .where(eq(reportFiltersParam.type, type));
+    
+    return result;
+  }
+
+  // Nova função para buscar todos os dados necessários para o formulário de filtro de uma vez
+  export async function getFilterFormData(reportId: number): Promise<{
+    brands: BrandOption[];
+    reportType: string | null;
+  }> {
+    try {
+      // Buscar o tipo de relatório
+      const reportTypeResult = await db
+        .select({
+          reportType: reports.reportType
+        })
+        .from(reports)
+        .where(eq(reports.id, reportId))
+        .limit(1);
+      
+      // Buscar as bandeiras
+      const brandsResult = await db
+        .select({
+          code: brand.code,
+          name: brand.name,
+        })
+        .from(brand)
+        .orderBy(brand.name);
+
+      return {
+        brands: brandsResult,
+        reportType: reportTypeResult[0]?.reportType || null
+      };
+    } catch (error) {
+      console.error("Erro ao buscar dados para o formulário:", error);
+      return {
+        brands: [],
+        reportType: null
+      };
+    }
+  }
+
+  export type MerchantOption = {
+    id: number;
+    name: string | null;
+    slug: string | null;
+    corporateName: string | null;
+  };
+
+  // Cache para as pesquisas de estabelecimentos com tempo de expiração
+  const MAX_CACHE_SIZE = 10;
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutos em milissegundos
+  const merchantsCache: { 
+    [key: string]: { 
+      data: MerchantOption[], 
+      timestamp: number 
+    } 
+  } = {};
+
+  // Função para gerenciar o tamanho do cache e remover itens expirados
+  const manageCache = () => {
+    const now = Date.now();
+    const cacheKeys = Object.keys(merchantsCache);
+    
+    // Remover entradas expiradas
+    cacheKeys.forEach(key => {
+      if (now - merchantsCache[key].timestamp > CACHE_TTL) {
+        delete merchantsCache[key];
+      }
+    });
+    
+    // Se ainda estiver acima do limite, remover as entradas mais antigas
+    if (Object.keys(merchantsCache).length > MAX_CACHE_SIZE) {
+      const oldestKeys = Object.entries(merchantsCache)
+        .sort(([, a], [, b]) => a.timestamp - b.timestamp)
+        .slice(0, Object.keys(merchantsCache).length - MAX_CACHE_SIZE)
+        .map(([key]) => key);
+      
+      oldestKeys.forEach(key => delete merchantsCache[key]);
+    }
+  };
+
+  // Buscar estabelecimentos por termo de pesquisa
+  export const searchMerchants = async (searchTerm = ''): Promise<MerchantOption[]> => {
+    // Limpeza e normalização do termo de busca
+    const normalizedTerm = searchTerm.toLowerCase().trim();
+    const cacheKey = normalizedTerm || 'all';
+    
+    // Limpar o cache antes de cada nova consulta para evitar crescimento excessivo
+    manageCache();
+    
+    // Verificar se temos resultados válidos em cache
+    if (merchantsCache[cacheKey] && 
+        (Date.now() - merchantsCache[cacheKey].timestamp < CACHE_TTL)) {
+      return merchantsCache[cacheKey].data;
+    }
+    
+    try {
+      let results: MerchantOption[];
+      
+      // Consulta direta ao banco em vez de API para evitar erros de rede
+      if (normalizedTerm.length > 0) {
+        // Busca com termo específico
+        results = await db
+          .select({
+            id: merchants.id,
+            name: merchants.name,
+            slug: merchants.slug,
+            corporateName: merchants.corporateName
+          })
+          .from(merchants)
+          .where(
+            or(
+              ilike(merchants.name, `%${normalizedTerm}%`),
+              ilike(merchants.corporateName, `%${normalizedTerm}%`)
+            )
+          )
+          .orderBy(merchants.name)
+          .limit(100);
+      } else {
+        // Busca de todos os estabelecimentos ativos (limitado)
+        results = await db
+          .select({
+            id: merchants.id,
+            name: merchants.name,
+            slug: merchants.slug,
+            corporateName: merchants.corporateName
+          })
+          .from(merchants)
+          .orderBy(merchants.name)
+          .limit(100);
+      }
+      
+      // Armazenar resultado em cache
+      merchantsCache[cacheKey] = {
+        data: results,
+        timestamp: Date.now()
+      };
+      
+      return results;
+    } catch (error) {
+      console.error("Erro ao buscar estabelecimentos:", error);
+      
+      // Em caso de erro, retornar cache mesmo que expirado, se disponível
+      if (merchantsCache[cacheKey]) {
+        return merchantsCache[cacheKey].data;
+      }
+      
+      return [];
+    }
+  }; 
