@@ -1,11 +1,15 @@
-import { getfileFormats, getperiodTypes, getRecorrenceTypes, getReportById, getreportTypes } from "@/features/reports/server/reports";
+import { fetchReportFilterParams, getfileFormats, getperiodTypes, getRecorrenceTypes, getReportById, getreportTypes } from "@/features/reports/server/reports";
 import ReportForm from "@/features/reports/_components/reports-form";
 import BaseHeader from "@/components/layout/base-header";
 import BaseBody from "@/components/layout/base-body";
 import FilterTableAndForm from "@/features/reports/filter/filter-table";
-import { getReportFilterParams, getReportFilters } from "@/features/reports/filter/filter-Actions";
+import { getReportFilters } from "@/features/reports/filter/filter-Actions";
+
 
 export const revalidate = 0;
+
+// Função para buscar os parâmetros de filtro de relatório
+
 
 interface ReportDetailProps {
   params: {
@@ -26,7 +30,8 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
   const filters = await getReportFilters(report?.id || 0);
-  const reportFilterParams = await getReportFilterParams();
+  const reportFilterParams = await fetchReportFilterParams();
+  
 
   console.log("recorrence", recorrence);
   

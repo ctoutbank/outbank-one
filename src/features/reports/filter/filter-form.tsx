@@ -6,18 +6,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ProductType, Status } from "@/lib/lookuptables";
+import { ProcessingType, ProductType, Status } from "@/lib/lookuptables";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { ReportTypeDD } from "../server/reports";
-import { BrandOption, getAllBrands, insertReportFilter, MerchantOption, ReportFilterParamDetail, searchMerchants, updateReportFilter } from "./filter-Actions";
+import { BrandOption, getAllBrands, insertReportFilter, MerchantOption, ReportFilterParamDetail, searchMerchants, updateReportFilter, searchTerminals, TerminalOption } from "./filter-Actions";
 import { ReportFilterSchema, SchemaReportFilter } from "./schema";
 
 // Tipo de seletor a exibir
-type SelectorType = "none" | "brand" | "status" | "dateRange" | "merchant" | "valueRange" | "transactionType";
+type SelectorType = "none" | "brand" | "status" | "dateRange" | "merchant" | "valueRange" | "transactionType" | "paymentType" | "processingType" | "terminal";
 
 interface FilterFormProps {
     filter: ReportFilterSchema;
@@ -38,21 +38,25 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>('');
     const [selectedTransactionType, setSelectedTransactionType] = useState<string>('');
+    const [selectedPaymentType, setSelectedPaymentType] = useState<string>('');
+    const [selectedProcessingTypes, setSelectedProcessingTypes] = useState<string[]>([]);
     const [selectorType, setSelectorType] = useState<SelectorType>("none");
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
     const [minValue, setMinValue] = useState<string>('');
     const [maxValue, setMaxValue] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const [selectedParamName, setSelectedParamName] = useState<string>('');
     const [paramSelected, setParamSelected] = useState<boolean>(!!filter.id);
-    const [debugInfo, setDebugInfo] = useState<string>('');
     const [merchants, setMerchants] = useState<MerchantOption[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [selectedMerchant, setSelectedMerchant] = useState<MerchantOption | null>(null);
+    const [terminals, setTerminals] = useState<TerminalOption[]>([]);
+    const [terminalSearchTerm, setTerminalSearchTerm] = useState<string>('');
+    const [selectedTerminal, setSelectedTerminal] = useState<TerminalOption | null>(null);
+    const [showTerminalSuggestions, setShowTerminalSuggestions] = useState<boolean>(false);
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const searchInputRef = useRef<HTMLInputElement>(null);
+    const searchInputRef = useRef<HTMLDivElement>(null);
+    const terminalSearchInputRef = useRef<HTMLDivElement>(null);
 
     const form = useForm<ReportFilterSchema>({
         resolver: zodResolver(SchemaReportFilter),
@@ -66,8 +70,6 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
     // Inicializar o componente
     useEffect(() => {
         const initialize = async () => {
-            console.log("Inicializando componente, tipo:", selectedType);
-            
             if (selectedType) {
                 const filtered = reportFilterParams.filter(param => param.type === selectedType);
                 setFilteredParams(filtered);
@@ -77,66 +79,50 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                     const paramId = filter.idReportFilterParam;
                     const param = reportFilterParams.find(p => p.id === paramId);
                     
-                    console.log("Inicializando com parâmetro (edição):", param?.name, "ID:", paramId);
-                    
                     if (param) {
-                        setSelectedParamName(param.name || '');
-                        
                         // Atualizar o tipo de seletor com base no nome do parâmetro
                         if (param.name === 'Bandeira') {
                             setSelectorType("brand");
-                            console.log("Configurado para mostrar seletor de BANDEIRAS");
                             
                             // Inicializar seleção de bandeiras
                             if (filter.value) {
                                 if (filter.value.includes(',')) {
                                     const brandValues = filter.value.split(',').map(b => b.trim());
-                                    console.log("Inicializado com bandeiras:", brandValues);
                                     setSelectedBrands(brandValues);
                                 } else if (filter.value) {
-                                    console.log("Inicializado com bandeira única:", filter.value);
                                     setSelectedBrands([filter.value]);
                                 }
                             }
                         } else if (param.name === 'totalAmount' && selectedType === 'VN') {
                             setSelectorType("dateRange");
-                            console.log("Configurado para mostrar seletor de DATAS");
                             
                             // Inicializar datas
                             if (filter.value && filter.value.includes(',')) {
                                 const [start, end] = filter.value.split(',').map(d => d.trim());
                                 setStartDate(start);
                                 setEndDate(end);
-                                console.log("Inicializado com datas:", start, "até", end);
                             }
                         } else if (param.name && param.name.toLowerCase() === 'valor' && selectedType === 'VN') {
                             setSelectorType("valueRange");
-                            console.log("Configurado para mostrar seletor de VALORES");
                             
                             // Inicializar valores
                             if (filter.value && filter.value.includes(',')) {
                                 const [min, max] = filter.value.split(',').map(v => v.trim());
                                 setMinValue(min);
                                 setMaxValue(max);
-                                console.log("Inicializado com valores:", min, "até", max);
                             }
                         } else if (param.name === 'Status') {
                             setSelectorType("status");
-                            console.log("Configurado para mostrar seletor de STATUS");
                             
                             // Inicializar status selecionado
                             if (filter.value) {
-                                console.log("Inicializado com status:", filter.value);
                                 setSelectedStatus(filter.value);
                             }
                         } else if (param.name === 'Estabelecimento') {
                             setSelectorType("merchant");
-                            console.log("Configurado para mostrar seletor de ESTABELECIMENTOS");
                             
                             // Inicializar estabelecimento se houver valor
                             if (filter.value) {
-                                console.log("Inicializado com estabelecimento:", filter.value);
-                                
                                 // Verificar se o valor está no formato "nome|id"
                                 if (filter.value.includes('|')) {
                                     const [merchantName, merchantId] = filter.value.split('|');
@@ -176,7 +162,6 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                                         if (merchant) {
                                             setSelectedMerchant(merchant);
                                             setSearchTerm(merchant.name || '');
-                                            console.log("Estabelecimento encontrado:", merchant);
                                         }
                                     } catch (error) {
                                         console.error("Erro ao carregar estabelecimentos:", error);
@@ -187,23 +172,69 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                             }
                         } else if (param.name === 'Tipo de Transação') {
                             setSelectorType("transactionType");
-                            console.log("TIPO DE TRANSAÇÃO selecionado - Definindo selectorType para transactionType");
-                            console.log("Configurado para mostrar seletor de TIPO DE TRANSAÇÃO, novo valor de selectorType:", "transactionType");
                             
                             // Inicializar tipo de transação selecionado
                             if (filter.value) {
-                                console.log("Inicializado com tipo de transação:", filter.value);
                                 setSelectedTransactionType(filter.value);
+                            }
+                        } else if (param.name === 'Tipo de Pagamento') {
+                            setSelectorType("paymentType");
+                            
+                            // Inicializar tipo de pagamento selecionado
+                            if (filter.value) {
+                                setSelectedPaymentType(filter.value);
+                            }
+                        } else if (param.name === 'Processamento') {
+                            setSelectorType("processingType");
+                            
+                            // Inicializar tipos de processamento selecionados
+                            if (filter.value) {
+                                const processingValues = filter.value.split(',').map(p => p.trim());
+                                setSelectedProcessingTypes(processingValues);
+                            }
+                        } else if (param.name === 'Terminal') {
+                            setSelectorType("terminal");
+                            
+                            // Inicializar terminal selecionado
+                            if (filter.value) {
+                                setLoading(true);
+                                try {
+                                    const terminalsData = await searchTerminals(filter.value);
+                                    setTerminals(terminalsData);
+                                    
+                                    // Encontrar o terminal pelo logical_number exato
+                                    const terminal = terminalsData.find(t => t.logical_number === filter.value);
+                                    if (terminal) {
+                                        setSelectedTerminal(terminal);
+                                        setTerminalSearchTerm(terminal.logical_number ?? '');
+                                    }
+                                } catch (error) {
+                                    console.error("Erro ao carregar terminais:", error);
+                                } finally {
+                                    setLoading(false);
+                                }
                             }
                         } else {
                             setSelectorType("none");
-                            console.log("Nenhum seletor específico configurado");
                         }
                     }
                 } else {
                     // Para novo filtro, não inicializamos nada
-                    console.log("Novo filtro, aguardando seleção do parâmetro");
                     setSelectorType("none");
+                    // Reset all fields
+                    setSelectedBrands([]);
+                    setStartDate('');
+                    setEndDate('');
+                    setMinValue('');
+                    setMaxValue('');
+                    setSelectedStatus('');
+                    setSelectedMerchant(null);
+                    setSelectedTransactionType('');
+                    setSelectedPaymentType('');
+                    setSelectedProcessingTypes([]);
+                    setSelectedTerminal(null);
+                    setTerminalSearchTerm('');
+                    setTerminals([]);
                 }
             }
         };
@@ -218,7 +249,6 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                 setLoading(true);
                 try {
                     const brandsData = await getAllBrands();
-                    console.log("Bandeiras carregadas no início:", brandsData);
                     setBrands(brandsData);
                 } catch (error) {
                     console.error("Erro ao carregar bandeiras:", error);
@@ -229,7 +259,7 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
         };
         
         loadBrands();
-    }, []);
+    }, [brands.length]);
 
     useEffect(() => {
         // Garantir que o tipo selecionado está definido com base no tipo do relatório
@@ -244,71 +274,45 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
     // Função para lidar com a alteração de parâmetro
     const handleParamChange = async (paramId: number) => {
         const param = reportFilterParams.find(p => p.id === paramId);
-        console.log("Parâmetro selecionado:", param?.name, "ID:", paramId, "Tipo:", selectedType);
+        if (!param) return;
         
-        // Resetar todos os valores e seletores
-        setSelectorType("none");
-        setSelectedStatus('');
+        setParamSelected(true);
+        
+        // Reset all selector states
         setSelectedBrands([]);
         setStartDate('');
         setEndDate('');
         setMinValue('');
         setMaxValue('');
+        setSelectedStatus('');
         setSelectedMerchant(null);
-        setSelectedParamName(param?.name || '');
-        setParamSelected(!!paramId);
+        setSelectedTransactionType('');
+        setSelectedPaymentType('');
+        setSelectedProcessingTypes([]);
+        setSelectedTerminal(null);
+        setTerminalSearchTerm('');
+        setTerminals([]);
         
-        // Log para depuração - valores antes da alteração
-        console.log("DEBUG - Antes de alterar selectorType, valores: ", {
-            paramName: param?.name,
-            currentSelectorType: selectorType,
-            paramSelected: !!paramId
-        });
-        
-        // Verificar explicitamente para "Tipo de Transação"
-        if (param?.name === 'Tipo de Transação') {
-            // Tratamento especial para Tipo de Transação
-            console.log("TIPO DE TRANSAÇÃO detectado - Aplicando tratamento especial");
-            setSelectedParamName('Tipo de Transação');
-            setSelectorType("transactionType");
-            setParamSelected(true);
-            
-            // Log adicional para confirmar a mudança
-            console.log("Após tratamento especial:", {
-                selectedParamName: 'Tipo de Transação',
-                selectorType: "transactionType",
-                paramSelected: true
-            });
-            return;
-        }
-        
-        // Definir o tipo de seletor apropriado
-        if (param?.name === 'Bandeira') {
+        // Determinar qual tipo de seletor deve ser exibido
+        if (param.name === 'Bandeira') {
             setSelectorType("brand");
-            console.log("Configurado para mostrar seletor de BANDEIRAS");
             
-            // Carregar bandeiras se necessário
-            if (brands.length === 0) {
-                setLoading(true);
-                try {
-                    const brandsData = await getAllBrands();
-                    console.log("Bandeiras carregadas:", brandsData);
-                    setBrands(brandsData);
-                    setLoading(false);
-                } catch (error) {
-                    console.error("Erro ao carregar bandeiras:", error);
-                    setLoading(false);
-                }
+            // Carregar bandeiras iniciais
+            try {
+                const brandsData = await getAllBrands();
+                setBrands(brandsData);
+            } catch (error) {
+                console.error("Erro ao carregar bandeiras:", error);
+                setBrands([]);
             }
-        }  else if (param?.name && param.name.toLowerCase() === 'valor' && selectedType === 'VN') {
+        } else if (param.name === 'Data') {
+            setSelectorType("dateRange");
+        } else if (param.name === 'Valor') {
             setSelectorType("valueRange");
-            console.log("Configurado para mostrar seletor de VALORES", param);
-        } else if (param?.name === 'Status') {
+        } else if (param.name === 'Status') {
             setSelectorType("status");
-            console.log("Configurado para mostrar seletor de STATUS");
-        } else if (param?.name === 'Estabelecimento') {
+        } else if (param.name === 'Estabelecimento') {
             setSelectorType("merchant");
-            console.log("Configurado para mostrar seletor de ESTABELECIMENTOS");
             
             // Carregar estabelecimentos iniciais
             setLoading(true);
@@ -320,7 +324,8 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
             } finally {
                 setLoading(false);
             }
-        } else if (param?.name === 'Tipo de Transação') {
+        } else if (param.name === 'Tipo de Transação') {
+            // Garanta que o selectorType seja definido corretamente aqui
             console.log("TIPO DE TRANSAÇÃO selecionado - Definindo selectorType para transactionType");
             setSelectorType("transactionType");
             console.log("Configurado para mostrar seletor de TIPO DE TRANSAÇÃO, novo valor de selectorType:", "transactionType");
@@ -328,11 +333,30 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
             // Log para depuração - confirmação imediata após a alteração
             setTimeout(() => {
                 console.log("DEBUG - Imediatamente após definir selectorType para transactionType:", {
-                    selectorType,
+                    selectorType: "transactionType", // Referir diretamente ao valor que acabamos de definir
                     paramSelected,
-                    selectedParamName
                 });
             }, 0);
+        } else if (param.name === 'Tipo de Pagamento') {
+            console.log("TIPO DE PAGAMENTO selecionado - Definindo selectorType para paymentType");
+            setSelectorType("paymentType");
+        } else if (param.name === 'Processamento') {
+            console.log("PROCESSAMENTO selecionado - Definindo selectorType para processingType");
+            setSelectorType("processingType");
+        } else if (param.name === 'Terminal') {
+            console.log("TERMINAL selecionado - Definindo selectorType para terminal");
+            setSelectorType("terminal");
+            
+            // Carregar terminais iniciais
+            setLoading(true);
+            try {
+                const terminalsData = await searchTerminals();
+                setTerminals(terminalsData);
+            } catch (error) {
+                console.error("Erro ao carregar terminais:", error);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -354,6 +378,24 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
         }
     }, [searchTerm]);
 
+    // Função para buscar terminais quando o botão é clicado
+    const searchTerminalsByTerm = useCallback(async () => {
+        if (terminalSearchTerm.length < 2) return;
+        
+        setLoading(true);
+        setShowTerminalSuggestions(true);
+        
+        try {
+            const results = await searchTerminals(terminalSearchTerm);
+            setTerminals(results);
+        } catch (error) {
+            console.error("Erro ao buscar terminais:", error);
+            setTerminals([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [terminalSearchTerm]);
+
     // Função para alternar a seleção de uma marca
     const toggleBrandSelection = (code: string) => {
         setSelectedBrands(prev => {
@@ -365,14 +407,16 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
         });
     };
 
-    // Formatar data para exibição e validação
-    const formatDate = (dateString: string): string => {
-        try {
-            const date = new Date(dateString);
-            return format(date, 'yyyy-MM-dd');
-        } catch (error) {
-            return dateString;
-        }
+    // Função para alternar a seleção de um tipo de processamento
+    const toggleProcessingTypeSelection = (value: string) => {
+        setSelectedProcessingTypes(prev => {
+            const newSelection = prev.includes(value)
+                ? prev.filter(p => p !== value)
+                : [...prev, value];
+            
+            console.log("Seleção de tipos de processamento atualizada:", newSelection);
+            return newSelection;
+        });
     };
 
     // Validar se a data final é maior que a inicial
@@ -383,7 +427,7 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
             const start = new Date(startDate);
             const end = new Date(endDate);
             return end >= start;
-        } catch (error) {
+        } catch {
             return false;
         }
     };
@@ -396,7 +440,7 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
             const min = parseFloat(minValue);
             const max = parseFloat(maxValue);
             return !isNaN(min) && !isNaN(max) && max >= min && min >= 1 && max <= 9999999;
-        } catch (error) {
+        } catch {
             return false;
         }
     };
@@ -418,293 +462,22 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
         };
     }, []);
 
-    // Monitorar mudanças no tipo de seletor para depuração
+    // Fechar sugestões de terminal quando clicar fora do componente
     useEffect(() => {
-        console.log("DEBUG - selectorType mudou para:", selectorType);
-        if (selectorType === "transactionType") {
-            console.log("DEBUG - Seletor de tipo de transação ativado");
-        }
-    }, [selectorType]);
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                terminalSearchInputRef.current &&
+                !terminalSearchInputRef.current.contains(event.target as Node)
+            ) {
+                setShowTerminalSuggestions(false);
+            }
+        };
 
-    // Para fins de depuração, forçar o selectorType para "transactionType" caso o parâmetro "Tipo de Transação" esteja selecionado
-    useEffect(() => {
-        if (selectedParamName === 'Tipo de Transação' && selectorType !== 'transactionType') {
-            console.log("CORREÇÃO - Forçando selectorType para transactionType");
-            setSelectorType('transactionType');
-        }
-    }, [selectedParamName, selectorType]);
-
-    // Debug dos seletores
-    useEffect(() => {
-        const allSelectors = [
-            { type: "brand", visible: !loading && paramSelected && selectorType === "brand" },
-            { type: "status", visible: !loading && paramSelected && selectorType === "status" },
-            { type: "dateRange", visible: !loading && paramSelected && selectorType === "dateRange" },
-            { type: "valueRange", visible: !loading && paramSelected && selectorType === "valueRange" },
-            { type: "merchant", visible: !loading && paramSelected && selectorType === "merchant" },
-            { type: "transactionType", visible: !loading && paramSelected && selectorType === "transactionType" }
-        ];
-        
-        const visibleSelectors = allSelectors.filter(s => s.visible);
-        console.log("DEBUG - Seletores atualmente visíveis:", visibleSelectors);
-        
-        if (paramSelected && selectorType === "transactionType") {
-            console.log("DEBUG - Condição para renderizar transactionType:", {
-                loading,
-                paramSelected,
-                selectorType,
-                isVisible: !loading && paramSelected && selectorType === "transactionType"
-            });
-        }
-    }, [loading, paramSelected, selectorType]);
-
-    // Renderizar seletor de bandeiras
-    const renderBrandSelector = () => (
-        <div className="mt-4">
-            <FormLabel>Selecione as Bandeiras</FormLabel>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                {brands.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Carregando bandeiras...</p>
-                ) : (
-                    brands.map((brand) => (
-                        <div key={brand.code} className="flex items-center space-x-2">
-                            <Checkbox 
-                                id={`brand-${brand.code}`} 
-                                checked={selectedBrands.includes(brand.code)}
-                                onCheckedChange={() => toggleBrandSelection(brand.code)}
-                            />
-                            <label 
-                                htmlFor={`brand-${brand.code}`}
-                                className="text-sm cursor-pointer"
-                            >
-                                {brand.name}
-                            </label>
-                        </div>
-                    ))
-                )}
-            </div>
-            {selectedBrands.length === 0 && brands.length > 0 && (
-                <p className="text-xs text-destructive mt-1">Selecione pelo menos uma bandeira</p>
-            )}
-        </div>
-    );
-
-    // Renderizar seletor de status
-    const renderStatusSelector = () => (
-        <div className="mt-4">
-            <Select
-                onValueChange={(value) => {
-                    setSelectedStatus(value);
-                    setDebugInfo(prev => `${prev}\nStatus selecionado: ${value}`);
-                }}
-                defaultValue={selectedStatus}
-            >
-                <FormControl>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    {Status.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                            {status.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
-    );
-
-    // Renderizar seletor de intervalo de datas
-    const renderDateRangeSelector = () => (
-        <div className="mt-4 space-y-4">
-            <FormLabel>Selecione o Intervalo de Datas</FormLabel>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <FormLabel className="text-sm">Data Inicial</FormLabel>
-                    <Input 
-                        type="date" 
-                        value={startDate}
-                        onChange={(e) => {
-                            setStartDate(e.target.value);
-                            setDebugInfo(prev => `${prev}\nData inicial definida: ${e.target.value}`);
-                        }}
-                        className="w-full"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <FormLabel className="text-sm">Data Final</FormLabel>
-                    <Input 
-                        type="date" 
-                        value={endDate}
-                        onChange={(e) => {
-                            setEndDate(e.target.value);
-                            setDebugInfo(prev => `${prev}\nData final definida: ${e.target.value}`);
-                        }}
-                        className="w-full"
-                    />
-                </div>
-            </div>
-            {(!startDate || !endDate) && (
-                <p className="text-xs text-destructive">Selecione as datas inicial e final</p>
-            )}
-            {startDate && endDate && !isDateRangeValid() && (
-                <p className="text-xs text-destructive">A data final deve ser maior ou igual à data inicial</p>
-            )}
-        </div>
-    );
-
-    // Renderizar seletor de intervalo de valores
-    const renderValueRangeSelector = () => (
-        <div className="mt-4 space-y-4">
-            <FormLabel>Selecione o Intervalo de Valores</FormLabel>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <FormLabel className="text-sm">De</FormLabel>
-                    <Input 
-                        type="number" 
-                        min="1"
-                        max="9999999"
-                        value={minValue}
-                        onChange={(e) => {
-                            setMinValue(e.target.value);
-                            setDebugInfo(prev => `${prev}\nValor mínimo definido: ${e.target.value}`);
-                        }}
-                        placeholder="Valor inicial"
-                        className="w-full"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <FormLabel className="text-sm">Até</FormLabel>
-                    <Input 
-                        type="number"
-                        min="1"
-                        max="9999999"
-                        value={maxValue}
-                        onChange={(e) => {
-                            setMaxValue(e.target.value);
-                            setDebugInfo(prev => `${prev}\nValor máximo definido: ${e.target.value}`);
-                        }}
-                        placeholder="Valor final"
-                        className="w-full"
-                    />
-                </div>
-            </div>
-            {(!minValue || !maxValue) && (
-                <p className="text-xs text-destructive">Informe os valores inicial e final</p>
-            )}
-            {minValue && maxValue && !isValueRangeValid() && (
-                <p className="text-xs text-destructive">O valor final deve ser maior ou igual ao valor inicial e ambos devem estar entre 1 e 9.999.999</p>
-            )}
-        </div>
-    );
-
-    // Renderizar seletor de estabelecimentos
-    const renderMerchantSelector = () => (
-        <div className="mt-4">
-            <FormLabel>Selecione o Estabelecimento</FormLabel>
-            <div className="relative" ref={searchInputRef}>
-                <div className="flex space-x-2">
-                    <Input
-                        type="text"
-                        placeholder="Digite para buscar estabelecimentos..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            // Limpar a lista de sugestões se o campo estiver vazio
-                            if (e.target.value.length === 0) {
-                                setMerchants([]);
-                                setShowSuggestions(false);
-                            }
-                        }}
-                        onKeyDown={(e) => {
-                            // Permitir busca ao pressionar Enter
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                if (searchTerm.length >= 2) {
-                                    searchMerchantsByTerm();
-                                }
-                            } else if (e.key === 'Escape') {
-                                // Fechar a lista de sugestões ao pressionar ESC
-                                setShowSuggestions(false);
-                            }
-                        }}
-                        onFocus={() => {
-                            // Mostrar sugestões apenas se já temos resultados anteriores
-                            if (merchants.length > 0 && searchTerm.length >= 2) {
-                                setShowSuggestions(true);
-                            }
-                        }}
-                        className="w-full"
-                    />
-                    <Button 
-                        type="button"
-                        variant="secondary"
-                        onClick={searchMerchantsByTerm}
-                        disabled={searchTerm.length < 2 || loading}
-                    >
-                        Buscar
-                    </Button>
-                </div>
-                
-                {showSuggestions && (
-                    <div className="absolute w-full bg-white z-10 mt-1 rounded-md border shadow-md max-h-[300px] overflow-y-auto">
-                        {loading ? (
-                            <div className="p-4 text-sm text-center text-muted-foreground">
-                                Buscando estabelecimentos...
-                            </div>
-                        ) : merchants.length === 0 ? (
-                            <div className="p-2 text-sm text-center text-muted-foreground">
-                                Nenhum estabelecimento encontrado. Tente outro termo de busca.
-                            </div>
-                        ) : (
-                            <ul>
-                                {merchants.map((merchant) => (
-                                    <li 
-                                        key={merchant.id}
-                                        className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${selectedMerchant?.id === merchant.id ? 'bg-blue-50' : ''}`}
-                                        onClick={() => {
-                                            setSelectedMerchant(merchant);
-                                            setSearchTerm(merchant.name || '');
-                                            setShowSuggestions(false);
-                                        }}
-                                    >
-                                        {merchant.corporateName 
-                                            ? `${merchant.name} (${merchant.corporateName})` 
-                                            : merchant.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                )}
-            </div>
-            
-            {selectedMerchant && (
-                <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline" className="px-2 py-1 bg-blue-100">
-                        {selectedMerchant.name}
-                        {selectedMerchant.corporateName && ` (${selectedMerchant.corporateName})`}
-                    </Badge>
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-5 w-5 p-0 rounded-full"
-                        onClick={() => {
-                            setSelectedMerchant(null);
-                            setSearchTerm('');
-                        }}
-                    >
-                        ×
-                    </Button>
-                </div>
-            )}
-            
-            {!selectedMerchant && (
-                <p className="text-xs text-destructive mt-1">Selecione um estabelecimento</p>
-            )}
-        </div>
-    );
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const onSubmit = async (data: ReportFilterSchema) => {
         // Definir valor a ser salvo baseado no tipo de seletor
@@ -719,12 +492,21 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
         } else if (selectorType === "status" && selectedStatus) {
             valueToSave = selectedStatus;
         } else if (selectorType === "merchant" && selectedMerchant) {
-            // Quando é estabelecimento, salvamos o nome e o ID separados por '|'
-            // para poder recuperar facilmente depois
+            // Quando é estabelecimento, salvamos o nome
             valueToSave = `${selectedMerchant.name}`;
             console.log("Salvando estabelecimento:", valueToSave);
+        } else if (selectorType === "terminal" && selectedTerminal) {
+            // Quando é terminal, salvamos o logical_number
+            valueToSave = selectedTerminal.logical_number || '';
+            console.log("Salvando terminal:", valueToSave);
         } else if (selectorType === "transactionType" && selectedTransactionType) {
             valueToSave = selectedTransactionType;
+        } else if (selectorType === "paymentType" && selectedPaymentType) {
+            valueToSave = selectedPaymentType;
+        } else if (selectorType === "processingType" && selectedProcessingTypes.length > 0) {
+            // Juntar os tipos de processamento em uma string separada por vírgulas
+            valueToSave = selectedProcessingTypes.join(',');
+            console.log("Salvando tipos de processamento:", valueToSave);
         }
 
         if (data?.id) {
@@ -776,9 +558,8 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                           onValueChange={(value) => {
                             field.onChange(Number(value));
                             handleParamChange(Number(value));
-                            console.log("Parâmetro selecionado com ID:", value);
                           }}
-                          defaultValue=""
+                          defaultValue={filter?.idReportFilterParam ? String(filter.idReportFilterParam) : ""}
                           disabled={filteredParams.length === 0}
                         >
                           <FormControl>
@@ -807,42 +588,417 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                   </div>
                 )}
 
-       
-
-                {/* Seletor direto para Tipo de Transação - independente do selectorType */}
-                {!loading && paramSelected && selectedParamName === 'Tipo de Transação' && (
-                  <div className="mt-4 border border-blue-300 p-4 rounded-md">
-                    <p className="text-sm font-medium mb-2">Selecione o Tipo de Transação:</p>
-                    <Select
-                      onValueChange={(value) => {
-                        setSelectedTransactionType(value);
-                        setDebugInfo(prev => `${prev}\nTipo de transação selecionado: ${value}`);
-                        console.log("Tipo de transação selecionado diretamente:", value);
-                      }}
-                      defaultValue={selectedTransactionType}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecione um tipo de transação" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ProductType.map((productType) => (
-                          <SelectItem key={productType.value} value={productType.value}>
-                            {productType.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
                 {/* Mostrar o seletor apropriado com base no tipo selecionado e apenas se um parâmetro estiver selecionado */}
-                {!loading && paramSelected && selectorType === "brand" && renderBrandSelector()}
-                {!loading && paramSelected && selectorType === "status" && renderStatusSelector()}
-                {!loading && paramSelected && selectorType === "dateRange" && renderDateRangeSelector()}
-                {!loading && paramSelected && selectorType === "valueRange" && renderValueRangeSelector()}
-                {!loading && paramSelected && selectorType === "merchant" && renderMerchantSelector()}
+                {!loading && paramSelected && selectorType === "brand" && (
+                    <div className="mt-4">
+                        <FormLabel>Selecione as Bandeiras</FormLabel>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                            {brands.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">Carregando bandeiras...</p>
+                            ) : (
+                                brands.map((brand) => (
+                                    <div key={brand.code} className="flex items-center space-x-2">
+                                        <Checkbox 
+                                            id={`brand-${brand.code}`} 
+                                            checked={selectedBrands.includes(brand.code)}
+                                            onCheckedChange={() => toggleBrandSelection(brand.code)}
+                                        />
+                                        <label 
+                                            htmlFor={`brand-${brand.code}`}
+                                            className="text-sm cursor-pointer"
+                                        >
+                                            {brand.name}
+                                        </label>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {selectedBrands.length === 0 && brands.length > 0 && (
+                            <p className="text-xs text-destructive mt-1">Selecione pelo menos uma bandeira</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "status" && (
+                    <div className="mt-4">
+                        <Select
+                            onValueChange={(value) => {
+                                setSelectedStatus(value);
+                            }}
+                            defaultValue={selectedStatus}
+                        >
+                            <FormControl>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {Status.map((status) => (
+                                    <SelectItem key={status.value} value={status.value}>
+                                        {status.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "dateRange" && (
+                    <div className="mt-4 space-y-4">
+                        <FormLabel>Selecione o Intervalo de Datas</FormLabel>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <FormLabel className="text-sm">Data Inicial</FormLabel>
+                                <Input 
+                                    type="date" 
+                                    value={startDate}
+                                    onChange={(e) => {
+                                        setStartDate(e.target.value);
+                                    }}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <FormLabel className="text-sm">Data Final</FormLabel>
+                                <Input 
+                                    type="date" 
+                                    value={endDate}
+                                    onChange={(e) => {
+                                        setEndDate(e.target.value);
+                                    }}
+                                    className="w-full"
+                                />
+                            </div>
+                        </div>
+                        {(!startDate || !endDate) && (
+                            <p className="text-xs text-destructive">Selecione as datas inicial e final</p>
+                        )}
+                        {startDate && endDate && !isDateRangeValid() && (
+                            <p className="text-xs text-destructive">A data final deve ser maior ou igual à data inicial</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "valueRange" && (
+                    <div className="mt-4 space-y-4">
+                        <FormLabel>Selecione o Intervalo de Valores</FormLabel>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <FormLabel className="text-sm">De</FormLabel>
+                                <Input 
+                                    type="number" 
+                                    min="1"
+                                    max="9999999"
+                                    value={minValue}
+                                    onChange={(e) => {
+                                        setMinValue(e.target.value);
+                                    }}
+                                    placeholder="Valor inicial"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <FormLabel className="text-sm">Até</FormLabel>
+                                <Input 
+                                    type="number"
+                                    min="1"
+                                    max="9999999"
+                                    value={maxValue}
+                                    onChange={(e) => {
+                                        setMaxValue(e.target.value);
+                                    }}
+                                    placeholder="Valor final"
+                                    className="w-full"
+                                />
+                            </div>
+                        </div>
+                        {(!minValue || !maxValue) && (
+                            <p className="text-xs text-destructive">Informe os valores inicial e final</p>
+                        )}
+                        {minValue && maxValue && !isValueRangeValid() && (
+                            <p className="text-xs text-destructive">O valor final deve ser maior ou igual ao valor inicial e ambos devem estar entre 1 e 9.999.999</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "merchant" && (
+                    <div className="mt-4">
+                        <FormLabel>Selecione o Estabelecimento</FormLabel>
+                        <div className="relative" ref={searchInputRef}>
+                            <div className="flex space-x-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Digite para buscar estabelecimentos..."
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        // Limpar a lista de sugestões se o campo estiver vazio
+                                        if (e.target.value.length === 0) {
+                                            setMerchants([]);
+                                            setShowSuggestions(false);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        // Permitir busca ao pressionar Enter
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (searchTerm.length >= 2) {
+                                                searchMerchantsByTerm();
+                                            }
+                                        } else if (e.key === 'Escape') {
+                                            // Fechar a lista de sugestões ao pressionar ESC
+                                            setShowSuggestions(false);
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        // Mostrar sugestões apenas se já temos resultados anteriores
+                                        if (merchants.length > 0 && searchTerm.length >= 2) {
+                                            setShowSuggestions(true);
+                                        }
+                                    }}
+                                    className="w-full"
+                                />
+                                <Button 
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={searchMerchantsByTerm}
+                                    disabled={searchTerm.length < 2 || loading}
+                                >
+                                    Buscar
+                                </Button>
+                            </div>
+                            
+                            {showSuggestions && (
+                                <div className="absolute w-full bg-white z-10 mt-1 rounded-md border shadow-md max-h-[300px] overflow-y-auto">
+                                    {loading ? (
+                                        <div className="p-4 text-sm text-center text-muted-foreground">
+                                            Buscando estabelecimentos...
+                                        </div>
+                                    ) : merchants.length === 0 ? (
+                                        <div className="p-2 text-sm text-center text-muted-foreground">
+                                            Nenhum estabelecimento encontrado. Tente outro termo de busca.
+                                        </div>
+                                    ) : (
+                                        <ul>
+                                            {merchants.map((merchant) => (
+                                                <li 
+                                                    key={merchant.id}
+                                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${selectedMerchant?.id === merchant.id ? 'bg-blue-50' : ''}`}
+                                                    onClick={() => {
+                                                        setSelectedMerchant(merchant);
+                                                        setSearchTerm(merchant.name || '');
+                                                        setShowSuggestions(false);
+                                                    }}
+                                                >
+                                                    {merchant.corporateName 
+                                                        ? `${merchant.name} (${merchant.corporateName})` 
+                                                        : merchant.name}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {selectedMerchant && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline" className="px-2 py-1 bg-blue-100">
+                                    {selectedMerchant.name}
+                                    {selectedMerchant.corporateName && ` (${selectedMerchant.corporateName})`}
+                                </Badge>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-5 w-5 p-0 rounded-full"
+                                    onClick={() => {
+                                        setSelectedMerchant(null);
+                                        setSearchTerm('');
+                                    }}
+                                >
+                                    ×
+                                </Button>
+                            </div>
+                        )}
+                        
+                        {!selectedMerchant && (
+                            <p className="text-xs text-destructive mt-1">Selecione um estabelecimento</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "paymentType" && (
+                    <div className="mt-4">
+                        <Select
+                            onValueChange={(value) => {
+                                setSelectedPaymentType(value);
+                            }}
+                            defaultValue={selectedPaymentType}
+                        >
+                            <FormControl>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {ProductType.map((productType) => (
+                                    <SelectItem key={productType.value} value={productType.value}>
+                                        {productType.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "processingType" && (
+                    <div className="mt-4">
+                        <FormLabel>Selecione os Tipos de Processamento</FormLabel>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                            {ProcessingType.map((processingType) => (
+                                <div key={processingType.value} className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id={`processingType-${processingType.value}`} 
+                                        checked={selectedProcessingTypes.includes(processingType.value)}
+                                        onCheckedChange={() => toggleProcessingTypeSelection(processingType.value)}
+                                    />
+                                    <label 
+                                        htmlFor={`processingType-${processingType.value}`}
+                                        className="text-sm cursor-pointer"
+                                    >
+                                        {processingType.label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                        {selectedProcessingTypes.length === 0 && (
+                            <p className="text-xs text-destructive mt-1">Selecione pelo menos um tipo de processamento</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "transactionType" && (
+                    <div className="mt-4 border border-blue-300 p-4 rounded-md">
+                        <p className="text-sm font-medium mb-2">Selecione o Tipo de Transação:</p>
+                        <Select
+                            onValueChange={(value) => {
+                                setSelectedTransactionType(value);
+                            }}
+                            defaultValue={selectedTransactionType}
+                        >
+                            <FormControl>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione um tipo de transação" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {ProductType.map((productType) => (
+                                    <SelectItem key={productType.value} value={productType.value}>
+                                        {productType.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {!selectedTransactionType && (
+                            <p className="text-xs text-destructive mt-1">Selecione um tipo de transação</p>
+                        )}
+                    </div>
+                )}
+                {!loading && paramSelected && selectorType === "terminal" && (
+                    <div className="mt-4">
+                        <FormLabel>Selecione o Terminal</FormLabel>
+                        <div className="relative" ref={terminalSearchInputRef}>
+                            <div className="flex space-x-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Digite para buscar terminais..."
+                                    value={terminalSearchTerm}
+                                    onChange={(e) => {
+                                        setTerminalSearchTerm(e.target.value);
+                                        // Limpar a lista de sugestões se o campo estiver vazio
+                                        if (e.target.value.length === 0) {
+                                            setTerminals([]);
+                                            setShowTerminalSuggestions(false);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        // Permitir busca ao pressionar Enter
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (terminalSearchTerm.length >= 2) {
+                                                searchTerminalsByTerm();
+                                            }
+                                        } else if (e.key === 'Escape') {
+                                            // Fechar a lista de sugestões ao pressionar ESC
+                                            setShowTerminalSuggestions(false);
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        // Mostrar sugestões apenas se já temos resultados anteriores
+                                        if (terminals.length > 0 && terminalSearchTerm.length >= 2) {
+                                            setShowTerminalSuggestions(true);
+                                        }
+                                    }}
+                                    className="w-full"
+                                />
+                                <Button 
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={searchTerminalsByTerm}
+                                    disabled={terminalSearchTerm.length < 2 || loading}
+                                >
+                                    Buscar
+                                </Button>
+                            </div>
+                            
+                            {showTerminalSuggestions && (
+                                <div className="absolute w-full bg-white z-10 mt-1 rounded-md border shadow-md max-h-[300px] overflow-y-auto">
+                                    {loading ? (
+                                        <div className="p-4 text-sm text-center text-muted-foreground">
+                                            Buscando terminais...
+                                        </div>
+                                    ) : terminals.length === 0 ? (
+                                        <div className="p-2 text-sm text-center text-muted-foreground">
+                                            Nenhum terminal encontrado. Tente outro termo de busca.
+                                        </div>
+                                    ) : (
+                                        <ul>
+                                            {terminals.map((terminal) => (
+                                                <li 
+                                                    key={terminal.id}
+                                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${selectedTerminal?.id === terminal.id ? 'bg-blue-50' : ''}`}
+                                                    onClick={() => {
+                                                        setSelectedTerminal(terminal);
+                                                        setTerminalSearchTerm(terminal.logical_number ?? '');
+                                                        setShowTerminalSuggestions(false);
+                                                    }}
+                                                >
+                                                    {terminal.logical_number || 'N/A'} - {terminal.model || 'Desconhecido'}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {selectedTerminal && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline" className="px-2 py-1 bg-blue-100">
+                                    {selectedTerminal.logical_number || 'N/A'} - {selectedTerminal.model || 'Desconhecido'}
+                                </Badge>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-5 w-5 p-0 rounded-full"
+                                    onClick={() => {
+                                        setSelectedTerminal(null);
+                                        setTerminalSearchTerm('');
+                                    }}
+                                >
+                                    ×
+                                </Button>
+                            </div>
+                        )}
+                        
+                        {!selectedTerminal && (
+                            <p className="text-xs text-destructive mt-1">Selecione um terminal</p>
+                        )}
+                    </div>
+                )}
                 
                 <div className="flex justify-end mt-6">
                   <Button 
@@ -854,7 +1010,10 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
                               (selectorType === "valueRange" && (!minValue || !maxValue || !isValueRangeValid())) ||
                               (selectorType === "status" && !selectedStatus) ||
                               (selectorType === "merchant" && !selectedMerchant) ||
-                              (selectorType === "transactionType" && !selectedTransactionType)}
+                              (selectorType === "terminal" && !selectedTerminal) ||
+                              (selectorType === "transactionType" && !selectedTransactionType) ||
+                              (selectorType === "paymentType" && !selectedPaymentType) ||
+                              (selectorType === "processingType" && selectedProcessingTypes.length === 0)}
                   >
                     Salvar
                   </Button>

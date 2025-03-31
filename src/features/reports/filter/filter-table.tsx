@@ -5,11 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
 import { ReportTypeDD } from "../server/reports";
-import { deleteReportFilter, getReportFilterById, ReportFilterDetail, ReportFilterDetailWithTypeName, ReportFilterParamDetail, BrandOption, getAllBrands, getFilterFormData } from "./filter-Actions";
+import { deleteReportFilter, ReportFilterDetail, ReportFilterDetailWithTypeName, ReportFilterParamDetail, getFilterFormData } from "./filter-Actions";
 import FilterForm from "./filter-form";
 import { ReportFilterSchema } from "./schema";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Status } from "@/lib/lookuptables";
 
 interface FilterTableAndFormProps {
@@ -22,20 +21,15 @@ interface FilterTableAndFormProps {
 export default function FilterTableAndForm({ filter, reportId, reportFilterParams, reportTypeDD }: FilterTableAndFormProps) {
     const [record, setRecord] = useState<ReportFilterSchema | null>(null);
     const [open, setOpen] = useState(false);
-    const [brands, setBrands] = useState<BrandOption[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filteredParams, setFilteredParams] = useState<ReportFilterParamDetail[]>([]);
     const [selectedType, setSelectedType] = useState<string>('');
-    const [formDataLoaded, setFormDataLoaded] = useState(false);
 
     // Pré-carregar os dados necessários para o formulário
     useEffect(() => {
         const initializeData = async () => {
-            setLoading(true);
             try {
                 // Carrega todos os dados necessários de uma vez
                 const formData = await getFilterFormData(reportId);
-                setBrands(formData.brands);
                 
                 // Configura o tipo selecionado baseado no relatório
                 const reportTypeCode = formData.reportType || (reportTypeDD.length > 0 ? reportTypeDD[0].code : '');
@@ -44,11 +38,8 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
                 // Filtra os parâmetros pelo tipo
                 const filtered = reportFilterParams.filter(param => param.type === reportTypeCode);
                 setFilteredParams(filtered);
-                setFormDataLoaded(true);
-            } catch (error) {
-                console.error("Erro ao carregar dados:", error);
-            } finally {
-                setLoading(false);
+            } catch {
+                console.error("Erro ao carregar dados");
             }
         };
         
@@ -71,19 +62,16 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
     }
 
     async function handleEditReportFilter(record: ReportFilterDetail) {
-        // Carrega o registro atual do banco de dados
-        const currentRecord = await getReportFilterById(record.id);
-        if (currentRecord) {
-            setRecord({
-                idReportFilterParam: currentRecord.idReportFilterParam,
-                value: currentRecord.value,
-                id: currentRecord.id,
-                idReport: currentRecord.idReport,
-                dtinsert: currentRecord.dtinsert ? new Date(currentRecord.dtinsert) : undefined,
-                dtupdate: currentRecord.dtupdate ? new Date(currentRecord.dtupdate) : undefined,
-                typeName: currentRecord.typeName || ''
-            });
-        }
+        // Em vez de carregar do banco, pegamos diretamente o registro da lista
+        setRecord({
+            idReportFilterParam: record.idReportFilterParam,
+            value: record.value,
+            id: record.id,
+            idReport: record.idReport,
+            dtinsert: record.dtinsert ? new Date(record.dtinsert) : undefined,
+            dtupdate: record.dtupdate ? new Date(record.dtupdate) : undefined,
+            typeName: (record as ReportFilterDetailWithTypeName).typeName || ''
+        });
         setOpen(true);
     }
 
@@ -128,7 +116,7 @@ export default function FilterTableAndForm({ filter, reportId, reportFilterParam
         try {
             const date = new Date(dateString);
             return date.toLocaleDateString('pt-BR');
-        } catch (error) {
+        } catch {
             return dateString;
         }
     };

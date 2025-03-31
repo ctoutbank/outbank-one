@@ -6,6 +6,7 @@ import {
   periodTypes,
   recurrenceTypes,
   reportFilters,
+  reportFiltersParam,
   reports,
   reportTypes,
 } from "../../../../drizzle/schema";
@@ -221,4 +222,9 @@ export type ReportTypeDD = {
 
 export async function getreportTypes(): Promise<ReportTypeDD[]> {
   return await db.select().from(reportTypes).orderBy(reportTypes.name);
+}
+
+
+export async function fetchReportFilterParams() {
+  return await db.select().from(reportFiltersParam).orderBy(reportFiltersParam.id);
 }
