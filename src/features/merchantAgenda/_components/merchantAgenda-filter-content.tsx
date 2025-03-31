@@ -1,39 +1,49 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, Search } from "lucide-react"
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon, Search } from "lucide-react";
+import { useState } from "react";
 
 type MerchantAgendaFilterContentProps = {
-  dateFromIn?: Date
-  dateToIn?: Date
-  establishmentIn?: string
-  statusIn?: string
-  cardBrandIn?: string
-  settlementDateFromIn?: Date
-  settlementDateToIn?: Date
-  expectedSettlementDateFromIn?: Date
-  expectedSettlementDateToIn?: Date
+  dateFromIn?: Date;
+  dateToIn?: Date;
+  establishmentIn?: string;
+  statusIn?: string;
+  cardBrandIn?: string;
+  settlementDateFromIn?: Date;
+  settlementDateToIn?: Date;
+  expectedSettlementDateFromIn?: Date;
+  expectedSettlementDateToIn?: Date;
   onFilter: (filters: {
-    dateFrom?: Date
-    dateTo?: Date
-    establishment: string
-    status: string
-    cardBrand: string
-    settlementDateFrom?: Date
-    settlementDateTo?: Date
-    expectedSettlementDateFrom?: Date
-    expectedSettlementDateTo?: Date
-  }) => void
-  onClose: () => void
-}
+    dateFrom?: Date;
+    dateTo?: Date;
+    establishment: string;
+    status: string;
+    cardBrand: string;
+    settlementDateFrom?: Date;
+    settlementDateTo?: Date;
+    expectedSettlementDateFrom?: Date;
+    expectedSettlementDateTo?: Date;
+  }) => void;
+  onClose: () => void;
+};
 
 export function MerchantAgendaFilterContent({
   dateFromIn,
@@ -48,22 +58,42 @@ export function MerchantAgendaFilterContent({
   onFilter,
   onClose,
 }: MerchantAgendaFilterContentProps) {
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn)
-  const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn)
-  const [establishment, setEstablishment] = useState(establishmentIn || "")
-  const [status, setStatus] = useState(statusIn || "")
-  const [cardBrand, setCardBrand] = useState(cardBrandIn || "")
-  const [settlementDateFrom, setSettlementDateFrom] = useState<Date | undefined>(settlementDateFromIn)
-  const [settlementDateTo, setSettlementDateTo] = useState<Date | undefined>(settlementDateToIn)
-  const [expectedSettlementDateFrom, setExpectedSettlementDateFrom] = useState<Date | undefined>(expectedSettlementDateFromIn)
-  const [expectedSettlementDateTo, setExpectedSettlementDateTo] = useState<Date | undefined>(expectedSettlementDateToIn)
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
+  const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
+  const [establishment, setEstablishment] = useState(establishmentIn || "");
+  const [status, setStatus] = useState(statusIn || "");
+  const [cardBrand, setCardBrand] = useState(cardBrandIn || "");
+  const [settlementDateFrom, setSettlementDateFrom] = useState<
+    Date | undefined
+  >(settlementDateFromIn);
+  const [settlementDateTo, setSettlementDateTo] = useState<Date | undefined>(
+    settlementDateToIn
+  );
+  const [expectedSettlementDateFrom, setExpectedSettlementDateFrom] = useState<
+    Date | undefined
+  >(expectedSettlementDateFromIn);
+  const [expectedSettlementDateTo, setExpectedSettlementDateTo] = useState<
+    Date | undefined
+  >(expectedSettlementDateToIn);
 
   const statuses = [
-    { value: "PENDING", label: "Pendente", color: "bg-orange-500 hover:bg-orange-600" },
-    { value: "PROCESSING", label: "Processando", color: "bg-yellow-500 hover:bg-yellow-600" },
-    { value: "SETTLED", label: "Liquidado", color: "bg-emerald-500 hover:bg-emerald-600" },
+    {
+      value: "PENDING",
+      label: "Pendente",
+      color: "bg-orange-500 hover:bg-orange-600",
+    },
+    {
+      value: "PROCESSING",
+      label: "Processando",
+      color: "bg-yellow-500 hover:bg-yellow-600",
+    },
+    {
+      value: "SETTLED",
+      label: "Liquidado",
+      color: "bg-emerald-500 hover:bg-emerald-600",
+    },
     { value: "FAILED", label: "Falhou", color: "bg-red-500 hover:bg-red-600" },
-  ]
+  ];
 
   const cardBrands = [
     { value: "all", label: "Todas" },
@@ -72,7 +102,8 @@ export function MerchantAgendaFilterContent({
     { value: "ELO", label: "Elo" },
     { value: "AMEX", label: "American Express" },
     { value: "HIPERCARD", label: "Hipercard" },
-  ]
+    { value: "NÃO IDENTIFICADA", label: "Não Identificada" },
+  ];
 
   return (
     <div className="relative mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
@@ -96,7 +127,9 @@ export function MerchantAgendaFilterContent({
                 className={cn(
                   "cursor-pointer w-24 h-7 select-none text-sm",
                   status === s.value ? s.color : "bg-secondary",
-                  status === s.value ? "text-white" : "text-secondary-foreground"
+                  status === s.value
+                    ? "text-white"
+                    : "text-secondary-foreground"
                 )}
                 onClick={() => setStatus(status === s.value ? "" : s.value)}
               >
@@ -285,21 +318,21 @@ export function MerchantAgendaFilterContent({
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button 
+        <Button
           onClick={() => {
-            onFilter({ 
-              dateFrom, 
-              dateTo, 
-              establishment, 
-              status, 
+            onFilter({
+              dateFrom,
+              dateTo,
+              establishment,
+              status,
               cardBrand,
               settlementDateFrom,
               settlementDateTo,
               expectedSettlementDateFrom,
-              expectedSettlementDateTo 
-            })
-            onClose()
-          }} 
+              expectedSettlementDateTo,
+            });
+            onClose();
+          }}
           className="flex items-center gap-2"
         >
           <Search className="h-4 w-4" />
@@ -307,5 +340,5 @@ export function MerchantAgendaFilterContent({
         </Button>
       </div>
     </div>
-  )
+  );
 }

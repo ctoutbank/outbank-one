@@ -96,8 +96,8 @@ export function FilterTransactionsContent({
 
   return (
     <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="space-y-2 ml-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
           <h3 className="text-sm font-medium ml-2">Status</h3>
           <div className="flex flex-wrap gap-2">
             {statuses.map((s) => (
@@ -155,7 +155,7 @@ export function FilterTransactionsContent({
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Inicial</h3>
           <Input
-            type="date"
+            type="datetime-local"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
@@ -164,7 +164,7 @@ export function FilterTransactionsContent({
         <div className="space-y-2 md:col-start-2">
           <h3 className="text-sm font-medium">Data Final</h3>
           <Input
-            type="date"
+            type="datetime-local"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />

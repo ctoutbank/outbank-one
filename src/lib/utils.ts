@@ -14,8 +14,6 @@ export type Period = {
 };
 
 export function gateDateByViewMode(viewMode: string): Period {
-  
-
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight
   const yesterday = new Date(today);
@@ -169,7 +167,7 @@ export function formatDateComplete(date: Date): string {
 }
 
 export function formatCurrency(number: number | undefined | null): string {
-  if (number === undefined || number === null) return 'R$ 0,00';
+  if (number === undefined || number === null) return "R$ 0,00";
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
 
@@ -197,7 +195,6 @@ export function translateStatus(status: string): string {
       return "Aprovado";
     default:
       return "";
-      
   }
 }
 
@@ -273,9 +270,30 @@ export function translateCardType(cardType: string): string {
   }
 }
 
-
 export function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
+}
+
+export function getLocalTimezone(): string {
+  if (typeof window === "undefined") {
+    return "-0300"; // Timezone padrão para o servidor (Brasil)
+  }
+
+  try {
+    const date = new Date();
+    const offset = -date.getTimezoneOffset();
+    const hours = Math.abs(Math.floor(offset / 60))
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.abs(offset % 60)
+      .toString()
+      .padStart(2, "0");
+    const sign = offset >= 0 ? "+" : "-";
+    return `${sign}${hours}${minutes}`;
+  } catch (error) {
+    console.error("Erro ao obter timezone local:", error);
+    return "-0300"; // Fallback para timezone do Brasil
+  }
 }

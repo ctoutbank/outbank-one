@@ -1,11 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import exportExcel from "@/lib/export-xlsx";
-import { getTransactions } from "@/features/transactions/serverActions/transaction";
+import { File } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
-export default function TransactionsExport() {
+export default function TransactionsExportPdf() {
   const searchParams = useSearchParams();
 
   const onGetExporTransactions = async () => {
@@ -19,29 +18,56 @@ export default function TransactionsExport() {
     const dateTo = searchParams.get("dateTo") || undefined;
     const productType = searchParams.get("productType") || undefined;
 
-    // Faz consulta direta ao banco de dados com os filtros aplicados
-    const transactionList = await getTransactions(
-      search,
-      page,
-      pageSize,
-      status,
-      merchant,
-      dateFrom,
-      dateTo,
-      productType
-    );
+    console.log("Exportando transações para Excel...");
 
-    console.log("Exportando transações...");
-    exportExcel("Transações", "Transações", transactionList.transactions);
+    try {
+      // Construir a URL com os parâmetros de consulta
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (status) queryParams.append("status", status);
+      if (merchant) queryParams.append("merchant", merchant);
+      if (dateFrom) queryParams.append("dateFrom", dateFrom);
+      if (dateTo) queryParams.append("dateTo", dateTo);
+      if (productType) queryParams.append("productType", productType);
+      queryParams.append("page", page.toString());
+      queryParams.append("pageSize", pageSize.toString());
+
+      // Preparar os dados para enviar para a API
+      const response = await fetch(
+        `/api/export-excel?${queryParams.toString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erro na resposta: ${response.status}`);
+      }
+
+      // Obter o blob do PDF da resposta
+      const blob = await response.blob();
+
+      // Criar URL para o blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Criar um elemento de link para download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "transacoes.xlsx";
+
+      // Adicionar ao documento, clicar e remover
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Liberar a URL do objeto
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao gerar Excel:", error);
+      alert("Erro ao gerar o Excel. Verifique o console para mais detalhes.");
+    }
   };
-
   return (
-    <Button
-      variant="outline"
-      className="gap-2 mr-2"
-      onClick={() => onGetExporTransactions()}
-    >
-      Exportar
+    <Button onClick={onGetExporTransactions}>
+      <File className="w-4 h-4" />
+      Exportar Excel
     </Button>
   );
 }
