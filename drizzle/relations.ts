@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, users, reports, reportFilters, reportFiltersParam, customerFunctions } from "./schema";
+import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, reportExecution, users, reportExecutionStatus, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, customerFunctions } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -100,6 +100,27 @@ export const merchantfileRelations = relations(merchantfile, ({one}) => ({
 
 export const fileRelations = relations(file, ({many}) => ({
 	merchantfiles: many(merchantfile),
+	reportExecutions: many(reportExecution),
+}));
+
+export const reportFiltersRelations = relations(reportFilters, ({one}) => ({
+	report: one(reports, {
+		fields: [reportFilters.idReport],
+		references: [reports.id]
+	}),
+	reportFiltersParam: one(reportFiltersParam, {
+		fields: [reportFilters.idReportFilterParam],
+		references: [reportFiltersParam.id]
+	}),
+}));
+
+export const reportsRelations = relations(reports, ({many}) => ({
+	reportFilters: many(reportFilters),
+	reportExecutions: many(reportExecution),
+}));
+
+export const reportFiltersParamRelations = relations(reportFiltersParam, ({many}) => ({
+	reportFilters: many(reportFilters),
 }));
 
 export const merchantPixSettlementOrdersRelations = relations(merchantPixSettlementOrders, ({one}) => ({
@@ -201,6 +222,45 @@ export const modulesRelations = relations(modules, ({many}) => ({
 	moduleFunctions: many(moduleFunctions),
 }));
 
+export const reportExecutionRelations = relations(reportExecution, ({one}) => ({
+	report: one(reports, {
+		fields: [reportExecution.idReport],
+		references: [reports.id]
+	}),
+	user: one(users, {
+		fields: [reportExecution.idUser],
+		references: [users.id]
+	}),
+	file: one(file, {
+		fields: [reportExecution.idFile],
+		references: [file.id]
+	}),
+	reportExecutionStatus: one(reportExecutionStatus, {
+		fields: [reportExecution.status],
+		references: [reportExecutionStatus.code]
+	}),
+}));
+
+export const usersRelations = relations(users, ({one, many}) => ({
+	reportExecutions: many(reportExecution),
+	customer: one(customers, {
+		fields: [users.idCustomer],
+		references: [customers.id]
+	}),
+	profile: one(profiles, {
+		fields: [users.idProfile],
+		references: [profiles.id]
+	}),
+	merchant: one(merchants, {
+		fields: [users.idMerchant],
+		references: [merchants.id]
+	}),
+}));
+
+export const reportExecutionStatusRelations = relations(reportExecutionStatus, ({many}) => ({
+	reportExecutions: many(reportExecution),
+}));
+
 export const categoriesRelations = relations(categories, ({many}) => ({
 	merchants: many(merchants),
 }));
@@ -245,40 +305,6 @@ export const merchantpixaccountRelations = relations(merchantpixaccount, ({one})
 		fields: [merchantpixaccount.idMerchant],
 		references: [merchants.id]
 	}),
-}));
-
-export const usersRelations = relations(users, ({one}) => ({
-	customer: one(customers, {
-		fields: [users.idCustomer],
-		references: [customers.id]
-	}),
-	profile: one(profiles, {
-		fields: [users.idProfile],
-		references: [profiles.id]
-	}),
-	merchant: one(merchants, {
-		fields: [users.idMerchant],
-		references: [merchants.id]
-	}),
-}));
-
-export const reportFiltersRelations = relations(reportFilters, ({one}) => ({
-	report: one(reports, {
-		fields: [reportFilters.idReport],
-		references: [reports.id]
-	}),
-	reportFiltersParam: one(reportFiltersParam, {
-		fields: [reportFilters.idReportFilterParam],
-		references: [reportFiltersParam.id]
-	}),
-}));
-
-export const reportsRelations = relations(reports, ({many}) => ({
-	reportFilters: many(reportFilters),
-}));
-
-export const reportFiltersParamRelations = relations(reportFiltersParam, ({many}) => ({
-	reportFilters: many(reportFilters),
 }));
 
 export const customerFunctionsRelations = relations(customerFunctions, ({one}) => ({

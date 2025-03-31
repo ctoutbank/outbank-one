@@ -1,7 +1,11 @@
 {
     "crons": [
       {
-        "path": "/api/hello",
+        "path": "/api/cron/send-transaction-report",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/sync-transactions",
         "schedule": "*/5 * * * *"
       }
     ]

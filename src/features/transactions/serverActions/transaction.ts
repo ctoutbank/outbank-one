@@ -1,7 +1,7 @@
 "use server";
 
 import { and, count, desc, eq, gte, like, lte, sql, sum } from "drizzle-orm";
-import { transactions } from "../../../../drizzle/schema";
+import { terminals, transactions } from "../../../../drizzle/schema";
 import { db } from "../../../server/db/index";
 
 export type TransactionList = {
@@ -182,4 +182,56 @@ export async function getTotalTransactionsByMonth(
   }));
 
   return totals;
+}
+
+export async function getTransactionsForReport(
+  search?: string,
+  page: number = 1,
+  pageSize: number = 100,
+  status?: string,
+  merchant?: string,
+  dateFrom?: string,
+  dateTo?: string,
+  productType?: string
+) {
+  const conditions = [];
+
+  if (search) {
+    conditions.push(like(transactions.slug, `%${search}%`));
+  }
+
+  if (status) {
+    conditions.push(like(transactions.transactionStatus, `%${status}%`));
+  }
+
+  if (merchant) {
+    conditions.push(like(transactions.merchantName, `%${merchant}%`));
+  }
+
+  if (dateFrom) {
+    conditions.push(
+      gte(transactions.dtInsert, new Date(dateFrom).toISOString())
+    );
+  }
+
+  if (dateTo) {
+    conditions.push(lte(transactions.dtInsert, new Date(dateTo).toISOString()));
+  }
+
+  if (productType) {
+    conditions.push(eq(transactions.productType, productType));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const result = await db
+    .select()
+    .from(transactions)
+    .innerJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+    .where(whereClause)
+    .orderBy(desc(transactions.dtInsert))
+    .offset((page - 1) * pageSize)
+    .limit(pageSize);
+
+  return result;
 }
