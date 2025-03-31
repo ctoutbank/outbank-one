@@ -145,7 +145,7 @@ export default function TransactionsList({
                   {translateStatus(transaction.transactionStatus)}
                 </Badge>
               </TableCell>
-              <TableCell>{transaction.brand || "N/A"}</TableCell>
+              <TableCell>{transaction.brand || "Não Identificada"}</TableCell>
             </TableRow>
           ))}
         </TableBody>
