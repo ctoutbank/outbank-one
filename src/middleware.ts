@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/hello",
   "/api/cron/report-execution",
   "/api/cron/report-schedule",
+  "/api/cron/sync-transactions",
+  "/api/cron/sync-terminals",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
