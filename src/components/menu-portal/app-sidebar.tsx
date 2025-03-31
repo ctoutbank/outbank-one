@@ -15,6 +15,7 @@ import {
   File,
   FileText,
   LucideIcon,
+  Calendar,
 } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -47,6 +48,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   Bolt,
   File,
   FileText,
+  Calendar,
 };
 
 interface MenuItem {

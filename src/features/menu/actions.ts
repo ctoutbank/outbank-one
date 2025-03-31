@@ -99,21 +99,11 @@ const menuData = {
         },
       ],
     },
-    {
-      title: "Configurações de Conta",
-      url: "",
-      icon: "Bolt",
-      items: [
-        {
-          title: "Perfis e Usuários",
-          url: "/portal/users",
-        },
-      ],
-    },
+
     {
       title: "Agenda dos Lojistas",
       url: "/portal/merchantAgenda",
-      icon: "Check",
+      icon: "Calendar",
     },
     {
       title: "Recebimentos",
@@ -130,6 +120,10 @@ const menuData = {
       url: "/portal/categories",
       icon: "Settings",
       items: [
+        {
+          title: "Perfis e Usuários",
+          url: "/portal/users",
+        },
         {
           title: "Categorias",
           url: "/portal/categories",

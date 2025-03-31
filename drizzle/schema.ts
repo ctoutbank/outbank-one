@@ -1,4 +1,4 @@
-import { pgTable, varchar, bigint, unique, serial, boolean, timestamp, char, integer, foreignKey, numeric, date, uuid, text, time } from "drizzle-orm/pg-core"
+import { pgTable, varchar, bigint, unique, serial, boolean, timestamp, char, integer, foreignKey, numeric, date, text, uuid, jsonb, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -231,6 +231,31 @@ export const merchantfile = pgTable("merchantfile", {
 export const reportTypes = pgTable("report_types", {
 	code: varchar({ length: 10 }).primaryKey().notNull(),
 	name: varchar({ length: 50 }).notNull(),
+});
+
+export const reportFilters = pgTable("report_filters", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "report_filters_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idReport: bigint("id_report", { mode: "number" }).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idReportFilterParam: bigint("id_report_filter_param", { mode: "number" }).notNull(),
+	value: text().notNull(),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => {
+	return {
+		fkReportFiltersReports: foreignKey({
+			columns: [table.idReport],
+			foreignColumns: [reports.id],
+			name: "fk_report_filters_reports"
+		}).onDelete("cascade"),
+		fkReportFiltersParam: foreignKey({
+			columns: [table.idReportFilterParam],
+			foreignColumns: [reportFiltersParam.id],
+			name: "fk_report_filters_param"
+		}).onDelete("cascade"),
+	}
 });
 
 export const country = pgTable("country", {
@@ -552,6 +577,46 @@ export const moduleFunctions = pgTable("module_functions", {
 			columns: [table.idFunction],
 			foreignColumns: [functions.id],
 			name: "module_functions_id_function_fkey"
+		}),
+	}
+});
+
+export const reportExecution = pgTable("report_execution", {
+	id: serial().primaryKey().notNull(),
+	idReport: integer("id_report"),
+	idUser: integer("id_user"),
+	totalRows: integer("total_rows"),
+	totalProcessedRows: integer("total_processed_rows"),
+	idFile: integer("id_file"),
+	status: varchar({ length: 20 }).notNull(),
+	createdOn: timestamp("created_on", { mode: 'string' }),
+	scheduleDate: timestamp("schedule_date", { mode: 'string' }).notNull(),
+	executionStart: timestamp("execution_start", { mode: 'string' }),
+	executionEnd: timestamp("execution_end", { mode: 'string' }),
+	emailsSent: text("emails_sent"),
+	filters: jsonb(),
+	errorMessage: text("error_message"),
+}, (table) => {
+	return {
+		reportExecutionIdReportFkey: foreignKey({
+			columns: [table.idReport],
+			foreignColumns: [reports.id],
+			name: "report_execution_id_report_fkey"
+		}),
+		reportExecutionIdUserFkey: foreignKey({
+			columns: [table.idUser],
+			foreignColumns: [users.id],
+			name: "report_execution_id_user_fkey"
+		}),
+		reportExecutionIdFileFkey: foreignKey({
+			columns: [table.idFile],
+			foreignColumns: [file.id],
+			name: "report_execution_id_file_fkey"
+		}),
+		reportExecutionStatusFkey: foreignKey({
+			columns: [table.status],
+			foreignColumns: [reportExecutionStatus.code],
+			name: "report_execution_status_fkey"
 		}),
 	}
 });
@@ -979,48 +1044,6 @@ export const fileFormats = pgTable("file_formats", {
 	name: varchar({ length: 50 }).notNull(),
 });
 
-export const reports = pgTable("reports", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "reports_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	title: varchar({ length: 200 }).notNull(),
-	recurrenceCode: varchar("recurrence_code", { length: 10 }),
-	shippingTime: time("shipping_time"),
-	periodCode: varchar("period_code", { length: 10 }),
-	emails: text(),
-	formatCode: varchar("format_code", { length: 10 }),
-	reportType: varchar("report_type", { length: 10 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dayWeek: varchar("day_week", { length: 10 }),
-	startPeriodTime: time("start_period_time"),
-	dayMonth: varchar("day_month", { length: 20 }),
-});
-
-export const reportFilters = pgTable("report_filters", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "report_filters_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idReport: bigint("id_report", { mode: "number" }).notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idReportFilterParam: bigint("id_report_filter_param", { mode: "number" }).notNull(),
-	value: text().notNull(),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-}, (table) => {
-	return {
-		fkReportFiltersReports: foreignKey({
-			columns: [table.idReport],
-			foreignColumns: [reports.id],
-			name: "fk_report_filters_reports"
-		}).onDelete("cascade"),
-		fkReportFiltersParam: foreignKey({
-			columns: [table.idReportFilterParam],
-			foreignColumns: [reportFiltersParam.id],
-			name: "fk_report_filters_param"
-		}).onDelete("cascade"),
-	}
-});
-
 export const reportFiltersParam = pgTable("report_filters_param", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "report_filters_param_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -1054,4 +1077,26 @@ export const customerFunctions = pgTable("customer_functions", {
 			name: "customer_functions_id_functions_fkey"
 		}),
 	}
+});
+
+export const reports = pgTable("reports", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "reports_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	title: varchar({ length: 200 }).notNull(),
+	recurrenceCode: varchar("recurrence_code", { length: 10 }),
+	shippingTime: time("shipping_time"),
+	periodCode: varchar("period_code", { length: 10 }),
+	emails: text(),
+	formatCode: varchar("format_code", { length: 10 }),
+	reportType: varchar("report_type", { length: 10 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dayWeek: varchar("day_week", { length: 10 }),
+	startPeriodTime: time("start_period_time"),
+	dayMonth: varchar("day_month", { length: 20 }),
+});
+
+export const reportExecutionStatus = pgTable("report_execution_status", {
+	code: varchar({ length: 20 }).primaryKey().notNull(),
+	name: varchar({ length: 50 }).notNull(),
 });
