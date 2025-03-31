@@ -16,7 +16,7 @@
       {
         "path": "/api/cron/sync-terminals",
         "schedule": "0 0 * * *"
-      },
+      }
       
     ]
   }
