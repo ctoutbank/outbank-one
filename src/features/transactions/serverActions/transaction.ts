@@ -1,6 +1,17 @@
 "use server";
 
-import { and, count, desc, eq, gte, like, lte, sql, sum } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  like,
+  lt,
+  lte,
+  sql,
+  sum,
+} from "drizzle-orm";
 import { terminals, transactions } from "../../../../drizzle/schema";
 import { db } from "../../../server/db/index";
 
@@ -208,16 +219,6 @@ export async function getTransactionsForReport(
     conditions.push(like(transactions.merchantName, `%${merchant}%`));
   }
 
-  if (dateFrom) {
-    conditions.push(
-      gte(transactions.dtInsert, new Date(dateFrom).toISOString())
-    );
-  }
-
-  if (dateTo) {
-    conditions.push(lte(transactions.dtInsert, new Date(dateTo).toISOString()));
-  }
-
   if (productType) {
     conditions.push(eq(transactions.productType, productType));
   }
@@ -227,8 +228,19 @@ export async function getTransactionsForReport(
   const result = await db
     .select()
     .from(transactions)
-    .innerJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-    .where(whereClause)
+    .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+    .where(
+      whereClause
+        ? and(
+            whereClause,
+            dateFrom ? gte(transactions.dtInsert, dateFrom) : undefined,
+            dateTo ? lt(transactions.dtInsert, dateTo) : undefined
+          )
+        : and(
+            dateFrom ? gte(transactions.dtInsert, dateFrom) : undefined,
+            dateTo ? lt(transactions.dtInsert, dateTo) : undefined
+          )
+    )
     .orderBy(desc(transactions.dtInsert))
     .offset((page - 1) * pageSize)
     .limit(pageSize);
