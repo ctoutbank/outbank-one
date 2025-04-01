@@ -1,9 +1,19 @@
-import { getfileFormats, getperiodTypes, getRecorrenceTypes, getReportById, getreportTypes } from "@/features/reports/server/reports";
+import {
+  getfileFormats,
+  getperiodTypes,
+  getRecorrenceTypes,
+  getReportById,
+  getreportTypes,
+} from "@/features/reports/server/reports";
 import ReportForm from "@/features/reports/_components/reports-form";
 import BaseHeader from "@/components/layout/base-header";
 import BaseBody from "@/components/layout/base-body";
 import FilterTableAndForm from "@/features/reports/filter/filter-table";
-import { getReportFilterParams, getReportFilters } from "@/features/reports/filter/filter-Actions";
+import {
+  getReportFilterParams,
+  getReportFilters,
+} from "@/features/reports/filter/filter-Actions";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -14,6 +24,8 @@ interface ReportDetailProps {
 }
 
 export default async function ReportDetail({ params }: ReportDetailProps) {
+  const permissions = await checkPagePermission("Relatórios", "Atualizar");
+
   // Tenta buscar o relatório apenas se o ID não for "new" ou "0"
   let report = null;
   if (params.id !== "new" && params.id !== "0") {
@@ -29,9 +41,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const reportFilterParams = await getReportFilterParams();
 
   console.log("recorrence", recorrence);
-  
- 
-  
+
   return (
     <>
       <BaseHeader
@@ -59,6 +69,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
           period={periods}
           fileFormat={fileFormat}
           reportType={reportType}
+          permissions={permissions}
         />
         <FilterTableAndForm
           reportId={report?.id || 0}

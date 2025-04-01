@@ -7,7 +7,7 @@ export async function checkPagePermission(
   permission: string = "Listar"
 ) {
   const user = await currentUser();
-  console.log("user", user);
+
   const permissions: string[] = await getUserGroupPermissions(
     user?.id || "",
     group

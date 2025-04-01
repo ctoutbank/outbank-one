@@ -83,7 +83,10 @@ export default async function TransactionsPage({
             <TransactionsExportPdf />
           </div>
 
-          <TransactionsList transactions={transactionList.transactions} />
+          <TransactionsList
+            transactions={transactionList.transactions}
+            
+          />
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

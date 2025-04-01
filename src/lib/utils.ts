@@ -14,8 +14,6 @@ export type Period = {
 };
 
 export function gateDateByViewMode(viewMode: string): Period {
-  
-
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight
   const yesterday = new Date(today);
@@ -169,7 +167,7 @@ export function formatDateComplete(date: Date): string {
 }
 
 export function formatCurrency(number: number | undefined | null): string {
-  if (number === undefined || number === null) return 'R$ 0,00';
+  if (number === undefined || number === null) return "R$ 0,00";
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 }
 
@@ -197,7 +195,6 @@ export function translateStatus(status: string): string {
       return "Aprovado";
     default:
       return "";
-      
   }
 }
 
@@ -272,7 +269,6 @@ export function translateCardType(cardType: string): string {
       return "";
   }
 }
-
 
 export function addDays(date: Date, days: number): Date {
   const result = new Date(date);

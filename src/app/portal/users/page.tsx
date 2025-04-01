@@ -9,6 +9,7 @@ import {
   getUsers,
 } from "@/features/users/server/users";
 import { cache } from "react";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -78,6 +79,8 @@ export default async function UsersPage({
 }: {
   searchParams: UsersPageProps;
 }) {
+  const permissions = await checkPagePermission("Configurar Perfis e Usuários");
+
   const page = Number.parseInt(searchParams.page || "1");
   const pageSize = Number.parseInt(searchParams.pageSize || "10");
   const email = searchParams.email || "";
@@ -88,6 +91,8 @@ export default async function UsersPage({
   const customerId = searchParams.customer || "0";
   const merchantId = searchParams.merchant || "0";
   const profileName = searchParams.profileName || "";
+
+  console.log(permissions);
 
   let usersData, profilesData;
 
@@ -153,6 +158,7 @@ export default async function UsersPage({
           customerId={customerId}
           merchantId={merchantId}
           profileName={profileName}
+          permissions={permissions}
         />
       </BaseBody>
     </>

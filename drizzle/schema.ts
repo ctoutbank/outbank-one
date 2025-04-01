@@ -360,17 +360,6 @@ export const syncLog = pgTable("sync_log", {
 	totalRecordsRetrieved: integer("total_records_retrieved"),
 });
 
-export const profiles = pgTable("profiles", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "profiles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }),
-	active: boolean().default(true),
-	name: varchar({ length: 100 }),
-	description: varchar({ length: 500 }),
-});
-
 export const functions = pgTable("functions", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "functions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -406,6 +395,18 @@ export const profileFunctions = pgTable("profile_functions", {
 			name: "profile_functions_id_functions_fkey"
 		}),
 	}
+});
+
+export const profiles = pgTable("profiles", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "profiles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }),
+	active: boolean().default(true),
+	name: varchar({ length: 100 }),
+	description: varchar({ length: 500 }),
+	issalesagent: boolean(),
 });
 
 export const establishmentFormat = pgTable("establishment_format", {
