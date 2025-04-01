@@ -57,7 +57,7 @@ export default function ReportForm({
   permissions,
 }: ReportsFormProps) {
   const router = useRouter();
-
+  console.log(permissions);
   // Formulário do Relatório
   const form = useForm<ReportSchema>({
     resolver: zodResolver(SchemaReport),
