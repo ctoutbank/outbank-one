@@ -111,4 +111,20 @@ const ProductType: SelectItem[] = [
   { value: "PREPAID_DEBIT", label: "Débito Pré-pago" },
 ];
 
-export { timezones, states, legalPersonTypes, week, Status, ProductType };
+const ProcessingType: SelectItem[] = [
+  { value: "PRESENCIAL", label: "Presencial" },
+  { value: "ONLINE", label: "Online" },
+  { value: "DIGITADA", label: "Digitada" },
+  { value: "TARJA", label: "Tarja" },
+  { value: "CHIP", label: "Chip" },
+  { value: "CONTACTLESS", label: "Contactless" },
+  { value: "TOKEN", label: "Token" },
+  { value: "LINK_PAGAMENTO", label: "Link de Pagamento" },
+  { value: "INTEGRACAO", label: "Integração" },
+  { value: "PONTO_VENDA", label: "Ponto de Venda" },
+  { value: "TAP_ON_PHONE", label: "Tap on Phone" },
+  { value: "TERMINAL_VIRTUAL", label: "Terminal Virtual" },
+  { value: "PDV", label: "PDV" },
+];
+
+export { timezones, states, legalPersonTypes, week, Status, ProductType, ProcessingType };
