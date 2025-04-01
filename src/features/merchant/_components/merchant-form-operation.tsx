@@ -47,6 +47,7 @@ interface MerchantProps {
   idMerchant: number;
   setActiveTab: (tab: string) => void;
   activeTab: string;
+  permissions: string[];
 }
 
 export default function MerchantFormOperations({
@@ -59,6 +60,7 @@ export default function MerchantFormOperations({
   setActiveTab,
   activeTab,
   idMerchant,
+  permissions,
 }: MerchantProps) {
   const router = useRouter();
   console.log("timezone", timezone);
@@ -87,7 +89,6 @@ export default function MerchantFormOperations({
       cardNotPresent: false,
       timezone: timezone,
       theme: "SYSTEM DEFAULT",
-      
     },
   });
 
@@ -124,9 +125,9 @@ export default function MerchantFormOperations({
         hasPix: data.hasPix || false,
         timezone: data.timezone || "",
       };
-      
+
       console.log("Dados para atualização do merchant:", merchantUpdates);
-      
+
       await updateMerchantColumnsById(idMerchant, merchantUpdates);
 
       refreshPage(idMerchant);
@@ -238,7 +239,9 @@ export default function MerchantFormOperations({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="ml-2">Cartão Não Presente</FormLabel>
+                      <FormLabel className="ml-2">
+                        Cartão Não Presente
+                      </FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -308,8 +311,8 @@ export default function MerchantFormOperations({
                       Timezone do Terminal{" "}
                       <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       value={field.value || "-0300"}
                       defaultValue={field.value || "-0300"}
                     >
@@ -375,13 +378,13 @@ export default function MerchantFormOperations({
                   </FormItem>
                 )}
               />
-
-            
             </CardContent>
           </Card>
-          <div className="flex justify-end mt-4">
-            <Button type="submit">Avançar</Button>
-          </div>
+          {permissions?.includes("Atualizar") && (
+            <div className="flex justify-end mt-4">
+              <Button type="submit">Avançar</Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

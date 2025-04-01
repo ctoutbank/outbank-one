@@ -57,19 +57,21 @@ interface MerchantProps {
   DDCnaeMcc: CnaeMccDropdown[];
   activeTab: string;
   DDEstablishmentFormat: EstablishmentFormatDropdown[];
+  permissions: string[];
   setActiveTab: (tab: string) => void;
 }
 
 export default function MerchantFormCompany({
   merchant,
   address,
-  
+
   Mcc,
   DDLegalNature,
   DDEstablishmentFormat,
   DDCnaeMcc = [],
   activeTab,
   setActiveTab,
+  permissions,
 }: MerchantProps) {
   const [isRendered, setIsRendered] = useState(false);
   const router = useRouter();
@@ -107,7 +109,7 @@ export default function MerchantFormCompany({
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
   });
-  console.log("legalPerson",merchant?.legalPerson)
+  console.log("legalPerson", merchant?.legalPerson);
 
   const form1 = useForm<AddressSchema>({
     resolver: zodResolver(schemaAddress),
@@ -177,7 +179,9 @@ export default function MerchantFormCompany({
       }
 
       refreshPage(idMerchant || 0);
-    } catch (error) {console.log("error",error)}
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
   const onSubmitAddress = async (data: AddressSchema) => {
@@ -645,7 +649,8 @@ export default function MerchantFormCompany({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Tipo de Pessoa <span className="text-red-500">*</span>
+                              Tipo de Pessoa{" "}
+                              <span className="text-red-500">*</span>
                             </FormLabel>
                             <Select
                               onValueChange={field.onChange}
@@ -671,7 +676,7 @@ export default function MerchantFormCompany({
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="establishmentFormat"
                         render={({ field }) => (
@@ -705,10 +710,8 @@ export default function MerchantFormCompany({
                         )}
                       />
                     </div>
-                   
-                    <div className="grid grid-cols-2 gap-4">
-                     
-                    </div>
+
+                    <div className="grid grid-cols-2 gap-4"></div>
                   </CardContent>
                 </Card>
 
@@ -895,9 +898,11 @@ export default function MerchantFormCompany({
                 </Card>
               </TabsContent>
             </Tabs>
-            <div className="flex justify-end mt-4">
-              <Button type="submit">Avançar</Button>
-            </div>
+            {permissions?.includes("Atualizar") && (
+              <div className="flex justify-end mt-4">
+                <Button type="submit">Avançar</Button>
+              </div>
+            )}
           </form>
         </Form>
       ) : (

@@ -68,7 +68,6 @@ export default function ProfileManagement({
     profile?.module || []
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log(profile);
 
   const form = useForm<{
     id?: number;
@@ -162,35 +161,41 @@ export default function ProfileManagement({
   };
 
   const handleSelectAllFunctions = (
-    moduleId: number,
-    groupId: string,
     groupFunctions: Functions[],
     checked: boolean
   ) => {
     const currentFunctions = form.getValues().functions || [];
     const functionIds = groupFunctions.map((f) => f.id.toString());
 
+    // Update the form state
     if (checked) {
-      // Add all functions that aren't already selected
       const newFunctions = Array.from(
         new Set([...currentFunctions, ...functionIds])
       );
       form.setValue("functions", newFunctions);
     } else {
-      // Remove all functions from this group
       const updatedFunctions = currentFunctions.filter(
         (id) => !functionIds.includes(id)
       );
       form.setValue("functions", updatedFunctions);
     }
+
+    // Update selectedModules state
+    const updatedModules = selectedModules.map((m) => ({
+      ...m,
+      group: m.group.map((g) => ({
+        ...g,
+        functions: g.functions.map((f) => ({
+          ...f,
+          selected: checked ? true : functionIds.includes(f.id.toString()),
+        })),
+      })),
+    }));
+    setSelectedModules(updatedModules);
   };
 
   // Check if all functions in a group are selected
-  const areAllFunctionsSelected = (
-    moduleId: number,
-    groupId: string,
-    groupFunctions: Functions[]
-  ) => {
+  const areAllFunctionsSelected = (groupFunctions: Functions[]) => {
     const selectedFunctions = form.getValues().functions || [];
     return groupFunctions.every((func) =>
       selectedFunctions.includes(func.id.toString())
@@ -198,11 +203,7 @@ export default function ProfileManagement({
   };
 
   // Get the count of selected functions in a group
-  const getSelectedFunctionsCount = (
-    moduleId: number,
-    groupId: string,
-    groupFunctions: Functions[]
-  ) => {
+  const getSelectedFunctionsCount = (groupFunctions: Functions[]) => {
     const selectedFunctions = form.getValues().functions || [];
     return groupFunctions.filter((func) =>
       selectedFunctions.includes(func.id.toString())
@@ -219,13 +220,24 @@ export default function ProfileManagement({
       setIsSubmitting(true);
       toast.loading("Salvando perfil...");
 
+      // Update selected state in modules based on functions array
+      const updatedModules = selectedModules.map((module) => ({
+        ...module,
+        group: module.group.map((group) => ({
+          ...group,
+          functions: group.functions.map((func) => ({
+            ...func,
+            selected: data.functions.includes(func.id.toString()),
+          })),
+        })),
+      }));
+
       const profileData = {
         ...data,
-        module: selectedModules,
+        module: updatedModules,
       };
-      console.log(profileData);
+
       if (data.id) {
-        console.log(profileData);
         await updateProfile(data.id, profileData);
         toast.success("Perfil atualizado com sucesso!");
       } else {
@@ -451,8 +463,6 @@ export default function ProfileManagement({
                                       <div className="flex items-center gap-2">
                                         <Badge variant="outline">
                                           {getSelectedFunctionsCount(
-                                            module.id,
-                                            group.id,
                                             group.functions
                                           )}
                                           /{group.functions.length} permissões
@@ -465,14 +475,10 @@ export default function ProfileManagement({
                                       <Checkbox
                                         id={`select-all-${module.id}-${group.id}`}
                                         checked={areAllFunctionsSelected(
-                                          module.id,
-                                          group.id,
                                           group.functions
                                         )}
                                         onCheckedChange={(checked) =>
                                           handleSelectAllFunctions(
-                                            module.id,
-                                            group.id,
                                             group.functions,
                                             checked as boolean
                                           )
@@ -508,20 +514,108 @@ export default function ProfileManagement({
                                                     onCheckedChange={(
                                                       checked
                                                     ) => {
-                                                      if (checked) {
-                                                        field.onChange([
-                                                          ...field.value,
+                                                      const currentValues =
+                                                        field.value || [];
+                                                      console.log(
+                                                        "Checkbox changed:",
+                                                        {
                                                           functionId,
-                                                        ]);
-                                                      } else {
+                                                          checked,
+                                                          currentValues,
+                                                          moduleId: module.id,
+                                                          groupId: group.id,
+                                                        }
+                                                      );
+
+                                                      // Atualizar o selectedModules
+                                                      const updatedModules =
+                                                        selectedModules.map(
+                                                          (m) => {
+                                                            if (
+                                                              m.id === module.id
+                                                            ) {
+                                                              return {
+                                                                ...m,
+                                                                group:
+                                                                  m.group.map(
+                                                                    (g) => {
+                                                                      if (
+                                                                        g.id ===
+                                                                        group.id
+                                                                      ) {
+                                                                        return {
+                                                                          ...g,
+                                                                          functions:
+                                                                            g.functions.map(
+                                                                              (
+                                                                                f
+                                                                              ) => {
+                                                                                if (
+                                                                                  f.id.toString() ===
+                                                                                  functionId
+                                                                                ) {
+                                                                                  return {
+                                                                                    ...f,
+                                                                                    selected:
+                                                                                      checked,
+                                                                                  };
+                                                                                }
+                                                                                return f;
+                                                                              }
+                                                                            ),
+                                                                        };
+                                                                      }
+                                                                      return g;
+                                                                    }
+                                                                  ),
+                                                              };
+                                                            }
+                                                            return m;
+                                                          }
+                                                        ) as ModuleSelect[];
+
+                                                      setSelectedModules(
+                                                        updatedModules
+                                                      );
+
+                                                      if (checked) {
+                                                        const newValues = [
+                                                          ...currentValues,
+                                                          functionId,
+                                                        ];
+                                                        console.log(
+                                                          "After checking:",
+                                                          newValues
+                                                        );
                                                         field.onChange(
-                                                          field.value?.filter(
+                                                          newValues
+                                                        );
+                                                      } else {
+                                                        const newValues =
+                                                          currentValues.filter(
                                                             (value) =>
                                                               value !==
                                                               functionId
-                                                          )
+                                                          );
+                                                        console.log(
+                                                          "After unchecking:",
+                                                          newValues
+                                                        );
+                                                        field.onChange(
+                                                          newValues
                                                         );
                                                       }
+
+                                                      setTimeout(() => {
+                                                        console.log(
+                                                          "Form values after update:",
+                                                          form.getValues()
+                                                        );
+                                                        console.log(
+                                                          "Selected modules after update:",
+                                                          selectedModules
+                                                        );
+                                                      }, 0);
                                                     }}
                                                   />
                                                 </FormControl>
@@ -561,7 +655,6 @@ export default function ProfileManagement({
                 size="lg"
                 disabled={isSubmitting}
                 onClick={() => {
-                  console.log("Button clicked");
                   form.handleSubmit(onSubmit)();
                 }}
               >

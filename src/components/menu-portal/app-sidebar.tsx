@@ -143,7 +143,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={menuData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <UserButton />
+        <UserButton
+          afterSignOutUrl="/"
+          appearance={{
+            elements: {
+              avatarBox: "h-10 w-10",
+              rootBox: "w-full",
+              userPreviewMainIdentifier: "text-foreground",
+              userPreviewSecondaryIdentifier: "text-muted-foreground",
+            },
+          }}
+          userProfileUrl="/portal/myProfile"
+          userProfileMode="navigation"
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

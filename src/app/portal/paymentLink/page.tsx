@@ -21,7 +21,7 @@ export default async function PaymentLinkPage({
 }: {
   searchParams: PaymentLinkProps;
 }) {
-  await checkPagePermission("Link de Pagamentos");
+  const permissions = await checkPagePermission("Link de Pagamentos");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
@@ -38,6 +38,7 @@ export default async function PaymentLinkPage({
   );
 
   const totalRecords = paymentLinks.totalCount;
+  console.log(permissions);
 
   return (
     <>
@@ -56,6 +57,7 @@ export default async function PaymentLinkPage({
             identifier={identifier}
             status={status}
             merchant={merchant}
+            permissions={permissions}
           />
         </div>
         <PaymentLinkList links={paymentLinks} />

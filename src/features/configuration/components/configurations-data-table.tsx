@@ -19,6 +19,7 @@ import {
 } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -26,6 +27,7 @@ interface DataTableProps<TData, TValue> {
   totalCount: number;
   pageSize: number;
   page: number;
+  permissions?: string[];
 }
 
 export function ConfigurationsDataTable<TData, TValue>({
@@ -34,6 +36,7 @@ export function ConfigurationsDataTable<TData, TValue>({
   totalCount,
   pageSize,
   page,
+  permissions,
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,20 +55,27 @@ export function ConfigurationsDataTable<TData, TValue>({
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Input
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="max-w-sm"
-        />
-        <Button onClick={() => router.push("/portal/configurations/new")}>
-          Add New Configuration
-        </Button>
+        <div className="flex flex-1 items-center space-x-2">
+          <Input
+            placeholder="Filtrar configurações..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+        </div>
+        {permissions?.includes("Inserir") && (
+          <Button
+            onClick={() => router.push("/portal/configurations/new")}
+            size="sm"
+            className="ml-auto h-8"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Configuração
+          </Button>
+        )}
       </div>
 
       <div className="rounded-md border">

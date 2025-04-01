@@ -13,11 +13,13 @@ import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { ChevronDown } from "lucide-react";
 import { Transaction } from "../serverActions/transaction";
 
+interface TransactionsListProps {
+  transactions: Transaction[];
+}
+
 export default function TransactionsList({
   transactions,
-}: {
-  transactions: Transaction[];
-}) {
+}: TransactionsListProps) {
   const getStatusBadgeVariant = (status: string | null) => {
     if (!status) return "secondary";
 

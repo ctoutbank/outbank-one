@@ -12,6 +12,8 @@ type PaymentLinkFilterProps = {
   identifier?: string;
   status?: string;
   merchant?: string;
+  hasPermission?: boolean;
+  permissions?: string[];
 };
 
 export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
@@ -73,12 +75,14 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
           onFilter={handleFilter}
         />
       </FilterPaymentLinkButton>
-      <Button asChild className="shrink-0">
-        <Link href="/portal/paymentLink/0">
-          <Plus className="h-4 w-4" />
-          Novo Link de Pagamento
-        </Link>
-      </Button>
+      {props.permissions?.includes("Inserir") && (
+        <Button asChild className="shrink-0">
+          <Link href="/portal/paymentLink/0">
+            <Plus className="h-4 w-4" />
+            Novo Link de Pagamento
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }
