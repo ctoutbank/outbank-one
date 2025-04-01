@@ -1,0 +1,246 @@
+"use client"
+
+import type React from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { toast } from "@/components/use-toast"
+import { Plus, Trash, X } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface EmailListProps {
+  value?: string
+  onChange?: (emails: string) => void
+  label?: string
+  description?: string
+  className?: string
+  onDeleteEmail?: (email: string) => Promise<void>
+  reportExists?: boolean // Indica se o relatório já existe no banco
+}
+
+export default function EmailList({ 
+  value = "", 
+  onChange, 
+  label = "Lista de Emails", 
+  description = "Adicione ou remova emails da sua lista", 
+  className = "",
+  onDeleteEmail,
+  reportExists = false
+}: EmailListProps) {
+  const [emails, setEmails] = useState<string[]>([])
+  const [newEmail, setNewEmail] = useState("")
+  const [error, setError] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Inicializa a lista de emails a partir da string separada por vírgulas
+  useEffect(() => {
+    if (value) {
+      const emailList = value.split(',').map(email => email.trim()).filter(email => email !== "")
+      setEmails(emailList)
+    } else {
+      setEmails([])
+    }
+  }, [value])
+
+  // Atualiza a string de emails sempre que a lista mudar
+  useEffect(() => {
+    if (onChange && !isDeleting) {
+      onChange(emails.join(', '))
+    }
+  }, [emails, onChange, isDeleting])
+
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(email)
+  }
+
+  const handleAddButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault() // Previne o submit do formulário
+    addEmail()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Previne o submit do formulário quando pressionar Enter
+      addEmail()
+    }
+  }
+
+  const addEmail = () => {
+    if (!newEmail.trim()) {
+      setError("Por favor, insira um email")
+      return
+    }
+
+    if (!validateEmail(newEmail)) {
+      setError("Por favor, insira um email válido")
+      return
+    }
+
+    if (emails.includes(newEmail)) {
+      setError("Este email já está na lista")
+      return
+    }
+
+    const updatedEmails = [...emails, newEmail]
+    setEmails(updatedEmails)
+    setNewEmail("")
+    setError("")
+    
+    if (onChange) {
+      onChange(updatedEmails.join(', '))
+    }
+    
+    toast({
+      title: "Email adicionado",
+      description: `${newEmail} foi adicionado à lista. ${reportExists ? 'Clique em Salvar para confirmar.' : ''}`,
+    })
+  }
+
+  const removeEmail = async (emailToRemove: string) => {
+    try {
+      setIsDeleting(true)
+      
+      // Se tiver callback de deleção E o relatório já existir, chama a função para deletar do banco
+      if (onDeleteEmail && reportExists) {
+        await onDeleteEmail(emailToRemove)
+      }
+      
+      const updatedEmails = emails.filter((email) => email !== emailToRemove)
+      setEmails(updatedEmails)
+      
+      if (onChange) {
+        onChange(updatedEmails.join(', '))
+      }
+      
+      toast({
+        title: "Email removido",
+        description: reportExists 
+          ? `${emailToRemove} foi removido da lista.` 
+          : `${emailToRemove} foi removido da lista. Clique em Salvar para confirmar.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao remover email",
+        description: "Não foi possível remover o email. Tente novamente.",
+        variant: "destructive"
+      })
+      console.error("Erro ao remover email:", error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const clearAllEmails = async () => {
+    try {
+      setIsDeleting(true)
+      
+      // Se tiver callback de deleção E o relatório já existir, chama a função para deletar do banco
+      if (onDeleteEmail && reportExists) {
+        // Deletar cada email um por um
+        for (const email of emails) {
+          await onDeleteEmail(email)
+        }
+      }
+      
+      setEmails([])
+      
+      if (onChange) {
+        onChange("")
+      }
+      
+      toast({
+        title: "Lista limpa",
+        description: reportExists 
+          ? "Todos os emails foram removidos da lista." 
+          : "Todos os emails foram removidos da lista. Clique em Salvar para confirmar.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao limpar emails",
+        description: "Não foi possível limpar todos os emails. Tente novamente.",
+        variant: "destructive"
+      })
+      console.error("Erro ao limpar emails:", error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <Card className={`w-full ${className}`}>
+      <CardHeader className="pb-2">
+        <CardTitle>{label}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex space-x-2">
+            <Input
+              type="email"
+              placeholder="exemplo@email.com"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1"
+            />
+            <Button 
+              type="button" 
+              size="sm" 
+              disabled={isDeleting}
+              onClick={handleAddButtonClick}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Adicionar
+            </Button>
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Emails ({emails.length})</h3>
+            {emails.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={clearAllEmails}
+                disabled={isDeleting}
+                className="h-8 text-xs"
+              >
+                <Trash className="h-3 w-3 mr-1" /> Limpar lista
+              </Button>
+            )}
+          </div>
+          
+          {emails.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum email na lista</p>
+          ) : (
+            <ScrollArea className="h-[180px] pr-4">
+              <ul className="space-y-2">
+                {emails.map((email) => (
+                  <li key={email} className="flex items-center justify-between p-2 border rounded-md">
+                    <span className="text-sm">{email}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      onClick={() => removeEmail(email)}
+                      disabled={isDeleting}
+                      aria-label={`Remover ${email}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+

@@ -11,12 +11,12 @@ export default function TransactionsExportPdf() {
     // Extrair todos os parâmetros do URL
     const page = 1; // Começa com a primeira página
     const pageSize = 10000; // Busca um número grande de registros
-    const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") || undefined;
-    const merchant = searchParams.get("merchant") || undefined;
-    const dateFrom = searchParams.get("dateFrom") || undefined;
-    const dateTo = searchParams.get("dateTo") || undefined;
-    const productType = searchParams.get("productType") || undefined;
+    const search = searchParams?.get("search") || "";
+    const status = searchParams?.get("status") || undefined;
+    const merchant = searchParams?.get("merchant") || undefined;
+    const dateFrom = searchParams?.get("dateFrom") || undefined;
+    const dateTo = searchParams?.get("dateTo") || undefined;
+    const productType = searchParams?.get("productType") || undefined;
 
     console.log("Exportando transações para PDF...");
 

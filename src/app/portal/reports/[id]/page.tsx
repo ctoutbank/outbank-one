@@ -31,6 +31,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const reportType = await getreportTypes();
   const filters = await getReportFilters(report?.id || 0);
   const reportFilterParams = await fetchReportFilterParams();
+  console.log("reportFilterParams", reportFilterParams);
   
 
   console.log("recorrence", recorrence);
@@ -55,7 +56,8 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
             periodCode: report?.periodCode || "",
             dayWeek: report?.dayWeek || "",
             dayMonth: report?.dayMonth || "",
-            startPeriodTime: report?.startPeriodTime || "",
+            startTime: report?.startTime || "",
+            endTime: report?.endTime || "",
             emails: report?.emails || "",
             formatCode: report?.formatCode || "",
             reportType: report?.reportType || "",

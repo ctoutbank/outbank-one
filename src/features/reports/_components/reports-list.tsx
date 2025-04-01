@@ -14,7 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 
-export default function ReportList({ Reports }: { Reports: ReportsList }) {
+export default function ReportList({ Reports }: { Reports: ReportsList | undefined }) {
   const formatDateTime = (date: Date) => {
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
   };
@@ -62,7 +62,7 @@ export default function ReportList({ Reports }: { Reports: ReportsList }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Reports.reports.map((report) => (
+            {Reports?.reports.map((report) => (
               <TableRow key={report.id}>
                 <TableCell>
                   <Link
