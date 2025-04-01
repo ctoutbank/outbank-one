@@ -109,6 +109,7 @@ async function getTransactionTotalCount(): Promise<number> {
     await client.connect();
     const query = "SELECT COUNT(1) FROM transactions";
     const result = await client.query(query);
+    console.log("Total count:", result.rows[0].count);
     return result.rows[0].count || 0;
   } catch (error: any) {
     console.error("Error getting transaction total count:", error.message);
@@ -213,6 +214,8 @@ export async function syncTransactions() {
     console.log(`Total count: ${totalCount}`);
     const data = await fetchData(totalCount);
     // Save each object in the data array to the database
+    console.log(`Data: ${data}`);
+
     await saveToDatabaseBatch(data);
   } catch (error: any) {
     console.error("Error during execution:", error.message);
