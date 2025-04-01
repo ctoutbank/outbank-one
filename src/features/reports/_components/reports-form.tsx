@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { week } from "@/lib/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -35,8 +35,9 @@ import {
   PeriodDD,
   Recorrence,
   ReportTypeDD,
+  deleteEmailFromReport,
 } from "../server/reports";
-import { week } from "@/lib/lookuptables";
+import EmailList from "./email-list";
 
 interface ReportsFormProps {
   report: ReportSchema;
@@ -56,7 +57,7 @@ export default function ReportForm({
   permissions,
 }: ReportsFormProps) {
   const router = useRouter();
-
+  console.log(permissions);
   // Formulário do Relatório
   const form = useForm<ReportSchema>({
     resolver: zodResolver(SchemaReport),
@@ -69,7 +70,8 @@ export default function ReportForm({
       periodCode: report.periodCode || "",
       dayWeek: report.dayWeek || "",
       dayMonth: report.dayMonth || "",
-      startPeriodTime: report.startPeriodTime || "",
+      endTime: report.endTime || "",
+      startTime: report.startTime || "",
       emails: report.emails || "",
       formatCode: report.formatCode || "",
       reportType: report.reportType || "",
@@ -85,7 +87,7 @@ export default function ReportForm({
     const formattedData = {
       ...data,
       shippingTime: data.shippingTime || undefined,
-      startPeriodTime: data.startPeriodTime || undefined,
+      startTime: data.startTime || undefined,
     };
 
     // Log dos dados formatados
@@ -107,7 +109,7 @@ export default function ReportForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card className="w-full mb-4">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -179,7 +181,7 @@ export default function ReportForm({
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <FormField
                 control={form.control}
                 name="periodCode"
@@ -225,6 +227,7 @@ export default function ReportForm({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="recurrenceCode"
@@ -258,6 +261,7 @@ export default function ReportForm({
                   </FormItem>
                 )}
               />
+
               {(form.watch("periodCode") === "SA" ||
                 form.watch("periodCode") === "SR") && (
                 <FormField
@@ -314,35 +318,59 @@ export default function ReportForm({
                   )}
                 />
               )}
+            </div>
 
-              {form.watch("periodCode") === "DT" && (
-                <FormField
-                  control={form.control}
-                  name="startPeriodTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horário Inicial</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="time"
-                          name={field.name}
-                          ref={field.ref}
-                          value={field.value || ""}
-                          onBlur={field.onBlur}
-                          onChange={(e) => {
-                            console.log(
-                              "Novo valor de startPeriodTime:",
-                              e.target.value
-                            );
-                            field.onChange(e.target.value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horário Inicial</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value || ""}
+                        onBlur={field.onBlur}
+                        onChange={(e) => {
+                          console.log(
+                            "Novo valor de startTime:",
+                            e.target.value
+                          );
+                          field.onChange(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horário Final</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value || ""}
+                        onBlur={field.onBlur}
+                        onChange={(e) => {
+                          console.log("Novo valor de endTime:", e.target.value);
+                          field.onChange(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -378,12 +406,38 @@ export default function ReportForm({
                 name="emails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Emails (separados por vírgula)</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="email1@example.com, email2@example.com"
-                        {...field}
+                      <EmailList
                         value={field.value || ""}
+                        onChange={field.onChange}
+                        label="Emails para envio do relatório"
+                        description="Adicione os emails que receberão este relatório"
+                        className="shadow-none border-0 p-0"
+                        reportExists={!!report.id}
+                        onDeleteEmail={
+                          report.id
+                            ? async (email) => {
+                                try {
+                                  await deleteEmailFromReport(
+                                    report.id as number,
+                                    email
+                                  );
+                                  toast.success(
+                                    `Email ${email} removido com sucesso`
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Erro ao remover email:",
+                                    error
+                                  );
+                                  toast.error(
+                                    "Erro ao remover email. Tente novamente."
+                                  );
+                                  throw error;
+                                }
+                              }
+                            : undefined
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -391,13 +445,11 @@ export default function ReportForm({
                 )}
               />
             </div>
+            <div className="flex justify-end ">
+              <Button type="submit">Salvar</Button>
+            </div>
           </CardContent>
         </Card>
-        {permissions?.includes("Atualizar") && (
-          <div className="flex justify-end mt-4">
-            <Button type="submit">Salvar</Button>
-          </div>
-        )}
       </form>
     </Form>
   );

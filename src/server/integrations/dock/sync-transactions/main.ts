@@ -1,5 +1,6 @@
 "use server";
 
+import { createCronJobMonitoring } from "@/features/cronJob/actions";
 import { Client, ClientConfig } from "pg";
 
 // Database connection configuration
@@ -211,12 +212,29 @@ export async function syncTransactions() {
   try {
     // Fetch data from API
     const totalCount = await getTransactionTotalCount();
+    await createCronJobMonitoring({
+      jobName: "Sincronização de transações",
+      status: "pending",
+      startTime: new Date().toISOString(),
+      logMessage: `Total count: ${totalCount}`,
+    });
     console.log(`Total count: ${totalCount}`);
     const data = await fetchData(totalCount);
     // Save each object in the data array to the database
     console.log(`Data: ${data}`);
-
+    await createCronJobMonitoring({
+      jobName: "Sincronização de transações",
+      status: "dados",
+      startTime: new Date().toISOString(),
+      logMessage: `Data: ${data}`,
+    });
     await saveToDatabaseBatch(data);
+    await createCronJobMonitoring({
+      jobName: "Sincronização de transações",
+      status: "finalizado",
+      startTime: new Date().toISOString(),
+      logMessage: `Finalizado`,
+    });
   } catch (error: any) {
     console.error("Error during execution:", error.message);
   }
