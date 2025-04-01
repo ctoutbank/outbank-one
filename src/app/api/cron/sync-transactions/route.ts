@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
 import { syncTransactions } from "@/server/integrations/dock/sync-transactions/main";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    console.log("Iniciando sincronização de transações...");
     await syncTransactions();
     return NextResponse.json({
       message: "Sincronização de transações concluída com sucesso",
