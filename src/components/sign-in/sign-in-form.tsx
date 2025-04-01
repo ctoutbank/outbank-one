@@ -1,73 +1,77 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useSignIn } from "@clerk/nextjs"
-import { Eye, EyeOff } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
+import { useState } from "react";
+import { useSignIn } from "@clerk/nextjs";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const { signIn, isLoaded } = useSignIn()
-  const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, isLoaded } = useSignIn();
+  const [error, setError] = useState("");
 
   const getPortugueseErrorMessage = (error: any) => {
     if (error?.errors?.[0]) {
-      const clerkError = error.errors[0]
+      const clerkError = error.errors[0];
       switch (clerkError.code) {
         case "user_not_found":
-          return "Nenhum usuário encontrado com este e-mail"
+          return "Nenhum usuário encontrado com este e-mail";
         case "form_password_incorrect":
-          return "Senha incorreta"
+          return "Senha incorreta";
         case "form_identifier_not_found":
-          return "E-mail não encontrado"
+          return "E-mail não encontrado";
         case "form_param_format_invalid":
-          return "Formato de e-mail inválido"
+          return "Formato de e-mail inválido";
         case "network_error":
-          return "Erro de conexão. Por favor, verifique sua internet"
+          return "Erro de conexão. Por favor, verifique sua internet";
         default:
-          return clerkError.message ? 
-            clerkError.message : "Ocorreu um erro. Por favor, tente novamente"
+          return clerkError.message
+            ? clerkError.message
+            : "Ocorreu um erro. Por favor, tente novamente";
       }
     }
-    return "Ocorreu um erro. Por favor, tente novamente"
-  }
+    return "Ocorreu um erro. Por favor, tente novamente";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!isLoaded) return
-    
+    e.preventDefault();
+    if (!isLoaded) return;
+
     try {
-      setError("")
-      setIsLoading(true)
+      setError("");
+      setIsLoading(true);
       const result = await signIn.create({
         identifier: email,
         password,
-      })
+      });
 
       if (result.status === "complete") {
-        window.location.href = "/"
+        window.location.href = "/portal/dashboard";
       } else {
-        setError("Algo deu errado durante o login")
+        setError("Algo deu errado durante o login");
       }
     } catch (err: any) {
-      console.error("Error signing in:", err)
-      const portugueseError = getPortugueseErrorMessage(err)
-      setError(portugueseError)
+      console.error("Error signing in:", err);
+      const portugueseError = getPortugueseErrorMessage(err);
+      setError(portugueseError);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-1">
-        <label className="text-sm font-medium ml-2 text-gray-300" htmlFor="email">
+        <label
+          className="text-sm font-medium ml-2 text-gray-300"
+          htmlFor="email"
+        >
           Email
         </label>
         <Input
@@ -82,7 +86,10 @@ export function SignInForm() {
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium ml-2 text-gray-300" htmlFor="password">
+        <label
+          className="text-sm font-medium ml-2 text-gray-300"
+          htmlFor="password"
+        >
           Senha
         </label>
         <div className="relative">
@@ -100,7 +107,11 @@ export function SignInForm() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
           >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
@@ -118,16 +129,15 @@ export function SignInForm() {
             Lembrar-me
           </label>
         </div>
-        <Link href="/forgot-password" className="text-sm text-gray-300/80 hover:text-[#CFC8B8]/80">
+        <Link
+          href="/forgot-password"
+          className="text-sm text-gray-300/80 hover:text-[#CFC8B8]/80"
+        >
           Esqueceu a senha?
         </Link>
       </div>
 
-      {error && (
-        <div className="text-red-500 text-sm mt-2">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
       <Button
         type="submit"
@@ -137,5 +147,5 @@ export function SignInForm() {
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
     </form>
-  )
+  );
 }

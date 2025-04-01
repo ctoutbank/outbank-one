@@ -1,4 +1,6 @@
+import { getTransactionsForReport } from "@/features/transactions/serverActions/transaction";
 import { resend } from "@/lib/resend";
+import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { reportExecution, reports } from "../../../../drizzle/schema";
@@ -6,8 +8,6 @@ import { db } from "../../../server/db";
 import reportsExecutionSalesGeneratePDF, {
   reportsExecutionSalesGenerateXLSX,
 } from "./reports-execution-sales";
-import { getTransactionsForReport } from "@/features/transactions/serverActions/transaction";
-import { formatDate } from "@/lib/utils";
 
 export async function reportExecutionsProcessing() {
   console.log(
@@ -69,8 +69,6 @@ export async function reportExecutionsProcessing() {
       let pdfBytes: Uint8Array<ArrayBufferLike> | null = null;
       if (report[0].reportType === "VN") {
         const search = "";
-        const pageNumber = 1;
-        const pageSize = 100000;
         const status = undefined;
         const merchant = undefined;
         // Define a data de início como hoje às 03:00 explicitamente
@@ -98,8 +96,7 @@ export async function reportExecutionsProcessing() {
 
         const transactions = await getTransactionsForReport(
           search,
-          pageNumber,
-          pageSize,
+
           status,
           merchant,
           dateFrom,

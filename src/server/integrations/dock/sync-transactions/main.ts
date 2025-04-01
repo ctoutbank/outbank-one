@@ -1,3 +1,5 @@
+"use server";
+
 import { Client, ClientConfig } from "pg";
 
 // Database connection configuration

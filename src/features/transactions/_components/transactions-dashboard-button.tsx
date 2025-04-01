@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ChevronRight } from "lucide-react";
+import { ChevronRight, LayoutGrid } from "lucide-react";
 import { useState } from "react";
 
 export function TransactionsDashboardButton({
@@ -9,7 +9,7 @@ export function TransactionsDashboardButton({
 }: {
   children: React.ReactNode;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div>

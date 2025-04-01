@@ -10,6 +10,7 @@ type FilterTransactionsButtonProps = {
   children: React.ReactNode;
   isFiltersVisible: boolean;
   onVisibilityChange: (visible: boolean) => void;
+  isPending: boolean;
 };
 
 export function FilterTransactionsButton({
@@ -18,6 +19,7 @@ export function FilterTransactionsButton({
   children,
   isFiltersVisible,
   onVisibilityChange,
+  isPending,
 }: FilterTransactionsButtonProps) {
   return (
     <div className="relative z-50">
@@ -26,6 +28,7 @@ export function FilterTransactionsButton({
           variant="outline"
           onClick={() => onVisibilityChange(!isFiltersVisible)}
           className="flex items-center gap-2"
+          disabled={isPending}
         >
           <FilterIcon className="h-4 w-4" />
           Filtros
@@ -38,12 +41,20 @@ export function FilterTransactionsButton({
             variant="ghost"
             onClick={onClearFilters}
             className="text-sm text-muted-foreground"
+            disabled={isPending}
           >
             Limpar Filtros
           </Button>
         )}
       </div>
       {isFiltersVisible && children}
+      {isPending && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-4 rounded-md shadow-lg">
+            <span className="text-sm font-medium">Carregando...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
