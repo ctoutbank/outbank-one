@@ -275,3 +275,25 @@ export function addDays(date: Date, days: number): Date {
   result.setDate(result.getDate() + days);
   return result;
 }
+
+export function getLocalTimezone(): string {
+  if (typeof window === "undefined") {
+    return "-0300"; // Timezone padrão para o servidor (Brasil)
+  }
+
+  try {
+    const date = new Date();
+    const offset = -date.getTimezoneOffset();
+    const hours = Math.abs(Math.floor(offset / 60))
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.abs(offset % 60)
+      .toString()
+      .padStart(2, "0");
+    const sign = offset >= 0 ? "+" : "-";
+    return `${sign}${hours}${minutes}`;
+  } catch (error) {
+    console.error("Erro ao obter timezone local:", error);
+    return "-0300"; // Fallback para timezone do Brasil
+  }
+}

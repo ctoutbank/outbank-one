@@ -1,15 +1,20 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaginationRecords from "@/components/pagination-Records";
 import PageSizeSelector from "@/components/page-size-selector";
+import PaginationRecords from "@/components/pagination-Records";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SyncButton } from "@/features/sync/syncButton";
 import { TransactionsDashboardButton } from "@/features/transactions/_components/transactions-dashboard-button";
-import { TransactionsDashboardContent } from "@/features/transactions/_components/transactions-dashboard-content";
+import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
 import TransactionsList from "@/features/transactions/_components/transactions-list";
-import { getTransactions } from "@/features/transactions/serverActions/transaction";
-import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
+import {
+  getTransactions,
+  getTransactionsForReport,
+} from "@/features/transactions/serverActions/transaction";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import TransactionsExportPdf from "@/features/transactions/reports/transactions-export-pdf";
+import { Suspense } from "react";
+import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
 
 type TransactionsProps = {
   page?: string;
@@ -22,6 +27,92 @@ type TransactionsProps = {
   productType?: string;
 };
 
+async function TransactionsContent({
+  searchParams,
+}: {
+  searchParams: TransactionsProps;
+}) {
+  const page = parseInt(searchParams.page || "1");
+  const pageSize = parseInt(searchParams.pageSize || "20");
+  const search = searchParams.search || "";
+
+  const today = new Date();
+  const startOfDay = `${today.getFullYear()}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}T00:00:00`;
+  const endOfDay = `${today.getFullYear()}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}T23:59:59`;
+
+  const dateFrom = searchParams.dateFrom || startOfDay;
+  const dateTo = searchParams.dateTo || endOfDay;
+
+  console.log("dateFrom", dateFrom);
+  console.log("dateTo", dateTo);
+
+  const transactionList = await getTransactions(
+    search,
+    page,
+    pageSize,
+    searchParams.status,
+    searchParams.merchant,
+    dateFrom,
+    dateTo,
+    searchParams.productType
+  );
+  const transactionsReport = await getTransactionsForReport(
+    search,
+    searchParams.status,
+    searchParams.merchant,
+    dateFrom,
+    dateTo,
+    searchParams.productType
+  );
+  const totalRecords = transactionList.totalCount;
+
+  return (
+    <>
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <TransactionsFilter
+              statusIn={searchParams.status}
+              merchantIn={searchParams.merchant}
+              dateFromIn={dateFrom}
+              dateToIn={dateTo}
+              productTypeIn={searchParams.productType}
+            />
+            <TransactionsDashboardButton>
+              <TransactionsDashboardTable transactions={transactionsReport} />
+            </TransactionsDashboardButton>
+          </div>
+          <TransactionsExport />
+
+          {/* Componente para exportação em PDF 
+          <TransactionsExportPdf />*/}
+        </div>
+
+        <TransactionsList transactions={transactionList.transactions} />
+
+        {totalRecords > 0 && (
+          <div className="flex items-center justify-between mt-4">
+            <PageSizeSelector
+              currentPageSize={pageSize}
+              pageName="portal/transactions"
+            />
+            <PaginationRecords
+              totalRecords={totalRecords}
+              currentPage={page}
+              pageSize={pageSize}
+              pageName="portal/transactions"
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default async function TransactionsPage({
   searchParams,
 }: {
@@ -29,80 +120,54 @@ export default async function TransactionsPage({
 }) {
   await checkPagePermission("Lançamentos Financeiros");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
-  const search = searchParams.search || "";
-
-  // Buscar dados de transações com os filtros
-  const transactionList = await getTransactions(
-    search,
-    page,
-    pageSize,
-    searchParams.status,
-    searchParams.merchant,
-    searchParams.dateFrom,
-    searchParams.dateTo,
-    searchParams.productType
-  );
-
-  const totalRecords = transactionList.totalCount;
-
-  // Dados para o dashboard
-  const dashboardData = {
-    totalTransactions: transactionList.totalCount,
-    approvedTransactions: transactionList.approved_count,
-    pendingTransactions: transactionList.pending_count,
-    rejectedTransactions: transactionList.rejected_count,
-    totalAmount: transactionList.total_amount,
-    revenue: transactionList.revenue,
-  };
-
   return (
     <>
       <BaseHeader
         breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
       />
-      <BaseBody title="Vendas" subtitle={`Visualização de todas as vendas`}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <TransactionsFilter
-                statusIn={searchParams.status}
-                merchantIn={searchParams.merchant}
-                dateFromIn={searchParams.dateFrom}
-                dateToIn={searchParams.dateTo}
-                productTypeIn={searchParams.productType}
-              />
-              <TransactionsDashboardButton>
-                <div className="-ml-28">
-                  <TransactionsDashboardContent {...dashboardData} />
+      <BaseBody
+        title="Vendas"
+        subtitle={`Visualização de todas as vendas`}
+        actions={<SyncButton syncType="transactions" />}
+      >
+        <Suspense
+          fallback={
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 flex-1">
+                  <Skeleton className="h-10 w-[120px]" />
+                  <Skeleton className="h-10 w-[150px]" />
                 </div>
-              </TransactionsDashboardButton>
+                <div className="flex gap-2">
+                  <Skeleton className="h-10 w-[120px]" />
+                  <Skeleton className="h-10 w-[120px]" />
+                </div>
+              </div>
+              <div className="rounded-md border">
+                <div className="p-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-[100px]" />
+                    ))}
+                  </div>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 mb-4">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <Skeleton key={j} className="h-4 w-[100px]" />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <Skeleton className="h-8 w-[100px]" />
+                <Skeleton className="h-8 w-[300px]" />
+              </div>
             </div>
-            <TransactionsExport />
-            <TransactionsExportPdf />
-          </div>
-
-          <TransactionsList
-            transactions={transactionList.transactions}
-            
-          />
-
-          {totalRecords > 0 && (
-            <div className="flex items-center justify-between mt-4">
-              <PageSizeSelector
-                currentPageSize={pageSize}
-                pageName="portal/transactions"
-              />
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/transactions"
-              />
-            </div>
-          )}
-        </div>
+          }
+        >
+          <TransactionsContent searchParams={searchParams} />
+        </Suspense>
       </BaseBody>
     </>
   );

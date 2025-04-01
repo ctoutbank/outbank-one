@@ -76,7 +76,11 @@ export default function TransactionsList({
     if (!dateStr) return "N/A";
 
     const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+
+    // Converter de UTC para o fuso horário de São Paulo
+
     return date.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -147,7 +151,7 @@ export default function TransactionsList({
                   {translateStatus(transaction.transactionStatus)}
                 </Badge>
               </TableCell>
-              <TableCell>{transaction.brand || "N/A"}</TableCell>
+              <TableCell>{transaction.brand || "Não Identificada"}</TableCell>
             </TableRow>
           ))}
         </TableBody>

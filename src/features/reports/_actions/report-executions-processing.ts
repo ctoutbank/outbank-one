@@ -1,9 +1,13 @@
+import { getTransactionsForReport } from "@/features/transactions/serverActions/transaction";
 import { resend } from "@/lib/resend";
+import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { reportExecution, reports } from "../../../../drizzle/schema";
 import { db } from "../../../server/db";
-import reportsExecutionSalesGeneratePDF from "./reports-execution-sales";
+import reportsExecutionSalesGeneratePDF, {
+  reportsExecutionSalesGenerateXLSX,
+} from "./reports-execution-sales";
 
 export async function reportExecutionsProcessing() {
   console.log(
@@ -64,7 +68,52 @@ export async function reportExecutionsProcessing() {
 
       let pdfBytes: Uint8Array<ArrayBufferLike> | null = null;
       if (report[0].reportType === "VN") {
-        pdfBytes = await reportsExecutionSalesGeneratePDF();
+        const search = "";
+        const status = undefined;
+        const merchant = undefined;
+        // Define a data de início como hoje às 03:00 explicitamente
+
+        // Aumentar 3 horas nas datas
+        const dateFromBase = new Date("2025-03-31 00:00:00");
+        const dateToBase = new Date("2025-03-31 12:00:59");
+
+        dateFromBase.setHours(dateFromBase.getHours() + 3);
+        dateToBase.setHours(dateToBase.getHours() + 3);
+
+        const dateFrom = dateFromBase
+          .toISOString()
+          .replace("T", " ")
+          .substring(0, 19);
+        const dateTo = dateToBase
+          .toISOString()
+          .replace("T", " ")
+          .substring(0, 19);
+
+        console.log("dateFrom", dateFrom);
+        console.log("dateTo", dateTo);
+
+        const productType = undefined;
+
+        const transactions = await getTransactionsForReport(
+          search,
+
+          status,
+          merchant,
+          dateFrom,
+          dateTo,
+          productType
+        );
+        if (report[0].formatCode === "PDF") {
+          pdfBytes = await reportsExecutionSalesGeneratePDF(transactions);
+        } else if (report[0].formatCode === "XLSX") {
+          pdfBytes = await reportsExecutionSalesGenerateXLSX(
+            transactions,
+            dateFrom,
+            dateTo
+          );
+        } else {
+          throw new Error("Formato de relatório não suportado");
+        }
         console.log(
           "[REPORT-PROCESSING] Relatório de vendas gerado com sucesso"
         );
@@ -99,13 +148,34 @@ export async function reportExecutionsProcessing() {
         await resend.emails.send({
           from: "noreply@outbank.cloud",
           to: emailList,
-          subject: `Relatório: ${report[0].title}`,
-          html: `<p>Segue em anexo o relatório "${report[0].title}".</p>`,
+          subject: `Relatório de Vendas Outbank One`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+              <h2 style="color: #0066cc;">Relatório de Vendas Outbank One</h2>
+              <p>Prezado(a) cliente,</p>
+              <p>É com satisfação que enviamos o seu relatório de vendas do Outbank One, contendo todas as transações processadas no período de <strong>${formatDate(
+                new Date(execution.scheduleDate)
+              )}</strong> a <strong>${formatDate(
+            new Date(execution.scheduleDate)
+          )}</strong>.</p>
+              <p>Este relatório inclui informações detalhadas sobre:</p>
+              <ul>
+                <li>Volume total de transações</li>
+                <li>Valores por bandeira</li>
+                <li>Tipos de transações</li>
+                <li>Status das operações</li>
+              </ul>
+              <p>Utilize estas informações para otimizar suas estratégias de vendas e acompanhar o desempenho do seu negócio.</p>
+              <p>Em caso de dúvidas, nossa equipe de suporte está à disposição.</p>
+              <p style="margin-top: 30px;">Atenciosamente,<br>Equipe Outbank One</p>
+            </div>
+          `,
           attachments: [
             {
-              filename: `relatorio-${
-                report[0]?.reportType?.toLowerCase() || "desconhecido"
-              }.pdf`,
+              filename: `relatorio-vendas-${format(
+                new Date(),
+                "yyyy-MM-dd-HH-mm-ss"
+              )}.${report[0].formatCode?.toLowerCase() || "pdf"}`,
               content: Buffer.from(pdfBytes),
             },
           ],

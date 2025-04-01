@@ -1,4 +1,4 @@
-import {
+import { fetchReportFilterParams,
   getfileFormats,
   getperiodTypes,
   getRecorrenceTypes,
@@ -16,6 +16,9 @@ import {
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
+
+// Função para buscar os parâmetros de filtro de relatório
+
 
 interface ReportDetailProps {
   params: {
@@ -38,7 +41,8 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
   const filters = await getReportFilters(report?.id || 0);
-  const reportFilterParams = await getReportFilterParams();
+  const reportFilterParams = await fetchReportFilterParams();
+  
 
   console.log("recorrence", recorrence);
 

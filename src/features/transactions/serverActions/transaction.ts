@@ -1,5 +1,6 @@
 "use server";
 
+import { getDateUTC } from "@/lib/datetime-utils";
 import { and, count, desc, eq, gte, like, lte, sql, sum } from "drizzle-orm";
 import { terminals, transactions } from "../../../../drizzle/schema";
 import { db } from "../../../server/db/index";
@@ -42,13 +43,18 @@ export async function getTransactions(
   }
 
   if (dateFrom) {
-    conditions.push(
-      gte(transactions.dtInsert, new Date(dateFrom).toISOString())
-    );
+    console.log(dateFrom);
+    const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
   }
 
   if (dateTo) {
-    conditions.push(lte(transactions.dtInsert, new Date(dateTo).toISOString()));
+    console.log(dateTo);
+    const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
   }
 
   if (productType) {
@@ -57,62 +63,45 @@ export async function getTransactions(
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const result = await db
-    .select()
-    .from(transactions)
-    .where(whereClause)
-    .orderBy(desc(transactions.dtInsert))
-    .offset((page - 1) * pageSize)
-    .limit(pageSize);
+  const [result, stats] = await Promise.all([
+    db
+      .select()
+      .from(transactions)
+      .where(whereClause)
+      .orderBy(desc(transactions.dtInsert))
+      .offset((page - 1) * pageSize)
+      .limit(pageSize),
+    db
+      .select({
+        totalCount: count(),
+        approved_count: count(
+          and(like(transactions.transactionStatus, "%APPROVED%"))
+        ),
+        pending_count: count(
+          and(like(transactions.transactionStatus, "%PENDING%"))
+        ),
+        rejected_count: count(
+          and(like(transactions.transactionStatus, "%REJECTED%"))
+        ),
+        canceled_count: count(
+          and(like(transactions.transactionStatus, "%CANCELED%"))
+        ),
+        total_amount: sum(transactions.totalAmount),
+      })
+      .from(transactions)
+      .where(whereClause),
+  ]);
 
-  const countResult = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(whereClause);
-
-  // Calcular contagens por status
-  const approvedCount = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(
-      and(whereClause, like(transactions.transactionStatus, "%APPROVED%"))
-    );
-
-  const pendingCount = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(and(whereClause, like(transactions.transactionStatus, "%PENDING%")));
-
-  const rejectedCount = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(
-      and(whereClause, like(transactions.transactionStatus, "%REJECTED%"))
-    );
-
-  const canceledCount = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(
-      and(whereClause, like(transactions.transactionStatus, "%CANCELED%"))
-    );
-
-  // Calcular valor total
-  const totalAmount = await db
-    .select({ sum: sum(transactions.totalAmount) })
-    .from(transactions)
-    .where(whereClause);
-
-  const total = totalAmount[0].sum ? parseFloat(totalAmount[0].sum) : 0;
-  const revenue = total * 0.08; // 8% de receita
+  const total = stats[0].total_amount ? parseFloat(stats[0].total_amount) : 0;
+  const revenue = total * 0.08;
 
   return {
     transactions: result,
-    totalCount: countResult[0].count,
-    approved_count: approvedCount[0].count,
-    pending_count: pendingCount[0].count,
-    rejected_count: rejectedCount[0].count,
-    canceled_count: canceledCount[0].count,
+    totalCount: stats[0].totalCount,
+    approved_count: stats[0].approved_count,
+    pending_count: stats[0].pending_count,
+    rejected_count: stats[0].rejected_count,
+    canceled_count: stats[0].canceled_count,
     total_amount: total,
     revenue,
   };
@@ -186,8 +175,7 @@ export async function getTotalTransactionsByMonth(
 
 export async function getTransactionsForReport(
   search?: string,
-  page: number = 1,
-  pageSize: number = 100,
+
   status?: string,
   merchant?: string,
   dateFrom?: string,
@@ -208,18 +196,22 @@ export async function getTransactionsForReport(
     conditions.push(like(transactions.merchantName, `%${merchant}%`));
   }
 
+  if (productType) {
+    conditions.push(eq(transactions.productType, productType));
+  }
   if (dateFrom) {
-    conditions.push(
-      gte(transactions.dtInsert, new Date(dateFrom).toISOString())
-    );
+    console.log(dateFrom);
+    const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
   }
 
   if (dateTo) {
-    conditions.push(lte(transactions.dtInsert, new Date(dateTo).toISOString()));
-  }
-
-  if (productType) {
-    conditions.push(eq(transactions.productType, productType));
+    console.log(dateTo);
+    const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -227,11 +219,10 @@ export async function getTransactionsForReport(
   const result = await db
     .select()
     .from(transactions)
-    .innerJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+    .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
     .where(whereClause)
     .orderBy(desc(transactions.dtInsert))
-    .offset((page - 1) * pageSize)
-    .limit(pageSize);
+    .limit(100000);
 
   return result;
 }
