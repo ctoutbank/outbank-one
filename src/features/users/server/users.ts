@@ -335,3 +335,22 @@ export async function getUserGroupPermissions(
     return [];
   }
 }
+
+export async function validateCurrentPassword(
+  currentPassword: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const clerk = await clerkClient();
+
+    const validation = await clerk.users.verifyPassword({
+      userId,
+      password: currentPassword,
+    });
+
+    return validation.verified;
+  } catch (error) {
+    console.error("Erro ao validar senha:", error);
+    return false;
+  }
+}

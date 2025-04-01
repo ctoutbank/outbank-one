@@ -48,17 +48,83 @@ export const profileSchema = z
   )
   .refine(
     (data) => {
-      // Validar complexidade da senha
-      if (data.newPassword) {
-        const passwordRegex =
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        return passwordRegex.test(data.newPassword);
+      // Validar comprimento mínimo
+      if (data.newPassword && data.newPassword.length < 8) {
+        return false;
       }
       return true;
     },
     {
-      message:
-        "A senha deve ter pelo menos 8 caracteres, incluindo maiúsculas, minúsculas, números e caracteres especiais",
+      message: "A senha deve ter pelo menos 8 caracteres",
+      path: ["newPassword"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar letra maiúscula
+      if (data.newPassword && !/[A-Z]/.test(data.newPassword)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A senha deve conter pelo menos uma letra maiúscula",
+      path: ["newPassword"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar letra minúscula
+      if (data.newPassword && !/[a-z]/.test(data.newPassword)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A senha deve conter pelo menos uma letra minúscula",
+      path: ["newPassword"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar número
+      if (data.newPassword && !/\d/.test(data.newPassword)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A senha deve conter pelo menos um número",
+      path: ["newPassword"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar caractere especial
+      if (data.newPassword && !/[@$!%*?&]/.test(data.newPassword)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A senha deve conter pelo menos um caractere especial (@$!%*?&)",
+      path: ["newPassword"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar se não é igual à senha atual
+      if (
+        data.newPassword &&
+        data.currentPassword &&
+        data.newPassword === data.currentPassword
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A nova senha não pode ser igual à senha atual",
       path: ["newPassword"],
     }
   );

@@ -7,6 +7,7 @@ import {
   getDDProfiles,
   getUserById,
 } from "@/features/users/server/users";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -15,10 +16,16 @@ export default async function UserDetail({
 }: {
   params: { id: string };
 }) {
-  const ddMerchant = await getDDMerchants();
-  const ddProfile = await getDDProfiles();
-  const ddCustomer = await getDDCustomers();
-  const user = await getUserById(params.id);
+  const permissions = await checkPagePermission(
+    "Configurar Perfis e Usuários",
+    "Atualizar"
+  );
+
+  const userId = params.id;
+  const user = await getUserById(userId);
+  const DDProfiles = await getDDProfiles();
+  const DDMerchants = await getDDMerchants();
+  const DDCustomers = await getDDCustomers();
 
   return (
     <>
@@ -26,14 +33,15 @@ export default async function UserDetail({
         breadcrumbItems={[{ title: "Usuários", url: "/portal/users" }]}
       />
       <BaseBody
-        title="Usuário"
-        subtitle={params?.id ? "Editar Usuário" : "Adicionar Usuário"}
+        title="Usuários"
+        subtitle={user?.id ? "Editar Usuário" : "Adicionar Usuário"}
       >
         <UserForm
-          customers={ddCustomer}
-          merchants={ddMerchant}
-          profiles={ddProfile}
-          user={user == null ? undefined : user}
+          user={user || undefined}
+          profiles={DDProfiles}
+          merchants={DDMerchants}
+          customers={DDCustomers}
+          permissions={permissions}
         />
       </BaseBody>
     </>

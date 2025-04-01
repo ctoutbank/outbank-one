@@ -25,6 +25,7 @@ interface MerchantProps {
   activeTab: string;
   idMerchant: number;
   setActiveTab: (tab: string) => void;
+  permissions: string[];
 }
 
 interface ContactFormItemProps {
@@ -34,7 +35,11 @@ interface ContactFormItemProps {
   idMerchant: number;
   onRemove: (id: number) => void;
   isRemovable: boolean;
-  onFormReady: (id: number, contactForm: UseFormReturn<ContactSchema>, addressForm: UseFormReturn<AddressSchema>) => void;
+  onFormReady: (
+    id: number,
+    contactForm: UseFormReturn<ContactSchema>,
+    addressForm: UseFormReturn<AddressSchema>
+  ) => void;
 }
 
 function ContactFormItem({
@@ -42,11 +47,11 @@ function ContactFormItem({
   initialData,
   initialAddress,
   idMerchant,
-  
+
   onFormReady,
 }: ContactFormItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  
+
   const contactForm = useForm<ContactSchema>({
     resolver: zodResolver(schemaContact),
     defaultValues: {
@@ -58,14 +63,18 @@ function ContactFormItem({
       areaCode: initialData?.areaCode || "",
       number: initialData?.number || "",
       phoneType: initialData?.phoneType || "",
-      birthDate: initialData?.birthDate ? new Date(initialData.birthDate) : undefined,
+      birthDate: initialData?.birthDate
+        ? new Date(initialData.birthDate)
+        : undefined,
       mothersName: initialData?.mothersName || "",
       isPartnerContact: initialData?.isPartnerContact || false,
       isPep: initialData?.isPep || false,
       slugMerchant: initialData?.slugMerchant || "",
       idAddress: initialData?.idAddress,
       icNumber: initialData?.icNumber || "",
-      icDateIssuance: initialData?.icDateIssuance ? new Date(initialData.icDateIssuance) : undefined,
+      icDateIssuance: initialData?.icDateIssuance
+        ? new Date(initialData.icDateIssuance)
+        : undefined,
       icDispatcher: initialData?.icDispatcher || "",
       icFederativeUnit: initialData?.icFederativeUnit || "",
     },
@@ -121,12 +130,7 @@ function ContactFormItem({
 
   useEffect(() => {
     onFormReady(id, contactForm, addressForm);
-  }, [
-    id,
-    onFormReady,
-    contactForm,
-    addressForm,
-  ]);
+  }, [id, onFormReady, contactForm, addressForm]);
 
   return (
     <div className="space-y-6">
@@ -215,7 +219,7 @@ function ContactFormItem({
                   </p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor={`number-${id}`}>
                   Telefone <span className="text-red-500">*</span>
@@ -246,7 +250,10 @@ function ContactFormItem({
                       {...registerContact("isPartnerContact")}
                       className="h-4 w-4"
                     />
-                    <Label htmlFor={`isPartnerContact-yes-${id}`} className="text-sm">
+                    <Label
+                      htmlFor={`isPartnerContact-yes-${id}`}
+                      className="text-sm"
+                    >
                       Sim
                     </Label>
                   </div>
@@ -258,7 +265,10 @@ function ContactFormItem({
                       {...registerContact("isPartnerContact")}
                       className="h-4 w-4"
                     />
-                    <Label htmlFor={`isPartnerContact-no-${id}`} className="text-sm">
+                    <Label
+                      htmlFor={`isPartnerContact-no-${id}`}
+                      className="text-sm"
+                    >
                       Não
                     </Label>
                   </div>
@@ -470,29 +480,37 @@ export default function MerchantFormcontact({
   activeTab,
   idMerchant,
   setActiveTab,
+  permissions,
 }: MerchantProps) {
   const router = useRouter();
-  const [contacts, setContacts] = useState<Array<{
-    id: number;
-    data: any;
-    address: any;
-  }>>([
-    { id: 1, data: Contact, address: Address }
-  ]);
+  const [contacts, setContacts] = useState<
+    Array<{
+      id: number;
+      data: any;
+      address: any;
+    }>
+  >([{ id: 1, data: Contact, address: Address }]);
   const [nextId, setNextId] = useState(2);
-  
+
   // Armazenar referências aos formulários
   const formRefs = useRef<{
     [key: number]: {
       contactForm: UseFormReturn<ContactSchema>;
       addressForm: UseFormReturn<AddressSchema>;
-    }
+    };
   }>({});
-  
-  const handleFormReady = useCallback((id: number, contactForm: UseFormReturn<ContactSchema>, addressForm: UseFormReturn<AddressSchema>) => {
-    formRefs.current[id] = { contactForm, addressForm };
-  }, []);
-  
+
+  const handleFormReady = useCallback(
+    (
+      id: number,
+      contactForm: UseFormReturn<ContactSchema>,
+      addressForm: UseFormReturn<AddressSchema>
+    ) => {
+      formRefs.current[id] = { contactForm, addressForm };
+    },
+    []
+  );
+
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams || "");
 
@@ -502,20 +520,20 @@ export default function MerchantFormcontact({
       try {
         // Buscar todos os contatos do merchant
         const merchantContacts = await getContactByMerchantId(idMerchant);
-        
+
         if (merchantContacts && merchantContacts.length > 0) {
           console.log("Contatos carregados:", merchantContacts);
-          
+
           // Inicializar a lista de contatos com os dados do banco
           const contactsList = merchantContacts.map((contact, index) => ({
             id: index + 1,
             data: contact.contacts,
-            address: contact.addresses
+            address: contact.addresses,
           }));
-          
+
           // Atualizar o estado com todos os contatos
           setContacts(contactsList);
-          
+
           // Atualizar o próximo ID
           setNextId(contactsList.length + 1);
         } else if (Contact && Contact.id) {
@@ -526,7 +544,7 @@ export default function MerchantFormcontact({
         console.error("Erro ao carregar contatos:", error);
       }
     };
-    
+
     loadContacts();
   }, [idMerchant, Contact]);
 
@@ -537,16 +555,19 @@ export default function MerchantFormcontact({
   };
 
   const addNewContact = () => {
-    setContacts([...contacts, { 
-      id: nextId, 
-      data: null, 
-      address: null 
-    }]);
+    setContacts([
+      ...contacts,
+      {
+        id: nextId,
+        data: null,
+        address: null,
+      },
+    ]);
     setNextId(nextId + 1);
   };
 
   const removeContact = (id: number) => {
-    setContacts(contacts.filter(contact => contact.id !== id));
+    setContacts(contacts.filter((contact) => contact.id !== id));
     // Remover referência ao formulário
     delete formRefs.current[id];
   };
@@ -564,7 +585,7 @@ export default function MerchantFormcontact({
         })
       );
 
-      if (!formValidations.every(isValid => isValid)) {
+      if (!formValidations.every((isValid) => isValid)) {
         console.error("Formulários inválidos");
         return;
       }
@@ -583,7 +604,7 @@ export default function MerchantFormcontact({
           ...contactData,
           idAddress: addressId,
           idMerchant: idMerchant,
-          phoneType: contactData.number?.startsWith("9") ? "C" : "P"
+          phoneType: contactData.number?.startsWith("9") ? "C" : "P",
         };
 
         if (contactData.id) {
@@ -601,11 +622,12 @@ export default function MerchantFormcontact({
 
   return (
     <div className="space-y-8">
-      
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {contacts.map((contact, index) => (
-          <Card key={contact.id} className="w-full shadow-sm hover:shadow-md transition-shadow">
+          <Card
+            key={contact.id}
+            className="w-full shadow-sm hover:shadow-md transition-shadow"
+          >
             <CardHeader className="flex flex-row items-center justify-between bg-gray-50 py-3">
               <div className="flex flex-row items-center space-x-2">
                 <User className="w-5 h-5 text-primary" />
@@ -650,12 +672,13 @@ export default function MerchantFormcontact({
           <span>Adicionar Responsável</span>
         </Button>
       </div>
-
-      <div className="flex justify-end mt-8">
-        <Button type="submit" onClick={onSubmit} className="px-6">
-          Avançar
-        </Button>
-      </div>
+      {permissions?.includes("Atualizar") && (
+        <div className="flex justify-end mt-8">
+          <Button type="submit" onClick={onSubmit} className="px-6">
+            Avançar
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

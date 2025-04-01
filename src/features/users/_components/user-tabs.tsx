@@ -28,6 +28,7 @@ interface UserTabsProps {
   customerId: string;
   merchantId: string;
   profileName: string;
+  permissions?: string[];
 }
 
 export default function UserTabs({
@@ -48,6 +49,7 @@ export default function UserTabs({
   customerId,
   merchantId,
   profileName,
+  permissions,
 }: UserTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,13 +87,13 @@ export default function UserTabs({
             newButtonUrl="/portal/users/0"
             profile={profileId}
             profileOptions={DDProfile}
-            showNewButton={true}
+            showNewButton={permissions?.includes("Gerenciador")}
           />
         </div>
 
         {totalUsersRecords > 0 ? (
           <div>
-            <UsersList users={users} />
+            <UsersList users={users} permissions={permissions} />
             <PaginationRecords
               totalRecords={totalUsersRecords}
               currentPage={page}
@@ -111,13 +113,13 @@ export default function UserTabs({
       <TabsContent value="profile" className="mt-0">
         <div className="mb-4">
           <ProfileFilter
-            showNewButton={true}
+            showNewButton={permissions?.includes("Gerenciador")}
             newButtonLabel="Novo Perfil"
             newButtonUrl="/portal/users/profile/0"
             profileName={profileName}
           />
         </div>
-        <ProfilesList profileList={profiles}></ProfilesList>
+        <ProfilesList profileList={profiles} permissions={permissions} />
         {totalProfilesRecords && totalProfilesRecords > 0 && (
           <div>
             <PaginationRecords
