@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { ChevronDown } from "lucide-react";
 import { Transaction } from "../serverActions/transaction";
 
@@ -72,19 +73,7 @@ export default function TransactionsList({
 
   const formatDate = (dateStr: string | Date | null) => {
     if (!dateStr) return "N/A";
-
-    const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
-
-    // Converter de UTC para o fuso horário de São Paulo
-
-    return date.toLocaleString("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return convertUTCToSaoPaulo(dateStr as string, true);
   };
 
   const translateProductType = (productType: string | null) => {
