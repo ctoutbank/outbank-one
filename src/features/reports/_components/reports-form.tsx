@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -11,24 +18,26 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { week } from "@/lib/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { insertReportFormAction, updateReportFormAction } from "../_actions/reports-formActions";
+import {
+  insertReportFormAction,
+  updateReportFormAction,
+} from "../_actions/reports-formActions";
 import { ReportSchema, SchemaReport } from "../schema/schema";
 import {
   FileFormatDD,
   PeriodDD,
   Recorrence,
   ReportTypeDD,
-  deleteEmailFromReport
+  deleteEmailFromReport,
 } from "../server/reports";
 import EmailList from "./email-list";
-
 
 interface ReportsFormProps {
   report: ReportSchema;
@@ -36,11 +45,19 @@ interface ReportsFormProps {
   period: PeriodDD[];
   fileFormat: FileFormatDD[];
   reportType: ReportTypeDD[];
+  permissions: string[];
 }
 
-export default function ReportForm({ report, recorrence, period, fileFormat, reportType }: ReportsFormProps) {
+export default function ReportForm({
+  report,
+  recorrence,
+  period,
+  fileFormat,
+  reportType,
+  permissions,
+}: ReportsFormProps) {
   const router = useRouter();
-    
+
   // Formulário do Relatório
   const form = useForm<ReportSchema>({
     resolver: zodResolver(SchemaReport),
@@ -58,27 +75,24 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
       emails: report.emails || "",
       formatCode: report.formatCode || "",
       reportType: report.reportType || "",
-      filters: report.filters || []
+      filters: report.filters || [],
     },
   });
-  
- 
-  
-  
+
   const onSubmit = async (data: ReportSchema) => {
     // Log para depuração
     console.log("Dados do formulário:", data);
-    
+
     // Certifique-se de que os campos de horário estão formatados corretamente
     const formattedData = {
       ...data,
       shippingTime: data.shippingTime || undefined,
-      startTime: data.startTime || undefined
+      startTime: data.startTime || undefined,
     };
-    
+
     // Log dos dados formatados
     console.log("Dados formatados:", formattedData);
-             
+
     if (formattedData.id) {
       await updateReportFormAction(formattedData);
       toast.success("Relatório atualizado com sucesso");
@@ -89,7 +103,7 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
       router.push(`/portal/reports/${newId}`);
     }
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -177,20 +191,20 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
-                        
+
                         // Definir automaticamente a recorrência com base no período
                         let recorrenceValue = "";
-                        
+
                         if (value === "DT" || value === "DA") {
                           recorrenceValue = "DIA"; // Diário
                         } else if (value === "SA" || value === "SR") {
                           recorrenceValue = "SEM"; // Semanal
                         } else if (value === "MR" || value === "MA") {
                           recorrenceValue = "MES"; // Mensal
-                        } 
+                        }
                         // Atualizar o valor do campo de recorrência
                         form.setValue("recurrenceCode", recorrenceValue);
-                        
+
                         // Forçar a atualização do formulário para refletir a mudança
                         form.trigger("recurrenceCode");
                       }}
@@ -213,7 +227,7 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="recurrenceCode"
@@ -228,12 +242,17 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                         disabled={true}
                       >
                         {recorrence?.map((type) => (
-                          <div key={type.code} className="flex items-center space-x-2">
-                            <RadioGroupItem 
-                              value={type.code} 
+                          <div
+                            key={type.code}
+                            className="flex items-center space-x-2"
+                          >
+                            <RadioGroupItem
+                              value={type.code}
                               id={`recurrence-${type.code}`}
                             />
-                            <Label htmlFor={`recurrence-${type.code}`}>{type.name}</Label>
+                            <Label htmlFor={`recurrence-${type.code}`}>
+                              {type.name}
+                            </Label>
                           </div>
                         ))}
                       </RadioGroup>
@@ -242,8 +261,9 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   </FormItem>
                 )}
               />
-              
-              {(form.watch("periodCode") === "SA" || form.watch("periodCode") === "SR") && (
+
+              {(form.watch("periodCode") === "SA" ||
+                form.watch("periodCode") === "SR") && (
                 <FormField
                   control={form.control}
                   name="dayWeek"
@@ -257,12 +277,17 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                           className="flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50"
                         >
                           {week.map((day) => (
-                            <div key={day.value} className="flex items-center space-x-2">
-                              <RadioGroupItem 
-                                value={day.value} 
+                            <div
+                              key={day.value}
+                              className="flex items-center space-x-2"
+                            >
+                              <RadioGroupItem
+                                value={day.value}
                                 id={`day-${day.value}`}
                               />
-                              <Label htmlFor={`day-${day.value}`}>{day.label}</Label>
+                              <Label htmlFor={`day-${day.value}`}>
+                                {day.label}
+                              </Label>
                             </div>
                           ))}
                         </RadioGroup>
@@ -272,8 +297,9 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   )}
                 />
               )}
-              
-              {(form.watch("periodCode") === "MA" || form.watch("periodCode") === "MR") && (
+
+              {(form.watch("periodCode") === "MA" ||
+                form.watch("periodCode") === "MR") && (
                 <FormField
                   control={form.control}
                   name="dayMonth"
@@ -281,7 +307,11 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                     <FormItem>
                       <FormLabel>Dia do Mês</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} value={field.value || ""} />
+                        <Input
+                          type="number"
+                          {...field}
+                          value={field.value || ""}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -298,14 +328,17 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   <FormItem>
                     <FormLabel>Horário Inicial</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="time" 
+                      <Input
+                        type="time"
                         name={field.name}
                         ref={field.ref}
                         value={field.value || ""}
                         onBlur={field.onBlur}
                         onChange={(e) => {
-                          console.log("Novo valor de startTime:", e.target.value);
+                          console.log(
+                            "Novo valor de startTime:",
+                            e.target.value
+                          );
                           field.onChange(e.target.value);
                         }}
                       />
@@ -322,8 +355,8 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   <FormItem>
                     <FormLabel>Horário Final</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="time" 
+                      <Input
+                        type="time"
                         name={field.name}
                         ref={field.ref}
                         value={field.value || ""}
@@ -346,14 +379,17 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                   <FormItem>
                     <FormLabel>Horário de Envio</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="time" 
+                      <Input
+                        type="time"
                         name={field.name}
                         ref={field.ref}
                         value={field.value || ""}
                         onBlur={field.onBlur}
                         onChange={(e) => {
-                          console.log("Novo valor de shippingTime:", e.target.value);
+                          console.log(
+                            "Novo valor de shippingTime:",
+                            e.target.value
+                          );
                           field.onChange(e.target.value);
                         }}
                       />
@@ -371,23 +407,37 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <EmailList 
-                        value={field.value || ""} 
+                      <EmailList
+                        value={field.value || ""}
                         onChange={field.onChange}
                         label="Emails para envio do relatório"
                         description="Adicione os emails que receberão este relatório"
                         className="shadow-none border-0 p-0"
                         reportExists={!!report.id}
-                        onDeleteEmail={report.id ? async (email) => {
-                          try {
-                            await deleteEmailFromReport(report.id as number, email);
-                            toast.success(`Email ${email} removido com sucesso`);
-                          } catch (error) {
-                            console.error("Erro ao remover email:", error);
-                            toast.error("Erro ao remover email. Tente novamente.");
-                            throw error;
-                          }
-                        } : undefined}
+                        onDeleteEmail={
+                          report.id
+                            ? async (email) => {
+                                try {
+                                  await deleteEmailFromReport(
+                                    report.id as number,
+                                    email
+                                  );
+                                  toast.success(
+                                    `Email ${email} removido com sucesso`
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Erro ao remover email:",
+                                    error
+                                  );
+                                  toast.error(
+                                    "Erro ao remover email. Tente novamente."
+                                  );
+                                  throw error;
+                                }
+                              }
+                            : undefined
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -396,13 +446,11 @@ export default function ReportForm({ report, recorrence, period, fileFormat, rep
               />
             </div>
             <div className="flex justify-end ">
-          <Button type="submit">Salvar</Button>
-        </div>
+              <Button type="submit">Salvar</Button>
+            </div>
           </CardContent>
         </Card>
-        
-       
       </form>
     </Form>
   );
-} 
+}

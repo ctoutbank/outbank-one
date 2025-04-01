@@ -1,15 +1,21 @@
-import { fetchReportFilterParams, getfileFormats, getperiodTypes, getRecorrenceTypes, getReportById, getreportTypes } from "@/features/reports/server/reports";
-import ReportForm from "@/features/reports/_components/reports-form";
-import BaseHeader from "@/components/layout/base-header";
 import BaseBody from "@/components/layout/base-body";
-import FilterTableAndForm from "@/features/reports/filter/filter-table";
+import BaseHeader from "@/components/layout/base-header";
+import ReportForm from "@/features/reports/_components/reports-form";
 import { getReportFilters } from "@/features/reports/filter/filter-Actions";
-
+import FilterTableAndForm from "@/features/reports/filter/filter-table";
+import {
+  fetchReportFilterParams,
+  getfileFormats,
+  getperiodTypes,
+  getRecorrenceTypes,
+  getReportById,
+  getreportTypes,
+} from "@/features/reports/server/reports";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
 // Função para buscar os parâmetros de filtro de relatório
-
 
 interface ReportDetailProps {
   params: {
@@ -18,6 +24,8 @@ interface ReportDetailProps {
 }
 
 export default async function ReportDetail({ params }: ReportDetailProps) {
+  const permissions = await checkPagePermission("Relatórios", "Atualizar");
+
   // Tenta buscar o relatório apenas se o ID não for "new" ou "0"
   let report = null;
   if (params.id !== "new" && params.id !== "0") {
@@ -32,12 +40,9 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const filters = await getReportFilters(report?.id || 0);
   const reportFilterParams = await fetchReportFilterParams();
   console.log("reportFilterParams", reportFilterParams);
-  
 
   console.log("recorrence", recorrence);
-  
- 
-  
+
   return (
     <>
       <BaseHeader
@@ -66,6 +71,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
           period={periods}
           fileFormat={fileFormat}
           reportType={reportType}
+          permissions={permissions}
         />
         <FilterTableAndForm
           reportId={report?.id || 0}

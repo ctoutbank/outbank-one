@@ -9,14 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { ChevronDown } from "lucide-react";
 import { Transaction } from "../serverActions/transaction";
 
+interface TransactionsListProps {
+  transactions: Transaction[];
+}
+
 export default function TransactionsList({
   transactions,
-}: {
-  transactions: Transaction[];
-}) {
+}: TransactionsListProps) {
   const getStatusBadgeVariant = (status: string | null) => {
     if (!status) return "secondary";
 
@@ -72,15 +75,7 @@ export default function TransactionsList({
 
   const formatDate = (dateStr: string | Date | null) => {
     if (!dateStr) return "N/A";
-
-    const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
-    return date.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return convertUTCToSaoPaulo(dateStr as string, true);
   };
 
   const translateProductType = (productType: string | null) => {

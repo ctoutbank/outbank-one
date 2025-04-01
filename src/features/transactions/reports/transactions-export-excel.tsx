@@ -1,26 +1,29 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { File } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
-export default function TransactionsExportPdf() {
+export default function TransactionsExport() {
   const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
 
   const onGetExporTransactions = async () => {
-    // Extrair todos os parâmetros do URL
-    const page = 1; // Começa com a primeira página
-    const pageSize = 10000; // Busca um número grande de registros
-    const search = searchParams?.get("search") || "";
-    const status = searchParams?.get("status") || undefined;
-    const merchant = searchParams?.get("merchant") || undefined;
-    const dateFrom = searchParams?.get("dateFrom") || undefined;
-    const dateTo = searchParams?.get("dateTo") || undefined;
-    const productType = searchParams?.get("productType") || undefined;
-
-    console.log("Exportando transações para Excel...");
-
+    setIsLoading(true);
     try {
+      // Extrair todos os parâmetros do URL
+      const page = 1; // Começa com a primeira página
+      const pageSize = 10000; // Busca um número grande de registros
+      const search = searchParams?.get("search") || "";
+      const status = searchParams?.get("status") || undefined;
+      const merchant = searchParams?.get("merchant") || undefined;
+      const dateFrom = searchParams?.get("dateFrom") || undefined;
+      const dateTo = searchParams?.get("dateTo") || undefined;
+      const productType = searchParams?.get("productType") || undefined;
+
+      console.log("Exportando transações para Excel...");
+
       // Construir a URL com os parâmetros de consulta
       const queryParams = new URLSearchParams();
       if (search) queryParams.append("search", search);
@@ -62,12 +65,24 @@ export default function TransactionsExportPdf() {
     } catch (error) {
       console.error("Erro ao gerar Excel:", error);
       alert("Erro ao gerar o Excel. Verifique o console para mais detalhes.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
   return (
-    <Button onClick={onGetExporTransactions}>
-      <File className="w-4 h-4" />
-      Exportar Excel
-    </Button>
+    <>
+      <Button onClick={onGetExporTransactions} disabled={isLoading}>
+        <FileText className="w-4 h-4" />
+        {isLoading ? "Gerando..." : "Gerar Relatório"}
+      </Button>
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-4 rounded-md shadow-lg">
+            <span className="text-sm font-medium">Exportando Excel...</span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

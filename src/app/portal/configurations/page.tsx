@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { ConfigurationsDataTable } from "@/features/configuration/components/configurations-data-table";
 import { columns } from "@/features/configuration/components/configurations-columns";
 import { getConfigurations } from "@/features/configuration/server/configuration";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 interface ConfigurationsPageProps {
   searchParams: {
@@ -13,6 +14,8 @@ interface ConfigurationsPageProps {
 export default async function ConfigurationsPage({
   searchParams,
 }: ConfigurationsPageProps) {
+  const permissions = await checkPagePermission("Configurações");
+
   const search = searchParams.search || "";
   const page = Number(searchParams.page) || 1;
   const pageSize = 10;
@@ -44,6 +47,7 @@ export default async function ConfigurationsPage({
           totalCount={totalCount}
           pageSize={pageSize}
           page={page}
+          permissions={permissions}
         />
       </Suspense>
     </div>

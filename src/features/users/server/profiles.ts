@@ -14,6 +14,7 @@ import {
 export interface Functions {
   id: number;
   name: string;
+  selected: boolean;
 }
 
 export interface Group {
@@ -289,15 +290,20 @@ export async function updateProfile(
 
   await db.update(profiles).set(updateData).where(eq(profiles.id, id));
 
-  if (profileData.module && profileData.module.length > 0) {
-    // Remove current profile-function associations
-    await db.delete(profileFunctions).where(eq(profileFunctions.idProfile, id));
+  // Delete all existing profile-function associations
+  await db.delete(profileFunctions).where(eq(profileFunctions.idProfile, id));
 
-    // Insert new associations based on module data
+  // Only insert new associations if modules are provided and have functions
+  if (profileData.module && profileData.module.length > 0) {
     for (const moduleVar of profileData.module) {
       for (const groupItem of moduleVar.group) {
-        for (const func of groupItem.functions) {
-          // First, verify that the function belongs to the specified module
+        // Only process functions that are selected
+        const selectedFunctions = groupItem.functions.filter(
+          (func) => func.selected
+        );
+
+        for (const func of selectedFunctions) {
+          // Verify that the function belongs to the specified module
           const moduleFunction = await db
             .select()
             .from(moduleFunctions)

@@ -29,7 +29,7 @@ export default async function SettlementsPage({
 }: {
   searchParams: CategoryProps;
 }) {
-  await checkPagePermission("Liquidação");
+ await checkPagePermission("Liquidação");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
@@ -144,6 +144,7 @@ export default async function SettlementsPage({
           <>
             <MerchantSettlementsList
               merchantSettlementList={merchantSettlements}
+        
             />
 
             {totalRecords > 0 && (

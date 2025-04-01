@@ -19,12 +19,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { updateUser, UserDetailForm } from "@/features/users/server/users";
+import { validateCurrentPassword } from "@/features/users/server/users";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ProfileFormValues, profileSchema } from "../schema/schema";
+import React from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface ProfileFormProps {
   profile?: UserDetailForm;
@@ -33,6 +36,9 @@ interface ProfileFormProps {
 export default function ProfileForm({ profile }: ProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -46,6 +52,20 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
       confirmPassword: "",
     },
   });
+
+  // Observar mudanças nos campos de senha
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      // Limpar erros quando o usuário digitar em qualquer campo de senha
+      if (
+        name &&
+        ["currentPassword", "newPassword", "confirmPassword"].includes(name)
+      ) {
+        form.clearErrors(name);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   // Função para formatar datas
   const formatDate = (dateString: string) => {
@@ -61,7 +81,34 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
   const onSubmit = async (data: ProfileFormValues) => {
     try {
       setIsLoading(true);
-      toast.loading("Atualizando perfil...");
+      const loadingToast = toast.loading("Atualizando perfil...");
+
+      // Apenas tenta validar a senha atual se o usuário estiver tentando alterar a senha
+      if (data.currentPassword) {
+        try {
+          const isCurrentPasswordValid = await validateCurrentPassword(
+            data.currentPassword,
+            profile?.idClerk || ""
+          );
+
+          if (!isCurrentPasswordValid) {
+            toast.dismiss(loadingToast);
+            toast.error("Senha atual incorreta");
+            form.setError("currentPassword", {
+              type: "manual",
+              message: "Senha atual incorreta",
+            });
+            setIsLoading(false);
+            return;
+          }
+        } catch (error) {
+          toast.dismiss(loadingToast);
+          console.error("Erro ao validar senha atual:", error);
+          toast.error("Erro ao validar senha atual");
+          setIsLoading(false);
+          return;
+        }
+      }
 
       const userData = {
         ...data,
@@ -78,8 +125,10 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
       form.setValue("newPassword", "");
       form.setValue("confirmPassword", "");
 
+      toast.dismiss(loadingToast);
       toast.success("Perfil atualizado com sucesso!");
     } catch (error) {
+      toast.dismiss();
       console.error("Erro ao atualizar perfil:", error);
       toast.error("Erro ao atualizar perfil. Tente novamente.");
     } finally {
@@ -161,52 +210,97 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                   <FormItem>
                     <FormLabel>Senha Atual</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Digite sua senha atual"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showCurrentPassword ? "text" : "password"}
+                          placeholder="Digite sua senha atual"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowCurrentPassword(!showCurrentPassword)
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="newPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nova Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Digite a nova senha"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="newPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nova Senha</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showNewPassword ? "text" : "password"}
+                            placeholder="Digite a nova senha"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showNewPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirmar Nova Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Confirme a nova senha"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Nova Senha</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Confirme a nova senha"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <Separator className="my-4" />

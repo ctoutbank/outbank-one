@@ -22,11 +22,13 @@ export default async function MerchantDetail({
 }: {
   params: { id: string };
 }) {
-  await checkPagePermission("Estabelecimentos", "Editar");
+  const permissions = await checkPagePermission("Estabelecimentos", "Atualizar");
+
+  const merchantId = parseInt(params.id);
 
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
-  const merchant = await getMerchantById(parseInt(params.id));
+  const merchant = await getMerchantById(merchantId);
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
 
@@ -285,8 +287,8 @@ export default async function MerchantDetail({
           establishmentFormatList={establishmentFormatList}
           DDAccountType={DDAccountType}
           DDBank={DDBank}
+          permissions={permissions}
         />
-        
       </BaseBody>
     </>
   );

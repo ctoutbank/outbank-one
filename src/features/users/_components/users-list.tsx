@@ -14,7 +14,12 @@ import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { UserList } from "../server/users";
 
-export default function UsersList({ users }: { users: UserList }) {
+interface UsersListProps {
+  users: UserList;
+  permissions?: string[];
+}
+
+export default function UsersList({ users, permissions }: UsersListProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -35,7 +40,9 @@ export default function UsersList({ users }: { users: UserList }) {
             <TableHead className="font-medium">Último Nome</TableHead>
             <TableHead className="font-medium">Perfil</TableHead>
             <TableHead className="font-medium text-center">Status</TableHead>
-            <TableHead className="font-medium text-center">Opções</TableHead>
+            {permissions?.includes("Gerenciador") && (
+              <TableHead className="font-medium text-center">Opções</TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -45,12 +52,16 @@ export default function UsersList({ users }: { users: UserList }) {
               className="hover:bg-muted/30 transition-colors"
             >
               <TableCell className="py-3">
-                <a
-                  href={`/portal/users/${user.idClerk}`}
-                  className="text-primary hover:underline"
-                >
-                  {user.email}
-                </a>
+                {permissions?.includes("Gerenciador") ? (
+                  <a
+                    href={`/portal/users/${user.idClerk}`}
+                    className="text-primary hover:underline"
+                  >
+                    {user.email}
+                  </a>
+                ) : (
+                  <span>{user.email}</span>
+                )}
               </TableCell>
               <TableCell className="py-3">{user.firstName}</TableCell>
               <TableCell className="py-3">{user.lastName}</TableCell>
@@ -74,18 +85,20 @@ export default function UsersList({ users }: { users: UserList }) {
                   {user.status === true ? "Ativo" : "Desativado"}
                 </Badge>
               </TableCell>
-              <TableCell className="py-3">
-                <div className="flex items-center justify-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full hover:bg-muted"
-                    title="Excluir"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+              {permissions?.includes("Gerenciador") && (
+                <TableCell className="py-3">
+                  <div className="flex items-center justify-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full hover:bg-muted"
+                      title="Excluir"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

@@ -33,6 +33,7 @@ interface UserFormProps {
   profiles: DD[];
   merchants: DD[];
   customers: DD[];
+  permissions?: string[];
 }
 
 export default function UserForm({
@@ -40,6 +41,7 @@ export default function UserForm({
   profiles,
   merchants,
   customers,
+  permissions,
 }: UserFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -321,9 +323,12 @@ export default function UserForm({
               Voltar
             </Button>
           </Link>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Salvando..." : "Salvar"}
-          </Button>
+          {(!user?.id && permissions?.includes("Inserir")) ||
+          (user?.id && permissions?.includes("Atualizar")) ? (
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Salvando..." : "Salvar"}
+            </Button>
+          ) : null}
         </div>
       </form>
     </Form>
