@@ -15,7 +15,8 @@ export const SchemaReport = z.object({
     ),
  
   emails: z.string().optional(),
-  startPeriodTime: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   formatCode: z.string().optional(),
   reportType: z.string().min(1, "Tipo de relatório é obrigatório"),
   dtinsert: z.date().optional(),

@@ -319,6 +319,7 @@ export default function FilterForm({ filter, reportId, reportFilterParams, close
             try {
                 const merchantsData = await searchMerchants();
                 setMerchants(merchantsData);
+                console.log("merchantsData", merchantsData);
             } catch (error) {
                 console.error("Erro ao carregar estabelecimentos:", error);
             } finally {

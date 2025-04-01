@@ -98,7 +98,8 @@ export async function getReports(
       reportTypeName: reportTypes.name,
       dtinsert: reports.dtinsert,
       dtupdate: reports.dtupdate,
-      startPeriodTime: reports.startPeriodTime,
+      startTime: reports.startTime,
+      endTime: reports.endTime,
       dayWeek: reports.dayWeek,
       dayMonth: reports.dayMonth,
     })
@@ -135,7 +136,8 @@ export async function getReports(
       formatName: report.formatName || null,
       reportType: report.reportType || null,
       reportTypeName: report.reportTypeName || null,
-      startPeriodTime: report.startPeriodTime || null,
+      startTime: report.startTime || null,
+      endTime: report.endTime || null,
       dtinsert: report.dtinsert ? new Date(report.dtinsert) : new Date(),
       dtupdate: report.dtupdate ? new Date(report.dtupdate) : new Date(),
     })),
@@ -174,7 +176,8 @@ export async function updateReport(report: ReportDetail): Promise<void> {
       emails: report.emails,
       formatCode: report.formatCode,
       reportType: report.reportType,
-      startPeriodTime: report.startPeriodTime,
+      startTime: report.startTime,
+      endTime: report.endTime,
       dtupdate: new Date().toISOString(),
     })
     .where(eq(reports.id, report.id));
@@ -227,4 +230,26 @@ export async function getreportTypes(): Promise<ReportTypeDD[]> {
 
 export async function fetchReportFilterParams() {
   return await db.select().from(reportFiltersParam).orderBy(reportFiltersParam.id);
+}
+
+export async function deleteEmailFromReport(reportId: number, emailToRemove: string): Promise<void> {
+  // Primeiro, obtém o relatório atual
+  const currentReport = await getReportById(reportId);
+  
+  if (!currentReport || !currentReport.emails) {
+    throw new Error("Relatório não encontrado ou não possui emails");
+  }
+  
+  // Divide a string de emails e remove o email específico
+  const currentEmails = currentReport.emails.split(',').map(email => email.trim());
+  const updatedEmails = currentEmails.filter(email => email !== emailToRemove).join(', ');
+  
+  // Atualiza o relatório com a nova lista de emails
+  await db
+    .update(reports)
+    .set({
+      emails: updatedEmails,
+      dtupdate: new Date().toISOString(),
+    })
+    .where(eq(reports.id, reportId));
 }

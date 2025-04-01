@@ -55,7 +55,7 @@ export default function UserTabs({
   const searchParams = useSearchParams();
 
   const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString());
 
     // Clear all search params
     Array.from(params.keys()).forEach((key) => {
