@@ -1,12 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -15,7 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,10 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { schemaUser, UserSchema } from "../schema/schema";
 import { DD, InsertUser, updateUser, UserDetailForm } from "../server/users";
-import { toast } from "sonner";
 
 interface UserFormProps {
   user?: UserDetailForm;
@@ -64,9 +64,9 @@ export default function UserForm({
   });
 
   const onSubmit = async (data: UserSchema) => {
+    const loadingToastId = toast.loading("Salvando usuário...");
     try {
       setIsLoading(true);
-      toast.loading("Salvando usuário...");
 
       // Validação adicional da senha
       if (!user?.id && !data.password) {
@@ -74,6 +74,7 @@ export default function UserForm({
           type: "manual",
           message: "Senha é obrigatória para novos usuários",
         });
+        toast.dismiss(loadingToastId);
         toast.error("Senha é obrigatória para novos usuários");
         return;
       }
@@ -96,14 +97,17 @@ export default function UserForm({
 
       if (data.id && data.id > 0) {
         await updateUser(data.id, userData);
+        toast.dismiss(loadingToastId);
         toast.success("Usuário atualizado com sucesso!");
       } else {
         await InsertUser(userData);
+        toast.dismiss(loadingToastId);
         toast.success("Usuário criado com sucesso!");
         router.push("/portal/users");
       }
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
+      toast.dismiss(loadingToastId);
       toast.error("Erro ao salvar usuário. Tente novamente.");
     } finally {
       setIsLoading(false);
@@ -323,8 +327,7 @@ export default function UserForm({
               Voltar
             </Button>
           </Link>
-          {(!user?.id && permissions?.includes("Inserir")) ||
-          (user?.id && permissions?.includes("Atualizar")) ? (
+          {user?.id && permissions?.includes("Gerenciador") ? (
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Salvando..." : "Salvar"}
             </Button>

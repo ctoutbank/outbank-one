@@ -18,7 +18,7 @@ export default async function UserDetail({
 }) {
   const permissions = await checkPagePermission(
     "Configurar Perfis e Usuários",
-    "Atualizar"
+    "Gerenciador"
   );
 
   const userId = params.id;
