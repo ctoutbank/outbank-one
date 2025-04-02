@@ -1,22 +1,24 @@
 "use server";
 
-import { AddressSchema, MerchantSchema } from "../schema/merchant-schema";
+import { db } from "@/server/db";
+import { eq } from "drizzle-orm";
 import {
-  MerchantInsert,
-  MerchantDetail,
-  insertMerchant,
-  updateMerchant,
-  AddressInsert,
-  AddressDetail,
-  updateAddress,
-  insertAddress,
-  getSlugById,
-} from "../server/merchant";
-import {
-  legalNatures,
+  addresses,
   categories,
   configurations,
+  legalNatures,
 } from "../../../../drizzle/schema";
+import { AddressSchema, MerchantSchema } from "../schema/merchant-schema";
+import {
+  AddressDetail,
+  AddressInsert,
+  MerchantDetail,
+  MerchantInsert,
+  getSlugById,
+  insertAddress,
+  insertMerchant,
+  updateMerchant,
+} from "../server/merchant";
 
 export async function insertMerchantFormAction(data: MerchantSchema) {
   // Buscar os slugs usando a função genérica
@@ -157,8 +159,10 @@ export async function insertAddressFormAction(data: AddressSchema) {
 }
 
 export async function updateAddressFormAction(data: AddressSchema) {
-  const addressUpdate: AddressDetail = {
-    id: data.id || 0,
+  const addressId = data.id || 0;
+
+  // Remove o ID do objeto de atualização para evitar o erro
+  const addressUpdate: Omit<AddressDetail, "id"> = {
     streetAddress: data.street || "",
     streetNumber: data.number || "",
     complement: data.complement || "",
@@ -168,5 +172,10 @@ export async function updateAddressFormAction(data: AddressSchema) {
     country: data.country || "",
     zipCode: data.zipCode || "",
   };
-  await updateAddress(addressUpdate);
+
+  // Atualiza utilizando o ID apenas na cláusula where
+  await db
+    .update(addresses)
+    .set(addressUpdate)
+    .where(eq(addresses.id, addressId));
 }

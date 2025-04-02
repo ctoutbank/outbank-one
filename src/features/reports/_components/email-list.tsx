@@ -1,181 +1,193 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { toast } from "@/components/use-toast"
-import { Plus, Trash, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/use-toast";
+import { Plus, Trash, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface EmailListProps {
-  value?: string
-  onChange?: (emails: string) => void
-  label?: string
-  description?: string
-  className?: string
-  onDeleteEmail?: (email: string) => Promise<void>
-  reportExists?: boolean // Indica se o relatório já existe no banco
+  value?: string;
+  onChange?: (emails: string) => void;
+  label?: string;
+  description?: string;
+  className?: string;
+  onDeleteEmail?: (email: string) => Promise<void>;
+  reportExists?: boolean; // Indica se o relatório já existe no banco
 }
 
-export default function EmailList({ 
-  value = "", 
-  onChange, 
-  label = "Lista de Emails", 
-  description = "Adicione ou remova emails da sua lista", 
+export default function EmailList({
+  value = "",
+  onChange,
+  label = "Lista de Emails",
+  description = "Adicione ou remova emails da sua lista",
   className = "",
   onDeleteEmail,
-  reportExists = false
+  reportExists = false,
 }: EmailListProps) {
-  const [emails, setEmails] = useState<string[]>([])
-  const [newEmail, setNewEmail] = useState("")
-  const [error, setError] = useState("")
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [emails, setEmails] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState("");
+  const [error, setError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Inicializa a lista de emails a partir da string separada por vírgulas
   useEffect(() => {
     if (value) {
-      const emailList = value.split(',').map(email => email.trim()).filter(email => email !== "")
-      setEmails(emailList)
+      const emailList = value
+        .split(",")
+        .map((email) => email.trim())
+        .filter((email) => email !== "");
+      setEmails(emailList);
     } else {
-      setEmails([])
+      setEmails([]);
     }
-  }, [value])
+  }, [value]);
 
   // Atualiza a string de emails sempre que a lista mudar
   useEffect(() => {
     if (onChange && !isDeleting) {
-      onChange(emails.join(', '))
+      onChange(emails.join(", "));
     }
-  }, [emails, onChange, isDeleting])
+  }, [emails, onChange, isDeleting]);
 
   const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(email)
-  }
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
   const handleAddButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault() // Previne o submit do formulário
-    addEmail()
-  }
+    e.preventDefault(); // Previne o submit do formulário
+    addEmail();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault() // Previne o submit do formulário quando pressionar Enter
-      addEmail()
+    if (e.key === "Enter") {
+      e.preventDefault(); // Previne o submit do formulário quando pressionar Enter
+      addEmail();
     }
-  }
+  };
 
   const addEmail = () => {
     if (!newEmail.trim()) {
-      setError("Por favor, insira um email")
-      return
+      setError("Por favor, insira um email");
+      return;
     }
 
     if (!validateEmail(newEmail)) {
-      setError("Por favor, insira um email válido")
-      return
+      setError("Por favor, insira um email válido");
+      return;
     }
 
     if (emails.includes(newEmail)) {
-      setError("Este email já está na lista")
-      return
+      setError("Este email já está na lista");
+      return;
     }
 
-    const updatedEmails = [...emails, newEmail]
-    setEmails(updatedEmails)
-    setNewEmail("")
-    setError("")
-    
+    const updatedEmails = [...emails, newEmail];
+    setEmails(updatedEmails);
+    setNewEmail("");
+    setError("");
+
     if (onChange) {
-      onChange(updatedEmails.join(', '))
+      onChange(updatedEmails.join(", "));
     }
-    
+
     toast({
       title: "Email adicionado",
-      description: `${newEmail} foi adicionado à lista. ${reportExists ? 'Clique em Salvar para confirmar.' : ''}`,
-    })
-  }
+      description: `${newEmail} foi adicionado à lista. ${
+        reportExists ? "Clique em Salvar para confirmar." : ""
+      }`,
+    });
+  };
 
   const removeEmail = async (emailToRemove: string) => {
     try {
-      setIsDeleting(true)
-      
+      setIsDeleting(true);
+
       // Se tiver callback de deleção E o relatório já existir, chama a função para deletar do banco
       if (onDeleteEmail && reportExists) {
-        await onDeleteEmail(emailToRemove)
+        await onDeleteEmail(emailToRemove);
       }
-      
-      const updatedEmails = emails.filter((email) => email !== emailToRemove)
-      setEmails(updatedEmails)
-      
+
+      const updatedEmails = emails.filter((email) => email !== emailToRemove);
+      setEmails(updatedEmails);
+
       if (onChange) {
-        onChange(updatedEmails.join(', '))
+        onChange(updatedEmails.join(", "));
       }
-      
+
       toast({
         title: "Email removido",
-        description: reportExists 
-          ? `${emailToRemove} foi removido da lista.` 
+        description: reportExists
+          ? `${emailToRemove} foi removido da lista.`
           : `${emailToRemove} foi removido da lista. Clique em Salvar para confirmar.`,
-      })
+      });
     } catch (error) {
       toast({
         title: "Erro ao remover email",
         description: "Não foi possível remover o email. Tente novamente.",
-        variant: "destructive"
-      })
-      console.error("Erro ao remover email:", error)
+        variant: "destructive",
+      });
+      console.error("Erro ao remover email:", error);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const clearAllEmails = async () => {
     try {
-      setIsDeleting(true)
-      
+      setIsDeleting(true);
+
       // Se tiver callback de deleção E o relatório já existir, chama a função para deletar do banco
       if (onDeleteEmail && reportExists) {
         // Deletar cada email um por um
         for (const email of emails) {
-          await onDeleteEmail(email)
+          await onDeleteEmail(email);
         }
       }
-      
-      setEmails([])
-      
+
+      setEmails([]);
+
       if (onChange) {
-        onChange("")
+        onChange("");
       }
-      
+
       toast({
         title: "Lista limpa",
-        description: reportExists 
-          ? "Todos os emails foram removidos da lista." 
+        description: reportExists
+          ? "Todos os emails foram removidos da lista."
           : "Todos os emails foram removidos da lista. Clique em Salvar para confirmar.",
-      })
+      });
     } catch (error) {
       toast({
         title: "Erro ao limpar emails",
-        description: "Não foi possível limpar todos os emails. Tente novamente.",
-        variant: "destructive"
-      })
-      console.error("Erro ao limpar emails:", error)
+        description:
+          "Não foi possível limpar todos os emails. Tente novamente.",
+        variant: "destructive",
+      });
+      console.error("Erro ao limpar emails:", error);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   return (
-    <Card className={`w-full ${className}`}>
-      <CardHeader className="pb-2">
+    <Card className={`w-full ${className} ml-0 pl-0`}>
+      <CardHeader className="pb-2 pl-0 ml-0">
         <CardTitle>{label}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pl-0 ml-0">
         <div className="space-y-4">
           <div className="flex space-x-2">
             <Input
@@ -186,9 +198,9 @@ export default function EmailList({
               onKeyDown={handleKeyDown}
               className="flex-1"
             />
-            <Button 
-              type="button" 
-              size="sm" 
+            <Button
+              type="button"
+              size="sm"
               disabled={isDeleting}
               onClick={handleAddButtonClick}
             >
@@ -214,15 +226,24 @@ export default function EmailList({
               </Button>
             )}
           </div>
-          
+
           {emails.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum email na lista</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhum email na lista
+            </p>
           ) : (
-            <ScrollArea className="h-[180px] pr-4">
-              <ul className="space-y-2">
+            <ScrollArea
+              className={`pr-4 ${
+                emails.length > 6 ? "h-[180px]" : "max-h-fit"
+              }`}
+            >
+              <ul className="flex flex-wrap gap-2">
                 {emails.map((email) => (
-                  <li key={email} className="flex items-center justify-between p-2 border rounded-md">
-                    <span className="text-sm">{email}</span>
+                  <li
+                    key={email}
+                    className="flex items-center justify-between p-2 border rounded-md max-w-fit"
+                  >
+                    <span className="text-sm mr-1">{email}</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -230,8 +251,9 @@ export default function EmailList({
                       onClick={() => removeEmail(email)}
                       disabled={isDeleting}
                       aria-label={`Remover ${email}`}
+                      className="ml-1 h-6 w-6 p-0"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3 w-3" />
                     </Button>
                   </li>
                 ))}
@@ -241,6 +263,5 @@ export default function EmailList({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

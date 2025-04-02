@@ -29,13 +29,14 @@ import {
   ConfigurationOperationsSchema,
   schemaConfigurationOperations,
 } from "@/features/configuration/schema/configurations-schema";
+import { timezones } from "@/lib/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Settings } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { configurations } from "../../../../drizzle/schema";
 import { updateMerchantColumnsById } from "../server/merchant";
-import { timezones } from "@/lib/lookuptables";
 
 interface MerchantProps {
   Configuration: typeof configurations.$inferSelect;
@@ -48,6 +49,7 @@ interface MerchantProps {
   setActiveTab: (tab: string) => void;
   activeTab: string;
   permissions: string[];
+  idConfiguration?: number;
 }
 
 export default function MerchantFormOperations({
@@ -61,25 +63,34 @@ export default function MerchantFormOperations({
   activeTab,
   idMerchant,
   permissions,
+  idConfiguration,
 }: MerchantProps) {
   const router = useRouter();
-  console.log("timezone", timezone);
+  const [loadedConfiguration] = useState<
+    typeof configurations.$inferSelect | null
+  >(null);
+
+  // Verificar explicitamente se o merchant já tem uma configuração associada
+  const hasExistingConfiguration = !!idConfiguration;
+
+  // Usar a configuração carregada do banco ou a recebida via props
+  const configToUse = loadedConfiguration || Configuration;
 
   const form = useForm<ConfigurationOperationsSchema>({
     resolver: zodResolver(schemaConfigurationOperations),
     defaultValues: {
-      id: Configuration?.id || undefined,
-      slug: Configuration?.slug || "",
-      active: Configuration?.active || false,
-      lockCpAnticipationOrder: Configuration?.lockCpAnticipationOrder || false,
-      lockCnpAnticipationOrder:
-        Configuration?.lockCnpAnticipationOrder || false,
-      url: Configuration?.url || "",
-      dtinsert: Configuration?.dtinsert
-        ? new Date(Configuration.dtinsert)
+      // Usar o idConfiguration do merchant se disponível (mais confiável)
+      id: idConfiguration || Configuration?.id || undefined,
+      slug: configToUse?.slug || "",
+      active: configToUse?.active || false,
+      lockCpAnticipationOrder: configToUse?.lockCpAnticipationOrder || false,
+      lockCnpAnticipationOrder: configToUse?.lockCnpAnticipationOrder || false,
+      url: configToUse?.url || "",
+      dtinsert: configToUse?.dtinsert
+        ? new Date(configToUse.dtinsert)
         : new Date(),
-      dtupdate: Configuration?.dtupdate
-        ? new Date(Configuration.dtupdate)
+      dtupdate: configToUse?.dtupdate
+        ? new Date(configToUse.dtupdate)
         : new Date(),
       hasTaf: hasTaf,
       hastop: hastop,
@@ -102,24 +113,31 @@ export default function MerchantFormOperations({
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
 
+  // Buscar a configuração completa do banco quando temos idConfiguration
+
   const onSubmit = async (data: ConfigurationOperationsSchema) => {
     try {
-      let idConfiguration = data.id;
-
-      // Criar ou atualizar configuração
-      if (data?.id) {
-        await updateConfigurationFormAction(data);
-      } else {
-        idConfiguration = await insertConfigurationFormAction(data);
+      // Se temos idConfiguration do merchant, mas não temos no form, atualizar o form
+      if (idConfiguration && !data.id) {
+        data.id = idConfiguration;
       }
 
-      console.log("idConfiguration", idConfiguration);
-      console.log("Dados do formulário:", data);
-      console.log("Valor da timezone:", data.timezone);
+      let idConfigurationForMerchant = data.id;
 
-      // Atualizar merchant com o ID da configuração (novo ou existente)
+      // Verificar se estamos atualizando uma configuração existente
+      const isUpdating = hasExistingConfiguration;
+
+      // Criar ou atualizar configuração
+      if (isUpdating) {
+        if (!data.id) {
+          throw new Error("Cannot update configuration without an ID");
+        }
+        await updateConfigurationFormAction(data);
+      } else {
+        idConfigurationForMerchant = await insertConfigurationFormAction(data);
+      } // Atualizar merchant com o ID da configuração (novo ou existente)
       const merchantUpdates = {
-        idConfiguration: idConfiguration!, // Usar o ID obtido da criação ou o existente
+        idConfiguration: idConfigurationForMerchant!, // Usar o ID obtido da criação ou o existente
         hasTef: data.hasTaf || false,
         hasTop: data.hastop || false,
         hasPix: data.hasPix || false,
@@ -130,9 +148,16 @@ export default function MerchantFormOperations({
 
       await updateMerchantColumnsById(idMerchant, merchantUpdates);
 
-      refreshPage(idMerchant);
+      // Se estiver atualizando, apenas recarregar a página
+      if (isUpdating) {
+        alert("Dados salvos com sucesso!");
+        router.refresh();
+      } else {
+        // Se estiver criando uma nova configuração, avançar para a próxima aba
+        refreshPage(idMerchant);
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Erro ao salvar configuração:", error);
     }
   };
 
@@ -256,7 +281,11 @@ export default function MerchantFormOperations({
                       Url <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="https://dock.tech/" />
+                      <Input
+                        {...field}
+                        placeholder="https://dock.tech/"
+                        value={field.value || configToUse?.url || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -382,7 +411,9 @@ export default function MerchantFormOperations({
           </Card>
           {permissions?.includes("Atualizar") && (
             <div className="flex justify-end mt-4">
-              <Button type="submit">Avançar</Button>
+              <Button type="submit">
+                {hasExistingConfiguration ? "Salvar" : "Avançar"}
+              </Button>
             </div>
           )}
         </form>
