@@ -104,16 +104,22 @@ export default function MerchantFormBank({
       console.log("Iniciando submit do formulário"); // Debug
       console.log("Dados do formulário:", data); // Debug
 
-      if (data.id) {
+      const isUpdating = !!data.id;
+
+      if (isUpdating) {
         console.log("Atualizando conta existente");
         await updateMerchantPixAccountFormAction(data);
+        // Se estiver apenas atualizando, mostrar mensagem e permanecer na mesma aba
+        alert("Dados bancários salvos com sucesso!");
+        router.refresh();
       } else {
         console.log("Criando nova conta");
         await insertMerchantPixAccountFormAction(data);
+        // Se estiver criando uma nova conta, avançar para a próxima aba
+        refreshPage(idMerchant);
       }
 
       console.log("Operação concluída com sucesso");
-      refreshPage(idMerchant);
     } catch (error) {
       console.error("Erro no submit:", error);
     }
@@ -295,7 +301,9 @@ export default function MerchantFormBank({
         </Card>
         {permissions?.includes("Atualizar") && (
           <div className="flex justify-end mt-4">
-            <Button type="submit">Avançar</Button>
+            <Button type="submit">
+              {merchantpixaccount?.id ? "Salvar" : "Avançar"}
+            </Button>
           </div>
         )}
       </form>

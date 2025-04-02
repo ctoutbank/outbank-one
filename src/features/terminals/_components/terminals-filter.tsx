@@ -10,7 +10,7 @@ export function TerminalsFilter() {
 
   const handleSearch = useCallback(
     (term: string) => {
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParams?.toString());
       if (term) {
         params.set("search", term);
       } else {
@@ -25,7 +25,7 @@ export function TerminalsFilter() {
     <div className="flex items-center gap-2">
       <Input
         placeholder="Buscar terminal..."
-        defaultValue={searchParams.get("search")?.toString()}
+        defaultValue={searchParams?.get("search")?.toString()}
         onChange={(e) => handleSearch(e.target.value)}
         className="h-8 w-[150px] lg:w-[250px]"
       />

@@ -14,7 +14,10 @@ import {
   insertContactFormAction,
   updateContactFormAction,
 } from "../_actions/contact-formActions";
-import { insertAddressFormAction } from "../_actions/merchant-formActions";
+import {
+  insertAddressFormAction,
+  updateAddressFormAction,
+} from "../_actions/merchant-formActions";
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
@@ -590,14 +593,24 @@ export default function MerchantFormcontact({
         return;
       }
 
+      // Verificar se estamos atualizando contatos existentes
+      const hasExistingContacts = contacts.some((contact) => contact.data?.id);
+
       // Processar cada formulário
       for (const formId of formIds) {
         const { contactForm, addressForm } = formRefs.current[formId];
         const contactData = contactForm.getValues();
         const addressData = addressForm.getValues();
 
-        // Salvar endereço
-        const addressId = await insertAddressFormAction(addressData);
+        // Processar endereço - atualizar existente ou criar novo
+        let addressId;
+        if (addressData.id) {
+          await updateAddressFormAction(addressData);
+          addressId = addressData.id;
+        } else {
+          // Criar o endereço
+          addressId = await insertAddressFormAction(addressData);
+        }
 
         // Atualizar contato com o ID do endereço
         const contactWithAddress = {
@@ -614,9 +627,17 @@ export default function MerchantFormcontact({
         }
       }
 
-      refreshPage(idMerchant);
+      // Se temos contatos existentes, apenas atualize a página
+      if (hasExistingContacts) {
+        alert("Dados salvos com sucesso!");
+        router.refresh();
+      } else {
+        // Se estamos criando novos contatos, navegue para a próxima aba
+        refreshPage(idMerchant);
+      }
     } catch (error) {
       console.error("Erro ao submeter formulários:", error);
+      alert("Erro ao salvar os dados: " + error);
     }
   };
 
@@ -675,7 +696,9 @@ export default function MerchantFormcontact({
       {permissions?.includes("Atualizar") && (
         <div className="flex justify-end mt-8">
           <Button type="submit" onClick={onSubmit} className="px-6">
-            Avançar
+            {contacts.some((contact) => contact.data?.id)
+              ? "Salvar"
+              : "Avançar"}
           </Button>
         </div>
       )}

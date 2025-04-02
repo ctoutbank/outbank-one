@@ -108,7 +108,7 @@ export default function ReportForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card className="w-full mb-4">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -400,13 +400,13 @@ export default function ReportForm({
               />
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="emails"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
+                  <FormItem className="col-start-1 pl-0 ml-0">
+                    <FormControl className="pl-0 ml-0">
                       <EmailList
                         value={field.value || ""}
                         onChange={field.onChange}
