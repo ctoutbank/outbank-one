@@ -73,6 +73,7 @@ interface MerchantData {
   customer: string | null;
   registration: string | null;
   idMerchantPrice: number | null;
+  idCustomer: number | null;
 }
 
 interface AddressData {
@@ -240,6 +241,7 @@ export default function MerchantTabs({
             revenue: String(merchant.revenue),
             idMerchantPrice: merchant.idMerchantPrice || null,
             establishmentFormat: merchant.establishmentFormat || "",
+            idCustomer: merchant.idCustomer || null,
           }}
           address={address}
           Cnae={merchant.cnae}

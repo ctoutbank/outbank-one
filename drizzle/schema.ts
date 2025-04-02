@@ -1,16 +1,7 @@
-import { pgTable, varchar, bigint, unique, serial, boolean, timestamp, char, integer, foreignKey, numeric, date, text, uuid, jsonb, time } from "drizzle-orm/pg-core"
+import { pgTable, unique, serial, varchar, boolean, timestamp, char, integer, foreignKey, bigint, numeric, date, text, uuid, jsonb, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
-
-export const customers = pgTable("customers", {
-	slug: varchar({ length: 50 }).notNull(),
-	name: varchar({ length: 255 }),
-	customerId: varchar("customer_id", { length: 100 }),
-	settlementManagementType: varchar("settlement_management_type", { length: 50 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customers_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-});
 
 export const terminals = pgTable("terminals", {
 	id: serial().primaryKey().notNull(),
@@ -151,6 +142,25 @@ export const salesAgents = pgTable("sales_agents", {
 			columns: [table.idAddress],
 			foreignColumns: [addresses.id],
 			name: "sales_agents_id_address_fkey"
+		}),
+	}
+});
+
+export const customers = pgTable("customers", {
+	slug: varchar({ length: 50 }).notNull(),
+	name: varchar({ length: 255 }),
+	customerId: varchar("customer_id", { length: 100 }),
+	settlementManagementType: varchar("settlement_management_type", { length: 50 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "customers_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idParent: bigint("id_parent", { mode: "number" }),
+}, (table) => {
+	return {
+		customersIdParentFkey: foreignKey({
+			columns: [table.idParent],
+			foreignColumns: [table.id],
+			name: "customers_id_parent_fkey"
 		}),
 	}
 });
@@ -672,85 +682,6 @@ export const merchantPrice = pgTable("merchant_price", {
 	nonCardPixMinimumCostFee: numeric("non_card_pix_minimum_cost_fee"),
 });
 
-export const merchants = pgTable("merchants", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchants_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	idMerchant: varchar("id_merchant", { length: 20 }),
-	name: varchar({ length: 255 }),
-	idDocument: varchar("id_document", { length: 20 }),
-	corporateName: varchar("corporate_name", { length: 255 }),
-	email: varchar({ length: 255 }),
-	areaCode: varchar("area_code", { length: 5 }),
-	number: varchar({ length: 15 }),
-	phoneType: char("phone_type", { length: 2 }),
-	language: varchar({ length: 10 }),
-	timezone: varchar({ length: 10 }),
-	slugCustomer: varchar("slug_customer", { length: 50 }),
-	riskAnalysisStatus: varchar("risk_analysis_status", { length: 20 }),
-	riskAnalysisStatusJustification: text("risk_analysis_status_justification"),
-	legalPerson: varchar("legal_person", { length: 50 }),
-	openingDate: date("opening_date"),
-	inclusion: varchar({ length: 255 }),
-	openingDays: varchar("opening_days", { length: 10 }),
-	openingHour: time("opening_hour"),
-	closingHour: time("closing_hour"),
-	municipalRegistration: varchar("municipal_registration", { length: 20 }),
-	stateSubcription: varchar("state_subcription", { length: 20 }),
-	hasTef: boolean("has_tef"),
-	hasPix: boolean("has_pix"),
-	hasTop: boolean("has_top"),
-	establishmentFormat: varchar("establishment_format", { length: 10 }),
-	revenue: numeric({ precision: 15, scale:  2 }),
-	idCategory: integer("id_category"),
-	slugCategory: varchar("slug_category", { length: 50 }),
-	idLegalNature: integer("id_legal_nature"),
-	slugLegalNature: varchar("slug_legal_nature", { length: 50 }),
-	idSalesAgent: integer("id_sales_agent"),
-	slugSalesAgent: varchar("slug_sales_agent", { length: 50 }),
-	idConfiguration: integer("id_configuration"),
-	slugConfiguration: varchar("slug_configuration", { length: 50 }),
-	idAddress: integer("id_address"),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idMerchantPrice: bigint("id_merchant_price", { mode: "number" }),
-}, (table) => {
-	return {
-		merchantsIdCategoryFkey: foreignKey({
-			columns: [table.idCategory],
-			foreignColumns: [categories.id],
-			name: "merchants_id_category_fkey"
-		}),
-		merchantsIdLegalNatureFkey: foreignKey({
-			columns: [table.idLegalNature],
-			foreignColumns: [legalNatures.id],
-			name: "merchants_id_legal_nature_fkey"
-		}),
-		merchantsIdSalesAgentFkey: foreignKey({
-			columns: [table.idSalesAgent],
-			foreignColumns: [salesAgents.id],
-			name: "merchants_id_sales_agent_fkey"
-		}),
-		merchantsIdConfigurationFkey: foreignKey({
-			columns: [table.idConfiguration],
-			foreignColumns: [configurations.id],
-			name: "merchants_id_configuration_fkey"
-		}),
-		merchantsIdAddressFkey: foreignKey({
-			columns: [table.idAddress],
-			foreignColumns: [addresses.id],
-			name: "merchants_id_address_fkey"
-		}),
-		merchantsIdMerchantPriceFkey: foreignKey({
-			columns: [table.idMerchantPrice],
-			foreignColumns: [merchantPrice.id],
-			name: "merchants_id_merchant_price_fkey"
-		}),
-	}
-});
-
 export const merchantPriceGroup = pgTable("merchant_price_group", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchant_price_group_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -910,6 +841,92 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 	}
 });
 
+export const merchants = pgTable("merchants", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchants_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	idMerchant: varchar("id_merchant", { length: 20 }),
+	name: varchar({ length: 255 }),
+	idDocument: varchar("id_document", { length: 20 }),
+	corporateName: varchar("corporate_name", { length: 255 }),
+	email: varchar({ length: 255 }),
+	areaCode: varchar("area_code", { length: 5 }),
+	number: varchar({ length: 15 }),
+	phoneType: char("phone_type", { length: 2 }),
+	language: varchar({ length: 10 }),
+	timezone: varchar({ length: 10 }),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
+	riskAnalysisStatus: varchar("risk_analysis_status", { length: 20 }),
+	riskAnalysisStatusJustification: text("risk_analysis_status_justification"),
+	legalPerson: varchar("legal_person", { length: 50 }),
+	openingDate: date("opening_date"),
+	inclusion: varchar({ length: 255 }),
+	openingDays: varchar("opening_days", { length: 10 }),
+	openingHour: time("opening_hour"),
+	closingHour: time("closing_hour"),
+	municipalRegistration: varchar("municipal_registration", { length: 20 }),
+	stateSubcription: varchar("state_subcription", { length: 20 }),
+	hasTef: boolean("has_tef"),
+	hasPix: boolean("has_pix"),
+	hasTop: boolean("has_top"),
+	establishmentFormat: varchar("establishment_format", { length: 10 }),
+	revenue: numeric({ precision: 15, scale:  2 }),
+	idCategory: integer("id_category"),
+	slugCategory: varchar("slug_category", { length: 50 }),
+	idLegalNature: integer("id_legal_nature"),
+	slugLegalNature: varchar("slug_legal_nature", { length: 50 }),
+	idSalesAgent: integer("id_sales_agent"),
+	slugSalesAgent: varchar("slug_sales_agent", { length: 50 }),
+	idConfiguration: integer("id_configuration"),
+	slugConfiguration: varchar("slug_configuration", { length: 50 }),
+	idAddress: integer("id_address"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchantPrice: bigint("id_merchant_price", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+}, (table) => {
+	return {
+		merchantsIdCategoryFkey: foreignKey({
+			columns: [table.idCategory],
+			foreignColumns: [categories.id],
+			name: "merchants_id_category_fkey"
+		}),
+		merchantsIdLegalNatureFkey: foreignKey({
+			columns: [table.idLegalNature],
+			foreignColumns: [legalNatures.id],
+			name: "merchants_id_legal_nature_fkey"
+		}),
+		merchantsIdSalesAgentFkey: foreignKey({
+			columns: [table.idSalesAgent],
+			foreignColumns: [salesAgents.id],
+			name: "merchants_id_sales_agent_fkey"
+		}),
+		merchantsIdConfigurationFkey: foreignKey({
+			columns: [table.idConfiguration],
+			foreignColumns: [configurations.id],
+			name: "merchants_id_configuration_fkey"
+		}),
+		merchantsIdAddressFkey: foreignKey({
+			columns: [table.idAddress],
+			foreignColumns: [addresses.id],
+			name: "merchants_id_address_fkey"
+		}),
+		merchantsIdMerchantPriceFkey: foreignKey({
+			columns: [table.idMerchantPrice],
+			foreignColumns: [merchantPrice.id],
+			name: "merchants_id_merchant_price_fkey"
+		}),
+		merchantsIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "merchants_id_customer_fkey"
+		}),
+	}
+});
+
 export const paymentLink = pgTable("payment_link", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payment_link_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -1006,40 +1023,6 @@ export const file = pgTable("file", {
 	slug: uuid().defaultRandom(),
 });
 
-export const users = pgTable("users", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "users_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }),
-	active: boolean().default(true),
-	idClerk: varchar("id_clerk", { length: 100 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idCustomer: bigint("id_customer", { mode: "number" }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idProfile: bigint("id_profile", { mode: "number" }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idMerchant: bigint("id_merchant", { mode: "number" }),
-}, (table) => {
-	return {
-		usersIdCustomerFkey: foreignKey({
-			columns: [table.idCustomer],
-			foreignColumns: [customers.id],
-			name: "users_id_customer_fkey"
-		}),
-		usersIdProfileFkey: foreignKey({
-			columns: [table.idProfile],
-			foreignColumns: [profiles.id],
-			name: "users_id_profile_fkey"
-		}),
-		usersIdMerchantFkey: foreignKey({
-			columns: [table.idMerchant],
-			foreignColumns: [merchants.id],
-			name: "users_id_merchant_fkey"
-		}),
-	}
-});
-
 export const fileFormats = pgTable("file_formats", {
 	code: varchar({ length: 10 }).primaryKey().notNull(),
 	name: varchar({ length: 50 }).notNull(),
@@ -1061,6 +1044,34 @@ export const reports = pgTable("reports", {
 	startTime: time("start_time"),
 	dayMonth: varchar("day_month", { length: 20 }),
 	endTime: time("end_time"),
+});
+
+export const users = pgTable("users", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "users_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }),
+	active: boolean().default(true),
+	idClerk: varchar("id_clerk", { length: 100 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idProfile: bigint("id_profile", { mode: "number" }),
+	fullAccess: boolean("full_access"),
+}, (table) => {
+	return {
+		usersIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "users_id_customer_fkey"
+		}),
+		usersIdProfileFkey: foreignKey({
+			columns: [table.idProfile],
+			foreignColumns: [profiles.id],
+			name: "users_id_profile_fkey"
+		}),
+	}
 });
 
 export const reportFiltersParam = pgTable("report_filters_param", {
@@ -1111,4 +1122,29 @@ export const cronJobMonitoring = pgTable("cron_job_monitoring", {
 	status: varchar({ length: 20 }).notNull(),
 	logMessage: text("log_message"),
 	errorMessage: text("error_message"),
+});
+
+export const userMerchants = pgTable("user_merchants", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "user_merchants_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	active: boolean().default(true),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchant: bigint("id_merchant", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idUser: bigint("id_user", { mode: "number" }),
+}, (table) => {
+	return {
+		userMerchantsIdMerchantFkey: foreignKey({
+			columns: [table.idMerchant],
+			foreignColumns: [merchants.id],
+			name: "user_merchants_id_merchant_fkey"
+		}),
+		userMerchantsIdUserFkey: foreignKey({
+			columns: [table.idUser],
+			foreignColumns: [users.id],
+			name: "user_merchants_id_user_fkey"
+		}),
+	}
 });

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, reportExecution, users, reportExecutionStatus, categories, legalNatures, configurations, merchantPrice, contacts, merchantSettlementOrders, merchantpixaccount, customerFunctions } from "./schema";
+import { customers, paymentInstitution, settlements, addresses, salesAgents, merchants, payout, merchantfile, file, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchantSettlements, paymentLink, shoppingItems, profiles, profileFunctions, functions, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, reportExecution, users, reportExecutionStatus, merchantPrice, contacts, merchantSettlementOrders, categories, legalNatures, configurations, merchantpixaccount, customerFunctions, userMerchants } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -9,12 +9,21 @@ export const paymentInstitutionRelations = relations(paymentInstitution, ({one, 
 	merchantSettlementOrders: many(merchantSettlementOrders),
 }));
 
-export const customersRelations = relations(customers, ({many}) => ({
+export const customersRelations = relations(customers, ({one, many}) => ({
 	paymentInstitutions: many(paymentInstitution),
 	settlements: many(settlements),
+	customer: one(customers, {
+		fields: [customers.idParent],
+		references: [customers.id],
+		relationName: "customers_idParent_customers_id"
+	}),
+	customers: many(customers, {
+		relationName: "customers_idParent_customers_id"
+	}),
 	payouts: many(payout),
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
 	merchantSettlements: many(merchantSettlements),
+	merchants: many(merchants),
 	users: many(users),
 	customerFunctions: many(customerFunctions),
 }));
@@ -37,8 +46,8 @@ export const salesAgentsRelations = relations(salesAgents, ({one, many}) => ({
 
 export const addressesRelations = relations(addresses, ({many}) => ({
 	salesAgents: many(salesAgents),
-	merchants: many(merchants),
 	contacts: many(contacts),
+	merchants: many(merchants),
 }));
 
 export const payoutRelations = relations(payout, ({one}) => ({
@@ -56,6 +65,8 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	payouts: many(payout),
 	merchantfiles: many(merchantfile),
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
+	contacts: many(contacts),
+	merchantSettlements: many(merchantSettlements),
 	category: one(categories, {
 		fields: [merchants.idCategory],
 		references: [categories.id]
@@ -80,11 +91,13 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 		fields: [merchants.idMerchantPrice],
 		references: [merchantPrice.id]
 	}),
-	contacts: many(contacts),
-	merchantSettlements: many(merchantSettlements),
+	customer: one(customers, {
+		fields: [merchants.idCustomer],
+		references: [customers.id]
+	}),
 	paymentLinks: many(paymentLink),
 	merchantpixaccounts: many(merchantpixaccount),
-	users: many(users),
+	userMerchants: many(userMerchants),
 }));
 
 export const merchantfileRelations = relations(merchantfile, ({one}) => ({
@@ -251,31 +264,16 @@ export const usersRelations = relations(users, ({one, many}) => ({
 		fields: [users.idProfile],
 		references: [profiles.id]
 	}),
-	merchant: one(merchants, {
-		fields: [users.idMerchant],
-		references: [merchants.id]
-	}),
+	userMerchants: many(userMerchants),
 }));
 
 export const reportExecutionStatusRelations = relations(reportExecutionStatus, ({many}) => ({
 	reportExecutions: many(reportExecution),
 }));
 
-export const categoriesRelations = relations(categories, ({many}) => ({
-	merchants: many(merchants),
-}));
-
-export const legalNaturesRelations = relations(legalNatures, ({many}) => ({
-	merchants: many(merchants),
-}));
-
-export const configurationsRelations = relations(configurations, ({many}) => ({
-	merchants: many(merchants),
-}));
-
 export const merchantPriceRelations = relations(merchantPrice, ({many}) => ({
-	merchants: many(merchants),
 	merchantPriceGroups: many(merchantPriceGroup),
+	merchants: many(merchants),
 }));
 
 export const contactsRelations = relations(contacts, ({one}) => ({
@@ -300,6 +298,18 @@ export const merchantSettlementOrdersRelations = relations(merchantSettlementOrd
 	}),
 }));
 
+export const categoriesRelations = relations(categories, ({many}) => ({
+	merchants: many(merchants),
+}));
+
+export const legalNaturesRelations = relations(legalNatures, ({many}) => ({
+	merchants: many(merchants),
+}));
+
+export const configurationsRelations = relations(configurations, ({many}) => ({
+	merchants: many(merchants),
+}));
+
 export const merchantpixaccountRelations = relations(merchantpixaccount, ({one}) => ({
 	merchant: one(merchants, {
 		fields: [merchantpixaccount.idMerchant],
@@ -315,5 +325,16 @@ export const customerFunctionsRelations = relations(customerFunctions, ({one}) =
 	function: one(functions, {
 		fields: [customerFunctions.idFunctions],
 		references: [functions.id]
+	}),
+}));
+
+export const userMerchantsRelations = relations(userMerchants, ({one}) => ({
+	merchant: one(merchants, {
+		fields: [userMerchants.idMerchant],
+		references: [merchants.id]
+	}),
+	user: one(users, {
+		fields: [userMerchants.idUser],
+		references: [users.id]
 	}),
 }));
