@@ -33,12 +33,14 @@ import {
 } from "../schema/merchant-schema";
 
 import { Button } from "@/components/ui/button";
+import { legalPersonTypes, states } from "@/lib/lookuptables";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addresses, merchants } from "../../../../drizzle/schema";
 import {
   insertAddressFormAction,
   insertMerchantFormAction,
+  updateAddressFormAction,
   updateMerchantFormAction,
 } from "../_actions/merchant-formActions";
 import {
@@ -46,7 +48,6 @@ import {
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
 } from "../server/merchant";
-import { legalPersonTypes, states } from "@/lib/lookuptables";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -150,15 +151,22 @@ export default function MerchantFormCompany({
       // Validar o formulário de endereço antes de submeter
       const addressFormValid = await form1.trigger();
       if (!addressFormValid) {
-        console.error("Formulário de endereço inválido");
         return;
       }
 
       // Obter os dados do formulário de endereço
       const addressData = form1.getValues();
 
-      // Criar o endereço
-      const addressId = await insertAddressFormAction(addressData);
+      let addressId;
+
+      // Atualizar endereço existente ou criar um novo
+      if (addressData.id) {
+        await updateAddressFormAction(addressData);
+        addressId = addressData.id;
+      } else {
+        // Criar o endereço
+        addressId = await insertAddressFormAction(addressData);
+      }
 
       // Criar o merchant com o ID do endereço
       const merchantData = {
@@ -172,15 +180,40 @@ export default function MerchantFormCompany({
       if (data?.id) {
         console.log("dataid", data.id);
         console.log("merchantData", merchantData);
-        merchantData.idCategory = Number(merchantData.cnae);
-        await updateMerchantFormAction(merchantData);
-      } else {
-        idMerchant = await insertMerchantFormAction(merchantData);
-      }
 
-      refreshPage(idMerchant || 0);
+        // Garantir que idCategory seja um número válido
+        if (merchantData.cnae) {
+          merchantData.idCategory = Number(merchantData.cnae);
+        }
+
+        // Garantir que idLegalNature seja um número válido
+        if (
+          !merchantData.idLegalNature ||
+          isNaN(Number(merchantData.idLegalNature))
+        ) {
+          return;
+        }
+
+        try {
+          await updateMerchantFormAction(merchantData);
+          alert("Dados Atualizados com sucesso!");
+
+          // Apenas recarregar a página atual, sem alterar a aba
+          router.refresh();
+        } catch (error) {
+          console.error("Erro ao salvar configuração:", error);
+        }
+      } else {
+        try {
+          idMerchant = await insertMerchantFormAction(merchantData);
+          // Navegar para a próxima aba apenas quando estiver criando um novo merchant
+          refreshPage(idMerchant || 0);
+        } catch (error) {
+          console.error("Erro ao salvar configuração:", error);
+        }
+      }
     } catch (error) {
-      console.log("error", error);
+      console.error("Erro ao salvar configuração:", error);
     }
   };
 
@@ -188,7 +221,7 @@ export default function MerchantFormCompany({
     try {
       await insertAddressFormAction(data);
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Erro ao salvar configuração:", error);
     }
   };
 
@@ -900,7 +933,9 @@ export default function MerchantFormCompany({
             </Tabs>
             {permissions?.includes("Atualizar") && (
               <div className="flex justify-end mt-4">
-                <Button type="submit">Avançar</Button>
+                <Button type="submit">
+                  {merchant?.id ? "Salvar" : "Avançar"}
+                </Button>
               </div>
             )}
           </form>

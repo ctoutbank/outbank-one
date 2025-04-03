@@ -18,16 +18,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { updateUser, UserDetailForm } from "@/features/users/server/users";
-import { validateCurrentPassword } from "@/features/users/server/users";
+import {
+  UpdateMyProfile,
+  UserDetailForm,
+  validateCurrentPassword,
+} from "@/features/users/server/users";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ProfileFormValues, profileSchema } from "../schema/schema";
-import React from "react";
-import { Eye, EyeOff } from "lucide-react";
 
 interface ProfileFormProps {
   profile?: UserDetailForm;
@@ -111,14 +113,14 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
       }
 
       const userData = {
-        ...data,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
         password: data.newPassword || "",
-        idCustomer: profile?.idCustomer || null,
-        idProfile: profile?.idProfile || null,
-        idMerchant: profile?.idMerchant || null,
+        idClerk: profile?.idClerk || "",
       };
 
-      await updateUser(profile?.id || 0, userData);
+      await UpdateMyProfile(userData);
 
       // Limpar campos de senha após o envio bem-sucedido
       form.setValue("currentPassword", "");

@@ -74,6 +74,7 @@ export default function ProfileManagement({
     name: string;
     description: string;
     functions: string[];
+    isSalesAgent: boolean;
   }>({
     resolver: zodResolver(
       z.object({
@@ -88,6 +89,7 @@ export default function ProfileManagement({
         functions: z
           .array(z.string())
           .min(1, "Selecione pelo menos uma funcionalidade"),
+        isSalesAgent: z.boolean().default(false),
       })
     ),
     defaultValues: profile
@@ -95,6 +97,7 @@ export default function ProfileManagement({
           id: profile.id,
           name: profile.name,
           description: profile.description,
+          isSalesAgent: profile.isSalesAgent || false,
           functions: profile.module?.flatMap((module) =>
             module.group.flatMap((group) =>
               group.functions
@@ -107,6 +110,7 @@ export default function ProfileManagement({
           name: "",
           description: "",
           functions: [],
+          isSalesAgent: false,
         },
   });
 
@@ -215,6 +219,7 @@ export default function ProfileManagement({
     name: string;
     description: string;
     functions: string[];
+    isSalesAgent: boolean;
   }) => {
     try {
       setIsSubmitting(true);
@@ -236,6 +241,7 @@ export default function ProfileManagement({
         ...data,
         module: updatedModules,
       };
+      console.log(profileData);
 
       if (data.id) {
         await updateProfile(data.id, profileData);
@@ -396,6 +402,27 @@ export default function ProfileManagement({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                    </div>
+
+                    {/* Sales Agent Checkbox */}
+                    <div className="flex items-center mb-4">
+                      <FormField
+                        control={form.control}
+                        name="isSalesAgent"
+                        render={({ field }) => (
+                          <FormItem className="space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-medium">
+                              Consultor Comercial
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
                     {selectedModules.length === 0 ? (

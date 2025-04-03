@@ -169,6 +169,7 @@ export default async function MerchantDetail({
 
             slugCategory: merchant?.merchants.slugCategory || null,
             timezone: merchant?.merchants.timezone || "",
+            idCustomer: merchant?.merchants.idCustomer || null,
           }}
           address={{
             id: merchant?.addresses?.id || 0,

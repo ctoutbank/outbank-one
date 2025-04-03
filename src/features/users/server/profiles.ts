@@ -38,6 +38,7 @@ export interface ProfileDetailForm {
   name?: string;
   description?: string;
   module?: ModuleSelect[];
+  isSalesAgent?: boolean;
 }
 
 export interface ProfileList {
@@ -145,6 +146,7 @@ export async function getProfileById(id: number): Promise<
       slug: string;
       name: string;
       description: string;
+      isSalesAgent: boolean;
       module: ModuleSelect[];
     }
   | undefined
@@ -155,6 +157,7 @@ export async function getProfileById(id: number): Promise<
       p.slug,
       p.name,
       p.description,
+      p.is_sales_agent,
       COALESCE(
         (
           SELECT json_agg(
@@ -217,6 +220,7 @@ export async function getProfileById(id: number): Promise<
     slug: row.slug,
     name: row.name,
     description: row.description,
+    isSalesAgent: row.is_sales_agent,
     module: row.modules || [],
   };
 }
@@ -228,6 +232,7 @@ export async function insertProfile(
     slug: generateSlug(),
     name: profileData.name,
     description: profileData.description,
+    isSalesAgent: profileData.isSalesAgent,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
     active: true,
@@ -284,6 +289,10 @@ export async function updateProfile(
 
   if (profileData.description) {
     updateData.description = profileData.description;
+  }
+
+  if (profileData.isSalesAgent !== undefined) {
+    updateData.isSalesAgent = profileData.isSalesAgent;
   }
 
   updateData.dtupdate = new Date().toISOString();

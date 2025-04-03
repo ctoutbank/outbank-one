@@ -8,8 +8,8 @@ import {
   getDDProfiles,
   getUsers,
 } from "@/features/users/server/users";
-import { cache } from "react";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { cache } from "react";
 
 export const revalidate = 0;
 

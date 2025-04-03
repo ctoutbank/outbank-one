@@ -18,11 +18,12 @@ export const schemaUser = z.object({
     }
   }),
   idProfile: z.string().min(1, "o perfil é obrigatório"),
-  idMerchant: z.string().optional(),
   idCustomer: z.string().optional(),
   isEstablishment: z.boolean().optional(),
   active: z.boolean().optional(),
   idClerk: z.string().optional(),
+  selectedMerchants: z.array(z.string()).optional(),
+  fullAccess: z.boolean().optional(),
 });
 
 export const schemaGroup = z.object({

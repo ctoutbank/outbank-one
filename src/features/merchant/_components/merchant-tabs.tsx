@@ -73,6 +73,7 @@ interface MerchantData {
   customer: string | null;
   registration: string | null;
   idMerchantPrice: number | null;
+  idCustomer: number | null;
 }
 
 interface AddressData {
@@ -207,9 +208,7 @@ export default function MerchantTabs({
     const tab = searchParams?.get("tab") || "company";
     setActiveTab(tab);
   }, [searchParams]);
-  console.log("activeTab 2", activeTab);
 
-  console.log("timezone", merchant.timezone);
   return (
     <Tabs
       value={activeTab}
@@ -240,6 +239,7 @@ export default function MerchantTabs({
             revenue: String(merchant.revenue),
             idMerchantPrice: merchant.idMerchantPrice || null,
             establishmentFormat: merchant.establishmentFormat || "",
+            idCustomer: merchant.idCustomer || null,
           }}
           address={address}
           Cnae={merchant.cnae}
@@ -326,6 +326,7 @@ export default function MerchantTabs({
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
           permissions={permissions}
+          idConfiguration={merchant.idConfiguration || undefined}
         />
       </TabsContent>
       {permissions?.includes("Configurar dados Bancários") && (
