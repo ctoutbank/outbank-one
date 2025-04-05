@@ -240,6 +240,7 @@ export default function MerchantTabs({
             idMerchantPrice: merchant.idMerchantPrice || null,
             establishmentFormat: merchant.establishmentFormat || "",
             idCustomer: merchant.idCustomer || null,
+            dtdelete: "",
           }}
           address={address}
           Cnae={merchant.cnae}
@@ -314,6 +315,22 @@ export default function MerchantTabs({
             lockCnpAnticipationOrder:
               configurations?.configurations?.lockCnpAnticipationOrder || null,
             url: configurations?.configurations?.url || null,
+            anticipationRiskFactorCnp: configurations?.configurations
+              ?.anticipationRiskFactorCnp
+              ? Number(
+                  configurations?.configurations?.anticipationRiskFactorCnp
+                )
+              : null,
+            waitingPeriodCnp: configurations?.configurations?.waitingPeriodCnp
+              ? Number(configurations?.configurations?.waitingPeriodCnp)
+              : null,
+            anticipationRiskFactorCp: configurations?.configurations
+              ?.anticipationRiskFactorCp
+              ? Number(configurations?.configurations?.anticipationRiskFactorCp)
+              : null,
+            waitingPeriodCp: configurations?.configurations?.waitingPeriodCp
+              ? Number(configurations?.configurations?.waitingPeriodCp)
+              : null,
           }}
           hasTaf={merchant.hasTef}
           hastop={merchant.hasTop}
