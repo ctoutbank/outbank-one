@@ -580,7 +580,7 @@ export default function FilterForm({
           dtinsert: (data.dtinsert || new Date()).toISOString(),
           dtupdate: (data.dtinsert || new Date()).toISOString(),
         });
-        router.push(`/portal/reports/${reportId}`);
+        router.refresh(); // Apenas atualiza os dados
         closeDialog();
       }
     } catch (error) {
@@ -1063,10 +1063,15 @@ export default function FilterForm({
                                       setSearchTerm(merchant.name || "");
                                       setShowSuggestions(false);
 
-                                      // Atualizar o valor do campo com "nome|id" para poder recuperar depois
-                                      field.onChange(
-                                        `${merchant.name}|${merchant.id}`
-                                      );
+                                      // Atualizar o valor do campo para usar o slug do merchant
+                                      if (merchant.slug) {
+                                        field.onChange(merchant.slug);
+                                      } else {
+                                        // Fallback caso não tenha slug (pouco provável)
+                                        field.onChange(
+                                          `${merchant.name}|${merchant.id}`
+                                        );
+                                      }
                                     }}
                                   >
                                     {merchant.name || "N/A"}

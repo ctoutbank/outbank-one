@@ -1,6 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaginationRecords from "@/components/pagination-Records";
+import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
 import { ReportsDashboardButton } from "@/features/reports/_components/reports-dashboard-button";
 import { ReportsDashboardContent } from "@/features/reports/_components/reports-dashboard-content";
@@ -30,7 +30,7 @@ export default async function ReportsPage({
   searchParams: ReportsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
+  const pageSize = parseInt(searchParams.pageSize || "20");
 
   const reports = await getReports(
     searchParams.search || "",
@@ -44,17 +44,6 @@ export default async function ReportsPage({
     searchParams.creationDate
   );
   const totalRecords = reports.totalCount;
-
-  // Dados de exemplo para o dashboard
-  const dashboardData = {
-    totalReports: totalRecords,
-    dailyReports: 12,
-    weeklyReports: 35,
-    monthlyReports: 128,
-    pdfFormat: 87,
-    excelFormat: 62,
-    csvFormat: 26
-  };
 
   return (
     <>
@@ -79,7 +68,7 @@ export default async function ReportsPage({
                 creationDateIn={searchParams.creationDate}
               />
               <ReportsDashboardButton>
-                <ReportsDashboardContent {...dashboardData} />
+                <ReportsDashboardContent />
               </ReportsDashboardButton>
             </div>
             <Button asChild className="shrink-0">
@@ -92,7 +81,7 @@ export default async function ReportsPage({
 
           <ReportList Reports={reports} />
           {totalRecords > 0 && (
-            <PaginationRecords
+            <PaginationWithSizeSelector
               totalRecords={totalRecords}
               currentPage={page}
               pageSize={pageSize}

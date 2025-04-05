@@ -46,6 +46,7 @@ interface ReportsFormProps {
   fileFormat: FileFormatDD[];
   reportType: ReportTypeDD[];
   permissions: string[];
+  onReportCreated?: (reportId: number) => void;
 }
 
 export default function ReportForm({
@@ -55,6 +56,7 @@ export default function ReportForm({
   fileFormat,
   reportType,
   permissions,
+  onReportCreated,
 }: ReportsFormProps) {
   const router = useRouter();
   console.log(permissions);
@@ -97,10 +99,19 @@ export default function ReportForm({
       await updateReportFormAction(formattedData);
       toast.success("Relatório atualizado com sucesso");
       router.refresh();
+
+      if (onReportCreated) {
+        onReportCreated(formattedData.id as number);
+      }
     } else {
       const newId = await insertReportFormAction(formattedData);
       toast.success("Relatório criado com sucesso");
-      router.push(`/portal/reports/${newId}`);
+
+      if (onReportCreated) {
+        onReportCreated(newId);
+      } else {
+        router.push(`/portal/reports/${newId}`);
+      }
     }
   };
 

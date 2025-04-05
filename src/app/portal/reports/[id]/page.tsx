@@ -1,8 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import ReportForm from "@/features/reports/_components/reports-form";
-import { getReportFilters } from "@/features/reports/filter/filter-Actions";
-import FilterTableAndForm from "@/features/reports/filter/filter-table";
+import ReportsWizardForm from "@/features/reports/_components/reports-wizard-form";
 import {
   fetchReportFilterParams,
   getfileFormats,
@@ -37,11 +35,14 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const periods = await getperiodTypes();
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
-  const filters = await getReportFilters(report?.id || 0);
   const reportFilterParams = await fetchReportFilterParams();
-  console.log("reportFilterParams", reportFilterParams);
 
-  console.log("recorrence", recorrence);
+  // Inicializar filtro vazio para novos relatórios
+  const emptyFilter = {
+    idReport: report?.id || 0,
+    idReportFilterParam: 0,
+    value: "",
+  };
 
   return (
     <>
@@ -52,7 +53,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
         title="Relatório"
         subtitle={report?.id ? "Editar Relatório" : "Adicionar Relatório"}
       >
-        <ReportForm
+        <ReportsWizardForm
           report={{
             id: report?.id,
             title: report?.title || "",
@@ -72,12 +73,8 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
           fileFormat={fileFormat}
           reportType={reportType}
           permissions={permissions}
-        />
-        <FilterTableAndForm
-          reportId={report?.id || 0}
           reportFilterParams={reportFilterParams}
-          reportTypeDD={reportType}
-          filter={filters}
+          filter={emptyFilter}
         />
       </BaseBody>
     </>
