@@ -1,8 +1,8 @@
 import { db } from "@/server/db";
 import { sql } from "drizzle-orm";
+import { terminals } from "../../../../../drizzle/schema";
 import { getTerminals } from "../dock-terminals";
 import { Terminal } from "../dock-terminals-type";
-import { terminals } from "../../../../../drizzle/schema";
 
 async function getTerminalTotalCount(): Promise<number> {
   try {
@@ -48,7 +48,15 @@ async function saveToDatabaseBatch(terminalsData: Terminal[]) {
       };
     });
 
-    await db.insert(terminals).values(values);
+    await db
+      .insert(terminals)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [terminals.slug],
+        set: {
+          active: sql`excluded.active`,
+        },
+      });
     console.log(
       `Lote de ${terminalsData.length} terminais sincronizado com sucesso.`
     );
@@ -65,7 +73,7 @@ export async function syncTerminals() {
     const totalCount = await getTerminalTotalCount();
     console.log(`Total de terminais no banco: ${totalCount}`);
 
-    const terminalsData = await getTerminals();
+    const terminalsData = await getTerminals(totalCount);
     console.log(`Total de terminais obtidos da API: ${terminalsData.length}`);
 
     if (terminalsData.length > 0) {

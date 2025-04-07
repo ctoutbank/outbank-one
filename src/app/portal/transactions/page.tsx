@@ -13,6 +13,7 @@ import {
   getTransactionsGroupedReport,
 } from "@/features/transactions/serverActions/transaction";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { getEndOfDay, getStartOfDay } from "@/lib/datetime-utils";
 import { Suspense } from "react";
 import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
 
@@ -34,24 +35,14 @@ async function TransactionsContent({
 }) {
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");
-  const search = searchParams.search || "";
 
-  const today = new Date();
-  const startOfDay = `${today.getFullYear()}-${String(
-    today.getMonth() + 1
-  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}T00:00:00`;
-  const endOfDay = `${today.getFullYear()}-${String(
-    today.getMonth() + 1
-  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}T23:59:59`;
-
-  const dateFrom = searchParams.dateFrom || startOfDay;
-  const dateTo = searchParams.dateTo || endOfDay;
+  const dateFrom = searchParams.dateFrom || getStartOfDay();
+  const dateTo = searchParams.dateTo || getEndOfDay();
 
   console.log("dateFrom", dateFrom);
   console.log("dateTo", dateTo);
 
   const transactionList = await getTransactions(
-    search,
     page,
     pageSize,
     searchParams.status,
@@ -67,7 +58,6 @@ async function TransactionsContent({
     searchParams.status,
     searchParams.productType
   );
-  const totalRecords = transactionList.totalCount;
 
   return (
     <>
@@ -95,14 +85,14 @@ async function TransactionsContent({
 
         <TransactionsList transactions={transactionList.transactions} />
 
-        {totalRecords > 0 && (
+        {transactionList.totalCount > 0 && (
           <div className="flex items-center justify-between mt-4">
             <PageSizeSelector
               currentPageSize={pageSize}
               pageName="portal/transactions"
             />
             <PaginationRecords
-              totalRecords={totalRecords}
+              totalRecords={transactionList.totalCount}
               currentPage={page}
               pageSize={pageSize}
               pageName="portal/transactions"

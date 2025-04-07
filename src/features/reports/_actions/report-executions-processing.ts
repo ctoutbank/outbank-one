@@ -1,4 +1,4 @@
-import { getTransactionsForReport } from "@/features/transactions/serverActions/transaction";
+import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import { resend } from "@/lib/resend";
 import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
@@ -68,7 +68,6 @@ export async function reportExecutionsProcessing() {
 
       let pdfBytes: Uint8Array<ArrayBufferLike> | null = null;
       if (report[0].reportType === "VN") {
-        const search = "";
         const status = undefined;
         const merchant = undefined;
         // Define a data de início como hoje às 03:00 explicitamente
@@ -94,9 +93,9 @@ export async function reportExecutionsProcessing() {
 
         const productType = undefined;
 
-        const transactions = await getTransactionsForReport(
-          search,
-
+        const transactions = await getTransactions(
+          -1,
+          -1,
           status,
           merchant,
           dateFrom,
@@ -104,10 +103,12 @@ export async function reportExecutionsProcessing() {
           productType
         );
         if (report[0].formatCode === "PDF") {
-          pdfBytes = await reportsExecutionSalesGeneratePDF(transactions);
+          pdfBytes = await reportsExecutionSalesGeneratePDF(
+            transactions.transactions
+          );
         } else if (report[0].formatCode === "XLSX") {
           pdfBytes = await reportsExecutionSalesGenerateXLSX(
-            transactions,
+            transactions.transactions,
             dateFrom,
             dateTo
           );
