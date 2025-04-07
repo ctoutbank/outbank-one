@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
 import { merchantSettlementOrders } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import {
@@ -122,7 +121,7 @@ async function insertMerchantSettlementOrder(
       merchantSettlementOrderList.map((order) => order.slug)
     );
 
-    // Separar registros para insert e update
+    // Filter out existing records
     const recordsToInsert = merchantSettlementOrderList.filter(
       (order) =>
         !existingMerchantSettlementOrders?.some(
@@ -130,68 +129,31 @@ async function insertMerchantSettlementOrder(
         )
     );
 
-    const recordsToUpdate = merchantSettlementOrderList.filter((order) =>
-      existingMerchantSettlementOrders?.some(
-        (existing) => existing.slug === order.slug
-      )
-    );
+    // Log existing records
+    const existingCount =
+      merchantSettlementOrderList.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(
+        `${existingCount} merchant settlement orders already exist, skipping...`
+      );
+    }
 
-    // Inserir novos registros
+    // Insert new records
     if (recordsToInsert.length > 0) {
       console.log(
-        "Inserting new merchantSettlementOrders, quantity:",
+        "Inserting new merchant settlement orders, quantity:",
         recordsToInsert.length
       );
       await db.insert(merchantSettlementOrders).values(recordsToInsert);
-      console.log("New merchantSettlementOrders inserted successfully.");
+      console.log("New merchant settlement orders inserted successfully.");
     }
 
-    // Atualizar registros existentes
-    if (recordsToUpdate.length > 0) {
+    if (recordsToInsert.length === 0) {
       console.log(
-        "Updating existing merchantSettlementOrders, quantity:",
-        recordsToUpdate.length
+        "All merchant settlement orders already exist in the database"
       );
-
-      for (const record of recordsToUpdate) {
-        await db
-          .update(merchantSettlementOrders)
-          .set({
-            active: record.active,
-            dtinsert: record.dtinsert,
-            dtupdate: record.dtupdate,
-            compeCode: record.compeCode,
-            accountNumber: record.accountNumber,
-            accountNumberCheckDigit: record.accountNumberCheckDigit,
-            slugPaymentInstitution: record.slugPaymentInstitution,
-            idPaymentInstitution: record.idPaymentInstitution,
-            bankBranchNumber: record.bankBranchNumber,
-            accountType: record.accountType,
-            integrationType: record.integrationType,
-            brand: record.brand,
-            productType: record.productType,
-            amount: record.amount,
-            anticipationAmount: record.anticipationAmount,
-            idMerchantSettlements: record.idMerchantSettlements,
-            merchantSettlementOrderStatus: record.merchantSettlementOrderStatus,
-            orderTransactionId: record.orderTransactionId,
-            settlementUniqueNumber: record.settlementUniqueNumber,
-            protocolGuidId: record.protocolGuidId,
-            legalPerson: record.legalPerson,
-            documentId: record.documentId,
-            corporateName: record.corporateName,
-            effectivePaymentDate: record.effectivePaymentDate,
-            lock: record.lock,
-          })
-          .where(eq(merchantSettlementOrders.slug, record.slug));
-      }
-      console.log("Existing merchantSettlementOrders updated successfully.");
-    }
-
-    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
-      console.log("No records to insert or update");
     }
   } catch (error) {
-    console.error("Error processing merchantSettlementOrders:", error);
+    console.error("Error processing merchant settlement orders:", error);
   }
 }

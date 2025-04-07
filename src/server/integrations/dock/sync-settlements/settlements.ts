@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
 import { settlements } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "./customer";
 import { getIdBySlugs } from "./getIdBySlugs";
@@ -70,7 +69,7 @@ async function insertSettlements(settlementList: InsertSettlement[]) {
       settlementList.map((settlement) => settlement.slug)
     );
 
-    // Separar registros para insert e update
+    // Filter out existing records
     const recordsToInsert = settlementList.filter(
       (settlement) =>
         !existingSettlements?.some(
@@ -78,11 +77,13 @@ async function insertSettlements(settlementList: InsertSettlement[]) {
         )
     );
 
-    const recordsToUpdate = settlementList.filter((settlement) =>
-      existingSettlements?.some((existing) => existing.slug === settlement.slug)
-    );
+    // Log existing records
+    const existingCount = settlementList.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(`${existingCount} settlements already exist, skipping...`);
+    }
 
-    // Inserir novos registros
+    // Insert new records
     if (recordsToInsert.length > 0) {
       console.log(
         "Inserting new settlements, quantity:",
@@ -92,57 +93,8 @@ async function insertSettlements(settlementList: InsertSettlement[]) {
       console.log("New settlements inserted successfully.");
     }
 
-    // Atualizar registros existentes
-    if (recordsToUpdate.length > 0) {
-      console.log(
-        "Updating existing settlements, quantity:",
-        recordsToUpdate.length
-      );
-
-      for (const record of recordsToUpdate) {
-        await db
-          .update(settlements)
-          .set({
-            active: record.active,
-            dtinsert: record.dtinsert,
-            dtupdate: record.dtupdate,
-            batchAmount: record.batchAmount,
-            discountFeeAmount: record.discountFeeAmount,
-            netSettlementAmount: record.netSettlementAmount,
-            totalAnticipationAmount: record.totalAnticipationAmount,
-            totalRestitutionAmount: record.totalRestitutionAmount,
-            pixAmount: record.pixAmount,
-            pixNetAmount: record.pixNetAmount,
-            pixFeeAmount: record.pixFeeAmount,
-            pixCostAmount: record.pixCostAmount,
-            pendingRestitutionAmount: record.pendingRestitutionAmount,
-            totalCreditAdjustmentAmount: record.totalCreditAdjustmentAmount,
-            totalDebitAdjustmentAmount: record.totalDebitAdjustmentAmount,
-            totalSettlementAmount: record.totalSettlementAmount,
-            restRoundingAmount: record.restRoundingAmount,
-            outstandingAmount: record.outstandingAmount,
-            slugCustomer: record.slugCustomer,
-            status: record.status,
-            creditStatus: record.creditStatus,
-            debitStatus: record.debitStatus,
-            anticipationStatus: record.anticipationStatus,
-            pixStatus: record.pixStatus,
-            paymentDate: record.paymentDate,
-            pendingFinancialAdjustmentAmount:
-              record.pendingFinancialAdjustmentAmount,
-            creditFinancialAdjustmentAmount:
-              record.creditFinancialAdjustmentAmount,
-            debitFinancialAdjustmentAmount:
-              record.debitFinancialAdjustmentAmount,
-            idCustomer: record.idCustomer,
-          })
-          .where(eq(settlements.slug, record.slug));
-      }
-      console.log("Existing settlements updated successfully.");
-    }
-
-    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
-      console.log("No records to insert or update");
+    if (recordsToInsert.length === 0) {
+      console.log("All settlements already exist in the database");
     }
   } catch (error) {
     console.error("Error processing settlements:", error);
