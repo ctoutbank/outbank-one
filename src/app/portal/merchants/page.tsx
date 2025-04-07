@@ -51,6 +51,14 @@ export default async function MerchantsPage({
     searchParams.status,
     searchParams.state
   );
+  const merchantsExcel = await getMerchants(
+    search,
+    page,
+    50,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.state
+  );
   const totalRecords = merchants.totalCount;
 
   // Buscar dados dos gráficos
@@ -117,7 +125,7 @@ export default async function MerchantsPage({
             <div className="flex items-center gap-2 justify-end">
               <ExcelImportButton />
               <ExcelExport
-                data={merchants.merchants.map((merchant) => ({
+                data={merchantsExcel.merchants.map((merchant) => ({
                   "Nome Fantasia": merchant.name,
                   "Razão Social": merchant.corporate_name,
                   "CNPJ/CPF": merchant.cnpj,
