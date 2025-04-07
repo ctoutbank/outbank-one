@@ -1,3 +1,4 @@
+import { TransactionsListRecord } from "@/features/transactions/serverActions/transaction";
 import { drawTableHeader, drawTableRow, getPageItems } from "@/lib/pdf-utils";
 
 import { calculatePagination, drawPageHeader } from "@/lib/pdf-utils";
@@ -6,7 +7,7 @@ import ExcelJS from "exceljs";
 import { PDFDocument, PageSizes } from "pdf-lib";
 
 export default async function reportsExecutionSalesGeneratePDF(
-  transactions: any
+  transactions: TransactionsListRecord[]
 ) {
   // Obter parâmetros da URL
   // Valores estáticos para o relatório de vendas
@@ -39,17 +40,15 @@ export default async function reportsExecutionSalesGeneratePDF(
     transactions && Array.isArray(transactions)
       ? transactions.map((item) => ({
           date:
-            formatDate(new Date(item.transactions.dtInsert || "")) +
+            formatDate(new Date(item.dateInsert || "")) +
             " " +
-            new Date(item.transactions.dtInsert || "").toLocaleTimeString(
-              "pt-BR"
-            ),
-          nsu: item.transactions.rrn || "",
-          terminal: item.terminals?.logicalNumber || "",
-          valor: formatCurrency(Number(item.transactions.totalAmount) || 0),
-          bandeira: item.transactions.brand || "",
-          tipo: item.transactions.productType || "",
-          status: item.transactions.transactionStatus || "",
+            new Date(item.dateInsert || "").toLocaleTimeString("pt-BR"),
+          nsu: item.nsu || "",
+          terminal: item.terminalLogicalNumber || "",
+          valor: formatCurrency(Number(item.amount) || 0),
+          bandeira: item.brand || "",
+          tipo: item.productType || "",
+          status: item.transactionStatus || "",
         }))
       : [];
 
@@ -94,7 +93,7 @@ export default async function reportsExecutionSalesGeneratePDF(
 }
 
 export async function reportsExecutionSalesGenerateXLSX(
-  transactions: any,
+  transactions: TransactionsListRecord[],
   dateFrom: string,
   dateTo: string
 ): Promise<Uint8Array | null> {
@@ -160,22 +159,22 @@ export async function reportsExecutionSalesGenerateXLSX(
   });
 
   transactions.forEach((item) => {
-    const bandeira = item.transactions.brand || "NÃO IDENTIFICADA";
-    const tipo = item.transactions.productType || "Não Especificado";
-    const valor = Number(item.transactions.totalAmount) || 0;
-    const status = item.transactions.transactionStatus || "";
+    const bandeira = item.brand || "NÃO IDENTIFICADA";
+    const tipo = item.productType || "Não Especificado";
+    const valor = Number(item.amount) || 0;
+    const status = item.transactionStatus || "";
 
     // Tratar PIX-PIX separadamente
     if (bandeira === "PIX" && tipo === "PIX") {
       const chaveSheet = "PIX-PIX";
       dadosPorBandeira[chaveSheet].push({
         Data: (() => {
-          const data = new Date(item.transactions.dtInsert || "");
+          const data = new Date(item.dateInsert || "");
           data.setHours(data.getHours() - 3);
           return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
         })(),
-        "NSU / Id": item.transactions.rrn || "",
-        Terminal: item.terminals?.logicalNumber || "",
+        "NSU / Id": item.nsu || "",
+        Terminal: item.terminalLogicalNumber || "",
         Valor: formatCurrency(valor),
         Bandeira: bandeira,
         Tipo: tipo,
@@ -207,12 +206,12 @@ export async function reportsExecutionSalesGenerateXLSX(
       }
       dadosPorBandeira[chaveSheet].push({
         Data: (() => {
-          const data = new Date(item.transactions.dtInsert || "");
+          const data = new Date(item.dateInsert || "");
           data.setHours(data.getHours() - 3);
           return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
         })(),
-        "NSU / Id": item.transactions.rrn || "",
-        Terminal: item.terminals?.logicalNumber || "",
+        "NSU / Id": item.nsu || "",
+        Terminal: item.terminalLogicalNumber || "",
         Valor: formatCurrency(valor),
         Bandeira: bandeira,
         Tipo: tipo,
@@ -414,16 +413,16 @@ export async function reportsExecutionSalesGenerateXLSX(
   transactions.forEach((item) => {
     todasTransacoesSheet.addRow({
       Data: (() => {
-        const data = new Date(item.transactions.dtInsert || "");
+        const data = new Date(item.dateInsert || "");
         data.setHours(data.getHours() - 3);
         return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
       })(),
-      "NSU / Id": item.transactions.rrn || "",
-      Terminal: item.terminals?.logicalNumber || "",
-      Valor: formatCurrency(Number(item.transactions.totalAmount) || 0),
-      Bandeira: item.transactions.brand || "",
-      Tipo: item.transactions.productType || "",
-      Status: item.transactions.transactionStatus || "",
+      "NSU / Id": item.nsu || "",
+      Terminal: item.terminalLogicalNumber || "",
+      Valor: formatCurrency(Number(item.amount) || 0),
+      Bandeira: item.brand || "",
+      Tipo: item.productType || "",
+      Status: item.transactionStatus || "",
     });
   });
 
