@@ -44,7 +44,7 @@ async function fetchPayout(
     `https://settlement.acquiring.dock.tech/v1/payouts/statement?expectedSettlementDate__goe=${stringExpectedSettlementDateStart}&expectedSettlementDate__loe=${stringExpectedSettlementDateEnd}&limit=1000&offset=${offset}`,
     {
       headers: {
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.7OLleTv9B-68LXORK4FOOgk7L6zl1-NZmh6GZ86V9Dk_4PhmT63qikAivP3ftCA9pKqyJt2v2J2Ds6HDGTb5ug`,
+        Authorization: `${process.env.DOCK_API_KEY}`,
         "X-Customer": "B68046D590EB402288F90E1147B6BC9F",
       },
     }

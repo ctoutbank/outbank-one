@@ -8,8 +8,10 @@ type GetTerminalsResponse = {
   objects: Terminal[];
 };
 
-export async function getTerminals(): Promise<Terminal[]> {
-  const url = new URL(`${process.env.DOCK_API_URL_TERMINALS}/v1/terminals`);
+export async function getTerminals(offset: number): Promise<Terminal[]> {
+  const url = new URL(
+    `${process.env.DOCK_API_URL_TERMINALS}/v1/terminals?limit=1000&offset=${offset}`
+  );
 
   try {
     const response = await fetch(url.toString(), {

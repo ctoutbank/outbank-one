@@ -1,5 +1,6 @@
+import { getUserMerchantSlugs } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { and, count, desc, eq, ilike, like, lte, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, like, lte, or, sql } from "drizzle-orm";
 import { merchants, terminals } from "../../../../drizzle/schema";
 
 export async function getTerminalss(
@@ -9,17 +10,38 @@ export async function getTerminalss(
 ) {
   try {
     const offset = (page - 1) * pageSize;
+    const conditions = [];
 
-    let whereClause = undefined;
+    const userMerchants = await getUserMerchantSlugs();
+
+    if (userMerchants.fullAccess) {
+    } else {
+      if (userMerchants.slugMerchants.length > 0) {
+        conditions.push(
+          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
+        );
+      } else {
+        return {
+          terminals: [],
+          totalCount: 0,
+        };
+      }
+    }
+
+    conditions.push(eq(terminals.active, true));
 
     if (search) {
-      whereClause = or(
-        ilike(terminals.slug, `%${search}%`),
-        ilike(terminals.logicalNumber, `%${search}%`),
-        ilike(terminals.model, `%${search}%`),
-        ilike(terminals.manufacturer, `%${search}%`)
+      conditions.push(
+        or(
+          ilike(terminals.slug, `%${search}%`),
+          ilike(terminals.logicalNumber, `%${search}%`),
+          ilike(terminals.model, `%${search}%`),
+          ilike(terminals.manufacturer, `%${search}%`)
+        )
       );
     }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const [terminalsList, totalCount] = await Promise.all([
       db
@@ -30,7 +52,7 @@ export async function getTerminalss(
           manufacturer: terminals.manufacturer,
         })
         .from(terminals)
-        .where(and(eq(terminals.active, true), whereClause))
+        .where(whereClause)
         .orderBy(desc(terminals.dtinsert))
         .limit(pageSize)
         .offset(offset),
@@ -38,7 +60,7 @@ export async function getTerminalss(
       db
         .select({ count: terminals.id })
         .from(terminals)
-        .where(and(eq(terminals.active, true), whereClause))
+        .where(whereClause)
         .then((res: { count: number }[]) => res[0]?.count || 0),
     ]);
 
@@ -54,6 +76,19 @@ export async function getTerminalss(
 
 export async function getTerminalById(slug: string) {
   try {
+    const userMerchants = await getUserMerchantSlugs();
+    const conditions = [eq(terminals.slug, slug), eq(terminals.active, true)];
+
+    if (!userMerchants.fullAccess) {
+      if (userMerchants.slugMerchants.length > 0) {
+        conditions.push(
+          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
+        );
+      } else {
+        return null;
+      }
+    }
+
     const terminal = await db
       .select({
         slug: terminals.slug,
@@ -76,7 +111,7 @@ export async function getTerminalById(slug: string) {
       })
       .from(terminals)
       .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
-      .where(eq(terminals.slug, slug))
+      .where(and(...conditions))
       .then((res) => res[0] || null);
 
     return terminal;

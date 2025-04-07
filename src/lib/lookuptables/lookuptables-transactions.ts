@@ -61,3 +61,72 @@ export const cycleTypeList: SelectItem[] = [
   },
   { value: "REVERSAL", label: "Estorno" },
 ];
+
+/**
+ * Função auxiliar genérica para obter um label a partir de um value
+ * @param list Lista de itens SelectItem para buscar
+ * @param value Valor a ser buscado
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+function getLabelByValue(
+  list: SelectItem[],
+  value: string
+): string | undefined {
+  return list.find((item) => item.value === value)?.label;
+}
+
+/**
+ * Retorna o label de status de transação a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getTransactionStatusLabel(value: string): string | undefined {
+  return getLabelByValue(transactionStatusList, value);
+}
+
+/**
+ * Retorna o label de tipo de produto de transação a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getTransactionProductTypeLabel(
+  value: string
+): string | undefined {
+  return getLabelByValue(transactionProductTypeList, value);
+}
+
+/**
+ * Retorna o label de método de pagamento com cartão a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getCardPaymentMethodLabel(value: string): string | undefined {
+  return getLabelByValue(cardPaymentMethod, value);
+}
+
+/**
+ * Retorna o label de tipo de processamento a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getProcessingTypeLabel(value: string): string | undefined {
+  return getLabelByValue(processingTypeList, value);
+}
+
+/**
+ * Retorna o label de bandeira do cartão a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getBrandLabel(value: string): string | undefined {
+  return getLabelByValue(brandList, value);
+}
+
+/**
+ * Retorna o label de tipo de ciclo a partir do value
+ * @param value O valor para buscar o label correspondente
+ * @returns O label correspondente ou undefined se não encontrado
+ */
+export function getCycleTypeLabel(value: string): string | undefined {
+  return getLabelByValue(cycleTypeList, value);
+}

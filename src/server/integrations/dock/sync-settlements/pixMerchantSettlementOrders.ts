@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
+import { eq } from "drizzle-orm";
 import { merchantPixSettlementOrders } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
@@ -39,10 +40,11 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
     const merchantSettlementIds = await getIdBySlugs(
       "merchant_settlements",
       pixMerchantSettlementOrderList.map(
-        (pixMerchantSettlementOrderList) => pixMerchantSettlementOrderList.merchantSettlement.slug
+        (pixMerchantSettlementOrderList) =>
+          pixMerchantSettlementOrderList.merchantSettlement.slug
       )
     );
- 
+
     const insertPixMerchantSettlementOrdersVar: InsertPixMerchantSettlementOrders[] =
       pixMerchantSettlementOrderList.map((pixMerchantSettlementOrder) => ({
         slug: pixMerchantSettlementOrder.slug,
@@ -127,7 +129,8 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
         idMerchantSettlement:
           merchantSettlementIds?.filter(
             (merchantSettlement) =>
-              merchantSettlement.slug === pixMerchantSettlementOrder.merchantSettlement.slug
+              merchantSettlement.slug ===
+              pixMerchantSettlementOrder.merchantSettlement.slug
           )[0]?.id || 0,
       }));
 
@@ -150,30 +153,81 @@ async function insertPixMerchantSettlementOrders(
       )
     );
 
-    const filteredList = pixMerchantSettlementOrder.filter(
-      (pixMerchantSettlementOrder) =>
+    // Separar registros para insert e update
+    const recordsToInsert = pixMerchantSettlementOrder.filter(
+      (order) =>
         !existingPixMerchantSettlementOrder?.some(
-          (existingPixMerchantSettlementOrder) =>
-            existingPixMerchantSettlementOrder.slug ===
-            pixMerchantSettlementOrder.slug
+          (existing) => existing.slug === order.slug
         )
     );
 
-    if (filteredList.length < 1) {
-      console.log(
-        "todos os merchant settlement orders pix já foram adicionados"
-      );
-      return;
-    }
-
-    console.log(
-      "Inserting pixMerchantSettlementOrder, quantity:",
-      filteredList.length
+    const recordsToUpdate = pixMerchantSettlementOrder.filter((order) =>
+      existingPixMerchantSettlementOrder?.some(
+        (existing) => existing.slug === order.slug
+      )
     );
 
-    await db.insert(merchantPixSettlementOrders).values(filteredList);
-    console.log("pixMerchantSettlementOrder successfully.");
+    // Inserir novos registros
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new pixMerchantSettlementOrder, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(merchantPixSettlementOrders).values(recordsToInsert);
+      console.log("New pixMerchantSettlementOrder inserted successfully.");
+    }
+
+    // Atualizar registros existentes
+    if (recordsToUpdate.length > 0) {
+      console.log(
+        "Updating existing pixMerchantSettlementOrder, quantity:",
+        recordsToUpdate.length
+      );
+
+      for (const record of recordsToUpdate) {
+        await db
+          .update(merchantPixSettlementOrders)
+          .set({
+            active: record.active,
+            dtupdate: record.dtupdate,
+            idCustomer: record.idCustomer,
+            idMerchant: record.idMerchant,
+            paymentDate: record.paymentDate,
+            authorizerMerchantId: record.authorizerMerchantId,
+            expectedPaymentDate: record.expectedPaymentDate,
+            transactionCount: record.transactionCount,
+            totalAmount: record.totalAmount,
+            totalRefundAmount: record.totalRefundAmount,
+            totalNetAmount: record.totalNetAmount,
+            totalFeeAmount: record.totalFeeAmount,
+            totalCostAmount: record.totalCostAmount,
+            totalSettlementAmount: record.totalSettlementAmount,
+            status: record.status,
+            compeCode: record.compeCode,
+            accountNumber: record.accountNumber,
+            accountNumberCheckDigit: record.accountNumberCheckDigit,
+            bankBranchNumber: record.bankBranchNumber,
+            accountType: record.accountType,
+            legalPerson: record.legalPerson,
+            documentId: record.documentId,
+            corporateName: record.corporateName,
+            effectivePaymentDate: record.effectivePaymentDate,
+            settlementUniqueNumber: record.settlementUniqueNumber,
+            protocolGuidId: record.protocolGuidId,
+            feeSettlementUniqueNumber: record.feeSettlementUniqueNumber,
+            feeEffectivePaymentDate: record.feeEffectivePaymentDate,
+            feeProtocolGuidId: record.feeProtocolGuidId,
+            idMerchantSettlement: record.idMerchantSettlement,
+          })
+          .where(eq(merchantPixSettlementOrders.slug, record.slug));
+      }
+      console.log("Existing pixMerchantSettlementOrder updated successfully.");
+    }
+
+    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
+      console.log("No records to insert or update");
+    }
   } catch (error) {
-    console.error("Error inserting pixMerchantSettlementOrder:", error);
+    console.error("Error processing pixMerchantSettlementOrder:", error);
   }
 }

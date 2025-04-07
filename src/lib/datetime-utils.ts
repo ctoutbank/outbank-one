@@ -64,3 +64,28 @@ Formato esperado: YYYY-MM-DD HH:mm:ss ou YYYY-MM-DDTHH:mm:ssZ`);
 export function convertUTCToSaoPauloBR(utcDate: string): string {
   return convertUTCToSaoPaulo(utcDate, true);
 }
+/**
+ * Retorna a string de data/hora para o início do dia atual (00:00:00)
+ */
+export function getStartOfDay(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(today.getDate()).padStart(2, "0")}T00:00:00`;
+}
+
+/**
+ * Retorna a string de data/hora para o final do dia atual (23:59:59)
+ */
+export function getEndOfDay(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(today.getDate()).padStart(2, "0")}T23:59:59`;
+}
+
+// Valores padrão para uso em toda a aplicação
+export const startOfDay = getStartOfDay();
+export const endOfDay = getEndOfDay();

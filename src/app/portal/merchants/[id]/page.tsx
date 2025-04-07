@@ -26,6 +26,7 @@ export default async function MerchantDetail({
     "Estabelecimentos",
     "Atualizar"
   );
+ 
 
   const merchantId = parseInt(params.id);
 

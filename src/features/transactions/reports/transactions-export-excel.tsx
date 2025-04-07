@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { getEndOfDay, getStartOfDay } from "@/lib/datetime-utils";
 import { FileText } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -18,8 +19,8 @@ export default function TransactionsExport() {
       const search = searchParams?.get("search") || "";
       const status = searchParams?.get("status") || undefined;
       const merchant = searchParams?.get("merchant") || undefined;
-      const dateFrom = searchParams?.get("dateFrom") || undefined;
-      const dateTo = searchParams?.get("dateTo") || undefined;
+      const dateFrom = searchParams?.get("dateFrom") || getStartOfDay();
+      const dateTo = searchParams?.get("dateTo") || getEndOfDay();
       const productType = searchParams?.get("productType") || undefined;
 
       console.log("Exportando transações para Excel...");

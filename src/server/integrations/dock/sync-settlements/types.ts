@@ -114,7 +114,7 @@ export type MerchantSettlementsOrders = {
   accountNumber: string;
   accountNumberCheckDigit: string;
   slugPaymentInstitution: string;
-  paymentInstitution: PaymentInstitution;
+  paymentInstitution: PaymentInstitution | undefined;
   bankBranchNumber: string;
   accountType: string;
   integrationType: string;
@@ -184,8 +184,8 @@ export type InsertMerchantSettlementsOrders = {
   compeCode: string;
   accountNumber: string;
   accountNumberCheckDigit: string;
-  slugPaymentInstitution: string;
-  idPaymentInstitution: number;
+  slugPaymentInstitution: string | null;
+  idPaymentInstitution: number | null;
   bankBranchNumber: string;
   accountType: string;
   integrationType: string;
@@ -306,7 +306,6 @@ export type InsertSettlement = {
   creditFinancialAdjustmentAmount: string;
   debitFinancialAdjustmentAmount: string;
 };
-
 
 export type InsertMerchant = {
   slug: string;

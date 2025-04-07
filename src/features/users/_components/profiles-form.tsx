@@ -478,16 +478,31 @@ export default function ProfileManagement({
                               {module.group.map((group) => (
                                 <Card
                                   key={group.id}
-                                  className="overflow-hidden border-l-4 border-l-primary "
+                                  className="overflow-y-auto border-l-4 border-l-[#575757] w-[330px] h-[185px] "
                                 >
-                                  <CardHeader className="py-4 px-2 bg-muted/30">
+                                  <CardHeader className="py-4 px-2 bg-muted/80">
                                     <div className="flex items-center justify-between">
-                                      <div>
-                                        <CardTitle className="text-base">
+                                      <CardTitle className="flex items-center gap-2">
+                                        <div>
+                                          <Checkbox
+                                            id={`select-all-${module.id}-${group.id}`}
+                                            checked={areAllFunctionsSelected(
+                                              group.functions
+                                            )}
+                                            onCheckedChange={(checked) =>
+                                              handleSelectAllFunctions(
+                                                group.functions,
+                                                checked as boolean
+                                              )
+                                            }
+                                          />
+                                        </div>
+                                        <div className="text-base">
                                           {group.id}
-                                        </CardTitle>
-                                      </div>
-                                      <div className="flex items-center gap-2">
+                                        </div>
+                                      </CardTitle>
+
+                                      <div>
                                         <Badge variant="outline">
                                           {getSelectedFunctionsCount(
                                             group.functions
@@ -497,28 +512,8 @@ export default function ProfileManagement({
                                       </div>
                                     </div>
                                   </CardHeader>
-                                  <CardContent className="p-4">
-                                    <div className="flex items-center space-x-2 mb-4">
-                                      <Checkbox
-                                        id={`select-all-${module.id}-${group.id}`}
-                                        checked={areAllFunctionsSelected(
-                                          group.functions
-                                        )}
-                                        onCheckedChange={(checked) =>
-                                          handleSelectAllFunctions(
-                                            group.functions,
-                                            checked as boolean
-                                          )
-                                        }
-                                      />
-                                      <Label
-                                        htmlFor={`select-all-${module.id}-${group.id}`}
-                                        className="font-medium"
-                                      >
-                                        Selecionar todas as permissões
-                                      </Label>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 pl-4">
+                                  <CardContent className="py-4">
+                                    <div className="flex flex-wrap gap-2">
                                       {group.functions.map((func) => (
                                         <FormField
                                           key={func.id}
