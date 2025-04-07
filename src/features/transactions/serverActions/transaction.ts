@@ -62,18 +62,8 @@ export async function getTransactions(
       return {
         transactions: [],
         totalCount: 0,
-        approved_count: 0,
-        pending_count: 0,
-        rejected_count: 0,
-        canceled_count: 0,
-        total_amount: 0,
-        revenue: 0,
       };
     }
-  }
-
-  if (search) {
-    conditions.push(like(transactions.slug, `%${search}%`));
   }
 
   if (status) {
