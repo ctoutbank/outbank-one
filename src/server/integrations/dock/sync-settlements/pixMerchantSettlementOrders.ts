@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
 import { merchantPixSettlementOrders } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
@@ -153,7 +152,7 @@ async function insertPixMerchantSettlementOrders(
       )
     );
 
-    // Separar registros para insert e update
+    // Filter out existing records
     const recordsToInsert = pixMerchantSettlementOrder.filter(
       (order) =>
         !existingPixMerchantSettlementOrder?.some(
@@ -161,73 +160,31 @@ async function insertPixMerchantSettlementOrders(
         )
     );
 
-    const recordsToUpdate = pixMerchantSettlementOrder.filter((order) =>
-      existingPixMerchantSettlementOrder?.some(
-        (existing) => existing.slug === order.slug
-      )
-    );
+    // Log existing records
+    const existingCount =
+      pixMerchantSettlementOrder.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(
+        `${existingCount} pix merchant settlement orders already exist, skipping...`
+      );
+    }
 
-    // Inserir novos registros
+    // Insert new records
     if (recordsToInsert.length > 0) {
       console.log(
-        "Inserting new pixMerchantSettlementOrder, quantity:",
+        "Inserting new pix merchant settlement orders, quantity:",
         recordsToInsert.length
       );
       await db.insert(merchantPixSettlementOrders).values(recordsToInsert);
-      console.log("New pixMerchantSettlementOrder inserted successfully.");
+      console.log("New pix merchant settlement orders inserted successfully.");
     }
 
-    // Atualizar registros existentes
-    if (recordsToUpdate.length > 0) {
+    if (recordsToInsert.length === 0) {
       console.log(
-        "Updating existing pixMerchantSettlementOrder, quantity:",
-        recordsToUpdate.length
+        "All pix merchant settlement orders already exist in the database"
       );
-
-      for (const record of recordsToUpdate) {
-        await db
-          .update(merchantPixSettlementOrders)
-          .set({
-            active: record.active,
-            dtupdate: record.dtupdate,
-            idCustomer: record.idCustomer,
-            idMerchant: record.idMerchant,
-            paymentDate: record.paymentDate,
-            authorizerMerchantId: record.authorizerMerchantId,
-            expectedPaymentDate: record.expectedPaymentDate,
-            transactionCount: record.transactionCount,
-            totalAmount: record.totalAmount,
-            totalRefundAmount: record.totalRefundAmount,
-            totalNetAmount: record.totalNetAmount,
-            totalFeeAmount: record.totalFeeAmount,
-            totalCostAmount: record.totalCostAmount,
-            totalSettlementAmount: record.totalSettlementAmount,
-            status: record.status,
-            compeCode: record.compeCode,
-            accountNumber: record.accountNumber,
-            accountNumberCheckDigit: record.accountNumberCheckDigit,
-            bankBranchNumber: record.bankBranchNumber,
-            accountType: record.accountType,
-            legalPerson: record.legalPerson,
-            documentId: record.documentId,
-            corporateName: record.corporateName,
-            effectivePaymentDate: record.effectivePaymentDate,
-            settlementUniqueNumber: record.settlementUniqueNumber,
-            protocolGuidId: record.protocolGuidId,
-            feeSettlementUniqueNumber: record.feeSettlementUniqueNumber,
-            feeEffectivePaymentDate: record.feeEffectivePaymentDate,
-            feeProtocolGuidId: record.feeProtocolGuidId,
-            idMerchantSettlement: record.idMerchantSettlement,
-          })
-          .where(eq(merchantPixSettlementOrders.slug, record.slug));
-      }
-      console.log("Existing pixMerchantSettlementOrder updated successfully.");
-    }
-
-    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
-      console.log("No records to insert or update");
     }
   } catch (error) {
-    console.error("Error processing pixMerchantSettlementOrder:", error);
+    console.error("Error processing pix merchant settlement orders:", error);
   }
 }

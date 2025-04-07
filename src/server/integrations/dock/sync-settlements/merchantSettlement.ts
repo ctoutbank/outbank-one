@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
 import { merchantSettlements } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
@@ -98,7 +97,7 @@ async function insertMerchantSettlement(
       merchantSettlementList.map((settlement) => settlement.slug)
     );
 
-    // Separar registros para insert e update
+    // Filter out existing records
     const recordsToInsert = merchantSettlementList.filter(
       (settlement) =>
         !existingMerchantSettlements?.some(
@@ -106,74 +105,29 @@ async function insertMerchantSettlement(
         )
     );
 
-    const recordsToUpdate = merchantSettlementList.filter((settlement) =>
-      existingMerchantSettlements?.some(
-        (existing) => existing.slug === settlement.slug
-      )
-    );
+    // Log existing records
+    const existingCount =
+      merchantSettlementList.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(
+        `${existingCount} merchant settlements already exist, skipping...`
+      );
+    }
 
-    // Inserir novos registros
+    // Insert new records
     if (recordsToInsert.length > 0) {
       console.log(
-        "Inserting new merchantSettlements, quantity:",
+        "Inserting new merchant settlements, quantity:",
         recordsToInsert.length
       );
       await db.insert(merchantSettlements).values(recordsToInsert);
-      console.log("New merchantSettlements inserted successfully.");
+      console.log("New merchant settlements inserted successfully.");
     }
 
-    // Atualizar registros existentes
-    if (recordsToUpdate.length > 0) {
-      console.log(
-        "Updating existing merchantSettlements, quantity:",
-        recordsToUpdate.length
-      );
-
-      for (const record of recordsToUpdate) {
-        await db
-          .update(merchantSettlements)
-          .set({
-            active: record.active,
-            dtinsert: record.dtinsert,
-            dtupdate: record.dtupdate,
-            transactionCount: record.transactionCount,
-            adjustmentCount: record.adjustmentCount,
-            batchAmount: record.batchAmount,
-            netSettlementAmount: record.netSettlementAmount,
-            pixAmount: record.pixAmount,
-            pixNetAmount: record.pixNetAmount,
-            pixFeeAmount: record.pixFeeAmount,
-            pixCostAmount: record.pixCostAmount,
-            creditAdjustmentAmount: record.creditAdjustmentAmount,
-            debitAdjustmentAmount: record.debitAdjustmentAmount,
-            totalAnticipationAmount: record.totalAnticipationAmount,
-            totalRestitutionAmount: record.totalRestitutionAmount,
-            pendingRestitutionAmount: record.pendingRestitutionAmount,
-            totalSettlementAmount: record.totalSettlementAmount,
-            pendingFinancialAdjustmentAmount:
-              record.pendingFinancialAdjustmentAmount,
-            creditFinancialAdjustmentAmount:
-              record.creditFinancialAdjustmentAmount,
-            debitFinancialAdjustmentAmount:
-              record.debitFinancialAdjustmentAmount,
-            status: record.status,
-            slugMerchant: record.slugMerchant,
-            slugCustomer: record.slugCustomer,
-            outstandingAmount: record.outstandingAmount,
-            restRoundingAmount: record.restRoundingAmount,
-            idCustomer: record.idCustomer,
-            idMerchant: record.idMerchant,
-            idSettlement: record.idSettlement,
-          })
-          .where(eq(merchantSettlements.slug, record.slug));
-      }
-      console.log("Existing merchantSettlements updated successfully.");
-    }
-
-    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
-      console.log("No records to insert or update");
+    if (recordsToInsert.length === 0) {
+      console.log("All merchant settlements already exist in the database");
     }
   } catch (error) {
-    console.error("Error processing merchantSettlements:", error);
+    console.error("Error processing merchant settlements:", error);
   }
 }

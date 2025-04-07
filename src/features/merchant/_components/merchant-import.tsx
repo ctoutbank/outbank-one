@@ -372,10 +372,10 @@ export default function ExcelImportButton() {
     <div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <button className="flex items-center gap-2 p-2 text-black rounded-md bg-sidebar border border-black">
+          <Button>
             <Upload size={16} />
             Importar
-          </button>
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[600px] md:max-w-[800px]">
           <DialogHeader>
