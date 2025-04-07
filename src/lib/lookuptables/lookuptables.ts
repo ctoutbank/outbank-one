@@ -1,4 +1,4 @@
-interface SelectItem {
+export interface SelectItem {
   value: string;
   label: string;
 }
@@ -78,7 +78,6 @@ const legalPersonTypes: SelectItem[] = [
   { value: "NATURE", label: "Pessoa Física" },
 ];
 
-
 const week: SelectItem[] = [
   { value: "DOM", label: "Domingo" },
   { value: "SEG", label: "Segunda" },
@@ -89,42 +88,4 @@ const week: SelectItem[] = [
   { value: "SAB", label: "Sábado" },
 ];
 
-
-const Status: SelectItem[] = [
-  { value: "CANCELED", label: "Cancelada" },
-  { value: "EXPIRED", label: "Expirada" },
-  { value: "PENDING", label: "Pendente" },
-  { value: "DENIED", label: "Negada" },
-  { value: "PRE_AUTHORIZED", label: "Pré-autorizada" },
-  { value: "AUTHORIZED", label: "Autorizada" },
-  { value: "APPROVED", label: "Aprovada" },
-  { value: "REJECTED", label: "Rejeitada" },
-  { value: "FAILED", label: "Falhou" },
-];
-
-const ProductType: SelectItem[] = [
-  { value: "DEBIT", label: "Débito" },
-  { value: "CREDIT", label: "Crédito" },
-  { value: "VOUCHER", label: "Voucher" },
-  { value: "PIX", label: "PIX" },
-  { value: "PREPAID_CREDIT", label: "Crédito Pré-pago" },
-  { value: "PREPAID_DEBIT", label: "Débito Pré-pago" },
-];
-
-const ProcessingType: SelectItem[] = [
-  { value: "PRESENCIAL", label: "Presencial" },
-  { value: "ONLINE", label: "Online" },
-  { value: "DIGITADA", label: "Digitada" },
-  { value: "TARJA", label: "Tarja" },
-  { value: "CHIP", label: "Chip" },
-  { value: "CONTACTLESS", label: "Contactless" },
-  { value: "TOKEN", label: "Token" },
-  { value: "LINK_PAGAMENTO", label: "Link de Pagamento" },
-  { value: "INTEGRACAO", label: "Integração" },
-  { value: "PONTO_VENDA", label: "Ponto de Venda" },
-  { value: "TAP_ON_PHONE", label: "Tap on Phone" },
-  { value: "TERMINAL_VIRTUAL", label: "Terminal Virtual" },
-  { value: "PDV", label: "PDV" },
-];
-
-export { timezones, states, legalPersonTypes, week, Status, ProductType, ProcessingType };
+export { legalPersonTypes, states, timezones, week };

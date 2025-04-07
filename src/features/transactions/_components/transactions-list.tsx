@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/table";
 import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { ChevronDown } from "lucide-react";
-import { Transaction } from "../serverActions/transaction";
+import { TransactionsListRecord } from "../serverActions/transaction";
 
 interface TransactionsListProps {
-  transactions: Transaction[];
+  transactions: TransactionsListRecord[];
 }
 
 export default function TransactionsList({
@@ -127,12 +127,12 @@ export default function TransactionsList({
         <TableBody>
           {transactions.map((transaction) => (
             <TableRow key={transaction.slug}>
-              <TableCell>{formatDate(transaction.dtInsert)}</TableCell>
+              <TableCell>{formatDate(transaction.dateInsert)}</TableCell>
               <TableCell>{transaction.merchantName || "N/A"}</TableCell>
               <TableCell>
                 {translateProductType(transaction.productType)}
               </TableCell>
-              <TableCell>{formatCurrency(transaction.totalAmount)}</TableCell>
+              <TableCell>{formatCurrency(transaction.amount)}</TableCell>
               <TableCell>
                 <Badge
                   variant={getStatusBadgeVariant(transaction.transactionStatus)}

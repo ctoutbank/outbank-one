@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Status } from "@/lib/lookuptables";
+import { transactionStatusList } from "@/lib/lookuptables/lookuptables-transactions";
 import { useEffect, useState } from "react";
 import { ReportTypeDD } from "../server/reports";
 import {
@@ -220,7 +220,8 @@ export default function FilterTableAndForm({
     if (isStatusFilter(record)) {
       // Mostrar o label do status em vez do valor
       return (
-        Status.find((s) => s.value === record.value)?.label || record.value
+        transactionStatusList.find((s) => s.value === record.value)?.label ||
+        record.value
       );
     }
 

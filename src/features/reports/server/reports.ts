@@ -56,18 +56,23 @@ export async function getReports(
   const conditions = [like(reports.title, `%${search}%`)];
 
   if (type) {
+    // Filtrar pelos tipos de relatório suportados: VN (Vendas) ou AL (Agenda dos Lojistas)
     conditions.push(eq(reports.reportType, type));
   }
 
   if (format) {
+    // Filtrar pelos formatos: PDF, EX, CSV, TXT
     conditions.push(eq(reports.formatCode, format));
   }
 
   if (recurrence) {
+    // Filtrar pelas recorrências: DIA, SEM, MES
     conditions.push(eq(reports.recurrenceCode, recurrence));
   }
 
   if (period) {
+    // Filtrar pelos períodos: DT (Dia Atual), DA (Dia Anterior), SA (Semana Atual),
+    // SR (Semana Anterior), MA (Mês Atual), MR (Mês Anterior)
     conditions.push(eq(reports.periodCode, period));
   }
 
@@ -160,6 +165,8 @@ export async function insertReport(report: ReportInsert): Promise<number> {
     id: reports.id,
   });
 
+  console.log("Report inserted:", result[0].id);
+
   return result[0].id;
 }
 
@@ -227,23 +234,32 @@ export async function getreportTypes(): Promise<ReportTypeDD[]> {
   return await db.select().from(reportTypes).orderBy(reportTypes.name);
 }
 
-
 export async function fetchReportFilterParams() {
-  return await db.select().from(reportFiltersParam).orderBy(reportFiltersParam.id);
+  return await db
+    .select()
+    .from(reportFiltersParam)
+    .orderBy(reportFiltersParam.id);
 }
 
-export async function deleteEmailFromReport(reportId: number, emailToRemove: string): Promise<void> {
+export async function deleteEmailFromReport(
+  reportId: number,
+  emailToRemove: string
+): Promise<void> {
   // Primeiro, obtém o relatório atual
   const currentReport = await getReportById(reportId);
-  
+
   if (!currentReport || !currentReport.emails) {
     throw new Error("Relatório não encontrado ou não possui emails");
   }
-  
+
   // Divide a string de emails e remove o email específico
-  const currentEmails = currentReport.emails.split(',').map(email => email.trim());
-  const updatedEmails = currentEmails.filter(email => email !== emailToRemove).join(', ');
-  
+  const currentEmails = currentReport.emails
+    .split(",")
+    .map((email) => email.trim());
+  const updatedEmails = currentEmails
+    .filter((email) => email !== emailToRemove)
+    .join(", ");
+
   // Atualiza o relatório com a nova lista de emails
   await db
     .update(reports)
@@ -252,4 +268,110 @@ export async function deleteEmailFromReport(reportId: number, emailToRemove: str
       dtupdate: new Date().toISOString(),
     })
     .where(eq(reports.id, reportId));
+}
+
+export type ReportStats = {
+  totalReports: number;
+
+  // Estatísticas por recorrência
+  recurrenceStats: {
+    daily: number; // DIA
+    weekly: number; // SEM
+    monthly: number; // MES
+  };
+
+  // Estatísticas por formato
+  formatStats: {
+    pdf: number; // PDF
+    excel: number; // EX
+    csv: number; // CSV
+    text: number; // TXT
+  };
+
+  // Estatísticas por tipo
+  typeStats: {
+    sales: number; // VN
+    schedule: number; // AL
+  };
+};
+
+export async function getReportStats(): Promise<ReportStats> {
+  // Contagem total de relatórios
+  const totalCountResult = await db.select({ count: count() }).from(reports);
+  const totalReports = totalCountResult[0]?.count || 0;
+
+  // Estatísticas por recorrência
+  const recurrenceStatsResult = await db
+    .select({
+      recurrenceCode: reports.recurrenceCode,
+      count: count(),
+    })
+    .from(reports)
+    .groupBy(reports.recurrenceCode);
+
+  // Estatísticas por formato
+  const formatStatsResult = await db
+    .select({
+      formatCode: reports.formatCode,
+      count: count(),
+    })
+    .from(reports)
+    .groupBy(reports.formatCode);
+
+  // Estatísticas por tipo de relatório
+  const typeStatsResult = await db
+    .select({
+      reportType: reports.reportType,
+      count: count(),
+    })
+    .from(reports)
+    .groupBy(reports.reportType);
+
+  // Inicializar estatísticas com zero
+  const recurrenceStats = {
+    daily: 0,
+    weekly: 0,
+    monthly: 0,
+  };
+
+  const formatStats = {
+    pdf: 0,
+    excel: 0,
+    csv: 0,
+    text: 0,
+  };
+
+  const typeStats = {
+    sales: 0,
+    schedule: 0,
+  };
+
+  // Preencher as estatísticas de recorrência
+  recurrenceStatsResult.forEach((stat) => {
+    if (stat.recurrenceCode === "DIA") recurrenceStats.daily = stat.count;
+    else if (stat.recurrenceCode === "SEM") recurrenceStats.weekly = stat.count;
+    else if (stat.recurrenceCode === "MES")
+      recurrenceStats.monthly = stat.count;
+  });
+
+  // Preencher as estatísticas de formato
+  formatStatsResult.forEach((stat) => {
+    if (stat.formatCode === "PDF") formatStats.pdf = stat.count;
+    else if (stat.formatCode === "EX") formatStats.excel = stat.count;
+    else if (stat.formatCode === "CSV") formatStats.csv = stat.count;
+    else if (stat.formatCode === "TXT") formatStats.text = stat.count;
+  });
+
+  // Preencher as estatísticas de tipo
+  typeStatsResult.forEach((stat) => {
+    if (stat.reportType === "VN") typeStats.sales = stat.count;
+    else if (stat.reportType === "AL") typeStats.schedule = stat.count;
+  });
+
+  return {
+    totalReports,
+    recurrenceStats,
+    formatStats,
+    typeStats,
+  };
 }

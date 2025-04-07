@@ -1,107 +1,95 @@
 import { formatCurrency } from "@/lib/utils";
+import { TransactionsGroupedReport } from "../serverActions/transaction";
 
 interface TransactionsDashboardTableProps {
-  transactions: any[];
+  transactions: TransactionsGroupedReport[];
 }
 
 export function TransactionsDashboardTable({
   transactions,
 }: TransactionsDashboardTableProps) {
-  // Definir todas as bandeiras e tipos possíveis
-  const BANDEIRAS = [
-    "MASTERCARD",
-    "VISA",
-    "ELO",
-    "AMEX",
-    "HIPERCARD",
-    "CABAL",
-    "NÃO IDENTIFICADA",
-    "PIX",
-  ];
-  const TIPOS = ["DEBIT", "CREDIT", "PREPAID_CREDIT", "PREPAID_DEBIT", "PIX"];
-
-  // Inicializar o objeto para armazenar os dados agrupados
-  const dadosAgrupados: {
-    [key: string]: {
-      quantidade: number;
-      valorTotal: number;
-      quantidadeNegada: number;
-      valorTotalNegado: number;
-    };
-  } = {};
-
-  // Inicializar todas as combinações possíveis
-  BANDEIRAS.forEach((bandeira) => {
-    TIPOS.forEach((tipo) => {
-      const chave = `${bandeira}-${tipo}`;
-      dadosAgrupados[chave] = {
-        quantidade: 0,
-        valorTotal: 0,
-        quantidadeNegada: 0,
-        valorTotalNegado: 0,
-      };
-    });
-  });
-
-  // Processar as transações
-  transactions.forEach((item) => {
-    const bandeira = item.transactions.brand || "NÃO IDENTIFICADA";
-    const tipo = item.transactions.productType || "Não Especificado";
-    const valor = Number(item.transactions.totalAmount) || 0;
-    const status = item.transactions.transactionStatus || "";
-
-    const chave = `${bandeira}-${tipo}`;
-    if (dadosAgrupados[chave]) {
-      if (
-        status === "AUTHORIZED" ||
-        status === "PRE_AUTHORIZED" ||
-        status === "PENDING"
-      ) {
-        dadosAgrupados[chave].quantidade++;
-        dadosAgrupados[chave].valorTotal += valor;
-      } else {
-        dadosAgrupados[chave].quantidadeNegada++;
-        dadosAgrupados[chave].valorTotalNegado += valor;
+  // Agrupar transações por tipo e bandeira
+  console.log(transactions);
+  const transactionsAgrupadas = transactions.reduce(
+    (acc, curr) => {
+      const chave = `${curr.product_type}-${curr.brand}`;
+      if (!acc[chave]) {
+        acc[chave] = {
+          productType: curr.product_type,
+          brand: curr.brand,
+          count: 0,
+          totalAmount: 0,
+          countDenied: 0,
+          totalAmountDenied: 0,
+        };
       }
-    }
-  });
+
+      if (
+        curr.transaction_status === "AUTHORIZED" ||
+        curr.transaction_status === "PENDING"
+      ) {
+        acc[chave].count += Number(curr.count);
+        acc[chave].totalAmount += Number(curr.total_amount);
+      } else if (
+        curr.transaction_status === "DENIED" ||
+        curr.transaction_status === "CANCELED"
+      ) {
+        acc[chave].countDenied += Number(curr.count);
+        acc[chave].totalAmountDenied += Number(curr.total_amount);
+      }
+
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        productType: string;
+        brand: string;
+        count: number;
+        totalAmount: number;
+        countDenied: number;
+        totalAmountDenied: number;
+      }
+    >
+  );
 
   // Calcular totais gerais
-  const totalGeral = Object.values(dadosAgrupados).reduce(
-    (acc, item) => ({
-      quantidade: acc.quantidade + item.quantidade,
-      valorTotal: acc.valorTotal + item.valorTotal,
-      quantidadeNegada: acc.quantidadeNegada + item.quantidadeNegada,
-      valorTotalNegado: acc.valorTotalNegado + item.valorTotalNegado,
+  const totalGeral = Object.values(transactionsAgrupadas).reduce(
+    (acc, curr) => ({
+      quantidade: acc.quantidade + curr.count,
+      valorTotal: acc.valorTotal + curr.totalAmount,
+      quantidadeNegada: acc.quantidadeNegada + curr.countDenied,
+      valorTotalNegado: acc.valorTotalNegado + curr.totalAmountDenied,
     }),
-    { quantidade: 0, valorTotal: 0, quantidadeNegada: 0, valorTotalNegado: 0 }
+    {
+      quantidade: 0,
+      valorTotal: 0,
+      quantidadeNegada: 0,
+      valorTotalNegado: 0,
+    }
   );
 
   // Calcular totais por tipo
-  const totalPorTipo: {
-    [key: string]: {
-      quantidade: number;
-      valorTotal: number;
-      quantidadeNegada: number;
-      valorTotalNegado: number;
-    };
-  } = {};
+  const totalPorTipo = Object.values(transactionsAgrupadas).reduce(
+    (acc, curr) => {
+      if (!acc[curr.productType]) {
+        acc[curr.productType] = {
+          quantidade: 0,
+          valorTotal: 0,
+          quantidadeNegada: 0,
+          valorTotalNegado: 0,
+        };
+      }
 
-  Object.entries(dadosAgrupados).forEach(([chave, dados]) => {
-    const tipo = chave.split("-")[1];
-    if (!totalPorTipo[tipo]) {
-      totalPorTipo[tipo] = {
-        quantidade: 0,
-        valorTotal: 0,
-        quantidadeNegada: 0,
-        valorTotalNegado: 0,
-      };
-    }
-    totalPorTipo[tipo].quantidade += dados.quantidade;
-    totalPorTipo[tipo].valorTotal += dados.valorTotal;
-    totalPorTipo[tipo].quantidadeNegada += dados.quantidadeNegada;
-    totalPorTipo[tipo].valorTotalNegado += dados.valorTotalNegado;
-  });
+      acc[curr.productType].quantidade += curr.count;
+      acc[curr.productType].valorTotal += curr.totalAmount;
+      acc[curr.productType].quantidadeNegada += curr.countDenied;
+      acc[curr.productType].valorTotalNegado += curr.totalAmountDenied;
+
+      return acc;
+    },
+    {} as Record<string, typeof totalGeral>
+  );
 
   return (
     <div className="rounded-lg border mt-2">
@@ -136,81 +124,68 @@ export function TransactionsDashboardTable({
             </tr>
           </thead>
           <tbody className="text-xs">
-            {Object.entries(dadosAgrupados)
-              .filter(
-                ([, dados]) =>
-                  dados.quantidade > 0 || dados.quantidadeNegada > 0
-              )
-              .map(([chave, dados]) => {
-                const [bandeira, tipo] = chave.split("-");
-                return (
-                  <tr key={chave} className="border-b hover:bg-muted/30">
-                    <td className="px-3 py-2">{tipo}</td>
-                    <td className="px-3 py-2">{bandeira}</td>
-                    <td className="px-3 py-2 text-right">{dados.quantidade}</td>
-                    <td className="px-3 py-2 text-right">
-                      {(
-                        (dados.quantidade / totalGeral.quantidade) *
-                        100
-                      ).toFixed(1)}
-                      %
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {formatCurrency(dados.valorTotal)}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {(
-                        (dados.valorTotal / totalGeral.valorTotal) *
-                        100
-                      ).toFixed(1)}
-                      %
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {dados.quantidadeNegada}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {formatCurrency(dados.valorTotalNegado)}
-                    </td>
-                  </tr>
-                );
-              })}
+            {Object.values(transactionsAgrupadas).map((transaction) => (
+              <tr
+                key={`${transaction.brand}-${transaction.productType}`}
+                className="border-b hover:bg-muted/30"
+              >
+                <td className="px-3 py-2">{transaction.productType}</td>
+                <td className="px-3 py-2">{transaction.brand}</td>
+                <td className="px-3 py-2 text-right">{transaction.count}</td>
+                <td className="px-3 py-2 text-right">
+                  {((transaction.count / totalGeral.quantidade) * 100).toFixed(
+                    1
+                  )}
+                  %
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {formatCurrency(transaction.totalAmount)}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {(
+                    (transaction.totalAmount / totalGeral.valorTotal) *
+                    100
+                  ).toFixed(1)}
+                  %
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {transaction.countDenied}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {formatCurrency(transaction.totalAmountDenied)}
+                </td>
+              </tr>
+            ))}
             {/* Totais por tipo */}
-            {Object.entries(totalPorTipo)
-              .filter(
-                ([, dados]) =>
-                  dados.quantidade > 0 || dados.quantidadeNegada > 0
-              )
-              .map(([tipo, dados]) => (
-                <tr
-                  key={`total-${tipo}`}
-                  className="border-b bg-muted/30 font-medium text-xs"
-                >
-                  <td className="px-3 py-2">Total {tipo}</td>
-                  <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2 text-right">{dados.quantidade}</td>
-                  <td className="px-3 py-2 text-right">
-                    {((dados.quantidade / totalGeral.quantidade) * 100).toFixed(
-                      1
-                    )}
-                    %
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    {formatCurrency(dados.valorTotal)}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    {((dados.valorTotal / totalGeral.valorTotal) * 100).toFixed(
-                      1
-                    )}
-                    %
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    {dados.quantidadeNegada}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    {formatCurrency(dados.valorTotalNegado)}
-                  </td>
-                </tr>
-              ))}
+            {Object.entries(totalPorTipo).map(([tipo, dados]) => (
+              <tr
+                key={`total-${tipo}`}
+                className="border-b bg-muted/30 font-medium text-xs"
+              >
+                <td className="px-3 py-2">Total {tipo}</td>
+                <td className="px-3 py-2"></td>
+                <td className="px-3 py-2 text-right">{dados.quantidade}</td>
+                <td className="px-3 py-2 text-right">
+                  {((dados.quantidade / totalGeral.quantidade) * 100).toFixed()}
+                  %
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {formatCurrency(dados.valorTotal)}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {((dados.valorTotal / totalGeral.valorTotal) * 100).toFixed(
+                    1
+                  )}
+                  %
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {dados.quantidadeNegada}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {formatCurrency(dados.valorTotalNegado)}
+                </td>
+              </tr>
+            ))}
             {/* Total Geral */}
             <tr className="border-b bg-primary/10 font-medium text-xs">
               <td className="px-3 py-2">TOTAL GERAL</td>

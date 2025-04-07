@@ -1,7 +1,9 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PaginationRecords from "@/components/pagination-Records";
 import PageSizeSelector from "@/components/page-size-selector";
+import PaginationRecords from "@/components/pagination-Records";
+import { TerminalsDashboardButton } from "@/features/terminals/_components/terminals-dashboard-button";
+import { TerminalsDashboardContent } from "@/features/terminals/_components/terminals-dashboard-content";
 import { TerminalsFilter } from "@/features/terminals/_components/terminals-filter";
 import TerminalsList from "@/features/terminals/_components/terminals-list";
 import { getTerminals } from "@/features/terminals/serverActions/terminal";
@@ -11,6 +13,14 @@ type TerminalsProps = {
   page?: string;
   pageSize?: string;
   search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  numeroLogico?: string;
+  numeroSerial?: string;
+  estabelecimento?: string;
+  modelo?: string;
+  status?: string;
+  provedor?: string;
 };
 
 export default async function TerminalsPage({
@@ -23,11 +33,32 @@ export default async function TerminalsPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
+  const dateFrom = searchParams.dateFrom;
+  const dateTo = searchParams.dateTo;
+  const numeroLogico = searchParams.numeroLogico;
+  const numeroSerial = searchParams.numeroSerial;
+  const estabelecimento = searchParams.estabelecimento;
+  const modelo = searchParams.modelo;
+  const status = searchParams.status;
+  const provedor = searchParams.provedor;
 
   // Buscar dados de terminais com os filtros
-  const terminalsList = await getTerminals(search, page, pageSize);
+  const terminalsList = await getTerminals(search, page, pageSize, {
+    dateFrom,
+    dateTo,
+    numeroLogico,
+    numeroSerial,
+    estabelecimento,
+    modelo,
+    status,
+    provedor,
+  });
 
   const totalRecords = terminalsList.totalCount;
+  const ativosTerminals = terminalsList.activeCount || 0;
+  const inativosTerminals = terminalsList.inactiveCount || 0;
+  const desativadosTerminals = terminalsList.desativadosCount || 0;
+  const totalModelosAtivos = terminalsList.totalModelosAtivos || 0;
 
   return (
     <>
@@ -37,12 +68,29 @@ export default async function TerminalsPage({
       <BaseBody title="Terminais" subtitle="Visualização de todos os terminais">
         <div className="flex flex-col space-y-4">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <TerminalsFilter />
+            <div className="flex items-start gap-4">
+              <TerminalsFilter
+                dateFromIn={dateFrom}
+                dateToIn={dateTo}
+                numeroLogicoIn={numeroLogico}
+                numeroSerialIn={numeroSerial}
+                estabelecimentoIn={estabelecimento}
+                modeloIn={modelo}
+                statusIn={status}
+                provedorIn={provedor}
+              />
+              <TerminalsDashboardButton>
+                <TerminalsDashboardContent
+                  totalTerminals={totalRecords}
+                  ativosTerminals={ativosTerminals}
+                  inativosTerminals={inativosTerminals}
+                  desativadosTerminals={desativadosTerminals}
+                  totalModelosAtivos={totalModelosAtivos}
+                />
+              </TerminalsDashboardButton>
             </div>
           </div>
-
-          <TerminalsList terminals={terminalsList.terminals} />
+          <TerminalsList terminals={terminalsList} />
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

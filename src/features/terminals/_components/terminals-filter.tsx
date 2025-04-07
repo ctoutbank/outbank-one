@@ -1,34 +1,123 @@
 "use client";
-import { Input } from "@/components/ui/input";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
 
-export function TerminalsFilter() {
+import { TerminalsFilterContent } from "@/features/terminals/_components/terminals-filter-content";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { TerminalsFilterButton } from "./terminals-filter-button";
+
+type TerminalsFilterProps = {
+  dateFromIn?: string;
+  dateToIn?: string;
+  numeroLogicoIn?: string;
+  numeroSerialIn?: string;
+  estabelecimentoIn?: string;
+  modeloIn?: string;
+  statusIn?: string;
+  provedorIn?: string;
+};
+
+export function TerminalsFilter(props: TerminalsFilterProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
+  const params = new URLSearchParams(searchParams?.toString() || "");
+  const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
-  const handleSearch = useCallback(
-    (term: string) => {
-      const params = new URLSearchParams(searchParams?.toString());
-      if (term) {
-        params.set("search", term);
-      } else {
-        params.delete("search");
-      }
-      replace(`${pathname}?${params.toString()}`);
-    },
-    [pathname, replace, searchParams]
-  );
+  const handleFilter = (filters: {
+    dateFrom?: Date;
+    dateTo?: Date;
+    numeroLogico: string;
+    numeroSerial: string;
+    estabelecimento: string;
+    modelo: string;
+    status: string;
+    provedor: string;
+  }) => {
+    if (filters.dateFrom) {
+      params.set("dateFrom", filters.dateFrom.toISOString());
+    } else {
+      params.delete("dateFrom");
+    }
+    if (filters.dateTo) {
+      params.set("dateTo", filters.dateTo.toISOString());
+    } else {
+      params.delete("dateTo");
+    }
+    if (filters.numeroLogico) {
+      params.set("numeroLogico", filters.numeroLogico);
+    } else {
+      params.delete("numeroLogico");
+    }
+    if (filters.numeroSerial) {
+      params.set("numeroSerial", filters.numeroSerial);
+    } else {
+      params.delete("numeroSerial");
+    }
+    if (filters.estabelecimento) {
+      params.set("estabelecimento", filters.estabelecimento);
+    } else {
+      params.delete("estabelecimento");
+    }
+    if (filters.modelo) {
+      params.set("modelo", filters.modelo);
+    } else {
+      params.delete("modelo");
+    }
+    if (filters.status) {
+      params.set("status", filters.status);
+    } else {
+      params.delete("status");
+    }
+    if (filters.provedor) {
+      params.set("provedor", filters.provedor);
+    } else {
+      params.delete("provedor");
+    }
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleClearFilters = () => {
+    params.delete("dateFrom");
+    params.delete("dateTo");
+    params.delete("numeroLogico");
+    params.delete("numeroSerial");
+    params.delete("estabelecimento");
+    params.delete("modelo");
+    params.delete("status");
+    params.delete("provedor");
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
+
+  const activeFiltersCount =
+    (props.dateFromIn ? 1 : 0) +
+    (props.dateToIn ? 1 : 0) +
+    (props.numeroLogicoIn ? 1 : 0) +
+    (props.numeroSerialIn ? 1 : 0) +
+    (props.estabelecimentoIn ? 1 : 0) +
+    (props.modeloIn ? 1 : 0) +
+    (props.statusIn ? 1 : 0) +
+    (props.provedorIn ? 1 : 0);
 
   return (
-    <div className="flex items-center gap-2">
-      <Input
-        placeholder="Buscar terminal..."
-        defaultValue={searchParams?.get("search")?.toString()}
-        onChange={(e) => handleSearch(e.target.value)}
-        className="h-8 w-[150px] lg:w-[250px]"
+    <TerminalsFilterButton
+      activeFiltersCount={activeFiltersCount}
+      onClearFilters={handleClearFilters}
+      isFiltersVisible={isFiltersVisible}
+      onVisibilityChange={setIsFiltersVisible}
+    >
+      <TerminalsFilterContent
+        dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
+        dateToIn={props.dateToIn ? new Date(props.dateToIn) : undefined}
+        numeroLogicoIn={props.numeroLogicoIn}
+        numeroSerialIn={props.numeroSerialIn}
+        estabelecimentoIn={props.estabelecimentoIn}
+        modeloIn={props.modeloIn}
+        statusIn={props.statusIn}
+        provedorIn={props.provedorIn}
+        onFilter={handleFilter}
+        onClose={() => setIsFiltersVisible(false)}
       />
-    </div>
+    </TerminalsFilterButton>
   );
 }

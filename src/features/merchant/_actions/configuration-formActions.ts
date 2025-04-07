@@ -1,10 +1,13 @@
-
-"use server"
-import { ConfigurationInsert, insertConfiguration } from "@/features/configuration/server/configuration";
+"use server";
 import { ConfigurationSchema } from "@/features/configuration/schema/configurations-schema";
-import { ConfigurationUpdate, updateConfiguration } from "../server/configurations";
-
-
+import {
+  ConfigurationInsert,
+  insertConfiguration,
+} from "@/features/configuration/server/configuration";
+import {
+  ConfigurationUpdate,
+  updateConfiguration,
+} from "../server/configurations";
 
 export async function insertConfigurationFormAction(data: ConfigurationSchema) {
   const configurationInsert: ConfigurationInsert = {
@@ -25,6 +28,16 @@ export async function updateConfigurationFormAction(data: ConfigurationSchema) {
     url: data.url || "",
     dtinsert: (data.dtinsert || new Date()).toISOString(),
     dtupdate: (data.dtupdate || new Date()).toISOString(),
+    anticipationRiskFactorCp: data.anticipationRiskFactorCp
+      ? String(data.anticipationRiskFactorCp)
+      : "",
+    anticipationRiskFactorCnp: data.anticipationRiskFactorCnp
+      ? String(data.anticipationRiskFactorCnp)
+      : "",
+    waitingPeriodCp: data.waitingPeriodCp ? String(data.waitingPeriodCp) : "",
+    waitingPeriodCnp: data.waitingPeriodCnp
+      ? String(data.waitingPeriodCnp)
+      : "",
   };
 
   const result = await updateConfiguration(configurationUpdate);
