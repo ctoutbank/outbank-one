@@ -1,7 +1,19 @@
 "use server";
 
+import { getUserMerchantSlugs } from "@/features/users/server/users";
 import { getDateUTC } from "@/lib/datetime-utils";
-import { and, count, desc, eq, gte, like, lte, sql, sum } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  like,
+  lte,
+  sql,
+  sum,
+} from "drizzle-orm";
 import { terminals, transactions } from "../../../../drizzle/schema";
 import { db } from "../../../server/db/index";
 
@@ -29,6 +41,28 @@ export async function getTransactions(
   productType?: string
 ): Promise<TransactionList> {
   const conditions = [];
+
+  const userMerchants = await getUserMerchantSlugs();
+
+  if (userMerchants.fullAccess) {
+  } else {
+    if (userMerchants.slugMerchants.length > 0) {
+      conditions.push(
+        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+      );
+    } else {
+      return {
+        transactions: [],
+        totalCount: 0,
+        approved_count: 0,
+        pending_count: 0,
+        rejected_count: 0,
+        canceled_count: 0,
+        total_amount: 0,
+        revenue: 0,
+      };
+    }
+  }
 
   if (search) {
     conditions.push(like(transactions.slug, `%${search}%`));
@@ -124,15 +158,40 @@ export async function getTotalTransactions(
   dateFrom: Date | null,
   dateTo: Date | null
 ) {
+  const conditions = [];
+
+  const userMerchants = await getUserMerchantSlugs();
+
+  if (userMerchants.fullAccess) {
+  } else {
+    if (userMerchants.slugMerchants.length > 0) {
+      conditions.push(
+        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+      );
+    } else {
+      return {
+        sum: 0,
+        count: 0,
+        revenue: 0,
+      };
+    }
+  }
+
+  if (dateFrom && dateTo) {
+    conditions.push(
+      and(
+        gte(transactions.dtInsert, dateFrom.toISOString()),
+        lte(transactions.dtInsert, dateTo.toISOString())
+      )
+    );
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
   const result = await db
     .select({ sum: sum(transactions.totalAmount), count: count() })
     .from(transactions)
-    .where(
-      and(
-        gte(transactions.dtInsert, dateFrom?.toISOString() || ""),
-        lte(transactions.dtInsert, dateTo?.toISOString() || "")
-      )
-    );
+    .where(whereClause);
 
   const totals: GetTotalTransactionsResult[] = result.map((item) => ({
     sum: item.sum ? parseFloat(item.sum) : 0,
@@ -147,6 +206,30 @@ export async function getTotalTransactionsByMonth(
   dateFrom: Date,
   dateTo: Date
 ) {
+  const conditions = [];
+
+  const userMerchants = await getUserMerchantSlugs();
+
+  if (userMerchants.fullAccess) {
+  } else {
+    if (userMerchants.slugMerchants.length > 0) {
+      conditions.push(
+        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+      );
+    } else {
+      return [];
+    }
+  }
+
+  conditions.push(
+    and(
+      gte(transactions.dtInsert, dateFrom.toISOString()),
+      lte(transactions.dtInsert, dateTo.toISOString())
+    )
+  );
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
   const result = await db
     .select({
       sum: sum(transactions.totalAmount),
@@ -154,12 +237,7 @@ export async function getTotalTransactionsByMonth(
       date: sql`DATE(dt_update::TIMESTAMP)`,
     })
     .from(transactions)
-    .where(
-      and(
-        gte(transactions.dtInsert, dateFrom.toISOString()),
-        lte(transactions.dtInsert, dateTo.toISOString())
-      )
-    )
+    .where(whereClause)
     .groupBy(sql`DATE(dt_update::TIMESTAMP)`)
     .orderBy(sql`DATE(dt_update::TIMESTAMP) ASC`);
 
@@ -175,7 +253,6 @@ export async function getTotalTransactionsByMonth(
 
 export async function getTransactionsForReport(
   search?: string,
-
   status?: string,
   merchant?: string,
   dateFrom?: string,
@@ -183,6 +260,19 @@ export async function getTransactionsForReport(
   productType?: string
 ) {
   const conditions = [];
+
+  const userMerchants = await getUserMerchantSlugs();
+
+  if (userMerchants.fullAccess) {
+  } else {
+    if (userMerchants.slugMerchants.length > 0) {
+      conditions.push(
+        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+      );
+    } else {
+      return [];
+    }
+  }
 
   if (search) {
     conditions.push(like(transactions.slug, `%${search}%`));

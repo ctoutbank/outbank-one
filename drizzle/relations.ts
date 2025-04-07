@@ -67,6 +67,7 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 	merchantPixSettlementOrders: many(merchantPixSettlementOrders),
 	contacts: many(contacts),
 	merchantSettlements: many(merchantSettlements),
+	paymentLinks: many(paymentLink),
 	category: one(categories, {
 		fields: [merchants.idCategory],
 		references: [categories.id]
@@ -95,7 +96,6 @@ export const merchantsRelations = relations(merchants, ({one, many}) => ({
 		fields: [merchants.idCustomer],
 		references: [customers.id]
 	}),
-	paymentLinks: many(paymentLink),
 	merchantpixaccounts: many(merchantpixaccount),
 	userMerchants: many(userMerchants),
 }));

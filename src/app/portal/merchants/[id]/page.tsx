@@ -22,7 +22,10 @@ export default async function MerchantDetail({
 }: {
   params: { id: string };
 }) {
-  const permissions = await checkPagePermission("Estabelecimentos", "Atualizar");
+  const permissions = await checkPagePermission(
+    "Estabelecimentos",
+    "Atualizar"
+  );
 
   const merchantId = parseInt(params.id);
 
@@ -221,6 +224,8 @@ export default async function MerchantDetail({
               lockCnpAnticipationOrder:
                 configurations?.lockCnpAnticipationOrder || false,
               url: configurations?.url || "",
+              anticipationRiskFactorCp:
+                configurations?.anticipationRiskFactorCp || "",
             },
           }}
           pixaccounts={{

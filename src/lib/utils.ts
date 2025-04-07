@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
+import crypto from "crypto";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
-import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -256,6 +256,7 @@ export function toUpperCaseFirst(text: string): string {
 }
 
 export function translateCardType(cardType: string): string {
+  console.log(cardType);
   switch (cardType.toUpperCase()) {
     case "CREDIT":
       return "Crédito";

@@ -1,25 +1,26 @@
 "use server";
 
 import { db } from "@/server/db";
+import { eq } from "drizzle-orm";
 import { merchantSettlements } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
-import { insertSettlementAndRelations } from "./settlements";
 import { InsertSettlementObject, SettlementObject } from "./types";
+
 export async function insertMerchantSettlementAndRelations(
   merchantSettlementList: SettlementObject[]
 ) {
   try {
-    const customerids: [{ id: number; slug: string | null }] | null =
-      await getIdBySlugs(
-        "customers",
-        merchantSettlementList.map((settlement) => settlement.customer.slug)
-      );
-
-    // Inserir o settlement com os IDs e slugs obtidos
-    await insertSettlementAndRelations(
+    const customerids = await getIdBySlugs(
+      "customers",
       merchantSettlementList.map(
-        (merchantSettlement) => merchantSettlement.settlement
+        (merchantSettlement) => merchantSettlement.slugCustomer
+      )
+    );
+
+    const merchantids = await getOrCreateMerchants(
+      merchantSettlementList.map(
+        (merchantSettlement) => merchantSettlement.merchant
       )
     );
 
@@ -28,10 +29,6 @@ export async function insertMerchantSettlementAndRelations(
       merchantSettlementList.map(
         (merchantSettlement) => merchantSettlement.settlement.slug
       )
-    );
-    
-    const merchantids = await getOrCreateMerchants(
-      merchantSettlementList.map((settlement) => settlement.merchant)
     );
 
     const insertmerchantSettlements: InsertSettlementObject[] =
@@ -93,38 +90,90 @@ export async function insertMerchantSettlementAndRelations(
 }
 
 async function insertMerchantSettlement(
-  insertMerchantSettlements: InsertSettlementObject[]
+  merchantSettlementList: InsertSettlementObject[]
 ) {
   try {
-    const existingMerchantSettlementOrders = await getIdBySlugs(
+    const existingMerchantSettlements = await getIdBySlugs(
       "merchant_settlements",
-      insertMerchantSettlements.map(
-        (merchantSettlements) => merchantSettlements.slug
-      )
+      merchantSettlementList.map((settlement) => settlement.slug)
     );
 
-    const filteredList = insertMerchantSettlements.filter(
-      (insertMerchantSettlements) =>
-        !existingMerchantSettlementOrders?.some(
-          (existingMerchantSettlements) =>
-            existingMerchantSettlements.slug === insertMerchantSettlements.slug
+    // Separar registros para insert e update
+    const recordsToInsert = merchantSettlementList.filter(
+      (settlement) =>
+        !existingMerchantSettlements?.some(
+          (existing) => existing.slug === settlement.slug
         )
     );
 
-    if (filteredList.length < 1) {
-      console.log("todos os merchant settlement já foram adicionados");
-      return;
-    }
-
-    console.log(
-      "Inserting merchantSettlements, quantity:",
-      filteredList.length
+    const recordsToUpdate = merchantSettlementList.filter((settlement) =>
+      existingMerchantSettlements?.some(
+        (existing) => existing.slug === settlement.slug
+      )
     );
 
-    await db.insert(merchantSettlements).values(filteredList);
+    // Inserir novos registros
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new merchantSettlements, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(merchantSettlements).values(recordsToInsert);
+      console.log("New merchantSettlements inserted successfully.");
+    }
 
-    console.log("MerchantSettlement inserted successfully.");
+    // Atualizar registros existentes
+    if (recordsToUpdate.length > 0) {
+      console.log(
+        "Updating existing merchantSettlements, quantity:",
+        recordsToUpdate.length
+      );
+
+      for (const record of recordsToUpdate) {
+        await db
+          .update(merchantSettlements)
+          .set({
+            active: record.active,
+            dtinsert: record.dtinsert,
+            dtupdate: record.dtupdate,
+            transactionCount: record.transactionCount,
+            adjustmentCount: record.adjustmentCount,
+            batchAmount: record.batchAmount,
+            netSettlementAmount: record.netSettlementAmount,
+            pixAmount: record.pixAmount,
+            pixNetAmount: record.pixNetAmount,
+            pixFeeAmount: record.pixFeeAmount,
+            pixCostAmount: record.pixCostAmount,
+            creditAdjustmentAmount: record.creditAdjustmentAmount,
+            debitAdjustmentAmount: record.debitAdjustmentAmount,
+            totalAnticipationAmount: record.totalAnticipationAmount,
+            totalRestitutionAmount: record.totalRestitutionAmount,
+            pendingRestitutionAmount: record.pendingRestitutionAmount,
+            totalSettlementAmount: record.totalSettlementAmount,
+            pendingFinancialAdjustmentAmount:
+              record.pendingFinancialAdjustmentAmount,
+            creditFinancialAdjustmentAmount:
+              record.creditFinancialAdjustmentAmount,
+            debitFinancialAdjustmentAmount:
+              record.debitFinancialAdjustmentAmount,
+            status: record.status,
+            slugMerchant: record.slugMerchant,
+            slugCustomer: record.slugCustomer,
+            outstandingAmount: record.outstandingAmount,
+            restRoundingAmount: record.restRoundingAmount,
+            idCustomer: record.idCustomer,
+            idMerchant: record.idMerchant,
+            idSettlement: record.idSettlement,
+          })
+          .where(eq(merchantSettlements.slug, record.slug));
+      }
+      console.log("Existing merchantSettlements updated successfully.");
+    }
+
+    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
+      console.log("No records to insert or update");
+    }
   } catch (error) {
-    console.error("Error inserting MerchantSettlement:", error);
+    console.error("Error processing merchantSettlements:", error);
   }
 }

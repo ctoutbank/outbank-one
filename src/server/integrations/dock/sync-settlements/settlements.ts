@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
+import { eq } from "drizzle-orm";
 import { settlements } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "./customer";
 import { getIdBySlugs } from "./getIdBySlugs";
@@ -42,9 +43,7 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
         debitStatus: settlement.debitStatus,
         anticipationStatus: settlement.anticipationStatus,
         pixStatus: settlement.pixStatus,
-        paymentDate: new Date(settlement.paymentDate)
-          .toISOString()
-          .split("T")[0],
+        paymentDate: settlement.paymentDate,
         pendingFinancialAdjustmentAmount:
           settlement.pendingFinancialAdjustmentAmount.toString(),
         creditFinancialAdjustmentAmount:
@@ -52,43 +51,100 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
         debitFinancialAdjustmentAmount:
           settlement.debitFinancialAdjustmentAmount.toString(),
         idCustomer:
-          customerids?.filter((customer) => customer.slug === settlement.customer.slug)[0]
-            ?.id || 0,
+          customerids?.filter(
+            (customer) => customer.slug === settlement.slugCustomer
+          )[0]?.id || 0,
       })
     );
 
-    // Inserir o settlement com os IDs e slugs obtidos
     await insertSettlements(insertSettlement);
   } catch (error) {
     console.error(`Erro ao processar settlement:`, error);
   }
 }
 
-export async function insertSettlements(settlement: InsertSettlement[]) {
+async function insertSettlements(settlementList: InsertSettlement[]) {
   try {
     const existingSettlements = await getIdBySlugs(
       "settlements",
-      settlement.map((settlement) => settlement.slug)
+      settlementList.map((settlement) => settlement.slug)
     );
 
-    const filteredList = settlement.filter(
+    // Separar registros para insert e update
+    const recordsToInsert = settlementList.filter(
       (settlement) =>
         !existingSettlements?.some(
-          (existingSettlements) => existingSettlements.slug === settlement.slug
+          (existing) => existing.slug === settlement.slug
         )
     );
 
-    if (filteredList.length < 1) {
-      console.log("todos os settlement já foram adicionados");
-      return;
+    const recordsToUpdate = settlementList.filter((settlement) =>
+      existingSettlements?.some((existing) => existing.slug === settlement.slug)
+    );
+
+    // Inserir novos registros
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new settlements, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(settlements).values(recordsToInsert);
+      console.log("New settlements inserted successfully.");
     }
 
-    console.log("Inserting settlements, quantity: ", filteredList.length);
+    // Atualizar registros existentes
+    if (recordsToUpdate.length > 0) {
+      console.log(
+        "Updating existing settlements, quantity:",
+        recordsToUpdate.length
+      );
 
-    await db.insert(settlements).values(filteredList);
+      for (const record of recordsToUpdate) {
+        await db
+          .update(settlements)
+          .set({
+            active: record.active,
+            dtinsert: record.dtinsert,
+            dtupdate: record.dtupdate,
+            batchAmount: record.batchAmount,
+            discountFeeAmount: record.discountFeeAmount,
+            netSettlementAmount: record.netSettlementAmount,
+            totalAnticipationAmount: record.totalAnticipationAmount,
+            totalRestitutionAmount: record.totalRestitutionAmount,
+            pixAmount: record.pixAmount,
+            pixNetAmount: record.pixNetAmount,
+            pixFeeAmount: record.pixFeeAmount,
+            pixCostAmount: record.pixCostAmount,
+            pendingRestitutionAmount: record.pendingRestitutionAmount,
+            totalCreditAdjustmentAmount: record.totalCreditAdjustmentAmount,
+            totalDebitAdjustmentAmount: record.totalDebitAdjustmentAmount,
+            totalSettlementAmount: record.totalSettlementAmount,
+            restRoundingAmount: record.restRoundingAmount,
+            outstandingAmount: record.outstandingAmount,
+            slugCustomer: record.slugCustomer,
+            status: record.status,
+            creditStatus: record.creditStatus,
+            debitStatus: record.debitStatus,
+            anticipationStatus: record.anticipationStatus,
+            pixStatus: record.pixStatus,
+            paymentDate: record.paymentDate,
+            pendingFinancialAdjustmentAmount:
+              record.pendingFinancialAdjustmentAmount,
+            creditFinancialAdjustmentAmount:
+              record.creditFinancialAdjustmentAmount,
+            debitFinancialAdjustmentAmount:
+              record.debitFinancialAdjustmentAmount,
+            idCustomer: record.idCustomer,
+          })
+          .where(eq(settlements.slug, record.slug));
+      }
+      console.log("Existing settlements updated successfully.");
+    }
 
-    console.log("Settlement inserted successfully.");
+    if (recordsToInsert.length === 0 && recordsToUpdate.length === 0) {
+      console.log("No records to insert or update");
+    }
   } catch (error) {
-    console.error("Error inserting settlement:", error);
+    console.error("Error processing settlements:", error);
   }
 }

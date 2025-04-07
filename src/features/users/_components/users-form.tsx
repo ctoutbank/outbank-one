@@ -81,6 +81,8 @@ export default function UserForm({
       (merchant) => !selectedMerchants.includes(merchant.id.toString())
     );
   }, [merchantsList, selectedMerchants, selectedCustomer]);
+  console.log(merchantsList);
+  console.log(filteredMerchants);
 
   const selectedMerchantsList = useMemo(() => {
     return merchantsList.filter((merchant) =>

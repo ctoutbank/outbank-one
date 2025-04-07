@@ -1,5 +1,6 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import {
   and,
@@ -8,6 +9,7 @@ import {
   eq,
   gte,
   ilike,
+  inArray,
   lte,
   max,
   or,
@@ -123,6 +125,17 @@ export async function getMerchantAgenda(
 ): Promise<MerchantAgendaList> {
   const offset = (page - 1) * pageSize;
 
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      merchantAgenda: [],
+      totalCount: 0,
+    };
+  }
+
   const maxExpectedSettlementDate = await db
     .select({
       maxExpectedSettlementDate: max(payout.expectedSettlementDate),
@@ -139,6 +152,11 @@ export async function getMerchantAgenda(
     ),
     or(ilike(merchants.name, `%${search}%`)),
   ];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
 
   if (dateFrom) {
     conditions.push(
@@ -214,15 +232,8 @@ export async function getMerchantAgenda(
     .select({ count: count() })
     .from(payout)
     .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
-    .where(
-      and(
-        eq(
-          payout.expectedSettlementDate,
-          typeof maxDate == "string" ? maxDate : maxDate.toISOString()
-        ),
-        or(ilike(merchants.name, `%${search}%`))
-      )
-    );
+    .where(and(...conditions));
+
   const totalCount = totalCountResult[0]?.count || 0;
 
   return {
@@ -257,6 +268,9 @@ export async function getMerchantAgendaInfo(): Promise<{
   totalSettlementAmount: string | null;
   totalTaxAmount: string | null;
 }> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
   const maxDateResult = await db
     .select({
       maxDate: max(payout.expectedSettlementDate),
@@ -265,26 +279,40 @@ export async function getMerchantAgendaInfo(): Promise<{
 
   const maxDate = new Date(maxDateResult[0]?.maxDate || 0);
 
+  const conditions = [eq(payout.settlementDate, maxDate.toISOString())];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    if (userAccess.idMerchants.length === 0) {
+      return {
+        count: "0",
+        totalSettlementAmount: "0",
+        totalTaxAmount: "0",
+      };
+    }
+    conditions.push(inArray(payout.idMerchant, userAccess.idMerchants));
+  }
+
   const countResult = await db
     .selectDistinct({
       count: count(payout.idMerchant),
     })
     .from(payout)
-    .where(eq(payout.settlementDate, maxDate.toISOString()));
+    .where(and(...conditions));
 
   const totalSettlementAmountResult = await db
     .select({
       totalSettlementAmount: sum(payout.settlementAmount),
     })
     .from(payout)
-    .where(eq(payout.settlementDate, maxDate.toISOString()));
+    .where(and(...conditions));
 
   const totalTaxAmountResult = await db
     .select({
       totalTaxAmount: sum(payout.transactionMdr),
     })
     .from(payout)
-    .where(eq(payout.settlementDate, maxDate.toISOString()));
+    .where(and(...conditions));
 
   return {
     count: countResult[0]?.count?.toString() || null,

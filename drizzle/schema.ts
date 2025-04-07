@@ -1,7 +1,20 @@
-import { pgTable, unique, serial, varchar, boolean, timestamp, char, integer, foreignKey, bigint, numeric, date, text, uuid, jsonb, time } from "drizzle-orm/pg-core"
+import { pgTable, bigint, varchar, boolean, timestamp, numeric, unique, serial, char, integer, foreignKey, date, text, uuid, jsonb, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
+
+export const configurations = pgTable("configurations", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "configurations_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	lockCpAnticipationOrder: boolean("lock_cp_anticipation_order"),
+	lockCnpAnticipationOrder: boolean("lock_cnp_anticipation_order"),
+	url: varchar({ length: 255 }),
+	anticipationRiskFactorCp: numeric("anticipation_risk_factor_cp"),
+});
 
 export const terminals = pgTable("terminals", {
 	id: serial().primaryKey().notNull(),
@@ -46,18 +59,6 @@ export const paymentInstitution = pgTable("payment_institution", {
 			name: "payment_institution_id_customer_db_fkey"
 		}),
 	}
-});
-
-export const configurations = pgTable("configurations", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "configurations_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	lockCpAnticipationOrder: boolean("lock_cp_anticipation_order"),
-	lockCnpAnticipationOrder: boolean("lock_cnp_anticipation_order"),
-	url: varchar({ length: 255 }),
 });
 
 export const state = pgTable("state", {
@@ -841,6 +842,37 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 	}
 });
 
+export const paymentLink = pgTable("payment_link", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payment_link_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	linkName: varchar("link_name", { length: 255 }),
+	dtExpiration: timestamp("dt_expiration", { mode: 'string' }),
+	totalAmount: numeric("total_amount"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idMerchant: bigint("id_merchant", { mode: "number" }),
+	paymentLinkStatus: varchar("payment_link_status", { length: 50 }),
+	productType: varchar("product_type", { length: 50 }),
+	installments: integer(),
+	linkUrl: varchar("link_url", { length: 255 }),
+	pixEnabled: boolean("pix_enabled"),
+	transactionSlug: varchar("transaction_slug", { length: 50 }),
+	isFromServer: boolean("is_from_server"),
+	modified: boolean(),
+	isDeleted: boolean("is_deleted"),
+}, (table) => {
+	return {
+		paymentLinkIdMerchantFkey: foreignKey({
+			columns: [table.idMerchant],
+			foreignColumns: [merchants.id],
+			name: "payment_link_id_merchant_fkey"
+		}),
+	}
+});
+
 export const merchants = pgTable("merchants", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchants_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -887,6 +919,7 @@ export const merchants = pgTable("merchants", {
 	idMerchantPrice: bigint("id_merchant_price", { mode: "number" }),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	idCustomer: bigint("id_customer", { mode: "number" }),
+	dtdelete: timestamp({ mode: 'string' }),
 }, (table) => {
 	return {
 		merchantsIdCategoryFkey: foreignKey({
@@ -923,37 +956,6 @@ export const merchants = pgTable("merchants", {
 			columns: [table.idCustomer],
 			foreignColumns: [customers.id],
 			name: "merchants_id_customer_fkey"
-		}),
-	}
-});
-
-export const paymentLink = pgTable("payment_link", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payment_link_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	linkName: varchar("link_name", { length: 255 }),
-	dtExpiration: timestamp("dt_expiration", { mode: 'string' }),
-	totalAmount: numeric("total_amount"),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idMerchant: bigint("id_merchant", { mode: "number" }),
-	paymentLinkStatus: varchar("payment_link_status", { length: 50 }),
-	productType: varchar("product_type", { length: 50 }),
-	installments: integer(),
-	linkUrl: varchar("link_url", { length: 255 }),
-	pixEnabled: boolean("pix_enabled"),
-	transactionSlug: varchar("transaction_slug", { length: 50 }),
-	isFromServer: boolean("is_from_server"),
-	modified: boolean(),
-	isDeleted: boolean("is_deleted"),
-}, (table) => {
-	return {
-		paymentLinkIdMerchantFkey: foreignKey({
-			columns: [table.idMerchant],
-			foreignColumns: [merchants.id],
-			name: "payment_link_id_merchant_fkey"
 		}),
 	}
 });

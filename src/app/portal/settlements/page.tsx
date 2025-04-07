@@ -11,9 +11,9 @@ import {
   getMerchantSettlements,
   getSettlementBySlug,
 } from "@/features/settlements/server/settlements";
-import { Fill, Font } from "exceljs";
-import { formatDate } from "@/lib/utils";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { formatDate } from "@/lib/utils";
+import { Fill, Font } from "exceljs";
 
 export const revalidate = 0;
 
@@ -41,6 +41,7 @@ export default async function SettlementsPage({
     pageSize,
     settlementSlug
   );
+  console.log(merchantSettlements);
   const settlements = await getSettlementBySlug(settlementSlug);
   const totalRecords = merchantSettlements.totalCount;
   const globalStyles = {
@@ -101,28 +102,28 @@ export default async function SettlementsPage({
                 data={merchantSettlements.merchant_settlements.flatMap(
                   (settlement) =>
                     settlement.orders?.map((order) => ({
-                      Name: order.corporateName,
-                      CorporateName: order.corporateName,
-                      FederalTAXID: order.documentId,
+                      Name: order.corporatename,
+                      CorporateName: order.corporatename,
+                      FederalTAXID: order.documentid,
                       ISO: settlement.customerId,
-                      Date: order.effectivePaymentDate,
+                      Date: order.effectivepaymentdate,
                       ReceivableUnit: order.receivableUnit,
                       Amount: order.amount,
                       Bank: order.bank,
                       Agency: order.agency,
-                      AccountNumber: order.accountNumber,
-                      AccountType: order.accountType,
+                      AccountNumber: order.accountnumber,
+                      AccountType: order.accounttype,
                       EffectivePaymentDate: formatDate(
-                        new Date(order.effectivePaymentDate)
+                        new Date(order.effectivepaymentdate)
                       ),
-                      PaymentNumber: order.paymentNumber,
+                      PaymentNumber: order.paymentnumber,
                       Status: order.status,
                       Lock: order.lock,
                       LockBank: "",
                       LockFederalTAXID: "",
                       LockAccountNumber: "",
                       LockAgency: "",
-                      Identifier: order.settlementUniqueNumber,
+                      Identifier: order.settlementuniquenumber,
                     }))
                 )}
                 globalStyles={globalStyles}

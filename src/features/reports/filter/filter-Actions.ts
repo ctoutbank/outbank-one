@@ -1,7 +1,8 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, or } from "drizzle-orm";
 import {
   brand,
   merchants,
@@ -200,40 +201,40 @@ export const searchMerchants = async (
   }
 
   try {
-    let results: MerchantOption[];
+    // Get user's merchant access
+    const userAccess = await getUserMerchantsAccess();
 
-    // Consulta direta ao banco em vez de API para evitar erros de rede
-    if (normalizedTerm.length > 0) {
-      // Busca com termo específico
-      results = await db
-        .select({
-          id: merchants.id,
-          name: merchants.name,
-          corporateName: merchants.corporateName,
-          slug: merchants.slug,
-        })
-        .from(merchants)
-        .where(
-          or(
-            ilike(merchants.name, `%${normalizedTerm}%`),
-            ilike(merchants.corporateName, `%${normalizedTerm}%`)
-          )
-        )
-        .orderBy(merchants.name)
-        .limit(100);
-    } else {
-      // Busca de todos os estabelecimentos ativos (limitado)
-      results = await db
-        .select({
-          id: merchants.id,
-          name: merchants.name,
-          corporateName: merchants.corporateName,
-          slug: merchants.slug,
-        })
-        .from(merchants)
-        .orderBy(merchants.name)
-        .limit(100);
+    const conditions = [];
+
+    // Add merchant access control
+    if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+      conditions.push(inArray(merchants.id, userAccess.idMerchants));
+    } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return [];
     }
+
+    // Add search condition if term exists
+    if (normalizedTerm.length > 0) {
+      conditions.push(
+        or(
+          ilike(merchants.name, `%${normalizedTerm}%`),
+          ilike(merchants.corporateName, `%${normalizedTerm}%`)
+        )
+      );
+    }
+
+    // Busca com condições
+    const results: MerchantOption[] = await db
+      .select({
+        id: merchants.id,
+        name: merchants.name,
+        corporateName: merchants.corporateName,
+        slug: merchants.slug,
+      })
+      .from(merchants)
+      .where(and(...conditions))
+      .orderBy(merchants.name)
+      .limit(100);
 
     // Armazenar resultado em cache
     merchantsCache[cacheKey] = {
@@ -244,12 +245,6 @@ export const searchMerchants = async (
     return results;
   } catch (error) {
     console.error("Erro ao buscar estabelecimentos:", error);
-
-    // Em caso de erro, retornar cache mesmo que expirado, se disponível
-    if (merchantsCache[cacheKey]) {
-      return merchantsCache[cacheKey].data;
-    }
-
     return [];
   }
 };

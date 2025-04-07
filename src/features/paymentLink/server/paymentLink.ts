@@ -1,8 +1,9 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
-import { and, count, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import {
   merchants,
   paymentLink,
@@ -124,6 +125,28 @@ export async function getPaymentLinks(
 ): Promise<PaymentLinkList> {
   const offset = (page - 1) * pageSize;
 
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      linksObject: [],
+      totalCount: 0,
+    };
+  }
+
+  const conditions = [
+    ilike(paymentLink.linkName, `%${identifier}%`),
+    ilike(merchants.name, `%${merchant}%`),
+    status == "" ? undefined : eq(paymentLink.paymentLinkStatus, status),
+  ].filter(Boolean);
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+
   const result = await db
     .select({
       id: paymentLink.id,
@@ -138,13 +161,7 @@ export async function getPaymentLinks(
     })
     .from(paymentLink)
     .leftJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
-    .where(
-      and(
-        ilike(paymentLink.linkName, `%${identifier}%`),
-        ilike(merchants.name, `%${merchant}%`),
-        status == "" ? undefined : eq(paymentLink.paymentLinkStatus, status)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(paymentLink.id))
     .limit(pageSize)
     .offset(offset);
@@ -153,15 +170,10 @@ export async function getPaymentLinks(
     .select({ count: count() })
     .from(paymentLink)
     .leftJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
-    .where(
-      and(
-        ilike(paymentLink.linkName, `%${identifier}%`),
-        ilike(merchants.name, `%${merchant}%`),
-        status == "" ? undefined : eq(paymentLink.paymentLinkStatus, status)
-      )
-    );
+    .where(and(...conditions));
+
   const totalCount = totalCountResult[0]?.count || 0;
-  console.log(offset, result);
+
   return {
     linksObject: result.map((link) => ({
       id: link.id,
@@ -181,6 +193,20 @@ export async function getPaymentLinks(
 export async function getPaymentLinkById(
   id: number
 ): Promise<PaymentLinkById | null> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // Build merchant access condition
+  let merchantAccessCondition = "";
+  if (!userAccess.fullAccess) {
+    if (userAccess.idMerchants.length === 0) {
+      return null;
+    }
+    merchantAccessCondition = `AND p.id_merchant = ANY(ARRAY[${userAccess.idMerchants.join(
+      ","
+    )}])`;
+  }
+
   const result = await db.execute(sql`
     SELECT 
       p.id,
@@ -201,8 +227,9 @@ export async function getPaymentLinkById(
         '[]'
       ) AS "shoppingItems"
     FROM payment_link p
-    LEFT JOIN shopping_items s ON s.id_payment_link = p.id
     WHERE p.id = ${id}
+    ${sql.raw(merchantAccessCondition)}
+    LEFT JOIN shopping_items s ON s.id_payment_link = p.id
     GROUP BY p.id
   `);
 
