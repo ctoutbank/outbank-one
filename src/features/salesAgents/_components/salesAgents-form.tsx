@@ -1,20 +1,43 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { states } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { insertSalesAgentFormAction, updateSalesAgentFormAction, insertAddressFormAction, updateAddressFormAction } from "../_actions/salesAgents-formActions";
-import { SalesAgentSchema, SchemaSalesAgent, AddressSchema, SchemaAddress } from "../schema/schema";
-import { useState, useEffect } from "react";
 import { MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import {
+  insertAddressFormAction,
+  insertSalesAgentFormAction,
+  updateAddressFormAction,
+  updateSalesAgentFormAction,
+} from "../_actions/salesAgents-formActions";
+import {
+  AddressSchema,
+  SalesAgentSchema,
+  SchemaAddress,
+  SchemaSalesAgent,
+} from "../schema/schema";
 import { getAddressById } from "../server/address";
-import { states } from "@/lib/lookuptables";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SalesAgentsFormProps {
   salesAgent: SalesAgentSchema;
@@ -24,7 +47,7 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
   const router = useRouter();
   const [isRendered, setIsRendered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Formulário do Consultor
   const form = useForm<SalesAgentSchema>({
     resolver: zodResolver(SchemaSalesAgent),
@@ -36,7 +59,7 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
       email: salesAgent.email || "",
       cpf: salesAgent.cpf || "",
       phone: salesAgent.phone || "",
-      birthDate: salesAgent.birthDate
+      birthDate: salesAgent.birthDate,
     },
   });
 
@@ -85,7 +108,6 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
   }, [salesAgent.idAddress, addressForm]);
 
   // Log dos valores iniciais
-  
 
   const onSubmit = async (data: SalesAgentSchema) => {
     try {
@@ -94,7 +116,7 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
       console.log("CPF:", data.cpf);
       console.log("Phone:", data.phone);
       console.log("BirthDate:", data.birthDate);
-      
+
       // Validar formulário de endereço
       const addressFormValid = await addressForm.trigger();
       if (!addressFormValid) {
@@ -105,9 +127,9 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
       // Salvar endereço
       const addressData = addressForm.getValues();
       console.log("Dados do endereço para salvar:", addressData);
-      
+
       let addressId;
-      
+
       if (addressData.id) {
         console.log("Atualizando endereço existente com ID:", addressData.id);
         addressId = await updateAddressFormAction(addressData);
@@ -124,10 +146,11 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
         idAddress: addressId,
       };
 
-      
-
       if (salesAgentWithAddress.id) {
-        console.log("Atualizando consultor existente com ID:", salesAgentWithAddress.id);
+        console.log(
+          "Atualizando consultor existente com ID:",
+          salesAgentWithAddress.id
+        );
         await updateSalesAgentFormAction(salesAgentWithAddress);
         console.log("Consultor atualizado com sucesso");
         router.refresh();
@@ -158,14 +181,16 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                 <FormItem>
                   <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
-                    <Input 
-                      value={`${form.getValues("firstName") ?? ""} ${form.getValues("lastName") ?? ""}`.trim()} 
+                    <Input
+                      value={`${form.getValues("firstName") ?? ""} ${
+                        form.getValues("lastName") ?? ""
+                      }`.trim()}
                       onChange={(e) => {
                         const fullName = e.target.value;
                         const nameParts = fullName.split(" ");
                         const firstName = nameParts[0] || "";
                         const lastName = nameParts.slice(1).join(" ") || "";
-                        
+
                         form.setValue("firstName", firstName);
                         form.setValue("lastName", lastName);
                       }}
@@ -180,9 +205,9 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                     <FormItem>
                       <FormLabel>CPF</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          value={field.value ?? ""} 
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
                           onChange={(e) => {
                             field.onChange(e.target.value);
                             console.log("CPF alterado para:", e.target.value);
@@ -215,12 +240,15 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                     <FormItem>
                       <FormLabel>Telefone</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          value={field.value ?? ""} 
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
                           onChange={(e) => {
                             field.onChange(e.target.value);
-                            console.log("Telefone alterado para:", e.target.value);
+                            console.log(
+                              "Telefone alterado para:",
+                              e.target.value
+                            );
                           }}
                         />
                       </FormControl>
@@ -235,14 +263,25 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                     <FormItem>
                       <FormLabel>Data de Nascimento</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="date"
                           {...field}
-                          value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
+                          value={
+                            field.value
+                              ? new Date(field.value)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : ""
+                          }
                           onChange={(e) => {
-                            const date = e.target.value ? new Date(e.target.value) : null;
+                            const date = e.target.value
+                              ? new Date(e.target.value)
+                              : null;
                             field.onChange(date);
-                            console.log("Data de nascimento alterada para:", date);
+                            console.log(
+                              "Data de nascimento alterada para:",
+                              date
+                            );
                           }}
                         />
                       </FormControl>
@@ -250,20 +289,15 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                     </FormItem>
                   )}
                 />
-                
               </div>
 
-
-              
-
-             
               {/* Campo oculto para idAddress */}
               <FormField
                 control={form.control}
                 name="idAddress"
                 render={({ field }) => (
-                  <input 
-                    type="hidden" 
+                  <input
+                    type="hidden"
                     name="idAddress"
                     value={field.value?.toString() || ""}
                     onChange={field.onChange}
@@ -279,18 +313,54 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
               <CardTitle>Endereço</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <FormField
+                control={addressForm.control}
+                name="zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      CEP <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        maxLength={8}
+                        value={field.value?.toString() || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="street"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Rua <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value?.toString() || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={addressForm.control}
-                  name="zipCode"
+                  name="number"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        CEP <span className="text-red-500">*</span>
+                        Número <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          maxLength={8}
                           value={field.value?.toString() || ""}
                         />
                       </FormControl>
@@ -301,11 +371,46 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
 
                 <FormField
                   control={addressForm.control}
-                  name="street"
+                  name="complement"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Complemento</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value?.toString() || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={addressForm.control}
+                name="neighborhood"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Bairro <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value?.toString() || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={addressForm.control}
+                  name="city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Rua <span className="text-red-500">*</span>
+                        Cidade <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -318,136 +423,56 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={addressForm.control}
-                    name="number"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Número <span className="text-red-500">*</span>
-                        </FormLabel>
+                <FormField
+                  control={addressForm.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Estado <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
                         <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value?.toString() || ""}
-                          />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Digite a sigla do estado" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={addressForm.control}
-                    name="complement"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Complemento</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value?.toString() || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={addressForm.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Bairro <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value?.toString() || ""}
-                        />
-                      </FormControl>
+                        <SelectContent>
+                          {states.map((state) => (
+                            <SelectItem key={state.value} value={state.value}>
+                              {state.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={addressForm.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Cidade <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value?.toString() || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={addressForm.control}
-                    name="state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Estado <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || undefined}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Digite a sigla do estado" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {states.map((state) => (
-                              <SelectItem
-                                key={state.value}
-                                value={state.value}
-                              >
-                                {state.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={addressForm.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        País <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          defaultValue="Brasil"
-                          value={field.value?.toString() || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={addressForm.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      País <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        defaultValue="Brasil"
+                        value={field.value?.toString() || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
@@ -460,6 +485,4 @@ export default function SalesAgentForm({ salesAgent }: SalesAgentsFormProps) {
       </Form>
     </>
   );
-};
-
-
+}

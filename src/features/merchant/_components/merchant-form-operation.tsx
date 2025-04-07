@@ -29,7 +29,7 @@ import {
   ConfigurationOperationsSchema,
   schemaConfigurationOperations,
 } from "@/features/configuration/schema/configurations-schema";
-import { timezones } from "@/lib/lookuptables";
+import { timezones } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreditCard, Settings } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";

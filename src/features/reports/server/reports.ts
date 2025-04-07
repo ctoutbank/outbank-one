@@ -165,6 +165,8 @@ export async function insertReport(report: ReportInsert): Promise<number> {
     id: reports.id,
   });
 
+  console.log("Report inserted:", result[0].id);
+
   return result[0].id;
 }
 

@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Status } from "@/lib/lookuptables";
+import { transactionStatusList } from "@/lib/lookuptables/lookuptables-transactions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -47,15 +47,7 @@ interface ReportsWizardFormProps {
   reportType: ReportTypeDD[];
   permissions: string[];
   reportFilterParams: ReportFilterParamDetail[];
-  filter: {
-    idReport: number;
-    idReportFilterParam: number;
-    value: string;
-    id?: number;
-    dtinsert?: Date;
-    dtupdate?: Date;
-    typeName?: string | null;
-  };
+  activeTabDefault: string;
 }
 
 export default function ReportsWizardForm({
@@ -66,8 +58,9 @@ export default function ReportsWizardForm({
   reportType,
   permissions,
   reportFilterParams,
+  activeTabDefault,
 }: ReportsWizardFormProps) {
-  const [activeTab, setActiveTab] = useState("step1");
+  const [activeTab, setActiveTab] = useState(activeTabDefault);
   const [newReportId, setNewReportId] = useState<number | null>(
     report.id ? (report.id as number) : null
   );
@@ -272,7 +265,7 @@ export default function ReportsWizardForm({
       const statusValues = filter.value.split(",").map((s) => s.trim());
       return statusValues
         .map((value) => {
-          const status = Status.find((s) => s.value === value);
+          const status = transactionStatusList.find((s) => s.value === value);
           return status ? status.label : value;
         })
         .join(", ");

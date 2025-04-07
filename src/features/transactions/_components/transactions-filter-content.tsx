@@ -40,7 +40,7 @@ export function FilterTransactionsContent({
 
   const statuses = [
     {
-      value: "APPROVED",
+      value: "AUTHORIZED",
       label: "Aprovada",
       color: "bg-emerald-500 hover:bg-emerald-600",
     },

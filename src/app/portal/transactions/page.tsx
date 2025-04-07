@@ -10,7 +10,7 @@ import { TransactionsFilter } from "@/features/transactions/_components/transact
 import TransactionsList from "@/features/transactions/_components/transactions-list";
 import {
   getTransactions,
-  getTransactionsForReport,
+  getTransactionsGroupedReport,
 } from "@/features/transactions/serverActions/transaction";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Suspense } from "react";
@@ -60,12 +60,11 @@ async function TransactionsContent({
     dateTo,
     searchParams.productType
   );
-  const transactionsReport = await getTransactionsForReport(
-    search,
-    searchParams.status,
-    searchParams.merchant,
+
+  const transactionsGroupedReport = await getTransactionsGroupedReport(
     dateFrom,
     dateTo,
+    searchParams.status,
     searchParams.productType
   );
   const totalRecords = transactionList.totalCount;
@@ -83,7 +82,9 @@ async function TransactionsContent({
               productTypeIn={searchParams.productType}
             />
             <TransactionsDashboardButton>
-              <TransactionsDashboardTable transactions={transactionsReport} />
+              <TransactionsDashboardTable
+                transactions={transactionsGroupedReport}
+              />
             </TransactionsDashboardButton>
           </div>
           <TransactionsExport />

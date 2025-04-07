@@ -19,10 +19,17 @@ interface ReportDetailProps {
   params: {
     id: string;
   };
+  searchParams: {
+    activeTab?: string;
+  };
 }
 
-export default async function ReportDetail({ params }: ReportDetailProps) {
+export default async function ReportDetail({
+  params,
+  searchParams,
+}: ReportDetailProps) {
   const permissions = await checkPagePermission("Relatórios", "Atualizar");
+  const activeTab = searchParams.activeTab || "step1";
 
   // Tenta buscar o relatório apenas se o ID não for "new" ou "0"
   let report = null;
@@ -36,13 +43,6 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
   const reportFilterParams = await fetchReportFilterParams();
-
-  // Inicializar filtro vazio para novos relatórios
-  const emptyFilter = {
-    idReport: report?.id || 0,
-    idReportFilterParam: 0,
-    value: "",
-  };
 
   return (
     <>
@@ -74,7 +74,7 @@ export default async function ReportDetail({ params }: ReportDetailProps) {
           reportType={reportType}
           permissions={permissions}
           reportFilterParams={reportFilterParams}
-          filter={emptyFilter}
+          activeTabDefault={activeTab}
         />
       </BaseBody>
     </>

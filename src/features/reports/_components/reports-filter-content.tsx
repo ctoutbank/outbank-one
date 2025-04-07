@@ -57,8 +57,6 @@ export function ReportsFilterContent({
   const formats = [
     { code: "PDF", name: "PDF" },
     { code: "EX", name: "Excel" },
-    { code: "CSV", name: "CSV" },
-    { code: "TXT", name: "Texto" },
   ];
 
   const recorrences = [
@@ -148,7 +146,7 @@ export function ReportsFilterContent({
           />
         </div>
 
-        <div className="space-y-2 ml-2">
+        <div className="space-y-2">
           <h3 className="text-sm font-medium ml-2">Tipo de Relatório</h3>
           <div className="flex flex-wrap gap-2">
             {types.map((t) => (
@@ -216,7 +214,7 @@ export function ReportsFilterContent({
           </div>
         </div>
 
-        <div className="space-y-2 ml-2">
+        <div className="space-y-2 ">
           <h3 className="text-sm font-medium ml-2">Período</h3>
           <div className="flex flex-wrap gap-2">
             {periods.map((p) => (

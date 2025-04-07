@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { week } from "@/lib/lookuptables";
+import { week } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -108,7 +108,7 @@ export default function ReportForm({
       toast.success("Relatório criado com sucesso");
 
       if (onReportCreated) {
-        onReportCreated(newId);
+        router.push(`/portal/reports/${newId}?activeTab=step2`);
       } else {
         router.push(`/portal/reports/${newId}`);
       }
