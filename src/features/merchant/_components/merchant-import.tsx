@@ -5,6 +5,7 @@ import { useState } from "react";
 import ExcelImport from "@/components/excelImport";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   AlertCircle,
   ArrowLeft,
@@ -197,13 +197,20 @@ const expectedHeaders = Object.keys(headerMapping);
 
 export default function ExcelImportButton() {
   const [open, setOpen] = useState(false);
-  const [authorizer, setAuthorizer] = useState<string>("POSTILION");
+  const [authorizers, setAuthorizers] = useState<string[]>(["POSTILION"]);
   const [importResult, setImportResult] = useState<{
     status: string;
     message: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [importedData, setImportedData] = useState<ImportData[]>([]);
+
+  const authorizerOptions = [
+    { id: "POSTILION", label: "POSTILION" },
+    { id: "GLOBAL", label: "GLOBAL" },
+    { id: "GLOBAL-ECOMMERCE", label: "GLOBAL-ECOMMERCE" },
+    { id: "CARADHRAS", label: "CARADHRAS" },
+  ];
 
   // Função para validar cada linha do Excel
   const validateRow = (row: Partial<ImportData>): ImportData | null => {
@@ -420,33 +427,29 @@ export default function ExcelImportButton() {
 
                 <div className="mb-6">
                   <Label className="block mb-2">
-                    Autorizador: <span className="text-red-500">*</span>
+                    Autorizadores: <span className="text-red-500">*</span>
                   </Label>
-                  <RadioGroup
-                    value={authorizer}
-                    onValueChange={setAuthorizer}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="POSTILION" id="POSTILION" />
-                      <Label htmlFor="POSTILION">POSTILION</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="GLOBAL" id="GLOBAL" />
-                      <Label htmlFor="GLOBAL">GLOBAL</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value="GLOBAL-ECOMMERCE"
-                        id="GLOBAL-ECOMMERCE"
-                      />
-                      <Label htmlFor="GLOBAL-ECOMMERCE">GLOBAL-ECOMMERCE</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="CARADHRAS" id="CARADHRAS" />
-                      <Label htmlFor="CARADHRAS">CARADHRAS</Label>
-                    </div>
-                  </RadioGroup>
+                  <div className="space-y-2">
+                    {authorizerOptions.map((option) => (
+                      <div
+                        key={option.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={option.id}
+                          checked={authorizers.includes(option.id)}
+                          onCheckedChange={(checked) => {
+                            setAuthorizers(
+                              checked
+                                ? [...authorizers, option.id]
+                                : authorizers.filter((a) => a !== option.id)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={option.id}>{option.label}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="mb-6">
