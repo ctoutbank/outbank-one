@@ -462,7 +462,6 @@ export default function ExcelImportButton() {
                     validator={validateRow}
                     expectedHeaders={expectedHeaders}
                     headerMapping={headerMapping}
-                    buttonLabel="Selecionar Arquivo"
                   />
 
                   {importedData.length > 0 && (

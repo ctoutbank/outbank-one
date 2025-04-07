@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { main } from "@/server/integrations/dock/sync-payout/main";
+import { syncPayouts } from "@/server/integrations/dock/sync-payout/main";
 import { useState } from "react";
 
 export default function AsyncButtonsPayout() {
@@ -15,7 +15,7 @@ export default function AsyncButtonsPayout() {
     setSuccess(null);
 
     try {
-      await main();
+      await syncPayouts();
       setSuccess("Sincronização realizada com sucesso!");
     } catch (err) {
       setError("Erro ao realizar a sincronização.");

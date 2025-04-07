@@ -1,7 +1,6 @@
 "use client";
+import { FileUpload } from "@/components/ui/upload";
 import ExcelJS from "exceljs";
-import { Upload } from "lucide-react";
-import type React from "react";
 
 interface ExcelImportProps<T> {
   onDataImported: (data: T[]) => void;
@@ -11,7 +10,6 @@ interface ExcelImportProps<T> {
   expectedHeaders: string[];
   // Mapeamento de cabeçalhos em português para as chaves do tipo T (em inglês)
   headerMapping: Record<string, string>;
-  buttonLabel?: string;
 }
 
 export default function ExcelImport<T>({
@@ -19,12 +17,9 @@ export default function ExcelImport<T>({
   validator,
   expectedHeaders,
   headerMapping,
-  buttonLabel = "Importar Excel",
 }: ExcelImportProps<T>) {
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
+  const handleFileUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     try {
@@ -139,7 +134,6 @@ export default function ExcelImport<T>({
       console.log("\nFinal imported data:", data);
 
       onDataImported(data);
-      event.target.value = "";
     } catch (error) {
       console.error("Erro ao importar arquivo:", error);
       alert(
@@ -150,16 +144,12 @@ export default function ExcelImport<T>({
 
   return (
     <div className="flex justify-start">
-      <label className="flex items-center gap-2 p-2 text-black rounded-md bg-sidebar border border-black cursor-pointer">
-        <Upload size={16} />
-        {buttonLabel}
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
-      </label>
+      <FileUpload
+        onUpload={handleFileUpload}
+        maxFiles={4}
+        maxSize={10 * 1024 * 1024} // 10MB
+        accept=".xlsx,.xls"
+      />
     </div>
   );
 }

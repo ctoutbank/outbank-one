@@ -360,7 +360,7 @@ export async function getDDProfiles(): Promise<DD[]> {
 }
 
 export async function getDDMerchants(customerId?: number): Promise<DD[]> {
-
+  console.log(customerId);
 
   if (customerId == undefined || customerId == null) {
     const userClerk = await currentUser();
@@ -370,22 +370,23 @@ export async function getDDMerchants(customerId?: number): Promise<DD[]> {
       .select()
       .from(users)
       .where(eq(users.idClerk, userId || ""));
+
     if (user && user.length > 0) {
       customerId = user[0].idCustomer || 0;
     }
+
     if (customerId == undefined || customerId == null) {
       return [];
     }
   }
 
   const conditions = [eq(merchants.idCustomer, customerId)];
- 
 
   const merchantResult = await db
     .select({ id: merchants.id, name: merchants.name })
     .from(merchants)
     .where(and(...conditions));
-
+  console.log(merchantResult);
   if (!merchantResult || merchantResult.length === 0) {
     return [];
   }

@@ -127,7 +127,7 @@ export async function insertPayout(payoutList: InsertPayout[]) {
 
 export async function getPayoutSyncConfig() {
   const maxDateResult = await db
-    .select({ maxDate: max(payout.expectedSettlementDate) })
+    .select({ maxDate: max(payout.transactionDate) })
     .from(payout);
 
 

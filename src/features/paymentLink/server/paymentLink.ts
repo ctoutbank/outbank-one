@@ -196,15 +196,9 @@ export async function getPaymentLinkById(
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
 
-  // Build merchant access condition
-  let merchantAccessCondition = "";
-  if (!userAccess.fullAccess) {
-    if (userAccess.idMerchants.length === 0) {
-      return null;
-    }
-    merchantAccessCondition = `AND p.id_merchant = ANY(ARRAY[${userAccess.idMerchants.join(
-      ","
-    )}])`;
+  // If user has no access and no full access, return null
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return null;
   }
 
   const result = await db.execute(sql`
@@ -222,14 +216,18 @@ export async function getPaymentLinkById(
       p.product_type as "productType",
       p.installments as "installments",
       p.link_url as "linkUrl",    
-      COALESCE(
-        JSON_AGG(s.*) FILTER (WHERE s.id IS NOT NULL),
-        '[]'
-      ) AS "shoppingItems"
+      JSON_AGG(s.*) FILTER (WHERE s.id IS NOT NULL) AS "shoppingItems"
     FROM payment_link p
-    WHERE p.id = ${id}
-    ${sql.raw(merchantAccessCondition)}
     LEFT JOIN shopping_items s ON s.id_payment_link = p.id
+    WHERE p.id = ${id}
+    ${
+      !userAccess.fullAccess
+        ? sql`AND p.id_merchant IN (${sql.join(
+            userAccess.idMerchants,
+            sql`, `
+          )})`
+        : sql``
+    }
     GROUP BY p.id
   `);
 
