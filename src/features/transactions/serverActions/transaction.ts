@@ -123,6 +123,7 @@ export async function getTransactions(
 
   const total = stats[0].total_amount ? parseFloat(stats[0].total_amount) : 0;
   const revenue = total * 0.08;
+  console.log("result", result);
   return {
     transactions: result.map((item) => ({
       slug: item.transactions.slug,
@@ -282,7 +283,7 @@ export async function getTransactionsForReport(
     .orderBy(desc(transactions.dtInsert))
     .limit(100);
 
-  return result;
+  return result as TransactionsListRecord[];
 }
 
 export type TransactionsGroupedReport = {
