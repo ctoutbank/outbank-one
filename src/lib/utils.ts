@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
+import crypto from "crypto";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
-import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -165,7 +165,12 @@ export function formatDateComplete(date: Date): string {
 
   return `${dayOfWeek}, ${month} ${day}${daySuffix} ${year}`;
 }
-
+export function formatCNPJ(cnpj: string): string {
+  return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(
+    5,
+    8
+  )}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
+}
 export function formatCurrency(number: number | undefined | null): string {
   if (number === undefined || number === null) return "R$ 0,00";
   return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;

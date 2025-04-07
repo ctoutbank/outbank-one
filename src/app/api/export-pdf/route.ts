@@ -13,7 +13,6 @@ import { PDFDocument } from "pdf-lib";
 export async function GET(request: Request) {
   // Obter parâmetros da URL
   const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search") || "";
   const pageNumber = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "100", 10);
   const status = searchParams.get("status") || undefined;
@@ -23,7 +22,6 @@ export async function GET(request: Request) {
   const productType = searchParams.get("productType") || undefined;
 
   const transactions = await getTransactions(
-    search,
     pageNumber,
     pageSize,
     status,
