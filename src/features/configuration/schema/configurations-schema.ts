@@ -9,6 +9,10 @@ export const schemaConfiguration = z.object({
   url: z.string().optional(),
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
+  anticipationRiskFactorCp: z.number().optional(),
+  anticipationRiskFactorCnp: z.number().optional(),
+  waitingPeriodCp: z.number().optional(),
+  waitingPeriodCnp: z.number().optional(),
 });
 
 export type ConfigurationSchema = z.infer<typeof schemaConfiguration>;
@@ -30,7 +34,10 @@ export const schemaConfigurationOperations = z.object({
   cardNotPresent: z.boolean().optional(),
   timezone: z.string().optional(),
   theme: z.string().optional(),
- 
+  anticipationRiskFactorCp: z.string().optional(),
+  anticipationRiskFactorCnp: z.string().optional(),
+  waitingPeriodCp: z.string().optional(),
+  waitingPeriodCnp: z.string().optional(),
 });
 
 export type ConfigurationOperationsSchema = z.infer<

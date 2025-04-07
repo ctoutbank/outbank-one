@@ -19,8 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProcessingType, ProductType, Status } from "@/lib/lookuptables";
 
+import {
+  cardPaymentMethod,
+  processingTypeList,
+  transactionProductTypeList,
+  transactionStatusList,
+} from "@/lib/lookuptables/lookuptables-transactions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -580,7 +585,7 @@ export default function FilterForm({
           dtinsert: (data.dtinsert || new Date()).toISOString(),
           dtupdate: (data.dtinsert || new Date()).toISOString(),
         });
-        router.push(`/portal/reports/${reportId}`);
+        router.refresh(); // Apenas atualiza os dados
         closeDialog();
       }
     } catch (error) {
@@ -715,7 +720,7 @@ export default function FilterForm({
                     <FormItem>
                       <FormLabel>Selecione os Status</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {Status.map((status) => (
+                        {transactionStatusList.map((status) => (
                           <div
                             key={status.value}
                             className="flex items-center space-x-2"
@@ -809,7 +814,7 @@ export default function FilterForm({
                     <FormItem>
                       <FormLabel>Selecione os Tipos de Processamento</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {ProcessingType.map((processingType) => (
+                        {processingTypeList.map((processingType) => (
                           <div
                             key={processingType.value}
                             className="flex items-center space-x-2"
@@ -869,9 +874,9 @@ export default function FilterForm({
                     name="value"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Selecione os Tipos de Transação</FormLabel>
+                        <FormLabel>Selecione os Tipos de Pagamento</FormLabel>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                          {ProductType.map((productType) => (
+                          {transactionProductTypeList.map((productType) => (
                             <div
                               key={productType.value}
                               className="flex items-center space-x-2"
@@ -931,29 +936,24 @@ export default function FilterForm({
                     <FormItem>
                       <FormLabel>Selecione os Tipos de Pagamento</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {ProductType.map((productType) => (
+                        {cardPaymentMethod.map((method) => (
                           <div
-                            key={productType.value}
+                            key={method.value}
                             className="flex items-center space-x-2"
                           >
                             <Checkbox
-                              id={`paymentType-${productType.value}`}
+                              id={`paymentType-${method.value}`}
                               checked={selectedPaymentTypes.includes(
-                                productType.value
+                                method.value
                               )}
                               onCheckedChange={() => {
                                 // Alternar a seleção
                                 const newSelection =
-                                  selectedPaymentTypes.includes(
-                                    productType.value
-                                  )
+                                  selectedPaymentTypes.includes(method.value)
                                     ? selectedPaymentTypes.filter(
-                                        (p) => p !== productType.value
+                                        (p) => p !== method.value
                                       )
-                                    : [
-                                        ...selectedPaymentTypes,
-                                        productType.value,
-                                      ];
+                                    : [...selectedPaymentTypes, method.value];
 
                                 // Atualizar o estado local
                                 setSelectedPaymentTypes(newSelection);
@@ -963,17 +963,17 @@ export default function FilterForm({
                               }}
                             />
                             <label
-                              htmlFor={`paymentType-${productType.value}`}
+                              htmlFor={`paymentType-${method.value}`}
                               className="text-sm cursor-pointer"
                             >
-                              {productType.label}
+                              {method.label}
                             </label>
                           </div>
                         ))}
                       </div>
                       {selectedPaymentTypes.length === 0 && (
                         <p className="text-xs text-destructive mt-1">
-                          Selecione pelo menos um tipo de pagamento
+                          Selecione pelo menos um Modo de Captura
                         </p>
                       )}
                       <FormMessage />
@@ -1063,10 +1063,15 @@ export default function FilterForm({
                                       setSearchTerm(merchant.name || "");
                                       setShowSuggestions(false);
 
-                                      // Atualizar o valor do campo com "nome|id" para poder recuperar depois
-                                      field.onChange(
-                                        `${merchant.name}|${merchant.id}`
-                                      );
+                                      // Atualizar o valor do campo para usar o slug do merchant
+                                      if (merchant.slug) {
+                                        field.onChange(merchant.slug);
+                                      } else {
+                                        // Fallback caso não tenha slug (pouco provável)
+                                        field.onChange(
+                                          `${merchant.name}|${merchant.id}`
+                                        );
+                                      }
                                     }}
                                   >
                                     {merchant.name || "N/A"}

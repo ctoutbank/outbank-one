@@ -366,3 +366,26 @@ export const searchTerminals = async (
     return [];
   }
 };
+
+// Buscar um merchant pelo slug
+export const getMerchantBySlug = async (
+  slug: string
+): Promise<MerchantOption | null> => {
+  try {
+    const result = await db
+      .select({
+        id: merchants.id,
+        name: merchants.name,
+        corporateName: merchants.corporateName,
+        slug: merchants.slug,
+      })
+      .from(merchants)
+      .where(eq(merchants.slug, slug))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("Erro ao buscar estabelecimento pelo slug:", error);
+    return null;
+  }
+};

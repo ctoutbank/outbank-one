@@ -1,14 +1,14 @@
 // app/api/relatorio/route.ts
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
-import { NextResponse } from "next/server";
-import { PDFDocument } from "pdf-lib";
 import {
+  calculatePagination,
   drawPageHeader,
   drawTableHeader,
   drawTableRow,
-  calculatePagination,
   getPageItems,
 } from "@/lib/pdf-utils";
+import { NextResponse } from "next/server";
+import { PDFDocument } from "pdf-lib";
 
 export async function GET(request: Request) {
   // Obter parâmetros da URL
@@ -55,9 +55,9 @@ export async function GET(request: Request) {
   const dados =
     transactions.transactions && Array.isArray(transactions.transactions)
       ? transactions.transactions.map((item) => ({
-          id: item.dtInsert || "",
+          id: item.dateInsert || "",
           descricao: item.productType || "",
-          valor: item.totalAmount || "",
+          valor: item.amount || "",
         }))
       : [];
 

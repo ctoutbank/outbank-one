@@ -23,13 +23,7 @@ export default async function TerminalDetail({
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[
-          { title: "Terminais", url: "/portal/terminals" },
-          {
-            title: terminal.slug || "",
-            url: `/portal/terminals/${params.slug}`,
-          },
-        ]}
+        breadcrumbItems={[{ title: "Terminais", url: "/portal/terminals" }]}
       />
       <BaseBody title="Terminal" subtitle="Detalhes do terminal">
         <TerminalDetails terminal={terminal} />

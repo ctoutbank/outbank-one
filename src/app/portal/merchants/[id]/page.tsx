@@ -26,6 +26,7 @@ export default async function MerchantDetail({
     "Estabelecimentos",
     "Atualizar"
   );
+ 
 
   const merchantId = parseInt(params.id);
 
@@ -48,6 +49,17 @@ export default async function MerchantDetail({
   const configurations = await getConfigurationsByMerchantId(
     merchant?.merchants.id || 0
   );
+  console.log("configurations:", configurations);
+  console.log("Valores de antecipação (debug):", {
+    anticipationRiskFactorCp: configurations?.anticipationRiskFactorCp,
+    anticipationRiskFactorCnp: configurations?.anticipationRiskFactorCnp,
+    waitingPeriodCp: configurations?.waitingPeriodCp,
+    waitingPeriodCnp: configurations?.waitingPeriodCnp,
+    tipoAnticipationRiskFactorCp:
+      typeof configurations?.anticipationRiskFactorCp,
+    tipoAnticipationRiskFactorCnp:
+      typeof configurations?.anticipationRiskFactorCnp,
+  });
   const pixaccount = await getMerchantPixAccountByMerchantId(
     merchant?.merchants.id || 0
   );
@@ -220,12 +232,18 @@ export default async function MerchantDetail({
               dtinsert: configurations?.dtinsert || "",
               dtupdate: configurations?.dtupdate || "",
               lockCpAnticipationOrder:
-                configurations?.lockCpAnticipationOrder || false,
+                configurations?.lockCpAnticipationOrder === true ? true : false,
               lockCnpAnticipationOrder:
-                configurations?.lockCnpAnticipationOrder || false,
+                configurations?.lockCnpAnticipationOrder === true
+                  ? true
+                  : false,
               url: configurations?.url || "",
               anticipationRiskFactorCp:
                 configurations?.anticipationRiskFactorCp || "",
+              anticipationRiskFactorCnp:
+                configurations?.anticipationRiskFactorCnp || "",
+              waitingPeriodCp: configurations?.waitingPeriodCp || "",
+              waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
             },
           }}
           pixaccounts={{

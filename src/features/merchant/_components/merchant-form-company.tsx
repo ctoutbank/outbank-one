@@ -33,7 +33,7 @@ import {
 } from "../schema/merchant-schema";
 
 import { Button } from "@/components/ui/button";
-import { legalPersonTypes, states } from "@/lib/lookuptables";
+import { legalPersonTypes, states } from "@/lib/lookuptables/lookuptables";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addresses, merchants } from "../../../../drizzle/schema";
