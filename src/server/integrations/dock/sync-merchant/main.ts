@@ -18,7 +18,7 @@ async function fetchMerchants() {
   return data;
 }
 
-export async function main() {
+export async function syncMerchant() {
   try {
     console.log("Buscando merchants...");
 

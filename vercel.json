@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/sync-payouts",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/sync-merchants",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sync-paymentLinks",
+      "schedule": "0 0 * * *"
     }
   ]
 }

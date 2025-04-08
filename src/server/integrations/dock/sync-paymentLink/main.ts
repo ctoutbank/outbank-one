@@ -43,7 +43,7 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return result;
 }
 
-export async function main() {
+export async function syncPaymentLink() {
   try {
     console.log("Buscando payment links...");
 

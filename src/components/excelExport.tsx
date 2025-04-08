@@ -1,8 +1,7 @@
 "use client";
-import { Download } from "lucide-react";
-import ExcelJS from "exceljs";
-import { Fill, Font, Alignment } from "exceljs";
 import { Button } from "@/components/ui/button";
+import ExcelJS, { Alignment, Fill, Font } from "exceljs";
+import { Download } from "lucide-react";
 interface ExcelExportProps<T> {
   data: T[];
   globalStyles?: {
@@ -27,11 +26,11 @@ export default function ExcelExport<T>({
   globalStyles,
   sheetName,
   fileName,
-  onClick
+  onClick,
 }: ExcelExportProps<T>) {
   const downloadExcel = async () => {
-    if(onClick !== undefined) {
-     onClick();
+    if (onClick !== undefined) {
+      onClick();
     }
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(sheetName);
@@ -118,7 +117,8 @@ export default function ExcelExport<T>({
     <div className="flex justify-end">
       <Button
         onClick={downloadExcel}
-        
+        variant="outline"
+        className="flex items-center gap-2 transition-colors hover:bg-neutral-100"
       >
         <Download size={16} />
         Exportar
