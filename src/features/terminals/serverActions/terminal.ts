@@ -1,6 +1,17 @@
 import { getUserMerchantSlugs } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { and, count, desc, eq, ilike, inArray, like, lte, or, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  like,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 import { merchants, terminals } from "../../../../drizzle/schema";
 
 export async function getTerminalss(
@@ -310,4 +321,12 @@ export async function getTerminals(
     approvedCount: result.filter((t) => t.status === "APPROVED").length,
     rejectedCount: result.filter((t) => t.status === "REJECTED").length,
   };
+}
+
+export async function getTerminalBySlug(slug: string) {
+  const terminal = await db
+    .select()
+    .from(terminals)
+    .where(eq(terminals.slug, slug));
+  return terminal[0] || null;
 }
