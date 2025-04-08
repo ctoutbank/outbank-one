@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { translateStatus } from "@/lib/utils";
+import { formatCNPJ, translateStatus } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Merchantlist } from "../server/merchant";
@@ -60,11 +60,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                       {merchant.name}
                     </Link>
                     <span className="text-sm text-muted-foreground">
-                      (
-                      {merchant.cnpj.slice(0, 11) +
-                        "-" +
-                        merchant.cnpj.slice(11)}
-                      )
+                      ({formatCNPJ(merchant.cnpj)})
                     </span>
                   </div>
                 </TableCell>

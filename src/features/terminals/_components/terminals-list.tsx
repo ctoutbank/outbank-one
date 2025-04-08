@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatCNPJ } from "@/lib/utils";
 import { ChevronDown, Eye } from "lucide-react";
 import Link from "next/link";
 import { TerminallsList } from "../serverActions/terminal";
@@ -65,11 +66,8 @@ export default function TerminalsList({
                 <TableCell>
                   {terminal.merchantName}
                   <div className="text-xs text-gray-500">
-                    {terminal.merchantDocumentId &&
-                    terminal.merchantDocumentId.length === 14
-                      ? terminal.merchantDocumentId.slice(0, 11) +
-                        "-" +
-                        terminal.merchantDocumentId.slice(11)
+                    {terminal.merchantDocumentId
+                      ? formatCNPJ(terminal.merchantDocumentId)
                       : terminal.merchantDocumentId}
                   </div>
                 </TableCell>
