@@ -22,7 +22,9 @@ import {
 
 import {
   cardPaymentMethod,
+  cycleTypeList,
   processingTypeList,
+  splitTypeList,
   transactionProductTypeList,
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
@@ -52,10 +54,12 @@ type SelectorType =
   | "dateRange"
   | "merchant"
   | "valueRange"
-  | "transactionType"
   | "paymentType"
-  | "processingType"
-  | "terminal";
+  | "terminal"
+  | "cycleType"
+  | "splitType"
+  | "captureMode"
+  | "entryMode";
 
 interface FilterFormProps {
   filter: ReportFilterSchema;
@@ -90,15 +94,16 @@ export default function FilterForm({
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedStatusList, setSelectedStatusList] = useState<string[]>([]);
-  const [selectedTransactionTypes, setSelectedTransactionTypes] = useState<
-    string[]
-  >([]);
+
   const [selectedPaymentTypes, setSelectedPaymentTypes] = useState<string[]>(
     []
   );
-  const [selectedProcessingTypes, setSelectedProcessingTypes] = useState<
-    string[]
-  >([]);
+  const [selectedCycleTypes, setSelectedCycleTypes] = useState<string[]>([]);
+  const [selectedSplitTypes, setSelectedSplitTypes] = useState<string[]>([]);
+  const [selectedCaptureModes, setSelectedCaptureModes] = useState<string[]>(
+    []
+  );
+  const [selectedEntryModes, setSelectedEntryModes] = useState<string[]>([]);
   const [selectorType, setSelectorType] = useState<SelectorType>("none");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -264,43 +269,19 @@ export default function FilterForm({
                   }
                 }
               }
-            } else if (param.name === "Tipo de Transação") {
-              setSelectorType("transactionType");
-
-              // Inicializar tipo de transação selecionado
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const transactionValues = filter.value
-                    .split(",")
-                    .map((t) => t.trim());
-                  setSelectedTransactionTypes(transactionValues);
-                } else if (filter.value) {
-                  setSelectedTransactionTypes([filter.value]);
-                }
-              }
             } else if (param.name === "Tipo de Pagamento") {
               setSelectorType("paymentType");
 
               // Inicializar tipo de pagamento selecionado
               if (filter.value) {
                 if (filter.value.includes(",")) {
-                  const paymentValues = filter.value
+                  const transactionValues = filter.value
                     .split(",")
                     .map((p) => p.trim());
-                  setSelectedPaymentTypes(paymentValues);
+                  setSelectedPaymentTypes(transactionValues);
                 } else if (filter.value) {
                   setSelectedPaymentTypes([filter.value]);
                 }
-              }
-            } else if (param.name === "Processamento") {
-              setSelectorType("processingType");
-
-              // Inicializar tipos de processamento selecionados
-              if (filter.value) {
-                const processingValues = filter.value
-                  .split(",")
-                  .map((p) => p.trim());
-                setSelectedProcessingTypes(processingValues);
               }
             } else if (param.name === "Terminal") {
               setSelectorType("terminal");
@@ -328,6 +309,62 @@ export default function FilterForm({
                   setLoading(false);
                 }
               }
+            } else if (param.name === "Ciclo da Transação") {
+              setSelectorType("cycleType");
+
+              // Inicializar ciclos de transação selecionados
+              if (filter.value) {
+                if (filter.value.includes(",")) {
+                  const cycleValues = filter.value
+                    .split(",")
+                    .map((c) => c.trim());
+                  setSelectedCycleTypes(cycleValues);
+                } else if (filter.value) {
+                  setSelectedCycleTypes([filter.value]);
+                }
+              }
+            } else if (param.name === "Repasse da Transação") {
+              setSelectorType("splitType");
+
+              // Inicializar tipos de repasse selecionados
+              if (filter.value) {
+                if (filter.value.includes(",")) {
+                  const splitValues = filter.value
+                    .split(",")
+                    .map((s) => s.trim());
+                  setSelectedSplitTypes(splitValues);
+                } else if (filter.value) {
+                  setSelectedSplitTypes([filter.value]);
+                }
+              }
+            } else if (param.name === "Modo de Captura") {
+              setSelectorType("captureMode");
+
+              // Inicializar modos de captura selecionados
+              if (filter.value) {
+                if (filter.value.includes(",")) {
+                  const captureValues = filter.value
+                    .split(",")
+                    .map((c) => c.trim());
+                  setSelectedCaptureModes(captureValues);
+                } else if (filter.value) {
+                  setSelectedCaptureModes([filter.value]);
+                }
+              }
+            } else if (param.name === "Modo de Entrada") {
+              setSelectorType("entryMode");
+
+              // Inicializar modos de entrada selecionados
+              if (filter.value) {
+                if (filter.value.includes(",")) {
+                  const entryValues = filter.value
+                    .split(",")
+                    .map((e) => e.trim());
+                  setSelectedEntryModes(entryValues);
+                } else if (filter.value) {
+                  setSelectedEntryModes([filter.value]);
+                }
+              }
             } else {
               setSelectorType("none");
             }
@@ -344,9 +381,12 @@ export default function FilterForm({
           setMaxValue("");
           setSelectedStatusList([]);
           setSelectedMerchant(null);
-          setSelectedTransactionTypes([]);
+
           setSelectedPaymentTypes([]);
-          setSelectedProcessingTypes([]);
+          setSelectedCycleTypes([]);
+          setSelectedSplitTypes([]);
+          setSelectedCaptureModes([]);
+          setSelectedEntryModes([]);
           setSelectedTerminal(null);
           setTerminalSearchTerm("");
           setTerminals([]);
@@ -401,9 +441,12 @@ export default function FilterForm({
     setMaxValue("");
     setSelectedStatusList([]);
     setSelectedMerchant(null);
-    setSelectedTransactionTypes([]);
+
     setSelectedPaymentTypes([]);
-    setSelectedProcessingTypes([]);
+    setSelectedCycleTypes([]);
+    setSelectedSplitTypes([]);
+    setSelectedCaptureModes([]);
+    setSelectedEntryModes([]);
     setSelectedTerminal(null);
     setTerminalSearchTerm("");
     setTerminals([]);
@@ -439,12 +482,8 @@ export default function FilterForm({
       } finally {
         setLoading(false);
       }
-    } else if (param.name === "Tipo de Transação") {
-      setSelectorType("transactionType");
     } else if (param.name === "Tipo de Pagamento") {
       setSelectorType("paymentType");
-    } else if (param.name === "Processamento") {
-      setSelectorType("processingType");
     } else if (param.name === "Terminal") {
       setSelectorType("terminal");
 
@@ -458,6 +497,14 @@ export default function FilterForm({
       } finally {
         setLoading(false);
       }
+    } else if (param.name === "Ciclo da Transação") {
+      setSelectorType("cycleType");
+    } else if (param.name === "Repasse da Transação") {
+      setSelectorType("splitType");
+    } else if (param.name === "Modo de Captura") {
+      setSelectorType("captureMode");
+    } else if (param.name === "Modo de Entrada") {
+      setSelectorType("entryMode");
     } else {
       setSelectorType("none");
     }
@@ -805,128 +852,6 @@ export default function FilterForm({
                 />
               </div>
             )}
-            {!loading && paramSelected && selectorType === "processingType" && (
-              <div className="mt-4">
-                <FormField
-                  control={form.control}
-                  name="value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Selecione os Tipos de Processamento</FormLabel>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {processingTypeList.map((processingType) => (
-                          <div
-                            key={processingType.value}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`processingType-${processingType.value}`}
-                              checked={selectedProcessingTypes.includes(
-                                processingType.value
-                              )}
-                              onCheckedChange={() => {
-                                // Alternar a seleção
-                                const newSelection =
-                                  selectedProcessingTypes.includes(
-                                    processingType.value
-                                  )
-                                    ? selectedProcessingTypes.filter(
-                                        (p) => p !== processingType.value
-                                      )
-                                    : [
-                                        ...selectedProcessingTypes,
-                                        processingType.value,
-                                      ];
-
-                                // Atualizar o estado local
-                                setSelectedProcessingTypes(newSelection);
-
-                                // Atualizar o valor do campo
-                                field.onChange(newSelection.join(","));
-                              }}
-                            />
-                            <label
-                              htmlFor={`processingType-${processingType.value}`}
-                              className="text-sm cursor-pointer"
-                            >
-                              {processingType.label}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      {selectedProcessingTypes.length === 0 && (
-                        <p className="text-xs text-destructive mt-1">
-                          Selecione pelo menos um tipo de processamento
-                        </p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-            {!loading &&
-              paramSelected &&
-              selectorType === "transactionType" && (
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="value"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Selecione os Tipos de Pagamento</FormLabel>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                          {transactionProductTypeList.map((productType) => (
-                            <div
-                              key={productType.value}
-                              className="flex items-center space-x-2"
-                            >
-                              <Checkbox
-                                id={`transactionType-${productType.value}`}
-                                checked={selectedTransactionTypes.includes(
-                                  productType.value
-                                )}
-                                onCheckedChange={() => {
-                                  // Alternar a seleção
-                                  const newSelection =
-                                    selectedTransactionTypes.includes(
-                                      productType.value
-                                    )
-                                      ? selectedTransactionTypes.filter(
-                                          (t) => t !== productType.value
-                                        )
-                                      : [
-                                          ...selectedTransactionTypes,
-                                          productType.value,
-                                        ];
-
-                                  // Atualizar o estado local
-                                  setSelectedTransactionTypes(newSelection);
-
-                                  // Atualizar o valor do campo
-                                  field.onChange(newSelection.join(","));
-                                }}
-                              />
-                              <label
-                                htmlFor={`transactionType-${productType.value}`}
-                                className="text-sm cursor-pointer"
-                              >
-                                {productType.label}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                        {selectedTransactionTypes.length === 0 && (
-                          <p className="text-xs text-destructive mt-1">
-                            Selecione pelo menos um tipo de transação
-                          </p>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
             {!loading && paramSelected && selectorType === "paymentType" && (
               <div className="mt-4">
                 <FormField
@@ -936,24 +861,29 @@ export default function FilterForm({
                     <FormItem>
                       <FormLabel>Selecione os Tipos de Pagamento</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {cardPaymentMethod.map((method) => (
+                        {transactionProductTypeList.map((productType) => (
                           <div
-                            key={method.value}
+                            key={productType.value}
                             className="flex items-center space-x-2"
                           >
                             <Checkbox
-                              id={`paymentType-${method.value}`}
+                              id={`paymentType-${productType.value}`}
                               checked={selectedPaymentTypes.includes(
-                                method.value
+                                productType.value
                               )}
                               onCheckedChange={() => {
                                 // Alternar a seleção
                                 const newSelection =
-                                  selectedPaymentTypes.includes(method.value)
+                                  selectedPaymentTypes.includes(
+                                    productType.value
+                                  )
                                     ? selectedPaymentTypes.filter(
-                                        (p) => p !== method.value
+                                        (p) => p !== productType.value
                                       )
-                                    : [...selectedPaymentTypes, method.value];
+                                    : [
+                                        ...selectedPaymentTypes,
+                                        productType.value,
+                                      ];
 
                                 // Atualizar o estado local
                                 setSelectedPaymentTypes(newSelection);
@@ -963,17 +893,17 @@ export default function FilterForm({
                               }}
                             />
                             <label
-                              htmlFor={`paymentType-${method.value}`}
+                              htmlFor={`paymentType-${productType.value}`}
                               className="text-sm cursor-pointer"
                             >
-                              {method.label}
+                              {productType.label}
                             </label>
                           </div>
                         ))}
                       </div>
                       {selectedPaymentTypes.length === 0 && (
                         <p className="text-xs text-destructive mt-1">
-                          Selecione pelo menos um Modo de Captura
+                          Selecione pelo menos um tipo de pagamento
                         </p>
                       )}
                       <FormMessage />
@@ -1310,6 +1240,231 @@ export default function FilterForm({
                         <p className="text-xs text-destructive">
                           O valor final deve ser maior ou igual ao valor inicial
                           e ambos devem estar entre 1 e 9.999.999
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && paramSelected && selectorType === "cycleType" && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selecione o Ciclo da Transação</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                        {cycleTypeList.map((cycleType) => (
+                          <div
+                            key={cycleType.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`cycleType-${cycleType.value}`}
+                              checked={selectedCycleTypes.includes(
+                                cycleType.value
+                              )}
+                              onCheckedChange={() => {
+                                // Alternar a seleção
+                                const newSelection =
+                                  selectedCycleTypes.includes(cycleType.value)
+                                    ? selectedCycleTypes.filter(
+                                        (c) => c !== cycleType.value
+                                      )
+                                    : [...selectedCycleTypes, cycleType.value];
+
+                                // Atualizar o estado local
+                                setSelectedCycleTypes(newSelection);
+
+                                // Atualizar o valor do campo
+                                field.onChange(newSelection.join(","));
+                              }}
+                            />
+                            <label
+                              htmlFor={`cycleType-${cycleType.value}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              {cycleType.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedCycleTypes.length === 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Selecione pelo menos um tipo de ciclo
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && paramSelected && selectorType === "splitType" && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selecione o Repasse da Transação</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                        {splitTypeList.map((splitType) => (
+                          <div
+                            key={splitType.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`splitType-${splitType.value}`}
+                              checked={selectedSplitTypes.includes(
+                                splitType.value
+                              )}
+                              onCheckedChange={() => {
+                                // Alternar a seleção
+                                const newSelection =
+                                  selectedSplitTypes.includes(splitType.value)
+                                    ? selectedSplitTypes.filter(
+                                        (s) => s !== splitType.value
+                                      )
+                                    : [...selectedSplitTypes, splitType.value];
+
+                                // Atualizar o estado local
+                                setSelectedSplitTypes(newSelection);
+
+                                // Atualizar o valor do campo
+                                field.onChange(newSelection.join(","));
+                              }}
+                            />
+                            <label
+                              htmlFor={`splitType-${splitType.value}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              {splitType.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedSplitTypes.length === 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Selecione pelo menos um tipo de repasse
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && paramSelected && selectorType === "captureMode" && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selecione o Modo de Captura</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                        {cardPaymentMethod.map((captureMode) => (
+                          <div
+                            key={captureMode.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`captureMode-${captureMode.value}`}
+                              checked={selectedCaptureModes.includes(
+                                captureMode.value
+                              )}
+                              onCheckedChange={() => {
+                                // Alternar a seleção
+                                const newSelection =
+                                  selectedCaptureModes.includes(
+                                    captureMode.value
+                                  )
+                                    ? selectedCaptureModes.filter(
+                                        (c) => c !== captureMode.value
+                                      )
+                                    : [
+                                        ...selectedCaptureModes,
+                                        captureMode.value,
+                                      ];
+
+                                // Atualizar o estado local
+                                setSelectedCaptureModes(newSelection);
+
+                                // Atualizar o valor do campo
+                                field.onChange(newSelection.join(","));
+                              }}
+                            />
+                            <label
+                              htmlFor={`captureMode-${captureMode.value}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              {captureMode.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedCaptureModes.length === 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Selecione pelo menos um modo de captura
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && paramSelected && selectorType === "entryMode" && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selecione o Modo de Entrada</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
+                        {processingTypeList.map((entryMode) => (
+                          <div
+                            key={entryMode.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`entryMode-${entryMode.value}`}
+                              checked={selectedEntryModes.includes(
+                                entryMode.value
+                              )}
+                              onCheckedChange={() => {
+                                // Alternar a seleção
+                                const newSelection =
+                                  selectedEntryModes.includes(entryMode.value)
+                                    ? selectedEntryModes.filter(
+                                        (e) => e !== entryMode.value
+                                      )
+                                    : [...selectedEntryModes, entryMode.value];
+
+                                // Atualizar o estado local
+                                setSelectedEntryModes(newSelection);
+
+                                // Atualizar o valor do campo
+                                field.onChange(newSelection.join(","));
+                              }}
+                            />
+                            <label
+                              htmlFor={`entryMode-${entryMode.value}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              {entryMode.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedEntryModes.length === 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Selecione pelo menos um modo de entrada
                         </p>
                       )}
                       <FormMessage />

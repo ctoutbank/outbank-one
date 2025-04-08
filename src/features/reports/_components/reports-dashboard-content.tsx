@@ -131,28 +131,6 @@ export function ReportsDashboardContent() {
                     {stats.formatStats.excel}
                   </span>
                 </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    <span className="text-xs font-medium text-zinc-600">
-                      CSV
-                    </span>
-                  </div>
-                  <span className="text-base font-semibold text-zinc-900">
-                    {stats.formatStats.csv}
-                  </span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-500" />
-                    <span className="text-xs font-medium text-zinc-600">
-                      TXT
-                    </span>
-                  </div>
-                  <span className="text-base font-semibold text-zinc-900">
-                    {stats.formatStats.text}
-                  </span>
-                </div>
               </div>
             </CardContent>
           </Card>

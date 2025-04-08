@@ -2,19 +2,33 @@
   "crons": [
     {
       "path": "/api/cron/report-schedule",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/5 * * * *",
+      "maxDuration": 300
     },
     {
       "path": "/api/cron/report-execution",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/5 * * * *",
+      "maxDuration": 300
     },
     {
       "path": "/api/cron/sync-transactions",
-      "schedule": "* * * * *"
+      "schedule": "* * * * *",
+      "maxDuration": 300
     },
     {
       "path": "/api/cron/sync-terminals",
-      "schedule": "0 0 * * *"
+      "schedule": "0 0 * * *",
+      "maxDuration": 300
+    },
+    {
+      "path": "/api/cron/sync-settlements",
+      "schedule": "0 * * * *",
+      "maxDuration": 300
+    },
+    {
+      "path": "/api/cron/sync-payouts",
+      "schedule": "* * * * *",
+      "maxDuration": 300
     }
   ]
 }

@@ -1,47 +1,28 @@
 "use server";
 
-import { addDays, formatDateToAPIFilter } from "@/lib/utils";
+import { formatDateToAPIFilter } from "@/lib/utils";
 import { getPayoutSyncConfig, insertPayoutAndRelations } from "./payout";
 import { Payout, PayoutResponse } from "./types";
 
-async function fetchPayout(
-  offset: number,
-  expectedSettlementDateStart: Date | undefined
-) {
-  let stringExpectedSettlementDateStart = "";
-  let stringExpectedSettlementDateEnd = "";
+async function fetchPayout(offset: number, transactionDate: Date | undefined) {
+  let stringTransactionDate = "";
 
-  if (
-    expectedSettlementDateStart === undefined ||
-    expectedSettlementDateStart === null
-  ) {
-    stringExpectedSettlementDateStart = "2024-09-05";
-    stringExpectedSettlementDateEnd = "2024-10-05";
-    console.log(
-      "startDate and EndDate",
-      stringExpectedSettlementDateEnd,
-      stringExpectedSettlementDateStart,
-      offset
-    );
+  if (transactionDate === undefined || transactionDate === null) {
+    stringTransactionDate = "2024-09-05";
+
+    console.log("transaction date", stringTransactionDate, offset);
   } else {
-    const expectedSettlementDateEnd = new Date(expectedSettlementDateStart);
-    expectedSettlementDateEnd.setDate(expectedSettlementDateEnd.getDate() + 30);
-    stringExpectedSettlementDateStart = formatDateToAPIFilter(
-      expectedSettlementDateStart ? expectedSettlementDateStart : new Date()
-    );
-    stringExpectedSettlementDateEnd = formatDateToAPIFilter(
-      expectedSettlementDateEnd ? expectedSettlementDateEnd : new Date()
-    );
-    console.log(
-      "startDate and EndDate",
-      stringExpectedSettlementDateEnd,
-      stringExpectedSettlementDateStart,
-      offset
-    );
+    const nextDay = new Date(transactionDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    console.log("nextDay", nextDay, transactionDate);
+    stringTransactionDate = formatDateToAPIFilter(nextDay);
+
+    console.log("transaction date", stringTransactionDate, offset);
   }
+  console.log("fetching", stringTransactionDate, offset, transactionDate);
 
   const response = await fetch(
-    `https://settlement.acquiring.dock.tech/v1/payouts/statement?expectedSettlementDate__goe=${stringExpectedSettlementDateStart}&expectedSettlementDate__loe=${stringExpectedSettlementDateEnd}&limit=1000&offset=${offset}`,
+    `https://settlement.acquiring.dock.tech/v1/payouts/statement?transactionDate=${stringTransactionDate}&limit=1000&offset=${offset}`,
     {
       headers: {
         Authorization: `${process.env.DOCK_API_KEY}`,
@@ -50,29 +31,31 @@ async function fetchPayout(
     }
   );
 
-  console.log(response);
   if (!response.ok) {
     throw new Error(`Failed to fetch data: ${response.statusText}`);
   }
 
   const data: PayoutResponse = await response.json();
+  if (data.meta.total_count === 0) {
+    const nextDay = new Date(transactionDate ?? new Date());
+    nextDay.setDate(nextDay.getDate() + 1);
+    fetchPayout(0, nextDay);
+  }
   return data;
 }
 
-export async function main() {
+export async function syncPayouts() {
   try {
     console.log("Buscando payouts...");
 
     const payoutConfig = await getPayoutSyncConfig();
-    console.log(payoutConfig);
 
     let offset = 0;
-    let expectedSettlementDate = payoutConfig
-      ? new Date(payoutConfig)
-      : undefined;
+    const transactionDate = payoutConfig ? new Date(payoutConfig) : undefined;
+    console.log("transactionDate", transactionDate);
 
     while (true) {
-      const response = await fetchPayout(offset, expectedSettlementDate);
+      const response = await fetchPayout(offset, transactionDate);
       const payouts: Payout[] = response.objects || [];
 
       // Insere no banco os novos registros
@@ -81,17 +64,8 @@ export async function main() {
       // Atualiza o offset e verifica se há mais registros para essa data
       offset += payouts.length;
       if (offset >= response.meta.total_count) {
-        expectedSettlementDate = addDays(
-          expectedSettlementDate ?? new Date(),
-          30
-        );
-        offset = 0;
-      }
-
-      if (expectedSettlementDate) {
-        if (expectedSettlementDate >= new Date()) {
-          break;
-        }
+        console.log("payouts adicionados");
+        break;
       }
     }
   } catch (error) {

@@ -27,16 +27,16 @@ export const cardPaymentMethod: SelectItem[] = [
 ];
 
 export const processingTypeList: SelectItem[] = [
-  { value: "MANUAL_KEY_ENTRY", label: "Manual" },
-  { value: "MAGNETIC_STRIPE", label: "Magnect stripe" },
+  { value: "MANUAL_KEY_ENTRY", label: "Digitada" },
+  { value: "MAGNETIC_STRIPE", label: "Tarja" },
   { value: "CHIP_EMV", label: "Chip" },
-  { value: "CONTACTLESS", label: "Contactless" },
+  { value: "CONTACTLESS", label: "Sem contato" },
   { value: "CARD_TOKEN", label: "Token" },
-  { value: "PAYLINK", label: "Payment Link" },
-  { value: "INTEGRATION", label: "Integration" },
-  { value: "POS", label: "Point of Sale" },
+  { value: "PAYLINK", label: "Link de pagamento" },
+  { value: "INTEGRATION", label: "Integração" },
+  { value: "POS", label: "Ponto de venda" },
   { value: "TAP_ON_PHONE", label: "Tap on Phone" },
-  { value: "VIRTUAL_TERMINAL", label: "Virtual Terminal" },
+  { value: "VIRTUAL_TERMINAL", label: "Terminal virtual" },
   { value: "PDV", label: "PDV" },
 ];
 
@@ -50,16 +50,14 @@ export const brandList: SelectItem[] = [
 ];
 
 export const cycleTypeList: SelectItem[] = [
-  { value: "AUTHORIZATION", label: "Autorização" },
   { value: "VOID", label: "Cancelamento" },
   { value: "REFUND", label: "Reembolso" },
-  { value: "PRE_AUTHORIZATION", label: "Pré-autorização" },
-  { value: "PRE_AUTHORIZATION_ADJUSTMENT", label: "Ajuste de pré-autorização" },
-  {
-    value: "PRE_AUTHORIZATION_COMPLETION",
-    label: "Conclusão de pré-autorização",
-  },
-  { value: "REVERSAL", label: "Estorno" },
+  { value: "PRE_AUTHORIZATION", label: "Pré Autorização" },
+];
+
+export const splitTypeList: SelectItem[] = [
+  { value: "WITH_SPLIT", label: "Com Split" },
+  { value: "WITHOUT_SPLIT", label: "Sem Split" },
 ];
 
 /**

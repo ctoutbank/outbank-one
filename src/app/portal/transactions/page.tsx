@@ -4,7 +4,6 @@ import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SyncButton } from "@/features/sync/syncButton";
-import { TransactionsDashboardButton } from "@/features/transactions/_components/transactions-dashboard-button";
 import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
 import TransactionsList from "@/features/transactions/_components/transactions-list";
@@ -39,9 +38,6 @@ async function TransactionsContent({
   const dateFrom = searchParams.dateFrom || getStartOfDay();
   const dateTo = searchParams.dateTo || getEndOfDay();
 
-  console.log("dateFrom", dateFrom);
-  console.log("dateTo", dateTo);
-
   const transactionList = await getTransactions(
     page,
     pageSize,
@@ -71,16 +67,18 @@ async function TransactionsContent({
               dateToIn={dateTo}
               productTypeIn={searchParams.productType}
             />
-            <TransactionsDashboardButton>
-              <TransactionsDashboardTable
-                transactions={transactionsGroupedReport}
-              />
-            </TransactionsDashboardButton>
           </div>
           <TransactionsExport />
 
           {/* Componente para exportação em PDF 
           <TransactionsExportPdf />*/}
+        </div>
+
+        <div>
+          {" "}
+          <TransactionsDashboardTable
+            transactions={transactionsGroupedReport}
+          />
         </div>
 
         <TransactionsList transactions={transactionList.transactions} />

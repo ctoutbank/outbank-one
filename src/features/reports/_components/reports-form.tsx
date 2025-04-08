@@ -88,8 +88,8 @@ export default function ReportForm({
     // Certifique-se de que os campos de horário estão formatados corretamente
     const formattedData = {
       ...data,
-      shippingTime: data.shippingTime || undefined,
-      startTime: data.startTime || undefined,
+      shippingTime: data.shippingTime || "",
+      startTime: data.startTime || "",
     };
 
     // Log dos dados formatados

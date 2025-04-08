@@ -1,4 +1,5 @@
 "use server";
+import { truncateSettlementTables } from "@/server/integrations/dock/sync-settlements/truncate-table";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
 import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
 import { insertPixMerchantSettlementOrdersAndRelations } from "./pixMerchantSettlementOrders";
@@ -154,9 +155,13 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return result;
 }
 
-export async function main() {
+export async function syncSettlements() {
   try {
-    console.log("Buscando settlements...");
+    console.log("Truncando tabelas de settlements...");
+    await truncateSettlementTables();
+    console.log("Tabelas de settlements truncadas com sucesso.");
+
+    console.log("Buscando dados da API...");
 
     const response = await fetchSettlements(); // Obtém a resposta inicial
     const settlements: Settlement[] = response || []; // Extraindo Settlements de 'objects'

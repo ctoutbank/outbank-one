@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { main } from "@/server/integrations/dock/sync-settlements/main";
+import { syncSettlements } from "@/server/integrations/dock/sync-settlements/main";
 import { useState } from "react";
 
 export default function AsyncButtonsSettlement() {
@@ -15,7 +15,7 @@ export default function AsyncButtonsSettlement() {
     setSuccess(null);
 
     try {
-      await main();
+      await syncSettlements();
       setSuccess("Sincronização realizada com sucesso!");
     } catch (err) {
       setError("Erro ao realizar a sincronização.");
