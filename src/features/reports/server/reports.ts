@@ -284,8 +284,6 @@ export type ReportStats = {
   formatStats: {
     pdf: number; // PDF
     excel: number; // EX
-    csv: number; // CSV
-    text: number; // TXT
   };
 
   // Estatísticas por tipo
@@ -358,8 +356,6 @@ export async function getReportStats(): Promise<ReportStats> {
   formatStatsResult.forEach((stat) => {
     if (stat.formatCode === "PDF") formatStats.pdf = stat.count;
     else if (stat.formatCode === "EX") formatStats.excel = stat.count;
-    else if (stat.formatCode === "CSV") formatStats.csv = stat.count;
-    else if (stat.formatCode === "TXT") formatStats.text = stat.count;
   });
 
   // Preencher as estatísticas de tipo
