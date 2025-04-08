@@ -7,6 +7,7 @@ import { MerchantDashboardButton } from "@/features/merchant/_components/merchan
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
+import { MerchantSyncButton } from "@/features/merchant/_components/merchant-sync-button";
 import { getMerchants } from "@/features/merchant/server/merchant";
 import {
   getMerchantRegistrationsByPeriod,
@@ -108,6 +109,10 @@ export default async function MerchantsPage({
         subtitle={`Visualização de todos os estabelecimentos`}
       >
         <div className="flex flex-col space-y-4">
+          <div className="w-4 absolute right-1/4 top-[10%]">
+            <MerchantSyncButton />
+          </div>
+
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
               <MerchantFilter
