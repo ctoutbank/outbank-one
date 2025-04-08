@@ -18,15 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { transactionStatusList } from "@/lib/lookuptables/lookuptables-transactions";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
-  ReportFilterDetailWithTypeName,
   ReportFilterParamDetail,
   deleteReportFilter,
-  getMerchantBySlug,
-  getReportFilters,
 } from "../filter/filter-Actions";
 import FilterForm from "../filter/filter-form";
 import { ReportFilterSchema } from "../filter/schema";
@@ -39,6 +35,19 @@ import {
 } from "../server/reports";
 import ReportForm from "./reports-form";
 
+// Tipo para representar os filtros já formatados que vêm do servidor
+export interface FormattedFilter {
+  id: number;
+  idReport: number;
+  idReportFilterParam: number;
+  value: string;
+  dtinsert?: Date | null;
+  dtupdate?: Date | null;
+  typeName?: string | null;
+  paramName: string;
+  displayValue: string;
+}
+
 interface ReportsWizardFormProps {
   report: ReportSchema;
   recorrence: Recorrence[];
@@ -48,6 +57,7 @@ interface ReportsWizardFormProps {
   permissions: string[];
   reportFilterParams: ReportFilterParamDetail[];
   activeTabDefault: string;
+  existingFilters: FormattedFilter[];
 }
 
 export default function ReportsWizardForm({
@@ -59,72 +69,17 @@ export default function ReportsWizardForm({
   permissions,
   reportFilterParams,
   activeTabDefault,
+  existingFilters,
 }: ReportsWizardFormProps) {
   const [activeTab, setActiveTab] = useState(activeTabDefault);
   const [newReportId, setNewReportId] = useState<number | null>(
     report.id ? (report.id as number) : null
   );
   const [isFirstStepComplete, setIsFirstStepComplete] = useState(!!report.id);
-  const [filters, setFilters] = useState<ReportFilterDetailWithTypeName[]>([]);
   const [open, setOpen] = useState(false);
   const [editingFilter, setEditingFilter] = useState<ReportFilterSchema | null>(
     null
   );
-  const [loading, setLoading] = useState(false);
-  // Cache para armazenar os nomes dos merchants por slug
-  const [merchantNames, setMerchantNames] = useState<Record<string, string>>(
-    {}
-  );
-
-  // Carregar os filtros existentes quando o componente for montado ou quando o ID do relatório mudar
-  useEffect(() => {
-    async function loadFilters() {
-      if (report.id) {
-        setLoading(true);
-        try {
-          const fetchedFilters = await getReportFilters(report.id as number);
-          setFilters(fetchedFilters);
-
-          // Buscar nomes de merchants para slugs
-          const merchantSlugs = fetchedFilters
-            .filter((f) => {
-              const paramName = getFilterParamName(f.idReportFilterParam);
-              return paramName === "Estabelecimento" && !f.value.includes("|");
-            })
-            .map((f) => f.value);
-
-          if (merchantSlugs.length > 0) {
-            const namesMap: Record<string, string> = {};
-
-            for (const slug of merchantSlugs) {
-              try {
-                const merchant = await getMerchantBySlug(slug);
-                if (merchant && merchant.name) {
-                  namesMap[slug] = merchant.name;
-                } else {
-                  namesMap[slug] = slug; // Fallback para o slug se não encontrar o nome
-                }
-              } catch (error) {
-                console.error(
-                  `Erro ao buscar merchant para slug ${slug}:`,
-                  error
-                );
-                namesMap[slug] = slug; // Fallback para o slug em caso de erro
-              }
-            }
-
-            setMerchantNames(namesMap);
-          }
-        } catch (error) {
-          console.error("Erro ao carregar filtros:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadFilters();
-  }, [report.id]);
 
   const handleStepChange = (value: string) => {
     // Só permite ir para o segundo passo se o relatório foi criado
@@ -152,60 +107,10 @@ export default function ReportsWizardForm({
   // Função que simula o fechamento do dialog para o FilterForm
   const handleCloseDialog = () => {
     setOpen(false);
-    // Recarrega os filtros após fechar o diálogo
+    // Após fechar o diálogo, redireciona para a mesma página com o parâmetro para recarregar os dados
     if (newReportId || report.id) {
-      refreshFilters();
-    }
-  };
-
-  // Função para recarregar os filtros
-  const refreshFilters = async () => {
-    if (newReportId || report.id) {
-      setLoading(true);
-      try {
-        const fetchedFilters = await getReportFilters(
-          newReportId || (report.id as number)
-        );
-        setFilters(fetchedFilters);
-
-        // Buscar nomes de merchants para slugs
-        const merchantSlugs = fetchedFilters
-          .filter((f) => {
-            const paramName = getFilterParamName(f.idReportFilterParam);
-            return paramName === "Estabelecimento" && !f.value.includes("|");
-          })
-          .map((f) => f.value);
-
-        if (merchantSlugs.length > 0) {
-          const namesMap: Record<string, string> = { ...merchantNames }; // Manter os nomes já carregados
-
-          for (const slug of merchantSlugs) {
-            if (!namesMap[slug]) {
-              // Só buscar se ainda não tiver no cache
-              try {
-                const merchant = await getMerchantBySlug(slug);
-                if (merchant && merchant.name) {
-                  namesMap[slug] = merchant.name;
-                } else {
-                  namesMap[slug] = slug; // Fallback para o slug se não encontrar o nome
-                }
-              } catch (error) {
-                console.error(
-                  `Erro ao buscar merchant para slug ${slug}:`,
-                  error
-                );
-                namesMap[slug] = slug; // Fallback para o slug em caso de erro
-              }
-            }
-          }
-
-          setMerchantNames(namesMap);
-        }
-      } catch (error) {
-        console.error("Erro ao recarregar filtros:", error);
-      } finally {
-        setLoading(false);
-      }
+      const id = newReportId || report.id;
+      window.location.href = `/portal/reports/${id}?activeTab=step2`;
     }
   };
 
@@ -221,7 +126,7 @@ export default function ReportsWizardForm({
   };
 
   // Função para editar um filtro existente
-  const handleEditFilter = (filter: ReportFilterDetailWithTypeName) => {
+  const handleEditFilter = (filter: FormattedFilter) => {
     setEditingFilter({
       id: filter.id,
       idReport: filter.idReport,
@@ -240,52 +145,14 @@ export default function ReportsWizardForm({
       try {
         await deleteReportFilter(id);
         toast.success("Filtro excluído com sucesso");
-        refreshFilters();
+        // Após excluir, redireciona para a mesma página com o parâmetro para recarregar os dados
+        const reportId = newReportId || report.id;
+        window.location.href = `/portal/reports/${reportId}?activeTab=step2`;
       } catch (error) {
         console.error("Erro ao excluir filtro:", error);
         toast.error("Erro ao excluir filtro");
       }
     }
-  };
-
-  // Função para obter o nome do parâmetro de filtro pelo ID
-  const getFilterParamName = (paramId: number): string => {
-    const param = reportFilterParams.find((p) => p.id === paramId);
-    return param?.name || "Parâmetro desconhecido";
-  };
-
-  // Função para formatar o valor do filtro para exibição
-  const formatFilterValue = (
-    filter: ReportFilterDetailWithTypeName
-  ): string => {
-    const paramName = getFilterParamName(filter.idReportFilterParam);
-
-    // Tratamento específico para Status
-    if (paramName === "Status") {
-      const statusValues = filter.value.split(",").map((s) => s.trim());
-      return statusValues
-        .map((value) => {
-          const status = transactionStatusList.find((s) => s.value === value);
-          return status ? status.label : value;
-        })
-        .join(", ");
-    }
-
-    // Tratamento específico para Estabelecimento (merchant)
-    if (paramName === "Estabelecimento") {
-      // Caso seja um slug (sem | no valor)
-      if (!filter.value.includes("|")) {
-        // Buscar no cache de nomes de merchants
-        return merchantNames[filter.value] || filter.value;
-      }
-
-      // Caso seja o formato antigo (nome|id)
-      const parts = filter.value.split("|");
-      return parts[0]; // Retorna apenas o nome
-    }
-
-    // Formatação padrão
-    return filter.value;
   };
 
   // Função para formatar data e hora
@@ -388,11 +255,7 @@ export default function ReportsWizardForm({
                     </Dialog>
                   </div>
 
-                  {loading ? (
-                    <div className="text-center py-4">
-                      Carregando filtros...
-                    </div>
-                  ) : filters.length === 0 ? (
+                  {existingFilters.length === 0 ? (
                     <div className="text-center py-8 bg-muted/20 rounded-lg">
                       <p className="text-muted-foreground">
                         Nenhum filtro configurado. Clique em Adicionar Filtro
@@ -412,12 +275,12 @@ export default function ReportsWizardForm({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filters.map((filter) => (
+                          {existingFilters.map((filter) => (
                             <TableRow key={filter.id}>
                               <TableCell className="font-medium">
-                                {getFilterParamName(filter.idReportFilterParam)}
+                                {filter.paramName}
                               </TableCell>
-                              <TableCell>{formatFilterValue(filter)}</TableCell>
+                              <TableCell>{filter.displayValue}</TableCell>
                               <TableCell>
                                 {formatDateTime(filter.dtinsert).split(" ")[0]}
                               </TableCell>
