@@ -20,6 +20,10 @@ import { getTerminalBySlug } from "@/features/terminals/serverActions/terminal";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import {
   brandList,
+  cardPaymentMethod,
+  cycleTypeList,
+  processingTypeList,
+  splitTypeList,
   transactionProductTypeList,
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
@@ -119,6 +123,50 @@ export default async function ReportDetail({
         } else if (paramName === "Terminal") {
           const terminal = await getTerminalBySlug(filter.value);
           displayValue = terminal?.logicalNumber || filter.value;
+        } else if (paramName === "Ciclo da Transação") {
+          const cycleValues = filter.value
+            .split(",")
+            .map((s: string) => s.trim());
+
+          displayValue = cycleValues
+            .map((value: string) => {
+              const cycle = cycleTypeList.find((s) => s.value === value);
+              return cycle ? cycle.label : value;
+            })
+            .join(", ");
+        } else if (paramName === "Modo de Captura") {
+          const captureValues = filter.value
+            .split(",")
+            .map((s: string) => s.trim());
+
+          displayValue = captureValues
+            .map((value: string) => {
+              const capture = cardPaymentMethod.find((s) => s.value === value);
+              return capture ? capture.label : value;
+            })
+            .join(", ");
+        } else if (paramName === "Modo de Entrada") {
+          const entryValues = filter.value
+            .split(",")
+            .map((s: string) => s.trim());
+
+          displayValue = entryValues
+            .map((value: string) => {
+              const entry = processingTypeList.find((s) => s.value === value);
+              return entry ? entry.label : value;
+            })
+            .join(", ");
+        } else if (paramName === "Repasse da Transação") {
+          const repassValues = filter.value
+            .split(",")
+            .map((s: string) => s.trim());
+
+          displayValue = repassValues
+            .map((value: string) => {
+              const repass = splitTypeList.find((s) => s.value === value);
+              return repass ? repass.label : value;
+            })
+            .join(", ");
         }
 
         // Tratamento específico para Estabelecimento
