@@ -10,7 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
-import { ChevronDown } from "lucide-react";
+import { getTerminalTypeLabel } from "@/lib/lookuptables/lookuptables-terminals";
+import {
+  getCardPaymentMethodLabel,
+  getProcessingTypeLabel,
+} from "@/lib/lookuptables/lookuptables-transactions";
+import { formatCNPJ } from "@/lib/utils";
 import { TransactionsListRecord } from "../serverActions/transaction";
 
 interface TransactionsListProps {
@@ -98,40 +103,58 @@ export default function TransactionsList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>
-              Data
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
-            <TableHead>
-              Estabelecimento
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
-            <TableHead>
-              Tipo
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
-            <TableHead>
-              Valor
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
-            <TableHead>
-              Status
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
-            <TableHead>
-              Bandeira
-              <ChevronDown className="ml-2 h-4 w-4 inline" />
-            </TableHead>
+            <TableHead>Data</TableHead>
+            <TableHead>Estabelecimento</TableHead>
+            <TableHead>Terminal</TableHead>
+            <TableHead>Processamento</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Bandeira</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {transactions.map((transaction) => (
             <TableRow key={transaction.slug}>
-              <TableCell>{formatDate(transaction.dateInsert)}</TableCell>
-              <TableCell>{transaction.merchantName || "N/A"}</TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  {formatDate(transaction.dateInsert).split(" ")[0]}
+                  <span className="text-xs text-gray-500">
+                    {formatDate(transaction.dateInsert).split(" ")[1]}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  {transaction.merchantName || "N/A"}
+                  <span className="text-xs text-gray-500">
+                    {transaction.merchantCNPJ
+                      ? formatCNPJ(transaction.merchantCNPJ)
+                      : ""}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell className="">
+                <div className="flex flex-col">
+                  {getTerminalTypeLabel(transaction.terminalType || "") || "-"}
+                  <span className="text-xs text-gray-500">
+                    {transaction.terminalLogicalNumber || "-"}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  {getCardPaymentMethodLabel(transaction.method || "") || "-"}
+                  <span className="text-xs text-gray-500">
+                    {getProcessingTypeLabel(transaction.salesChannel || "") ||
+                      "-"}
+                  </span>
+                </div>
+              </TableCell>
               <TableCell>
                 {translateProductType(transaction.productType)}
               </TableCell>
+              <TableCell>{transaction.brand || "-"}</TableCell>
               <TableCell>{formatCurrency(transaction.amount)}</TableCell>
               <TableCell>
                 <Badge
@@ -140,7 +163,6 @@ export default function TransactionsList({
                   {translateStatus(transaction.transactionStatus)}
                 </Badge>
               </TableCell>
-              <TableCell>{transaction.brand || "Não Identificada"}</TableCell>
             </TableRow>
           ))}
         </TableBody>

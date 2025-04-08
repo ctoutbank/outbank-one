@@ -1,13 +1,19 @@
 "use server";
 
 import { db } from "@/server/db";
-import { settlements } from "../../../../../drizzle/schema";
+import { merchantSettlementOrders, merchantSettlements, settlements } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "./customer";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { InsertSettlement, Settlement } from "./types";
 
 export async function insertSettlementAndRelations(settlement: Settlement[]) {
   try {
+
+    await db.delete(settlements).execute();
+    await db.delete(merchantSettlements).execute();
+    await db.delete(merchantSettlementOrders).execute();
+    
+
     const customerids = await getOrCreateCustomer(
       settlement.map((settlement) => settlement.customer)
     );
@@ -42,9 +48,7 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
         debitStatus: settlement.debitStatus,
         anticipationStatus: settlement.anticipationStatus,
         pixStatus: settlement.pixStatus,
-        paymentDate: new Date(settlement.paymentDate)
-          .toISOString()
-          .split("T")[0],
+        paymentDate: settlement.paymentDate,
         pendingFinancialAdjustmentAmount:
           settlement.pendingFinancialAdjustmentAmount.toString(),
         creditFinancialAdjustmentAmount:
@@ -53,43 +57,52 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
           settlement.debitFinancialAdjustmentAmount.toString(),
         idCustomer:
           customerids?.filter(
-            (customer) => customer.slug === settlement.customer.slug
+            (customer) => customer.slug === settlement.slugCustomer
           )[0]?.id || 0,
       })
     );
 
-    // Inserir o settlement com os IDs e slugs obtidos
     await insertSettlements(insertSettlement);
   } catch (error) {
     console.error(`Erro ao processar settlement:`, error);
   }
 }
 
-export async function insertSettlements(settlement: InsertSettlement[]) {
+async function insertSettlements(settlementList: InsertSettlement[]) {
   try {
     const existingSettlements = await getIdBySlugs(
       "settlements",
-      settlement.map((settlement) => settlement.slug)
+      settlementList.map((settlement) => settlement.slug)
     );
 
-    const filteredList = settlement.filter(
+    // Filter out existing records
+    const recordsToInsert = settlementList.filter(
       (settlement) =>
         !existingSettlements?.some(
-          (existingSettlements) => existingSettlements.slug === settlement.slug
+          (existing) => existing.slug === settlement.slug
         )
     );
 
-    if (filteredList.length < 1) {
-      console.log("todos os settlement já foram adicionados");
-      return;
+    // Log existing records
+    const existingCount = settlementList.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(`${existingCount} settlements already exist, skipping...`);
     }
 
-    console.log("Inserting settlements, quantity: ", filteredList.length);
+    // Insert new records
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new settlements, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(settlements).values(recordsToInsert);
+      console.log("New settlements inserted successfully.");
+    }
 
-    await db.insert(settlements).values(filteredList);
-
-    console.log("Settlement inserted successfully.");
+    if (recordsToInsert.length === 0) {
+      console.log("All settlements already exist in the database");
+    }
   } catch (error) {
-    console.error("Error inserting settlement:", error);
+    console.error("Error processing settlements:", error);
   }
 }

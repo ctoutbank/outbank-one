@@ -1,6 +1,6 @@
 // app/api/relatorio/route.ts
 import { reportsExecutionSalesGenerateXLSX } from "@/features/reports/_actions/reports-execution-sales";
-import { getTransactionsForReport } from "@/features/transactions/serverActions/transaction";
+import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import { getDateUTC } from "@/lib/datetime-utils";
 import { NextResponse } from "next/server";
 
@@ -8,7 +8,6 @@ export async function GET(request: Request) {
   try {
     // Obter parâmetros da URL
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || undefined;
     const merchant = searchParams.get("merchant") || undefined;
     const productType = searchParams.get("productType") || undefined;
@@ -25,9 +24,9 @@ export async function GET(request: Request) {
     console.log("dateFromUTC", dateFromUTC);
     console.log("dateToUTC", dateToUTC);
 
-    const transactions = await getTransactionsForReport(
-      search,
-
+    const transactions = await getTransactions(
+      -1,
+      -1,
       status,
       merchant,
       dateFromUTC!,
@@ -36,7 +35,7 @@ export async function GET(request: Request) {
     );
 
     const xlsxBytes = await reportsExecutionSalesGenerateXLSX(
-      transactions,
+      transactions.transactions,
       dateFrom as string,
       dateTo as string
     );

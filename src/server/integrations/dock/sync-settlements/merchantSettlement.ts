@@ -4,22 +4,22 @@ import { db } from "@/server/db";
 import { merchantSettlements } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { getOrCreateMerchants } from "./merchant";
-import { insertSettlementAndRelations } from "./settlements";
 import { InsertSettlementObject, SettlementObject } from "./types";
+
 export async function insertMerchantSettlementAndRelations(
   merchantSettlementList: SettlementObject[]
 ) {
   try {
-    const customerids: [{ id: number; slug: string | null }] | null =
-      await getIdBySlugs(
-        "customers",
-        merchantSettlementList.map((settlement) => settlement.customer.slug)
-      );
-
-    // Inserir o settlement com os IDs e slugs obtidos
-    await insertSettlementAndRelations(
+    const customerids = await getIdBySlugs(
+      "customers",
       merchantSettlementList.map(
-        (merchantSettlement) => merchantSettlement.settlement
+        (merchantSettlement) => merchantSettlement.slugCustomer
+      )
+    );
+
+    const merchantids = await getOrCreateMerchants(
+      merchantSettlementList.map(
+        (merchantSettlement) => merchantSettlement.merchant
       )
     );
 
@@ -28,10 +28,6 @@ export async function insertMerchantSettlementAndRelations(
       merchantSettlementList.map(
         (merchantSettlement) => merchantSettlement.settlement.slug
       )
-    );
-    
-    const merchantids = await getOrCreateMerchants(
-      merchantSettlementList.map((settlement) => settlement.merchant)
     );
 
     const insertmerchantSettlements: InsertSettlementObject[] =
@@ -93,38 +89,45 @@ export async function insertMerchantSettlementAndRelations(
 }
 
 async function insertMerchantSettlement(
-  insertMerchantSettlements: InsertSettlementObject[]
+  merchantSettlementList: InsertSettlementObject[]
 ) {
   try {
-    const existingMerchantSettlementOrders = await getIdBySlugs(
+    const existingMerchantSettlements = await getIdBySlugs(
       "merchant_settlements",
-      insertMerchantSettlements.map(
-        (merchantSettlements) => merchantSettlements.slug
-      )
+      merchantSettlementList.map((settlement) => settlement.slug)
     );
 
-    const filteredList = insertMerchantSettlements.filter(
-      (insertMerchantSettlements) =>
-        !existingMerchantSettlementOrders?.some(
-          (existingMerchantSettlements) =>
-            existingMerchantSettlements.slug === insertMerchantSettlements.slug
+    // Filter out existing records
+    const recordsToInsert = merchantSettlementList.filter(
+      (settlement) =>
+        !existingMerchantSettlements?.some(
+          (existing) => existing.slug === settlement.slug
         )
     );
 
-    if (filteredList.length < 1) {
-      console.log("todos os merchant settlement já foram adicionados");
-      return;
+    // Log existing records
+    const existingCount =
+      merchantSettlementList.length - recordsToInsert.length;
+    if (existingCount > 0) {
+      console.log(
+        `${existingCount} merchant settlements already exist, skipping...`
+      );
     }
 
-    console.log(
-      "Inserting merchantSettlements, quantity:",
-      filteredList.length
-    );
+    // Insert new records
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new merchant settlements, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(merchantSettlements).values(recordsToInsert);
+      console.log("New merchant settlements inserted successfully.");
+    }
 
-    await db.insert(merchantSettlements).values(filteredList);
-
-    console.log("MerchantSettlement inserted successfully.");
+    if (recordsToInsert.length === 0) {
+      console.log("All merchant settlements already exist in the database");
+    }
   } catch (error) {
-    console.error("Error inserting MerchantSettlement:", error);
+    console.error("Error processing merchant settlements:", error);
   }
 }

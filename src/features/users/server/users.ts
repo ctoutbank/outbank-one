@@ -360,6 +360,8 @@ export async function getDDProfiles(): Promise<DD[]> {
 }
 
 export async function getDDMerchants(customerId?: number): Promise<DD[]> {
+  console.log(customerId);
+
   if (customerId == undefined || customerId == null) {
     const userClerk = await currentUser();
     const userId = userClerk?.id;
@@ -368,18 +370,23 @@ export async function getDDMerchants(customerId?: number): Promise<DD[]> {
       .select()
       .from(users)
       .where(eq(users.idClerk, userId || ""));
+
     if (user && user.length > 0) {
       customerId = user[0].idCustomer || 0;
     }
+
     if (customerId == undefined || customerId == null) {
       return [];
     }
   }
+
+  const conditions = [eq(merchants.idCustomer, customerId)];
+
   const merchantResult = await db
     .select({ id: merchants.id, name: merchants.name })
     .from(merchants)
-    .where(eq(merchants.idCustomer, customerId));
-
+    .where(and(...conditions));
+  console.log(merchantResult);
   if (!merchantResult || merchantResult.length === 0) {
     return [];
   }
@@ -472,4 +479,98 @@ export async function UpdateMyProfile(data: {
     console.error("Erro ao atualizar:", error);
     return false;
   }
+}
+
+export interface UserMerchantsAccess {
+  fullAccess: boolean;
+  idMerchants: number[];
+}
+
+export interface UserMerchantSlugs {
+  fullAccess: boolean;
+  slugMerchants: string[];
+}
+
+export async function getUserMerchantsAccess(): Promise<UserMerchantsAccess> {
+  const userClerk = await currentUser();
+
+  if (!userClerk) {
+    throw new Error("User not authenticated");
+  }
+
+  const user = await db
+    .select({
+      id: users.id,
+      fullAccess: users.fullAccess,
+    })
+    .from(users)
+    .where(eq(users.idClerk, userClerk.id));
+
+  if (!user || user.length === 0) {
+    throw new Error("User not found in database");
+  }
+
+  if (user[0].fullAccess) {
+    return {
+      fullAccess: true,
+      idMerchants: [],
+    };
+  }
+
+  type MerchantResult = { idMerchant: number | null };
+
+  const merchantAccess = await db
+    .select({
+      idMerchant: userMerchants.idMerchant,
+    })
+    .from(userMerchants)
+    .where(eq(userMerchants.idUser, user[0].id));
+
+  return {
+    fullAccess: user[0].fullAccess || false,
+    idMerchants: (merchantAccess as MerchantResult[])
+      .map((merchant) => merchant.idMerchant)
+      .filter((id): id is number => id !== null),
+  };
+}
+
+export async function getUserMerchantSlugs(): Promise<UserMerchantSlugs> {
+  const userClerk = await currentUser();
+
+  if (!userClerk) {
+    throw new Error("User not authenticated");
+  }
+
+  const user = await db
+    .select({
+      id: users.id,
+      fullAccess: users.fullAccess,
+    })
+    .from(users)
+    .where(eq(users.idClerk, userClerk.id));
+
+  if (!user || user.length === 0) {
+    throw new Error("User not found in database");
+  }
+  if (user[0].fullAccess) {
+    return {
+      fullAccess: true,
+      slugMerchants: [],
+    };
+  }
+
+  const merchantAccess = await db
+    .select({
+      slugMerchant: merchants.slug,
+    })
+    .from(userMerchants)
+    .leftJoin(merchants, eq(userMerchants.idMerchant, merchants.id))
+    .where(eq(userMerchants.idUser, user[0].id));
+
+  return {
+    fullAccess: false,
+    slugMerchants: merchantAccess
+      .map((merchant) => merchant.slugMerchant)
+      .filter((slug): slug is string => slug !== null),
+  };
 }

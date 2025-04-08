@@ -1,7 +1,20 @@
 "use server";
 
+import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { count, desc, eq, getTableColumns, ilike, or,and, gte, lte } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  or,
+} from "drizzle-orm";
 import {
   addresses,
   categories,
@@ -10,18 +23,16 @@ import {
   establishmentFormat,
   legalNatures,
   merchantpixaccount,
+  merchantPrice,
   merchants,
   salesAgents,
 } from "../../../../drizzle/schema";
-import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
-
 
 export type MerchantInsert = typeof merchants.$inferInsert;
 
-
 export interface Merchantlist {
   merchants: {
-    merchantid: number | bigint ;
+    merchantid: number | bigint;
     slug: string;
     active: boolean;
     name: string;
@@ -33,15 +44,26 @@ export interface Merchantlist {
     addressname: string;
     time_zone: string;
     dtinsert: string;
+    dtupdate: string;
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
-    
 
     sales_agent: string;
     state: string;
     cnpj: string;
     corporate_name: string;
     slug_category: string;
+    areaCode: string;
+    number: string;
+    priceTable: string;
+    hasPix: boolean;
+    salesAgentDocument: string;
+    city: string;
+    legalNature: string;
+    MCC: string;
+    CNAE: string;
+    Inclusion: string;
+    dtdelete: string;
   }[];
   totalCount: number;
   active_count: number;
@@ -64,8 +86,29 @@ export async function getMerchants(
   dateTo?: string
 ): Promise<Merchantlist> {
   const offset = (page - 1) * pageSize;
-  
+
   const conditions = [];
+
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user doesn't have full access, add merchant ID filter
+  if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    // If user has no merchant access and no full access, return empty result
+    return {
+      merchants: [],
+      totalCount: 0,
+      active_count: 0,
+      inactive_count: 0,
+      pending_kyc_count: 0,
+      approved_kyc_count: 0,
+      rejected_kyc_count: 0,
+      cp_anticipation_count: 0,
+      cnp_anticipation_count: 0,
+    };
+  }
 
   if (search) {
     conditions.push(
@@ -119,19 +162,32 @@ export async function getMerchants(
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
-      
+      areaCode: merchants.areaCode,
+      number: merchants.number,
+      priceTable: merchantPrice.name,
+      hasPix: merchants.hasPix,
+      salesAgentDocument: salesAgents.documentId,
+      city: addresses.city,
+      legalNature: legalNatures.name,
+      MCC: categories.mcc,
+      CNAE: categories.cnae,
+      Inclusion: merchants.inclusion,
+      dtupdate: merchants.dtupdate,
+      dtdelete: merchants.dtdelete,
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
     .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
     .limit(pageSize);
 
-    console.log("result", result);
- 
+  console.log("result", result);
 
   const totalCount = await db
     .select({ count: count() })
@@ -163,20 +219,33 @@ export async function getMerchants(
       slug_category: merchant.slug_category ?? "N/A",
       time_zone: merchant.time_zone ?? "N/A",
       sales_agent: merchant.salesAgents ?? "N/A",
-    })
-  ),
+      areaCode: merchant.areaCode || "",
+      number: merchant.number || "",
+      priceTable: merchant.priceTable || "",
+      hasPix: merchant.hasPix ?? false,
+      salesAgentDocument: merchant.salesAgentDocument || "",
+      city: merchant.city || "",
+      legalNature: merchant.legalNature || "",
+      MCC: merchant.MCC || "",
+      CNAE: merchant.CNAE || "",
+      Inclusion: merchant.Inclusion || "",
+      dtupdate: merchant.dtupdate || "",
+      dtdelete: merchant.dtdelete || "",
+    })),
     totalCount,
-    active_count: result.filter(m => m.active).length,
-    inactive_count: result.filter(m => !m.active).length,
-    pending_kyc_count: result.filter(m => m.kic_status === "PENDING").length,
-    approved_kyc_count: result.filter(m => m.kic_status === "APPROVED").length,
-    rejected_kyc_count: result.filter(m => m.kic_status === "REJECTED").length,
-    cp_anticipation_count: result.filter(m => !m.lockCpAnticipationOrder).length,
-    cnp_anticipation_count: result.filter(m => !m.lockCnpAnticipationOrder).length,
+    active_count: result.filter((m) => m.active).length,
+    inactive_count: result.filter((m) => !m.active).length,
+    pending_kyc_count: result.filter((m) => m.kic_status === "PENDING").length,
+    approved_kyc_count: result.filter((m) => m.kic_status === "APPROVED")
+      .length,
+    rejected_kyc_count: result.filter((m) => m.kic_status === "REJECTED")
+      .length,
+    cp_anticipation_count: result.filter((m) => !m.lockCpAnticipationOrder)
+      .length,
+    cnp_anticipation_count: result.filter((m) => !m.lockCnpAnticipationOrder)
+      .length,
   };
-  
 }
-
 
 export type Merchant = {
   id: bigint;
@@ -224,50 +293,49 @@ export type Merchant = {
 export type MerchantSelect = typeof merchants.$inferSelect & {
   category?: typeof categories.$inferSelect;
   address?: typeof addresses.$inferSelect;
-  legalNaturesname?:typeof legalNatures.$inferSelect;
-  salesAgent?:typeof salesAgents.$inferSelect;
-  configuration?:typeof configurations.$inferSelect;
-  contacts?:typeof contacts.$inferSelect;
-  
+  legalNaturesname?: typeof legalNatures.$inferSelect;
+  salesAgent?: typeof salesAgents.$inferSelect;
+  configuration?: typeof configurations.$inferSelect;
+  contacts?: typeof contacts.$inferSelect;
 };
 
-
-
 export async function getMerchantById(id: number) {
- 
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
 
+  // Check if user has access to this merchant
+  if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
+    throw new Error("You don't have access to this merchant");
+  }
 
-    const result = await db
-      .select({
-       merchants: {...getTableColumns(merchants)},
-       categories: {...getTableColumns(categories)},
-       addresses: {...getTableColumns(addresses)},
-       configurations: {...getTableColumns(configurations)},
-       salesAgents: {...getTableColumns(salesAgents)},
-       legalNatures: {...getTableColumns(legalNatures)},
-       contacts: {...getTableColumns(contacts)},
-       pixaccounts: {...getTableColumns(merchantpixaccount)},
+  const result = await db
+    .select({
+      merchants: { ...getTableColumns(merchants) },
+      categories: { ...getTableColumns(categories) },
+      addresses: { ...getTableColumns(addresses) },
+      configurations: { ...getTableColumns(configurations) },
+      salesAgents: { ...getTableColumns(salesAgents) },
+      legalNatures: { ...getTableColumns(legalNatures) },
+      contacts: { ...getTableColumns(contacts) },
+      pixaccounts: { ...getTableColumns(merchantpixaccount) },
+    })
+    .from(merchants)
+    .where(eq(merchants.id, Number(id)))
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+    .leftJoin(
+      merchantpixaccount,
+      eq(merchants.id, merchantpixaccount.idMerchant)
+    )
+    .limit(1);
 
-      })
-      .from(merchants)
-      .where(eq(merchants.id, Number(id)))
-      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-      .leftJoin(categories, eq(merchants.idCategory, categories.id))
-      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
-      .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
-      .leftJoin(merchantpixaccount, eq(merchants.id, merchantpixaccount.idMerchant))
-      .limit(1);
-
-    console.log(result)
-
-    const merchant = result[0];
-
-    return merchant;
-    };
-  
-
+  const merchant = result[0];
+  return merchant;
+}
 
 // Interface para o MerchantDetail
 export interface MerchantDetail {
@@ -410,7 +478,6 @@ export async function updateMerchant(merchant: MerchantDetail): Promise<void> {
     .where(eq(merchants.id, merchant.id));
 }
 
-
 export async function updateMerchantColumnBySlug(
   slug: string,
   columnName: string,
@@ -420,12 +487,13 @@ export async function updateMerchantColumnBySlug(
     await db
       .update(merchants)
       .set({
-        [columnName]: value
-       
+        [columnName]: value,
       })
       .where(eq(merchants.slug, slug));
 
-    console.log(`Coluna ${columnName} atualizada com sucesso para o slug ${slug}`);
+    console.log(
+      `Coluna ${columnName} atualizada com sucesso para o slug ${slug}`
+    );
   } catch (error) {
     console.error(
       `Erro ao atualizar coluna ${columnName} para o slug ${slug}:`,
@@ -434,9 +502,6 @@ export async function updateMerchantColumnBySlug(
     throw new Error(`Falha ao atualizar merchant: ${error}`);
   }
 }
-
-
-
 
 export async function updateMerchantColumnById(
   id: number,
@@ -448,7 +513,7 @@ export async function updateMerchantColumnById(
       .update(merchants)
       .set({
         [columnName]: value,
-        dtupdate: new Date().toISOString(), 
+        dtupdate: new Date().toISOString(),
       })
       .where(eq(merchants.id, id));
 
@@ -462,24 +527,24 @@ export async function updateMerchantColumnById(
   }
 }
 
-
-
 // Atualizar o nome
 //await updateMerchantColumnById(123, "name", "Novo Nome"); //
-
 
 export async function updateMerchantColumnsById(
   id: number,
   updates: Record<string, string | number | boolean | null>
 ): Promise<void> {
   try {
-    console.log(`Atualizando merchant ID ${id} com os seguintes dados:`, updates);
-    
+    console.log(
+      `Atualizando merchant ID ${id} com os seguintes dados:`,
+      updates
+    );
+
     // Verificar se o campo timezone está presente nos updates
-    if ('timezone' in updates) {
+    if ("timezone" in updates) {
       console.log(`Valor da timezone a ser atualizado: ${updates.timezone}`);
     }
-    
+
     await db
       .update(merchants)
       .set({
@@ -489,28 +554,23 @@ export async function updateMerchantColumnsById(
       .where(eq(merchants.id, id));
 
     console.log(`Colunas atualizadas com sucesso para o ID ${id}`);
-    
+
     // Verificar se a atualização foi bem-sucedida
     const updatedMerchant = await db
       .select()
       .from(merchants)
       .where(eq(merchants.id, id))
       .limit(1);
-      
+
     console.log(`Merchant atualizado:`, updatedMerchant[0]);
   } catch (error) {
-    console.error(
-      `Erro ao atualizar colunas para o ID ${id}:`,
-      error
-    );
+    console.error(`Erro ao atualizar colunas para o ID ${id}:`, error);
     throw new Error(`Falha ao atualizar merchant: ${error}`);
   }
 }
 
-
 export type AddressInsert = typeof addresses.$inferInsert;
 export type AddressDetail = typeof addresses.$inferSelect;
-
 
 export async function insertAddress(address: AddressInsert): Promise<number> {
   // Verifica se o endereço já existe
@@ -519,12 +579,12 @@ export async function insertAddress(address: AddressInsert): Promise<number> {
     .from(addresses)
     .where(
       and(
-        eq(addresses.streetAddress, address.streetAddress ?? ''),
-        eq(addresses.streetNumber, address.streetNumber ?? ''),
-        eq(addresses.neighborhood, address.neighborhood ?? ''),
-        eq(addresses.city, address.city ?? ''),
-        eq(addresses.state, address.state ?? ''),
-        eq(addresses.zipCode, address.zipCode ?? '')
+        eq(addresses.streetAddress, address.streetAddress ?? ""),
+        eq(addresses.streetNumber, address.streetNumber ?? ""),
+        eq(addresses.neighborhood, address.neighborhood ?? ""),
+        eq(addresses.city, address.city ?? ""),
+        eq(addresses.state, address.state ?? ""),
+        eq(addresses.zipCode, address.zipCode ?? "")
       )
     )
     .limit(1);
@@ -539,46 +599,46 @@ export async function insertAddress(address: AddressInsert): Promise<number> {
     .insert(addresses)
     .values(address)
     .returning({ id: addresses.id });
-    
+
   return result[0].id;
 }
-
 
 export async function updateAddress(address: AddressDetail): Promise<void> {
   await db.update(addresses).set(address).where(eq(addresses.id, address.id));
 }
-
 
 export async function getDDLegalNatures(): Promise<LegalNatureDetail[]> {
   const result = await db
     .select({
       id: legalNatures.id,
       name: legalNatures.name,
-      code: legalNatures.code
+      code: legalNatures.code,
     })
     .from(legalNatures)
     .orderBy(legalNatures.name);
-  return result.map(item => ({
+  return result.map((item) => ({
     id: item.id,
     name: item.name,
     code: item.code,
     slug: null,
-    active: null, 
+    active: null,
     dtinsert: null,
-    dtupdate: null
+    dtupdate: null,
   }));
 }
 export type LegalNatureDropdown = {
   value: number;
   label: string;
-}
+};
 
 export type EstablishmentFormatDropdown = {
   value: string;
   label: string;
-}
+};
 
-export async function getEstablishmentFormatForDropdown(): Promise<EstablishmentFormatDropdown[]> {
+export async function getEstablishmentFormatForDropdown(): Promise<
+  EstablishmentFormatDropdown[]
+> {
   const result = await db
     .select({
       value: establishmentFormat.code,
@@ -587,13 +647,15 @@ export async function getEstablishmentFormatForDropdown(): Promise<Establishment
     .from(establishmentFormat)
     .orderBy(establishmentFormat.code);
 
-  return result.map(item => ({
+  return result.map((item) => ({
     value: item.value,
-    label: item.label ?? ''
+    label: item.label ?? "",
   }));
 }
 
-export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[]> {
+export async function getLegalNaturesForDropdown(): Promise<
+  LegalNatureDropdown[]
+> {
   const result = await db
     .select({
       value: legalNatures.id,
@@ -602,59 +664,58 @@ export async function getLegalNaturesForDropdown(): Promise<LegalNatureDropdown[
     .from(legalNatures)
     .orderBy(legalNatures.id);
 
-    return result.map(item => ({
-      value: item.value,
-      label: item.label ?? '' // Fornece um valor padrão caso seja null
-    }))
-    
-  }
+  return result.map((item) => ({
+    value: item.value,
+    label: item.label ?? "", // Fornece um valor padrão caso seja null
+  }));
+}
 
-  export type CnaeMccDropdown = {
-    value: string;
-    label: string;
-    cnae: string;
-    mcc: string;
-  }
+export type CnaeMccDropdown = {
+  value: string;
+  label: string;
+  cnae: string;
+  mcc: string;
+};
 
-  export async function getCnaeMccForDropdown(): Promise<CnaeMccDropdown[]> {
-    try {
-      const result = await db
-        .select({
-          value: categories.id,
-          label: categories.name,
-          cnae: categories.cnae,
-          mcc: categories.mcc,
-        })
-        .from(categories)
-        .orderBy(categories.cnae);
-  
-     // Adicione este log para debug
-  
-      if (!result) return [];
-  
-      return result.map(item => ({
-        value: item.value.toString(),
-        label: `${item.cnae} - ${item.label}`,
-        cnae: item.cnae || '',
-        mcc: item.mcc || ''
-      }));
-    } catch (error) {
-      console.error('Error fetching CNAE/MCC:', error);
-      return [];
-    }
+export async function getCnaeMccForDropdown(): Promise<CnaeMccDropdown[]> {
+  try {
+    const result = await db
+      .select({
+        value: categories.id,
+        label: categories.name,
+        cnae: categories.cnae,
+        mcc: categories.mcc,
+      })
+      .from(categories)
+      .orderBy(categories.cnae);
+
+    // Adicione este log para debug
+
+    if (!result) return [];
+
+    return result.map((item) => ({
+      value: item.value.toString(),
+      label: `${item.cnae} - ${item.label}`,
+      cnae: item.cnae || "",
+      mcc: item.mcc || "",
+    }));
+  } catch (error) {
+    console.error("Error fetching CNAE/MCC:", error);
+    return [];
   }
+}
 
 export type MerchantList = {
-  totalCount: number
-  activeCount: number
-  inactiveCount: number
-  pendingKycCount: number
-  approvedKycCount: number
-  rejectedKycCount: number
-  cpAnticipationCount: number
-  cnpAnticipationCount: number
+  totalCount: number;
+  activeCount: number;
+  inactiveCount: number;
+  pendingKycCount: number;
+  approvedKycCount: number;
+  rejectedKycCount: number;
+  cpAnticipationCount: number;
+  cnpAnticipationCount: number;
   // ... any other existing properties ...
-}
+};
 
 // Função genérica para buscar slug por ID
 export async function getSlugById(

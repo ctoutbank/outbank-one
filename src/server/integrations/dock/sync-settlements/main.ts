@@ -1,18 +1,19 @@
 "use server";
+import { truncateSettlementTables } from "@/server/integrations/dock/sync-settlements/truncate-table";
+import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
+import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
+import { insertPixMerchantSettlementOrdersAndRelations } from "./pixMerchantSettlementOrders";
+import { insertSettlementAndRelations } from "./settlements";
 import {
   MerchantSettlementsOrders,
   MerchantSettlementsOrdersResponse,
   MerchantSettlementsResponse,
+  PixMerchantSettlementOrders,
+  PixMerchantSettlementOrdersResponse,
   Settlement,
   SettlementObject,
   SettlementsResponse,
-  PixMerchantSettlementOrders,
-  PixMerchantSettlementOrdersResponse,
 } from "./types";
-import { insertSettlementAndRelations } from "./settlements";
-import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
-import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
-import { insertPixMerchantSettlementOrdersAndRelations } from "./pixMerchantSettlementOrders";
 
 async function fetchSettlements() {
   let offset = 0;
@@ -25,7 +26,7 @@ async function fetchSettlements() {
       `https://settlement.acquiring.dock.tech/v1/settlements?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.7OLleTv9B-68LXORK4FOOgk7L6zl1-NZmh6GZ86V9Dk_4PhmT63qikAivP3ftCA9pKqyJt2v2J2Ds6HDGTb5ug`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -58,7 +59,7 @@ async function fetchMerchantSettlements() {
       `https://settlement.acquiring.dock.tech/v1/merchant_settlements/order?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.7OLleTv9B-68LXORK4FOOgk7L6zl1-NZmh6GZ86V9Dk_4PhmT63qikAivP3ftCA9pKqyJt2v2J2Ds6HDGTb5ug`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -91,7 +92,7 @@ async function fetchMerchantSettlementsOrders() {
       `https://settlement.acquiring.dock.tech/v1/merchant_settlement_orders?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.7OLleTv9B-68LXORK4FOOgk7L6zl1-NZmh6GZ86V9Dk_4PhmT63qikAivP3ftCA9pKqyJt2v2J2Ds6HDGTb5ug`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -124,7 +125,7 @@ async function fetchPixMerchantSettlementsOrders() {
       `https://settlement.acquiring.dock.tech/v1/pix_merchant_settlement_orders?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.7OLleTv9B-68LXORK4FOOgk7L6zl1-NZmh6GZ86V9Dk_4PhmT63qikAivP3ftCA9pKqyJt2v2J2Ds6HDGTb5ug`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -154,9 +155,13 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return result;
 }
 
-export async function main() {
+export async function syncSettlements() {
   try {
-    console.log("Buscando settlements...");
+    console.log("Truncando tabelas de settlements...");
+    await truncateSettlementTables();
+    console.log("Tabelas de settlements truncadas com sucesso.");
+
+    console.log("Buscando dados da API...");
 
     const response = await fetchSettlements(); // Obtém a resposta inicial
     const settlements: Settlement[] = response || []; // Extraindo Settlements de 'objects'

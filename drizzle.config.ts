@@ -1,8 +1,14 @@
+import * as dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+dotenv.config({
+  path: ".env.local",
+});
+
 export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
-    url: "postgresql://outbank_owner:UPjyn54wJgXO@ep-bold-field-a5mbqp2a-pooler.us-east-2.aws.neon.tech/outbank?sslmode=require",
+    url: process.env.DATABASE_URL || "",
   },
   schema: "./src/server/db/schema",
 });

@@ -230,7 +230,7 @@ export default function MerchantSettlementsList({
                                           )}
                                           <span>
                                             {translateCardType(
-                                              order.productType
+                                              order.producttype
                                             )}
                                           </span>
                                         </div>
@@ -251,13 +251,13 @@ export default function MerchantSettlementsList({
                                         className="text-sm text-muted-foreground"
                                         style={{ width: "12%" }}
                                       >
-                                        {order.accountNumber}
+                                        {order.accountnumber}
                                       </TableCell>
                                       <TableCell
                                         className="text-sm text-muted-foreground"
                                         style={{ width: "10%" }}
                                       >
-                                        {order.accountType}
+                                        {order.accounttype}
                                       </TableCell>
                                       <TableCell
                                         className="text-sm text-muted-foreground"
@@ -270,24 +270,24 @@ export default function MerchantSettlementsList({
                                           <VoucherDownload
                                             vouncherDownloadProps={{
                                               date: new Date(
-                                                order.effectivePaymentDate
+                                                order.effectivepaymentdate
                                               ),
                                               value: order.amount,
                                               description:
                                                 order.receivableUnit +
                                                 " " +
                                                 translateCardType(
-                                                  order.productType
+                                                  order.producttype
                                                 ),
                                               singleSettlementNumber:
-                                                order.settlementUniqueNumber,
+                                                order.settlementuniquenumber,
                                               corporateName:
-                                                order.corporateName,
-                                              cnpj: order.documentId,
+                                                order.corporatename,
+                                              cnpj: order.documentid,
                                               bank: "",
                                               bankBranchNumber: order.agency,
                                               accountNumber:
-                                                order.accountNumber,
+                                                order.accountnumber,
                                             }}
                                           />
                                         </div>
@@ -297,14 +297,14 @@ export default function MerchantSettlementsList({
                                         style={{ width: "15%" }}
                                       >
                                         {formatDate(
-                                          new Date(order.effectivePaymentDate)
+                                          new Date(order.effectivepaymentdate)
                                         )}
                                       </TableCell>
                                       <TableCell
                                         className="text-sm text-muted-foreground"
                                         style={{ width: "10%" }}
                                       >
-                                        {order.settlementUniqueNumber}
+                                        {order.settlementuniquenumber}
                                       </TableCell>
                                       <TableCell
                                         style={{

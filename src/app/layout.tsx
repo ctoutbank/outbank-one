@@ -20,7 +20,6 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="pt-BR" suppressHydrationWarning>
         <head />
-
         <body className={inter.className}>
           {children}
           <Toaster richColors position="top-right" />

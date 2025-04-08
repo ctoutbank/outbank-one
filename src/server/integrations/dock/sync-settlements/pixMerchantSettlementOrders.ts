@@ -39,10 +39,11 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
     const merchantSettlementIds = await getIdBySlugs(
       "merchant_settlements",
       pixMerchantSettlementOrderList.map(
-        (pixMerchantSettlementOrderList) => pixMerchantSettlementOrderList.merchantSettlement.slug
+        (pixMerchantSettlementOrderList) =>
+          pixMerchantSettlementOrderList.merchantSettlement.slug
       )
     );
- 
+
     const insertPixMerchantSettlementOrdersVar: InsertPixMerchantSettlementOrders[] =
       pixMerchantSettlementOrderList.map((pixMerchantSettlementOrder) => ({
         slug: pixMerchantSettlementOrder.slug,
@@ -127,7 +128,8 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
         idMerchantSettlement:
           merchantSettlementIds?.filter(
             (merchantSettlement) =>
-              merchantSettlement.slug === pixMerchantSettlementOrder.merchantSettlement.slug
+              merchantSettlement.slug ===
+              pixMerchantSettlementOrder.merchantSettlement.slug
           )[0]?.id || 0,
       }));
 
@@ -150,30 +152,39 @@ async function insertPixMerchantSettlementOrders(
       )
     );
 
-    const filteredList = pixMerchantSettlementOrder.filter(
-      (pixMerchantSettlementOrder) =>
+    // Filter out existing records
+    const recordsToInsert = pixMerchantSettlementOrder.filter(
+      (order) =>
         !existingPixMerchantSettlementOrder?.some(
-          (existingPixMerchantSettlementOrder) =>
-            existingPixMerchantSettlementOrder.slug ===
-            pixMerchantSettlementOrder.slug
+          (existing) => existing.slug === order.slug
         )
     );
 
-    if (filteredList.length < 1) {
+    // Log existing records
+    const existingCount =
+      pixMerchantSettlementOrder.length - recordsToInsert.length;
+    if (existingCount > 0) {
       console.log(
-        "todos os merchant settlement orders pix já foram adicionados"
+        `${existingCount} pix merchant settlement orders already exist, skipping...`
       );
-      return;
     }
 
-    console.log(
-      "Inserting pixMerchantSettlementOrder, quantity:",
-      filteredList.length
-    );
+    // Insert new records
+    if (recordsToInsert.length > 0) {
+      console.log(
+        "Inserting new pix merchant settlement orders, quantity:",
+        recordsToInsert.length
+      );
+      await db.insert(merchantPixSettlementOrders).values(recordsToInsert);
+      console.log("New pix merchant settlement orders inserted successfully.");
+    }
 
-    await db.insert(merchantPixSettlementOrders).values(filteredList);
-    console.log("pixMerchantSettlementOrder successfully.");
+    if (recordsToInsert.length === 0) {
+      console.log(
+        "All pix merchant settlement orders already exist in the database"
+      );
+    }
   } catch (error) {
-    console.error("Error inserting pixMerchantSettlementOrder:", error);
+    console.error("Error processing pix merchant settlement orders:", error);
   }
 }

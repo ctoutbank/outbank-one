@@ -1,3 +1,4 @@
+import ExcelExport from "@/components/excelExport";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MerchantDashboardButton } from "@/features/merchant/_components/merchant-dashboard-button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
+import ExcelImportButton from "@/features/merchant/_components/merchant-import";
 import { getMerchants } from "@/features/merchant/server/merchant";
 import {
   getMerchantRegistrationsByPeriod,
@@ -12,10 +14,11 @@ import {
   getMerchantTransactionData,
   getMerchantTypeData,
 } from "@/features/merchant/server/merchant-dashboard";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
-import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -48,6 +51,14 @@ export default async function MerchantsPage({
     searchParams.status,
     searchParams.state
   );
+  const merchantsExcel = await getMerchants(
+    search,
+    page,
+    50,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.state
+  );
   const totalRecords = merchants.totalCount;
 
   // Buscar dados dos gráficos
@@ -71,7 +82,19 @@ export default async function MerchantsPage({
     transactionData,
     typeData,
   };
-
+  const globalStyles = {
+    header: {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "808080" },
+      } as Fill,
+      font: { color: { argb: "FFFFFF" }, bold: true } as Font,
+    },
+    row: {
+      font: { color: { argb: "000000" } } as Font,
+    },
+  };
   return (
     <>
       <BaseHeader
@@ -98,12 +121,52 @@ export default async function MerchantsPage({
                 </div>
               </MerchantDashboardButton>
             </div>
-            <Button asChild className="shrink-0">
-              <Link href="/portal/merchants/0">
-                <Plus className="h-4 w-4" />
-                Novo Estabelecimento
-              </Link>
-            </Button>
+
+            <div className="flex items-center gap-2 justify-end">
+              <ExcelImportButton />
+              <ExcelExport
+                data={merchantsExcel.merchants.map((merchant) => ({
+                  "Nome Fantasia": merchant.name,
+                  "Razão Social": merchant.corporate_name,
+                  "CNPJ/CPF": merchant.cnpj,
+                  Email: merchant.email,
+                  Telefone: "(" + merchant.areaCode + ") " + merchant.number,
+                  "Cadastrado Em": merchant.dtinsert,
+                  "Tabela de Preços": merchant.priceTable,
+                  Captura:
+                    merchant.lockCpAnticipationOrder &&
+                    merchant.lockCnpAnticipationOrder
+                      ? "Ambos"
+                      : merchant.lockCpAnticipationOrder
+                      ? "CP - Cartão Presente"
+                      : merchant.lockCnpAnticipationOrder
+                      ? "CNP - Cartão Não Presente"
+                      : "N/A",
+                  PIX: merchant.hasPix ? "Sim" : "Não",
+                  "Consultor de Vendas": merchant.salesAgentDocument,
+                  "Status KYC": merchant.kic_status,
+                  Ativo: merchant.active ? "Sim" : "Não",
+                  "Data Descredenciamento": merchant.dtdelete,
+                  Cidade: merchant.city,
+                  Estado: merchant.state,
+                  "Natureza Legal": merchant.legalNature,
+                  MCC: merchant.MCC,
+                  CNAE: merchant.CNAE,
+                  "Usuário Cadastro": merchant.Inclusion,
+                  "Data Ativação": merchant.dtupdate,
+                }))}
+                globalStyles={globalStyles}
+                sheetName="Estabelecimentos"
+                fileName={`ESTABELECIMENTOS-${new Date().toLocaleDateString()}`}
+                onClick={undefined}
+              />
+              <Button asChild className="shrink-0">
+                <Link href="/portal/merchants/0">
+                  <Plus className="h-4 w-4" />
+                  Novo Estabelecimento
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <MerchantList list={merchants} />
