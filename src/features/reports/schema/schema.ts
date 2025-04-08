@@ -4,12 +4,7 @@ export const SchemaReport = z.object({
   id: z.number().optional(),
   title: z.string().min(1, "Título é obrigatório"),
   recurrenceCode: z.string().optional(),
-  shippingTime: z
-    .string()
-    .min(1, "Horário de envio é obrigatório")
-    .refine((val) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(val), {
-      message: "O horário deve estar no formato HH:MM entre 00:00 e 23:59",
-    }),
+  shippingTime: z.string().min(1, "Horário de envio é obrigatório"),
   periodCode: z.string().min(1, "Período é obrigatório"),
   dayWeek: z.string().optional(),
   dayMonth: z
@@ -20,8 +15,8 @@ export const SchemaReport = z.object({
     }),
 
   emails: z.string().min(1, "Email é obrigatório"),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  startTime: z.string().min(1, "Horário inicial é obrigatório"),
+  endTime: z.string().min(1, "Horário final é obrigatório"),
   formatCode: z.string().min(1, "Formato é obrigatório"),
   reportType: z.string().min(1, "Tipo de relatório é obrigatório"),
   dtinsert: z.date().optional(),

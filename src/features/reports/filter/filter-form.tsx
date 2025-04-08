@@ -1016,29 +1016,33 @@ export default function FilterForm({
                       </div>
 
                       {selectedMerchant && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge
-                            variant="outline"
-                            className="px-2 py-1 bg-blue-100"
-                          >
-                            {selectedMerchant.name || "N/A"}
-                            {selectedMerchant.corporateName &&
-                              ` (${selectedMerchant.corporateName})`}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-5 w-5 p-0 rounded-full"
-                            onClick={() => {
-                              setSelectedMerchant(null);
-                              setSearchTerm("");
+                        <div className="flex flex-col w-full gap-2 mt-4">
+                          <div className="flex items-center mt-5 w-full">
+                            <Badge
+                              variant="outline"
+                              className="px-3 py-1.5 bg-blue-100 text-sm break-words flex-grow overflow-hidden"
+                            >
+                              <span className="block truncate">
+                                {selectedMerchant.name || "N/A"}
+                                {selectedMerchant.corporateName &&
+                                  ` (${selectedMerchant.corporateName})`}
+                              </span>
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 ml-2 rounded-full flex-shrink-0"
+                              onClick={() => {
+                                setSelectedMerchant(null);
+                                setSearchTerm("");
 
-                              // Limpar o valor do campo
-                              field.onChange("");
-                            }}
-                          >
-                            ×
-                          </Button>
+                                // Limpar o valor do campo
+                                field.onChange("");
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
                         </div>
                       )}
 
@@ -1151,28 +1155,32 @@ export default function FilterForm({
                       </div>
 
                       {selectedTerminal && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge
-                            variant="outline"
-                            className="px-2 py-1 bg-blue-100"
-                          >
-                            {selectedTerminal.logical_number || "N/A"} -{" "}
-                            {selectedTerminal.model || "Desconhecido"}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-5 w-5 p-0 rounded-full"
-                            onClick={() => {
-                              setSelectedTerminal(null);
-                              setTerminalSearchTerm("");
+                        <div className="flex flex-col w-full gap-2 mt-2">
+                          <div className="flex items-center mt-5  w-full">
+                            <Badge
+                              variant="outline"
+                              className="px-3 py-1.5 bg-blue-100 text-sm break-words flex-grow overflow-hidden"
+                            >
+                              <span className="block truncate">
+                                {selectedTerminal.logical_number || "N/A"} -{" "}
+                                {selectedTerminal.model || "Desconhecido"}
+                              </span>
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 ml-2 rounded-full flex-shrink-0"
+                              onClick={() => {
+                                setSelectedTerminal(null);
+                                setTerminalSearchTerm("");
 
-                              // Limpar o valor do campo
-                              field.onChange("");
-                            }}
-                          >
-                            ×
-                          </Button>
+                                // Limpar o valor do campo
+                                field.onChange("");
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
                         </div>
                       )}
 

@@ -371,3 +371,18 @@ export async function getReportStats(): Promise<ReportStats> {
     typeStats,
   };
 }
+
+export async function deleteReport(id: number): Promise<void> {
+  try {
+    // Primeiro, excluir os filtros associados ao relatório
+    await db.delete(reportFilters).where(eq(reportFilters.idReport, id));
+
+    // Em seguida, excluir o relatório
+    await db.delete(reports).where(eq(reports.id, id));
+  } catch (error) {
+    console.error("Erro ao excluir relatório:", error);
+    throw new Error(
+      "Não foi possível excluir o relatório. Verifique se não existem dependências."
+    );
+  }
+}

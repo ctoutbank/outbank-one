@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,15 +9,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ReportsList } from "@/features/reports/server/reports";
+import { deleteReport, ReportsList } from "@/features/reports/server/reports";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default function ReportList({ Reports }: { Reports: ReportsList | undefined }) {
+export default function ReportList({
+  Reports,
+}: {
+  Reports: ReportsList | undefined;
+}) {
   const formatDateTime = (date: Date) => {
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
+  };
+
+  const router = useRouter();
+
+  const handleDeleteReport = async (id: number) => {
+    const confirmDelete = window.confirm("Você deseja excluir esse relatório?");
+
+    if (confirmDelete) {
+      await deleteReport(id);
+      router.refresh();
+    }
   };
 
   return (
@@ -41,7 +58,7 @@ export default function ReportList({ Reports }: { Reports: ReportsList | undefin
                 Recorrência
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
-              
+
               <TableHead>
                 Periodo
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
@@ -53,10 +70,13 @@ export default function ReportList({ Reports }: { Reports: ReportsList | undefin
               <TableHead>
                 Email
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
-                
               </TableHead>
               <TableHead>
                 Horário
+                <ChevronDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead>
+                Ações
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
             </TableRow>
@@ -72,28 +92,16 @@ export default function ReportList({ Reports }: { Reports: ReportsList | undefin
                     {report.title}
                   </Link>
                 </TableCell>
+                <TableCell>{report.reportTypeName || "-"}</TableCell>
+                <TableCell>{report.formatName || "-"}</TableCell>
+                <TableCell>{report.recurrenceName || "-"}</TableCell>
+                <TableCell>{report.periodName || "-"}</TableCell>
                 <TableCell>
-                  {report.reportTypeName || "-"}
+                  {report.dtinsert ? formatDateTime(report.dtinsert) : "-"}
                 </TableCell>
                 <TableCell>
-                  {report.formatName || "-"}
-                </TableCell>
-                <TableCell>
-                  {report.recurrenceName || "-"}
-                  
-                </TableCell>
-                <TableCell>
-                  {report.periodName || "-"}
-                </TableCell>
-                <TableCell>
-                  {report.dtinsert 
-                    ? formatDateTime(report.dtinsert) 
-                    : "-"
-                  }
-                </TableCell>
-                <TableCell>
-                  {report.emails 
-                    ? report.emails.split(',').map((email, index) => (
+                  {report.emails
+                    ? report.emails.split(",").map((email, index) => (
                         <div key={index} className="text-xs">
                           {email.trim()}
                         </div>
@@ -101,9 +109,17 @@ export default function ReportList({ Reports }: { Reports: ReportsList | undefin
                     : "-"}
                 </TableCell>
                 <TableCell>
-                  {report.shippingTime 
-                    ? report.shippingTime.substring(0, 5) 
+                  {report.shippingTime
+                    ? report.shippingTime.substring(0, 5)
                     : "-"}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteReport(report.id)}
+                  >
+                    Excluir
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -112,4 +128,4 @@ export default function ReportList({ Reports }: { Reports: ReportsList | undefin
       </div>
     </div>
   );
-} 
+}
