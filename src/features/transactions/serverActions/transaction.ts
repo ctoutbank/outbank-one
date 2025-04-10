@@ -158,7 +158,8 @@ export async function getTransactionsGroupedReport(
   dateTo: string,
   status?: string,
   productType?: string,
-  terminalLogicalNumber?: string
+  terminalLogicalNumber?: string,
+  merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
   // Construir condições dinâmicas para a consulta SQL
   const conditions = [];
@@ -199,6 +200,9 @@ export async function getTransactionsGroupedReport(
     conditions.push(eq(terminals.logicalNumber, terminalLogicalNumber));
   }
 
+  if (merchant) {
+    conditions.push(like(transactions.merchantName, `%${merchant}%`));
+  }
   // Construir a cláusula WHERE
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   console.log(whereClause);

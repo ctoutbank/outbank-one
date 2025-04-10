@@ -52,7 +52,9 @@ async function TransactionsContent({
     dateFrom,
     dateTo,
     searchParams.status,
-    searchParams.productType
+    searchParams.productType,
+    undefined, // terminalLogicalNumber (não especificado nos searchParams)
+    searchParams.merchant
   );
 
   return (
