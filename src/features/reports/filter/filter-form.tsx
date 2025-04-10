@@ -36,6 +36,7 @@ import { ReportTypeDD } from "../server/reports";
 import {
   BrandOption,
   getAllBrands,
+  getFilterFormData,
   insertReportFilter,
   MerchantOption,
   ReportFilterParamDetail,
@@ -59,7 +60,8 @@ type SelectorType =
   | "cycleType"
   | "splitType"
   | "captureMode"
-  | "entryMode";
+  | "entryMode"
+  | "nsu";
 
 interface FilterFormProps {
   filter: ReportFilterSchema;
@@ -68,6 +70,17 @@ interface FilterFormProps {
   closeDialog: () => void;
   reportTypeDD: ReportTypeDD[];
 }
+
+// Definir a lista de status da agenda do merchant como uma constante local
+const agendaStatusList = [
+  { value: "SETTLED", label: "Liquidadas" },
+  { value: "FULLY_ANTICIPATED", label: "Antecipadas" },
+  { value: "PARTIAL_ANTICIPATED", label: "Parcialmente Antecipadas" },
+  { value: "PARTIAL_SETTLED", label: "Parcialmente Liquidadas" },
+  { value: "PROVISIONED", label: "Previstas" },
+  { value: "PARTIAL_PROVISIONED", label: "Parcialmente Previstas" },
+  { value: "CANCELLED", label: "Canceladas" },
+];
 
 export default function FilterForm({
   filter,
@@ -137,130 +150,172 @@ export default function FilterForm({
   // Inicializar o componente
   useEffect(() => {
     const initialize = async () => {
-      if (selectedType) {
+      // Tentar buscar informações sobre o tipo do relatório diretamente
+      if (reportId) {
+        try {
+          const reportData = await getFilterFormData(reportId);
+
+          if (reportData.reportType) {
+            // Definir o tipo com base no resultado da consulta
+            setSelectedType(reportData.reportType);
+
+            // Filtrar parâmetros com base no tipo do relatório
+            const filtered = reportFilterParams.filter(
+              (param: ReportFilterParamDetail) =>
+                param.type === reportData.reportType
+            );
+
+            if (filtered.length > 0) {
+              setFilteredParams(filtered);
+            } else {
+              setFilteredParams(reportFilterParams);
+            }
+
+            return; // Sair da função já que já definimos o tipo
+          }
+        } catch (error) {
+          console.error("Erro ao buscar informações do relatório:", error);
+        }
+      }
+
+      // Continuamos com a lógica existente caso a busca direta falhe
+      // Definir o tipo com base no filtro ou no formato padrão
+      let typeToUse = "";
+
+      // Se temos um typeName no filtro existente, usamos ele
+      if (filter.typeName) {
+        if (filter.typeName === "Agenda dos logistas") {
+          typeToUse = "AL";
+        } else if (filter.typeName === "Vendas") {
+          typeToUse = "VN";
+        }
+      }
+      // Caso contrário, usamos o tipo já selecionado (se existir)
+      else if (selectedType) {
+        typeToUse = selectedType;
+      }
+      // Se não temos nada, verificamos se temos tipos disponíveis no reportTypeDD
+      else if (reportTypeDD.length > 0) {
+        // Por padrão, usar Vendas
+        const defaultType = reportTypeDD.find((type) => type.name === "Vendas");
+        if (defaultType) {
+          typeToUse = defaultType.code;
+        } else {
+          // Se não encontrar Vendas, use o primeiro tipo disponível
+          typeToUse = reportTypeDD[0].code;
+        }
+      }
+
+      // Definir o tipo selecionado
+      if (typeToUse) {
+        console.log("Definindo tipo como:", typeToUse);
+        setSelectedType(typeToUse);
+
+        // Filtrar parâmetros com base no tipo
         const filtered = reportFilterParams.filter(
-          (param) => param.type === selectedType
+          (param: ReportFilterParamDetail) => param.type === typeToUse
         );
+        console.log(`Parâmetros filtrados para ${typeToUse}:`, filtered);
         setFilteredParams(filtered);
+      } else {
+        console.log(
+          "Não foi possível determinar um tipo, mantendo todos os parâmetros"
+        );
+        setFilteredParams(reportFilterParams);
+      }
 
-        // Se existe um ID de filtro, então é edição e inicializamos os controles
-        if (filter.id) {
-          const paramId = filter.idReportFilterParam;
-          const param = reportFilterParams.find((p) => p.id === paramId);
+      // Se existe um ID de filtro, então é edição e inicializamos os controles
+      if (filter.id) {
+        const paramId = filter.idReportFilterParam;
+        const param = reportFilterParams.find((p) => p.id === paramId);
 
-          if (param) {
-            // Atualizar o tipo de seletor com base no nome do parâmetro
-            if (param.name === "Bandeira") {
-              setSelectorType("brand");
+        if (param) {
+          // Atualizar o tipo de seletor com base no nome do parâmetro
+          if (param.name === "Bandeira") {
+            setSelectorType("brand");
 
-              // Inicializar seleção de bandeiras
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const brandValues = filter.value
-                    .split(",")
-                    .map((b) => b.trim());
-                  setSelectedBrands(brandValues);
-                } else if (filter.value) {
-                  setSelectedBrands([filter.value]);
-                }
-              }
-            } else if (param.name === "totalAmount" && selectedType === "VN") {
-              setSelectorType("dateRange");
-
-              // Inicializar datas
-              if (filter.value && filter.value.includes(",")) {
-                const [start, end] = filter.value
+            // Inicializar seleção de bandeiras
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const brandValues = filter.value
                   .split(",")
-                  .map((d) => d.trim());
-                setStartDate(start);
-                setEndDate(end);
+                  .map((b) => b.trim());
+                setSelectedBrands(brandValues);
+              } else if (filter.value) {
+                setSelectedBrands([filter.value]);
               }
-            } else if (
-              param.name &&
-              param.name.toLowerCase() === "valor" &&
-              selectedType === "VN"
-            ) {
-              setSelectorType("valueRange");
+            }
+          } else if (param.name === "totalAmount" && selectedType === "VN") {
+            setSelectorType("dateRange");
 
-              // Inicializar valores
-              if (filter.value && filter.value.includes(",")) {
-                const [min, max] = filter.value.split(",").map((v) => v.trim());
-                setMinValue(min);
-                setMaxValue(max);
+            // Inicializar datas
+            if (filter.value && filter.value.includes(",")) {
+              const [start, end] = filter.value.split(",").map((d) => d.trim());
+              setStartDate(start);
+              setEndDate(end);
+            }
+          } else if (
+            param.name &&
+            param.name.toLowerCase() === "valor" &&
+            selectedType === "VN"
+          ) {
+            setSelectorType("valueRange");
+
+            // Inicializar valores
+            if (filter.value && filter.value.includes(",")) {
+              const [min, max] = filter.value.split(",").map((v) => v.trim());
+              setMinValue(min);
+              setMaxValue(max);
+            }
+          } else if (param.name === "Status") {
+            setSelectorType("status");
+
+            // Inicializar status selecionado
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const statusValues = filter.value
+                  .split(",")
+                  .map((s) => s.trim());
+                setSelectedStatusList(statusValues);
+              } else {
+                setSelectedStatusList([filter.value]);
               }
-            } else if (param.name === "Status") {
-              setSelectorType("status");
+            }
+          } else if (param.name === "Estabelecimento") {
+            setSelectorType("merchant");
 
-              // Inicializar status selecionado
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const statusValues = filter.value
-                    .split(",")
-                    .map((s) => s.trim());
-                  setSelectedStatusList(statusValues);
-                } else {
-                  setSelectedStatusList([filter.value]);
-                }
-              }
-            } else if (param.name === "Estabelecimento") {
-              setSelectorType("merchant");
+            // Inicializar estabelecimento se houver valor
+            if (filter.value) {
+              // Verificar se o valor está no formato "nome|id"
+              if (filter.value.includes("|")) {
+                const [merchantName, merchantId] = filter.value.split("|");
 
-              // Inicializar estabelecimento se houver valor
-              if (filter.value) {
-                // Verificar se o valor está no formato "nome|id"
-                if (filter.value.includes("|")) {
-                  const [merchantName, merchantId] = filter.value.split("|");
-
-                  // Se temos o ID, buscamos diretamente
-                  if (merchantId) {
-                    setLoading(true);
-                    try {
-                      // Carregamos uma lista de estabelecimentos
-                      const merchantsData = await searchMerchants();
-                      setMerchants(merchantsData);
-
-                      // Procurar pelo ID nas merchants carregadas
-                      const foundMerchant = merchantsData.find(
-                        (m) => m.id === Number(merchantId)
-                      );
-
-                      if (foundMerchant) {
-                        // Se encontrar, usar os dados completos do merchant
-                        setSelectedMerchant(foundMerchant);
-                        setSearchTerm(foundMerchant.name || "");
-                      } else {
-                        // Se não encontrar, usar os dados parciais
-                        setSelectedMerchant({
-                          id: Number(merchantId),
-                          name: merchantName,
-                          slug: null,
-                          corporateName: null,
-                        });
-                        setSearchTerm(merchantName);
-                      }
-                    } catch (error) {
-                      console.error(
-                        "Erro ao carregar estabelecimentos:",
-                        error
-                      );
-                    } finally {
-                      setLoading(false);
-                    }
-                  }
-                } else {
-                  // Formato antigo - apenas o nome ou slug
+                // Se temos o ID, buscamos diretamente
+                if (merchantId) {
                   setLoading(true);
                   try {
-                    const merchantsData = await searchMerchants(filter.value);
+                    // Carregamos uma lista de estabelecimentos
+                    const merchantsData = await searchMerchants();
                     setMerchants(merchantsData);
 
-                    // Encontrar o estabelecimento pelo slug (prioridade) ou nome
-                    const merchant = merchantsData.find(
-                      (m) => m.slug === filter.value || m.name === filter.value
+                    // Procurar pelo ID nas merchants carregadas
+                    const foundMerchant = merchantsData.find(
+                      (m) => m.id === Number(merchantId)
                     );
-                    if (merchant) {
-                      setSelectedMerchant(merchant);
-                      setSearchTerm(merchant.name || "");
+
+                    if (foundMerchant) {
+                      // Se encontrar, usar os dados completos do merchant
+                      setSelectedMerchant(foundMerchant);
+                      setSearchTerm(foundMerchant.name || "");
+                    } else {
+                      // Se não encontrar, usar os dados parciais
+                      setSelectedMerchant({
+                        id: Number(merchantId),
+                        name: merchantName,
+                        slug: null,
+                        corporateName: null,
+                      });
+                      setSearchTerm(merchantName);
                     }
                   } catch (error) {
                     console.error("Erro ao carregar estabelecimentos:", error);
@@ -268,129 +323,148 @@ export default function FilterForm({
                     setLoading(false);
                   }
                 }
-              }
-            } else if (param.name === "Tipo de Pagamento") {
-              setSelectorType("paymentType");
-
-              // Inicializar tipo de pagamento selecionado
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const transactionValues = filter.value
-                    .split(",")
-                    .map((p) => p.trim());
-                  setSelectedPaymentTypes(transactionValues);
-                } else if (filter.value) {
-                  setSelectedPaymentTypes([filter.value]);
-                }
-              }
-            } else if (param.name === "Terminal") {
-              setSelectorType("terminal");
-
-              // Inicializar terminal selecionado
-              if (filter.value) {
+              } else {
+                // Formato antigo - apenas o nome ou slug
                 setLoading(true);
                 try {
-                  const terminalsData = await searchTerminals(filter.value);
-                  setTerminals(terminalsData);
+                  const merchantsData = await searchMerchants(filter.value);
+                  setMerchants(merchantsData);
 
-                  // Encontrar o terminal pelo slug (prioridade) ou logical_number
-                  const terminal = terminalsData.find(
-                    (t) =>
-                      t.slug === filter.value ||
-                      t.logical_number === filter.value
+                  // Encontrar o estabelecimento pelo slug (prioridade) ou nome
+                  const merchant = merchantsData.find(
+                    (m) => m.slug === filter.value || m.name === filter.value
                   );
-                  if (terminal) {
-                    setSelectedTerminal(terminal);
-                    setTerminalSearchTerm(terminal.logical_number ?? "");
+                  if (merchant) {
+                    setSelectedMerchant(merchant);
+                    setSearchTerm(merchant.name || "");
                   }
                 } catch (error) {
-                  console.error("Erro ao carregar terminais:", error);
+                  console.error("Erro ao carregar estabelecimentos:", error);
                 } finally {
                   setLoading(false);
                 }
               }
-            } else if (param.name === "Ciclo da Transação") {
-              setSelectorType("cycleType");
-
-              // Inicializar ciclos de transação selecionados
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const cycleValues = filter.value
-                    .split(",")
-                    .map((c) => c.trim());
-                  setSelectedCycleTypes(cycleValues);
-                } else if (filter.value) {
-                  setSelectedCycleTypes([filter.value]);
-                }
-              }
-            } else if (param.name === "Repasse da Transação") {
-              setSelectorType("splitType");
-
-              // Inicializar tipos de repasse selecionados
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const splitValues = filter.value
-                    .split(",")
-                    .map((s) => s.trim());
-                  setSelectedSplitTypes(splitValues);
-                } else if (filter.value) {
-                  setSelectedSplitTypes([filter.value]);
-                }
-              }
-            } else if (param.name === "Modo de Captura") {
-              setSelectorType("captureMode");
-
-              // Inicializar modos de captura selecionados
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const captureValues = filter.value
-                    .split(",")
-                    .map((c) => c.trim());
-                  setSelectedCaptureModes(captureValues);
-                } else if (filter.value) {
-                  setSelectedCaptureModes([filter.value]);
-                }
-              }
-            } else if (param.name === "Modo de Entrada") {
-              setSelectorType("entryMode");
-
-              // Inicializar modos de entrada selecionados
-              if (filter.value) {
-                if (filter.value.includes(",")) {
-                  const entryValues = filter.value
-                    .split(",")
-                    .map((e) => e.trim());
-                  setSelectedEntryModes(entryValues);
-                } else if (filter.value) {
-                  setSelectedEntryModes([filter.value]);
-                }
-              }
-            } else {
-              setSelectorType("none");
             }
-          }
-        } else {
-          // Para novo filtro, não inicializamos nada
-          setSelectorType("none");
-          setParamSelected(false); // Reset o estado de parâmetro selecionado
-          // Reset all fields
-          setSelectedBrands([]);
-          setStartDate("");
-          setEndDate("");
-          setMinValue("");
-          setMaxValue("");
-          setSelectedStatusList([]);
-          setSelectedMerchant(null);
+          } else if (param.name === "Tipo de Pagamento") {
+            setSelectorType("paymentType");
 
-          setSelectedPaymentTypes([]);
-          setSelectedCycleTypes([]);
-          setSelectedSplitTypes([]);
-          setSelectedCaptureModes([]);
-          setSelectedEntryModes([]);
-          setSelectedTerminal(null);
-          setTerminalSearchTerm("");
-          setTerminals([]);
+            // Inicializar tipo de pagamento selecionado
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const transactionValues = filter.value
+                  .split(",")
+                  .map((p) => p.trim());
+                setSelectedPaymentTypes(transactionValues);
+              } else if (filter.value) {
+                setSelectedPaymentTypes([filter.value]);
+              }
+            }
+          } else if (param.name === "Terminal") {
+            setSelectorType("terminal");
+
+            // Inicializar terminal selecionado
+            if (filter.value) {
+              setLoading(true);
+              try {
+                const terminalsData = await searchTerminals(filter.value);
+                setTerminals(terminalsData);
+
+                // Encontrar o terminal pelo slug (prioridade) ou logical_number
+                const terminal = terminalsData.find(
+                  (t) =>
+                    t.slug === filter.value || t.logical_number === filter.value
+                );
+                if (terminal) {
+                  setSelectedTerminal(terminal);
+                  setTerminalSearchTerm(terminal.logical_number ?? "");
+                }
+              } catch (error) {
+                console.error("Erro ao carregar terminais:", error);
+              } finally {
+                setLoading(false);
+              }
+            }
+          } else if (param.name === "Ciclo da Transação") {
+            setSelectorType("cycleType");
+
+            // Inicializar ciclos de transação selecionados
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const cycleValues = filter.value
+                  .split(",")
+                  .map((c) => c.trim());
+                setSelectedCycleTypes(cycleValues);
+              } else if (filter.value) {
+                setSelectedCycleTypes([filter.value]);
+              }
+            }
+          } else if (param.name === "Repasse da Transação") {
+            setSelectorType("splitType");
+
+            // Inicializar tipos de repasse selecionados
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const splitValues = filter.value
+                  .split(",")
+                  .map((s) => s.trim());
+                setSelectedSplitTypes(splitValues);
+              } else if (filter.value) {
+                setSelectedSplitTypes([filter.value]);
+              }
+            }
+          } else if (param.name === "Modo de Captura") {
+            setSelectorType("captureMode");
+
+            // Inicializar modos de captura selecionados
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const captureValues = filter.value
+                  .split(",")
+                  .map((c) => c.trim());
+                setSelectedCaptureModes(captureValues);
+              } else if (filter.value) {
+                setSelectedCaptureModes([filter.value]);
+              }
+            }
+          } else if (param.name === "Modo de Entrada") {
+            setSelectorType("entryMode");
+
+            // Inicializar modos de entrada selecionados
+            if (filter.value) {
+              if (filter.value.includes(",")) {
+                const entryValues = filter.value
+                  .split(",")
+                  .map((e) => e.trim());
+                setSelectedEntryModes(entryValues);
+              } else if (filter.value) {
+                setSelectedEntryModes([filter.value]);
+              }
+            }
+          } else {
+            setSelectorType("none");
+          }
         }
+      } else {
+        // Para novo filtro, não inicializamos nada
+        setSelectorType("none");
+        setParamSelected(false); // Reset o estado de parâmetro selecionado
+        // Reset all fields
+        setSelectedBrands([]);
+        setStartDate("");
+        setEndDate("");
+        setMinValue("");
+        setMaxValue("");
+        setSelectedStatusList([]);
+        setSelectedMerchant(null);
+
+        setSelectedPaymentTypes([]);
+        setSelectedCycleTypes([]);
+        setSelectedSplitTypes([]);
+        setSelectedCaptureModes([]);
+        setSelectedEntryModes([]);
+        setSelectedTerminal(null);
+        setTerminalSearchTerm("");
+        setTerminals([]);
       }
     };
 
@@ -419,17 +493,75 @@ export default function FilterForm({
   useEffect(() => {
     // Garantir que o tipo selecionado está definido com base no tipo do relatório
     if (!selectedType && reportTypeDD.length > 0) {
-      const reportType = reportTypeDD.find((type) => type.name === "Vendas");
-      if (reportType) {
-        setSelectedType(reportType.code);
+      // Verificar se o reportId corresponde a um relatório existente
+      const foundReportType = reportId
+        ? reportTypeDD.find((type) => {
+            // Se já temos um filtro com typeName, verificar se corresponde a um tipo conhecido
+            if (filter.typeName) {
+              return filter.typeName === "Agenda dos logistas"
+                ? type.code === "AL"
+                : filter.typeName === "Vendas"
+                ? type.code === "VN"
+                : false;
+            }
+            // Caso contrário, por padrão selecionar o tipo "Vendas" se disponível
+            return type.name === "Vendas";
+          })
+        : reportTypeDD.find((type) => type.name === "Vendas");
+
+      if (foundReportType) {
+        setSelectedType(foundReportType.code);
+
+        // Filtrar parâmetros baseados no tipo
+        const filtered = reportFilterParams.filter(
+          (param) => param.type === foundReportType.code
+        );
+        setFilteredParams(filtered);
       }
     }
-  }, [reportTypeDD, selectedType]);
+  }, [
+    reportTypeDD,
+    selectedType,
+    filter.typeName,
+    reportId,
+    reportFilterParams,
+  ]);
+
+  // Adicionar useEffect para carregar os parâmetros apropriados para relatórios do tipo AL
+  useEffect(() => {
+    // Verificar se estamos tratando de um relatório do tipo Agenda dos Logistas
+    if (filter.typeName === "Agenda dos logistas" || selectedType === "AL") {
+      console.log("Verificando parâmetros AL...");
+
+      // Verificar se temos parâmetros do tipo AL
+      const alParams = reportFilterParams.filter(
+        (param) => param.type === "AL"
+      );
+      console.log("Parâmetros AL encontrados:", alParams.length);
+
+      if (alParams.length > 0) {
+        // Se temos parâmetros, definir filteredParams
+        setFilteredParams(alParams);
+      } else {
+        console.log(
+          "Nenhum parâmetro AL encontrado, usando todos os parâmetros disponíveis"
+        );
+        // Se não encontrarmos parâmetros do tipo AL, usar todos os disponíveis para não deixar o dropdown vazio
+        setFilteredParams(reportFilterParams);
+      }
+    }
+  }, [filter.typeName, selectedType, reportFilterParams]);
 
   // Função para lidar com a alteração de parâmetro
   const handleParamChange = async (paramId: number) => {
+    console.log("Parâmetro selecionado ID:", paramId);
     const param = reportFilterParams.find((p) => p.id === paramId);
-    if (!param) return;
+    console.log("Parâmetro encontrado:", param);
+
+    if (!param) {
+      console.log("Parâmetro não encontrado!");
+      return;
+    }
 
     setParamSelected(true);
 
@@ -469,6 +601,11 @@ export default function FilterForm({
       setSelectorType("valueRange");
     } else if (param.name === "Status") {
       setSelectorType("status");
+    } else if (
+      param.name === "NSU" &&
+      (selectedType === "AL" || filter.typeName === "Agenda dos logistas")
+    ) {
+      setSelectorType("nsu");
     } else if (param.name === "Estabelecimento") {
       setSelectorType("merchant");
 
@@ -675,11 +812,18 @@ export default function FilterForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {filteredParams.map((param) => (
-                          <SelectItem key={param.id} value={String(param.id)}>
-                            {param.name}
+                        {/* Verificar se há parâmetros para exibir */}
+                        {filteredParams.length > 0 ? (
+                          filteredParams.map((param) => (
+                            <SelectItem key={param.id} value={String(param.id)}>
+                              {param.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem disabled value="no-options">
+                            Nenhum parâmetro disponível
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -767,40 +911,77 @@ export default function FilterForm({
                     <FormItem>
                       <FormLabel>Selecione os Status</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-4 border rounded-md">
-                        {transactionStatusList.map((status) => (
-                          <div
-                            key={status.value}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`status-${status.value}`}
-                              checked={selectedStatusList.includes(
-                                status.value
-                              )}
-                              onCheckedChange={() => {
-                                // Alternar a seleção
-                                const newSelection =
-                                  selectedStatusList.includes(status.value)
-                                    ? selectedStatusList.filter(
-                                        (s) => s !== status.value
-                                      )
-                                    : [...selectedStatusList, status.value];
+                        {/* Utilizar a lista de status local para AL, transactionStatusList para VN */}
+                        {selectedType === "AL" ||
+                        filter.typeName === "Agenda dos logistas"
+                          ? agendaStatusList.map((status) => (
+                              <div
+                                key={status.value}
+                                className="flex items-center space-x-2"
+                              >
+                                <Checkbox
+                                  id={`status-${status.value}`}
+                                  checked={selectedStatusList.includes(
+                                    status.value
+                                  )}
+                                  onCheckedChange={() => {
+                                    // Alternar a seleção
+                                    const newSelection =
+                                      selectedStatusList.includes(status.value)
+                                        ? selectedStatusList.filter(
+                                            (s) => s !== status.value
+                                          )
+                                        : [...selectedStatusList, status.value];
 
-                                // Atualizar o estado local
-                                setSelectedStatusList(newSelection);
+                                    // Atualizar o estado local
+                                    setSelectedStatusList(newSelection);
 
-                                // Atualizar o valor do campo
-                                field.onChange(newSelection.join(","));
-                              }}
-                            />
-                            <label
-                              htmlFor={`status-${status.value}`}
-                              className="text-sm cursor-pointer"
-                            >
-                              {status.label}
-                            </label>
-                          </div>
-                        ))}
+                                    // Atualizar o valor do campo
+                                    field.onChange(newSelection.join(","));
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`status-${status.value}`}
+                                  className="text-sm cursor-pointer"
+                                >
+                                  {status.label}
+                                </label>
+                              </div>
+                            ))
+                          : transactionStatusList.map((status) => (
+                              <div
+                                key={status.value}
+                                className="flex items-center space-x-2"
+                              >
+                                <Checkbox
+                                  id={`status-${status.value}`}
+                                  checked={selectedStatusList.includes(
+                                    status.value
+                                  )}
+                                  onCheckedChange={() => {
+                                    // Alternar a seleção
+                                    const newSelection =
+                                      selectedStatusList.includes(status.value)
+                                        ? selectedStatusList.filter(
+                                            (s) => s !== status.value
+                                          )
+                                        : [...selectedStatusList, status.value];
+
+                                    // Atualizar o estado local
+                                    setSelectedStatusList(newSelection);
+
+                                    // Atualizar o valor do campo
+                                    field.onChange(newSelection.join(","));
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`status-${status.value}`}
+                                  className="text-sm cursor-pointer"
+                                >
+                                  {status.label}
+                                </label>
+                              </div>
+                            ))}
                       </div>
                       {selectedStatusList.length === 0 && (
                         <p className="text-xs text-destructive mt-1">
@@ -1473,6 +1654,35 @@ export default function FilterForm({
                       {selectedEntryModes.length === 0 && (
                         <p className="text-xs text-destructive mt-1">
                           Selecione pelo menos um modo de entrada
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && paramSelected && selectorType === "nsu" && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número de Sequência Único (NSU)</FormLabel>
+                      <Input
+                        type="text"
+                        placeholder="Digite o NSU"
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          // Permitir apenas números
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                      />
+                      {(!field.value || field.value.trim() === "") && (
+                        <p className="text-xs text-destructive mt-1">
+                          Informe o número NSU
                         </p>
                       )}
                       <FormMessage />

@@ -218,6 +218,7 @@ export default async function ReportDetail({
             emails: report?.emails || "",
             formatCode: report?.formatCode || "",
             reportType: report?.reportType || "",
+            referenceDateType: report?.referenceDateType || "",
           }}
           recorrence={recorrence}
           period={periods}

@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { week } from "@/lib/lookuptables/lookuptables";
+import { DateMerchantAgendaList } from "@/lib/lookuptables/lookuptables-merchantAgenda";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -78,6 +79,7 @@ export default function ReportForm({
       formatCode: report.formatCode || "",
       reportType: report.reportType || "",
       filters: report.filters || [],
+      referenceDateType: report.referenceDateType || "",
     },
   });
 
@@ -382,6 +384,39 @@ export default function ReportForm({
                   </FormItem>
                 )}
               />
+
+              {form.watch("reportType") === "AL" && (
+                <FormField
+                  control={form.control}
+                  name="referenceDateType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Data de Referência</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de data" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DateMerchantAgendaList.map((dateType) => (
+                            <SelectItem
+                              key={dateType.value}
+                              value={dateType.value}
+                            >
+                              {dateType.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

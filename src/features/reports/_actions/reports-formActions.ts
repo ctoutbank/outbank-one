@@ -32,6 +32,7 @@ export async function insertReportFormAction(data: ReportSchema) {
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    referenceDateType: data.referenceDateType || null,
   };
 
   console.log("Dados a serem inseridos:", reportInsert);
@@ -78,6 +79,7 @@ export async function updateReportFormAction(data: ReportSchema) {
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    referenceDateType: data.referenceDateType || null,
   };
 
   console.log("Dados a serem atualizados:", reportUpdate);

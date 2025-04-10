@@ -185,6 +185,7 @@ export async function updateReport(report: ReportDetail): Promise<void> {
       reportType: report.reportType,
       startTime: report.startTime,
       endTime: report.endTime,
+      referenceDateType: report.referenceDateType,
       dtupdate: new Date().toISOString(),
     })
     .where(eq(reports.id, report.id));

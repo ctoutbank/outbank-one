@@ -21,6 +21,7 @@ export const SchemaReport = z.object({
   reportType: z.string().min(1, "Tipo de relatório é obrigatório"),
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
+  referenceDateType: z.string().optional(),
   filters: z
     .array(
       z.object({
