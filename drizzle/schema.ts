@@ -715,24 +715,6 @@ export const file = pgTable("file", {
 	slug: uuid().defaultRandom(),
 });
 
-export const reports = pgTable("reports", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "reports_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	title: varchar({ length: 200 }).notNull(),
-	recurrenceCode: varchar("recurrence_code", { length: 10 }),
-	shippingTime: time("shipping_time"),
-	periodCode: varchar("period_code", { length: 10 }),
-	emails: text(),
-	formatCode: varchar("format_code", { length: 10 }),
-	reportType: varchar("report_type", { length: 10 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dayWeek: varchar("day_week", { length: 10 }),
-	startTime: time("start_time"),
-	dayMonth: varchar("day_month", { length: 20 }),
-	endTime: time("end_time"),
-});
-
 export const fileFormats = pgTable("file_formats", {
 	code: varchar({ length: 10 }).primaryKey().notNull(),
 	name: varchar({ length: 50 }).notNull(),
@@ -835,6 +817,25 @@ export const customerFunctions = pgTable("customer_functions", {
 export const reportExecutionStatus = pgTable("report_execution_status", {
 	code: varchar({ length: 20 }).primaryKey().notNull(),
 	name: varchar({ length: 50 }).notNull(),
+});
+
+export const reports = pgTable("reports", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "reports_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	title: varchar({ length: 200 }).notNull(),
+	recurrenceCode: varchar("recurrence_code", { length: 10 }),
+	shippingTime: time("shipping_time"),
+	periodCode: varchar("period_code", { length: 10 }),
+	emails: text(),
+	formatCode: varchar("format_code", { length: 10 }),
+	reportType: varchar("report_type", { length: 10 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dayWeek: varchar("day_week", { length: 10 }),
+	startTime: time("start_time"),
+	dayMonth: varchar("day_month", { length: 20 }),
+	endTime: time("end_time"),
+	referenceDateType: varchar("reference_date_type", { length: 50 }),
 });
 
 export const cronJobMonitoring = pgTable("cron_job_monitoring", {

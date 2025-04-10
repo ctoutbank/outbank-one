@@ -116,17 +116,30 @@ export default function ReportsWizardForm({
 
   // Função para abrir o dialog de adição de novo filtro
   const handleAddFilter = () => {
+    // Obter o tipo do relatório atual
+    const reportTypeCode = report.reportType || "VN"; // default para VN se não estiver definido
+    const reportTypeName =
+      reportType.find((type) => type.code === reportTypeCode)?.name || "Vendas";
+
     setEditingFilter({
       idReport: newReportId || (report.id as number),
       idReportFilterParam:
         reportFilterParams.length > 0 ? reportFilterParams[0].id : 0,
       value: "",
+      typeName: reportTypeName, // Adicionar o nome do tipo de relatório
     });
     setOpen(true);
   };
 
   // Função para editar um filtro existente
   const handleEditFilter = (filter: FormattedFilter) => {
+    // Caso o typeName não esteja definido no filtro, usar o tipo do relatório atual
+    const reportTypeCode = report.reportType || "VN";
+    const reportTypeName =
+      filter.typeName ||
+      reportType.find((type) => type.code === reportTypeCode)?.name ||
+      "Vendas";
+
     setEditingFilter({
       id: filter.id,
       idReport: filter.idReport,
@@ -134,7 +147,7 @@ export default function ReportsWizardForm({
       value: filter.value,
       dtinsert: filter.dtinsert ? new Date(filter.dtinsert) : undefined,
       dtupdate: filter.dtupdate ? new Date(filter.dtupdate) : undefined,
-      typeName: filter.typeName || undefined,
+      typeName: reportTypeName, // Garantir que o typeName esteja sempre definido
     });
     setOpen(true);
   };
