@@ -2,40 +2,31 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ReportStats, getReportStats } from "@/features/reports/server/reports";
 import { Calendar, FileText, FileType } from "lucide-react";
-import { useEffect, useState } from "react";
 
-export function ReportsDashboardContent() {
-  const [stats, setStats] = useState<ReportStats | null>(null);
-  const [loading, setLoading] = useState(true);
+type ReportsDashboardContentProps = {
+  totalReports: number;
+  recurrenceStats: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+  formatStats: {
+    pdf: number;
+    excel: number;
+  };
+  typeStats: {
+    sales: number;
+    schedule: number;
+  };
+};
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const reportStats = await getReportStats();
-        setStats(reportStats);
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, []);
-
-  if (loading) {
-    return <div className="p-4 text-center">Carregando estatísticas...</div>;
-  }
-
-  if (!stats) {
-    return (
-      <div className="p-4 text-center">Nenhuma estatística disponível</div>
-    );
-  }
-
+export function ReportsDashboardContent({
+  totalReports,
+  recurrenceStats,
+  formatStats,
+  typeStats,
+}: ReportsDashboardContentProps) {
   return (
     <div className="space-y-4">
       <Separator />
@@ -53,7 +44,7 @@ export function ReportsDashboardContent() {
                   </span>
                 </div>
                 <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                  {stats.totalReports}
+                  {totalReports}
                 </span>
               </div>
               <Separator className="mb-3" />
@@ -66,7 +57,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.recurrenceStats.daily}
+                    {recurrenceStats.daily}
                   </span>
                 </div>
                 <div className="text-center">
@@ -77,7 +68,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.recurrenceStats.weekly}
+                    {recurrenceStats.weekly}
                   </span>
                 </div>
                 <div className="text-center">
@@ -88,7 +79,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.recurrenceStats.monthly}
+                    {recurrenceStats.monthly}
                   </span>
                 </div>
               </div>
@@ -117,7 +108,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.formatStats.pdf}
+                    {formatStats.pdf}
                   </span>
                 </div>
                 <div className="text-center">
@@ -128,7 +119,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.formatStats.excel}
+                    {formatStats.excel}
                   </span>
                 </div>
               </div>
@@ -157,7 +148,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.typeStats.sales}
+                    {typeStats.sales}
                   </span>
                 </div>
                 <div className="text-center">
@@ -168,7 +159,7 @@ export function ReportsDashboardContent() {
                     </span>
                   </div>
                   <span className="text-base font-semibold text-zinc-900">
-                    {stats.typeStats.schedule}
+                    {typeStats.schedule}
                   </span>
                 </div>
               </div>

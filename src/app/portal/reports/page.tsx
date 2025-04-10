@@ -6,7 +6,7 @@ import { ReportsDashboardButton } from "@/features/reports/_components/reports-d
 import { ReportsDashboardContent } from "@/features/reports/_components/reports-dashboard-content";
 import { ReportsFilter } from "@/features/reports/_components/reports-filter";
 import ReportList from "@/features/reports/_components/reports-list";
-import { getReports } from "@/features/reports/server/reports";
+import { getReports, getReportStats } from "@/features/reports/server/reports";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -45,6 +45,9 @@ export default async function ReportsPage({
   );
   const totalRecords = reports.totalCount;
 
+  // Obter estatísticas para o dashboard
+  const reportStats = await getReportStats();
+
   return (
     <>
       <BaseHeader
@@ -68,7 +71,12 @@ export default async function ReportsPage({
                 creationDateIn={searchParams.creationDate}
               />
               <ReportsDashboardButton>
-                <ReportsDashboardContent />
+                <ReportsDashboardContent
+                  totalReports={reportStats.totalReports}
+                  recurrenceStats={reportStats.recurrenceStats}
+                  formatStats={reportStats.formatStats}
+                  typeStats={reportStats.typeStats}
+                />
               </ReportsDashboardButton>
             </div>
             <Button asChild className="shrink-0">
