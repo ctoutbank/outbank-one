@@ -1,3 +1,5 @@
+
+
 export interface CardBrand {
   brand: string;
   grossAmount: number;
@@ -44,4 +46,5 @@ export interface MerchantGroupedData {
 
 export interface MerchantGroupedResponse {
   result: MerchantGroupedData[];
-} 
+}
+

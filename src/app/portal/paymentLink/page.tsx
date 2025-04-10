@@ -4,6 +4,7 @@ import PaginationRecords from "@/components/pagination-Records";
 import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-link-filter";
 import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
+import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
@@ -51,6 +52,7 @@ export default async function PaymentLinkPage({
       <BaseBody
         title="Links de Pagamento"
         subtitle={`Visualização de todos os Links de Pagamento`}
+        actions={<SyncButton syncType="paymentLink" />}
       >
         <div className="mb-4">
           <PaymentLinkFilter

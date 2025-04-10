@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
 import { MerchantAgendaDashboardButton } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-button";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
@@ -13,9 +14,10 @@ import {
   getMerchantAgenda,
   getMerchantAgendaExcelData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
+import { getMerchantAgendaAnticipation } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";
-import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -34,6 +36,10 @@ type MerchantAgendaProps = {
   settlementDateTo?: string;
   expectedSettlementDateFrom?: string;
   expectedSettlementDateTo?: string;
+  saleDateFrom?: string;
+  saleDateTo?: string;
+  nsu?: string;
+  orderId?: string;
 };
 
 export default async function MerchantAgendaPage({
@@ -63,7 +69,7 @@ export default async function MerchantAgendaPage({
     searchParams.expectedSettlementDateFrom,
     searchParams.expectedSettlementDateTo
   );
-  const totalRecords = merchantAgenda.totalCount;
+  const totalRecordsReceivables = merchantAgenda.totalCount;
   const globalStyles = {
     header: {
       fill: {
@@ -77,7 +83,7 @@ export default async function MerchantAgendaPage({
       font: { color: { argb: "000000" } } as Font,
     },
   };
-  const excelDataToExport = await getMerchantAgendaExcelData(
+  const excelDataToExportReceivables = await getMerchantAgendaExcelData(
     dateFrom == undefined || dateFrom == null || dateFrom == ""
       ? "2025-01-13"
       : dateFrom,
@@ -85,6 +91,14 @@ export default async function MerchantAgendaPage({
       ? "2025-02-13"
       : dateTo
   );
+  const merchantAgendaAnticipation = await getMerchantAgendaAnticipation(
+    search,
+    page,
+    pageSize,
+    dateFrom,
+    dateTo
+  );
+  const totalRecordsAntecipations = merchantAgendaAnticipation.totalCount;
 
   return (
     <>
@@ -172,7 +186,7 @@ export default async function MerchantAgendaPage({
                   </MerchantAgendaDashboardButton>
                 </div>
                 <ExcelExport
-                  data={excelDataToExport.map((data) => ({
+                  data={excelDataToExportReceivables.map((data) => ({
                     Merchant: data.merchant,
                     CNPJ: data.cnpj,
                     NSU: data.nsu,
@@ -198,9 +212,9 @@ export default async function MerchantAgendaPage({
               <div className="w-full overflow-x-auto">
                 <MerchantAgendaList merchantAgendaList={merchantAgenda} />
               </div>
-              {totalRecords > 0 && (
+              {totalRecordsReceivables > 0 && (
                 <PaginationRecords
-                  totalRecords={totalRecords}
+                  totalRecords={totalRecordsReceivables}
                   currentPage={page}
                   pageSize={pageSize}
                   pageName="portal/merchantAgenda"
@@ -209,11 +223,46 @@ export default async function MerchantAgendaPage({
             </div>
           </TabsContent>
           <TabsContent value="anticipations" className="mt-6">
-            <EmptyState
-              icon={Search}
-              title={"Nenhum resultado encontrado"}
-              description={""}
-            />
+            <div className="flex flex-col space-y-4 mt-2">
+              <div className="flex items-center justify-between gap-4 relative z-50">
+                <div className="flex items-start gap-4 flex-1"></div>
+                <ExcelExport
+                  data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
+                    (data) => ({
+                      Merchant: data.merchantName,
+                      NSU: data.rrn,
+                      SaleDate: data.effectivePaymentDate,
+                      Type: data.type,
+                      Brand: data.brand,
+                      InstallmentNumber: data.installmentNumber,
+                      InstallmentValue: data.installmentAmount,
+                      TransactionMdr: data.transactionMdr,
+                      TransactionMdrFee: data.transactionMdrFee,
+                      SettlementAmount: data.settlementAmount,
+                      ExpectedDate: data.expectedSettlementDate,
+                      AnticipationAmount: data.anticipatedAmount,
+                      AnticipationCode: data.anticipationCode,
+                    })
+                  )}
+                  globalStyles={globalStyles}
+                  sheetName="Conciliação de antecipações"
+                  fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
+                />
+              </div>
+              <div className="w-full overflow-x-auto">
+                <MerchantAgendaAntecipationList
+                  merchantAgendaAnticipationList={merchantAgendaAnticipation}
+                />
+              </div>
+              {totalRecordsAntecipations > 0 && (
+                <PaginationRecords
+                  totalRecords={totalRecordsAntecipations}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  pageName="portal/merchantAgenda"
+                />
+              )}
+            </div>
           </TabsContent>
           <TabsContent value="adjustment" className="mt-6">
             <EmptyState

@@ -1,19 +1,19 @@
-import { ReportSchema } from "../schema/schema";
-import { ReportFilterSchema } from "../filter/schema";
-import {
-  ReportDetail,
-  ReportInsert,
-  insertReport,
-  updateReport,
-  deleteReportFilters,
-} from "../server/reports";
 import {
   ReportFilterDetail,
   ReportFilterInsert,
+  deleteReportFilter,
   insertReportFilter,
   updateReportFilter,
-  deleteReportFilter,
 } from "../filter/filter-Actions";
+import { ReportFilterSchema } from "../filter/schema";
+import { ReportSchema } from "../schema/schema";
+import {
+  ReportDetail,
+  ReportInsert,
+  deleteReportFilters,
+  insertReport,
+  updateReport,
+} from "../server/reports";
 
 export async function insertReportFormAction(data: ReportSchema) {
   console.log("Dados recebidos no insertReportFormAction:", data);
@@ -32,6 +32,7 @@ export async function insertReportFormAction(data: ReportSchema) {
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    referenceDateType: data.referenceDateType || null,
   };
 
   console.log("Dados a serem inseridos:", reportInsert);
@@ -78,6 +79,7 @@ export async function updateReportFormAction(data: ReportSchema) {
     reportType: data.reportType || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    referenceDateType: data.referenceDateType || null,
   };
 
   console.log("Dados a serem atualizados:", reportUpdate);

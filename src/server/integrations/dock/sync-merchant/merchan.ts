@@ -189,6 +189,10 @@ async function updateMerchant(
       ? new Date(merchant.dtdelete).toISOString()
       : null;
 
+    const idCustomer = await getIdBySlug(
+      "customers",
+      merchant.slugCustomer || ""
+    );
     await db
       .update(merchants)
       .set({
@@ -233,6 +237,7 @@ async function updateMerchant(
         slugConfiguration: configurationslug,
         idAddress: addressId,
         dtdelete: DtDelete,
+        idCustomer: idCustomer,
       })
       .where(eq(merchants.slug, merchant.slug));
 
@@ -263,6 +268,11 @@ async function insertMerchant(
     if (existing.length > 0) {
       return;
     }
+
+    const idCustomer = await getIdBySlug(
+      "customers",
+      merchant.slugCustomer || ""
+    );
 
     console.log("Inserting merchant:", merchant);
 
@@ -319,6 +329,7 @@ async function insertMerchant(
       dtdelete: merchant.dtdelete
         ? new Date(merchant.dtdelete).toISOString()
         : null,
+      idCustomer: idCustomer,
     });
 
     console.log("Merchant inserted successfully.");

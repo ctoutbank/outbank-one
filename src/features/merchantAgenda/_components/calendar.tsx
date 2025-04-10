@@ -2,17 +2,17 @@
 
 import { Card } from "@/components/ui/card";
 import type {
+  BrandData,
   DailyAmount,
   GlobalSettlementResult,
   PaymentMethodData,
-  BrandData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import FullCalendar from "@fullcalendar/react";
-import { useState, useEffect } from "react";
 import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react";
+import { useEffect, useState } from "react";
 
 // Importar a Server Action do arquivo dedicado
 import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
@@ -169,6 +169,7 @@ export function Calendar({
         datesSet={handleDatesSet}
         locale={ptBrLocale}
         events={events}
+        showNonCurrentDates={false}
         headerToolbar={{
           left: "prev",
           center: "title",

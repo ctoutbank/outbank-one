@@ -3,9 +3,10 @@ import BaseHeader from "@/components/layout/base-header";
 import MerchantAgendaReceipts from "@/features/merchantAgenda/_components/merchantAgendaReceipts";
 import {
   DailyAmount,
-  getMerchantAgendaReceipts,
   getGlobalSettlement,
+  getMerchantAgendaReceipts,
 } from "@/features/merchantAgenda/server/merchantAgenda";
+import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
@@ -24,7 +25,7 @@ export default async function ReceiptsPage({
     ? new Date(searchParams.date)
     : new Date();
 
-   await checkPagePermission("Agenda de Antecipações");
+  await checkPagePermission("Agenda de Antecipações");
 
   const merchantAgendaReceipts = await getMerchantAgendaReceipts(
     searchParams.search || null,
@@ -52,7 +53,11 @@ export default async function ReceiptsPage({
         breadcrumbItems={[{ title: "Recebimentos", url: "/portal/receipts" }]}
       />
 
-      <BaseBody title="Recebimentos" subtitle={`visualização dos Recebimentos`}>
+      <BaseBody
+        title="Recebimentos"
+        subtitle={`visualização dos Recebimentos`}
+        actions={<SyncButton syncType="payout" />}
+      >
         <MerchantAgendaReceipts
           monthlyData={dailyAmounts}
           dailyData={dailyData}

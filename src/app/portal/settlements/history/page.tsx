@@ -8,6 +8,7 @@ import { SettlementsHistoryDashboardButton } from "@/features/settlements/_compo
 import { SettlementsHistoryDashboardContent } from "@/features/settlements/_components/settlements-history-dashboard-content";
 import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
 import { getSettlements } from "@/features/settlements/server/settlements";
+import { SyncButton } from "@/features/sync/syncButton";
 
 export const revalidate = 0;
 
@@ -37,7 +38,6 @@ export default async function SettlementsPage({
     pageSize
   );
   const totalRecords = settlements.totalCount;
-  
 
   return (
     <>
@@ -53,33 +53,53 @@ export default async function SettlementsPage({
       <BaseBody
         title="Histórico de Liquidações"
         subtitle={`Visualização do Histórico de Liquidações`}
+        actions={<SyncButton syncType="settlement" />}
       >
-        
         <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex items-start gap-4 flex-1">
-          <SettlementsHistoryFilter
-            statusIn={status}
-            dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
-            dateToIn={dateTo ? new Date(dateTo) : undefined}
-          />
-          
-          <SettlementsHistoryDashboardButton>
-          <div className="-ml-28">
-            <SettlementsHistoryDashboardContent
-              totalSettlements={settlements.totalCount}
-              totalGrossAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.batch_amount), 0)}
-              totalNetAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_settlement_amount), 0)}
-              totalRestitutionAmount={settlements.settlements.reduce((acc, curr) => acc + Number(curr.total_restitution_amount), 0)}
-              pendingSettlements={settlements.settlements.filter(s => s.status === 'pending').length}
-              approvedSettlements={settlements.settlements.filter(s => s.status === 'approved').length}
-              processedSettlements={settlements.settlements.filter(s => s.status === 'settled').length}
+          <div className="flex items-start gap-4 flex-1">
+            <SettlementsHistoryFilter
+              statusIn={status}
+              dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+              dateToIn={dateTo ? new Date(dateTo) : undefined}
             />
-            </div>
-          </SettlementsHistoryDashboardButton>
+
+            <SettlementsHistoryDashboardButton>
+              <div className="-ml-28">
+                <SettlementsHistoryDashboardContent
+                  totalSettlements={settlements.totalCount}
+                  totalGrossAmount={settlements.settlements.reduce(
+                    (acc, curr) => acc + Number(curr.batch_amount),
+                    0
+                  )}
+                  totalNetAmount={settlements.settlements.reduce(
+                    (acc, curr) => acc + Number(curr.total_settlement_amount),
+                    0
+                  )}
+                  totalRestitutionAmount={settlements.settlements.reduce(
+                    (acc, curr) => acc + Number(curr.total_restitution_amount),
+                    0
+                  )}
+                  pendingSettlements={
+                    settlements.settlements.filter(
+                      (s) => s.status === "pending"
+                    ).length
+                  }
+                  approvedSettlements={
+                    settlements.settlements.filter(
+                      (s) => s.status === "approved"
+                    ).length
+                  }
+                  processedSettlements={
+                    settlements.settlements.filter(
+                      (s) => s.status === "settled"
+                    ).length
+                  }
+                />
+              </div>
+            </SettlementsHistoryDashboardButton>
+          </div>
         </div>
-        </div>
-        
-        
+
         <SettlementHistoryList Settlements={settlements} />
         {totalRecords > 0 && (
           <PaginationRecords

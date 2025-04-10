@@ -185,6 +185,7 @@ export async function updateReport(report: ReportDetail): Promise<void> {
       reportType: report.reportType,
       startTime: report.startTime,
       endTime: report.endTime,
+      referenceDateType: report.referenceDateType,
       dtupdate: new Date().toISOString(),
     })
     .where(eq(reports.id, report.id));
@@ -370,4 +371,19 @@ export async function getReportStats(): Promise<ReportStats> {
     formatStats,
     typeStats,
   };
+}
+
+export async function deleteReport(id: number): Promise<void> {
+  try {
+    // Primeiro, excluir os filtros associados ao relatório
+    await db.delete(reportFilters).where(eq(reportFilters.idReport, id));
+
+    // Em seguida, excluir o relatório
+    await db.delete(reports).where(eq(reports.id, id));
+  } catch (error) {
+    console.error("Erro ao excluir relatório:", error);
+    throw new Error(
+      "Não foi possível excluir o relatório. Verifique se não existem dependências."
+    );
+  }
 }

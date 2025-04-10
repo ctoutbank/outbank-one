@@ -130,3 +130,73 @@ body {
 .delay-500 {
   animation-delay: 500ms;
 }
+
+
+/* Estilos personalizados para o react-big-calendar */
+.rbc-calendar {
+  @apply font-sans;
+}
+
+.rbc-header {
+  @apply py-2 font-medium text-muted-foreground;
+}
+
+.rbc-month-view {
+  @apply rounded-lg border border-border;
+}
+
+.rbc-day-bg {
+  @apply transition-colors;
+}
+
+.rbc-day-bg.rbc-today {
+  @apply bg-primary/10;
+}
+
+.rbc-off-range-bg {
+  @apply bg-muted/50;
+}
+
+.rbc-event {
+  @apply bg-transparent border-none rounded-md p-0 m-0;
+}
+
+.rbc-event-content {
+  @apply h-full;
+}
+
+.rbc-toolbar button {
+  @apply bg-background border border-input rounded-md px-3 py-1 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors;
+}
+
+.rbc-toolbar button.rbc-active {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.rbc-toolbar-label {
+  @apply text-lg font-medium;
+}
+
+.rbc-month-row {
+  @apply overflow-visible;
+}
+
+.rbc-row-content {
+  @apply z-10;
+}
+
+.rbc-date-cell {
+  @apply text-right p-1 text-sm;
+}
+
+.rbc-date-cell.rbc-now {
+  @apply font-bold;
+}
+
+.rbc-row-bg {
+  @apply z-0;
+}
+
+.rbc-day-bg.has-data:hover {
+  @apply bg-accent/50 cursor-pointer;
+}

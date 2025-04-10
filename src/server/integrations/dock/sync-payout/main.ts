@@ -6,13 +6,18 @@ import { Payout, PayoutResponse } from "./types";
 
 async function fetchPayout(offset: number, transactionDate: Date | undefined) {
   let stringTransactionDate = "";
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  let nextDay: Date | undefined = undefined;
 
   if (transactionDate === undefined || transactionDate === null) {
     stringTransactionDate = "2024-09-05";
 
     console.log("transaction date", stringTransactionDate, offset);
+  } else if (transactionDate == yesterday) {
+    stringTransactionDate = formatDateToAPIFilter(yesterday);
   } else {
-    const nextDay = new Date(transactionDate);
+    nextDay = new Date(transactionDate);
     nextDay.setDate(nextDay.getDate() + 1);
     console.log("nextDay", nextDay, transactionDate);
     stringTransactionDate = formatDateToAPIFilter(nextDay);
@@ -36,9 +41,7 @@ async function fetchPayout(offset: number, transactionDate: Date | undefined) {
   }
 
   const data: PayoutResponse = await response.json();
-  if (data.meta.total_count === 0) {
-    const nextDay = new Date(transactionDate ?? new Date());
-    nextDay.setDate(nextDay.getDate() + 1);
+  if (data.meta.total_count === 0 && nextDay) {
     fetchPayout(0, nextDay);
   }
   return data;

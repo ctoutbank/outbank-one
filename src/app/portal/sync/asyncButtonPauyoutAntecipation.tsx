@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { syncPaymentLink } from "@/server/integrations/dock/sync-paymentLink/main";
+import { syncPayoutAntecipations } from "@/server/integrations/dock/sync-payoutAntecipations/main";
 import { useState } from "react";
 
-export default function AsyncButtonsPaymentLink() {
+export default function AsyncButtonsAntecipations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export default function AsyncButtonsPaymentLink() {
     setSuccess(null);
 
     try {
-      await syncPaymentLink();
+      await syncPayoutAntecipations();
       setSuccess("Sincronização realizada com sucesso!");
     } catch (err) {
       setError("Erro ao realizar a sincronização.");
@@ -30,14 +30,6 @@ export default function AsyncButtonsPaymentLink() {
       <h1 className="text-3xl font-bold mb-6">Sincronização</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {/* <Button 
-         
-          disabled={false}
-          className="bg-blue-500 hover:bg-blue-600"
-        >
-          
-        </Button> */}
-
         <Button
           onClick={handleSync}
           disabled={loading}
@@ -45,7 +37,7 @@ export default function AsyncButtonsPaymentLink() {
             loading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          Payment Link {loading ? "Sincronizando..." : "Sincronizar"}
+          Antecipations {loading ? "Sincronizando..." : "Sincronizar"}
         </Button>
       </div>
 
