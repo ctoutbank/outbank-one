@@ -7,7 +7,6 @@ import { MerchantDashboardButton } from "@/features/merchant/_components/merchan
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
-import { MerchantSyncButton } from "@/features/merchant/_components/merchant-sync-button";
 import { getMerchants } from "@/features/merchant/server/merchant";
 import {
   getMerchantRegistrationsByPeriod,
@@ -15,6 +14,7 @@ import {
   getMerchantTransactionData,
   getMerchantTypeData,
 } from "@/features/merchant/server/merchant-dashboard";
+import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
@@ -102,17 +102,16 @@ export default async function MerchantsPage({
         breadcrumbItems={[
           { title: "Estabelecimentos", url: "/portal/merchants" },
         ]}
+       
       />
 
       <BaseBody
         title="Estabelecimentos"
         subtitle={`Visualização de todos os estabelecimentos`}
+        actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-4">
-          <div className="w-4 absolute right-1/4 top-[10%]">
-            <MerchantSyncButton />
-          </div>
-
+          
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
               <MerchantFilter

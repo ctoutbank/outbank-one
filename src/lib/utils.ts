@@ -173,7 +173,10 @@ export function formatCNPJ(cnpj: string): string {
 }
 export function formatCurrency(number: number | undefined | null): string {
   if (number === undefined || number === null) return "R$ 0,00";
-  return `R$ ${number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
+  return `R$ ${number
+    .toFixed(2)
+    .replace(".", ",")
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
 
 export function generateSlug(): string {

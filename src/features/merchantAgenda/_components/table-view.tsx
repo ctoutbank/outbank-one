@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
+import { formatDate } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type {
@@ -186,7 +187,7 @@ export function TableView({
         </Button>
       </div>
 
-      <div className="min-w-[1040px]">
+      <div className="min-w-[1040px] border rounded-lg>">
         <Table>
           <TableHeader>
             <TableRow>
@@ -216,7 +217,7 @@ export function TableView({
                             <TableBody>
                               <TableRow>
                                 <TableCell className="w-[60%] min-w-[180px] text-muted-foreground">
-                                  {item.date}
+                                  {formatDate(new Date(item.date))}
                                 </TableCell>
                                 <TableCell className="w-[40%] min-w-[140px] text-center text-muted-foreground">
                                   {new Intl.NumberFormat("pt-BR", {
