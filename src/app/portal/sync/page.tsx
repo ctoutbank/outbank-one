@@ -1,11 +1,12 @@
+import AsyncButtonsAntecipations from "@/app/portal/sync/asyncButtonPauyoutAntecipation";
 import type React from "react";
 import AsyncButtonsCity from "./asynButtomCity";
 import AsyncButtonsPage from "./asyncButtom";
-import AsyncButtonsPayout from "./asyncButtonPayouts";
-import AsyncButtonsSettlement from "./asyncButtonSettlement";
 import AsyncButtonsMerchantPrice from "./asyncButtomMerchantPrice";
 import AsyncButtonsMerchantPriceGroup from "./asyncButtomMerchantPricegroup";
 import AsyncButtonsPaymentLink from "./asyncButtonPaymentLink";
+import AsyncButtonsPayout from "./asyncButtonPayouts";
+import AsyncButtonsSettlement from "./asyncButtonSettlement";
 
 export default function HomePage() {
   return (
@@ -22,6 +23,7 @@ export default function HomePage() {
         <Section title="Settlement and Payout">
           <AsyncButtonsSettlement />
           <AsyncButtonsPayout />
+          <AsyncButtonsAntecipations />
         </Section>
 
         <Section title="Payment Link">

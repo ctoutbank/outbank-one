@@ -16,6 +16,8 @@ import {
 import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-antecipations-list";
+import { getMerchantAgendaAntecipation } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 
 export const revalidate = 0;
 
@@ -84,6 +86,13 @@ export default async function MerchantAgendaPage({
     dateTo == undefined || dateFrom == null || dateFrom == ""
       ? "2025-02-13"
       : dateTo
+  );
+  const merchantAgendaAntecipation = await getMerchantAgendaAntecipation(
+    search,
+    page,
+    pageSize,
+    dateFrom,
+    dateTo
   );
 
   return (
@@ -209,10 +218,8 @@ export default async function MerchantAgendaPage({
             </div>
           </TabsContent>
           <TabsContent value="anticipations" className="mt-6">
-            <EmptyState
-              icon={Search}
-              title={"Nenhum resultado encontrado"}
-              description={""}
+            <MerchantAgendaAntecipationList
+              merchantAgendaAntecipationList={merchantAgendaAntecipation}
             />
           </TabsContent>
           <TabsContent value="adjustment" className="mt-6">
