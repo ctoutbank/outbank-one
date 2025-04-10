@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { syncAntecipations } from "@/server/integrations/dock/sync-antecipations/main";
+import { syncPayoutAntecipations } from "@/server/integrations/dock/sync-payoutAntecipations/main";
 import { useState } from "react";
 
 export default function AsyncButtonsAntecipations() {
@@ -15,7 +15,7 @@ export default function AsyncButtonsAntecipations() {
     setSuccess(null);
 
     try {
-      await syncAntecipations();
+      await syncPayoutAntecipations();
       setSuccess("Sincronização realizada com sucesso!");
     } catch (err) {
       setError("Erro ao realizar a sincronização.");

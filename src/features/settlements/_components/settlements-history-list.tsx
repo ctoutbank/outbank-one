@@ -42,6 +42,7 @@ export default function SettlementHistorylist({
                 <TableCell>
                   <a
                     href={`/portal/settlements?settlementSlug=${settlements.slug}`}
+                    className="underline"
                   >
                     {formatDate(
                       new Date(settlements.payment_date) || new Date()

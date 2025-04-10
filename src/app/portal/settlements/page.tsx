@@ -14,6 +14,7 @@ import {
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { formatDate } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
+import { SyncButton } from "@/features/sync/syncButton";
 
 export const revalidate = 0;
 
@@ -66,6 +67,7 @@ export default async function SettlementsPage({
       <BaseBody
         title="Liquidações"
         subtitle={`Visualização de todas as Liquidações`}
+        actions={<SyncButton syncType="settlement" />}
       >
         {settlements.settlement.length > 0 && (
           <>

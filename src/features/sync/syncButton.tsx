@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { syncMerchant } from "@/server/integrations/dock/sync-merchant/main";
+import { syncMerchantPrices } from "@/server/integrations/dock/sync-merchantPrice/main";
+import { syncAllMerchantPriceGroups } from "@/server/integrations/dock/sync-merchantPriceGroup/service";
+import { syncPaymentLink } from "@/server/integrations/dock/sync-paymentLink/main";
+import { syncPayouts } from "@/server/integrations/dock/sync-payout/main";
+import { syncPayoutAntecipations } from "@/server/integrations/dock/sync-payoutAntecipations/main";
+import { syncSettlements } from "@/server/integrations/dock/sync-settlements/main";
 import { syncTransactions } from "@/server/integrations/dock/sync-transactions/main";
 import { RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -8,7 +15,7 @@ import { useTransition } from "react";
 
 type SyncButtonProps = {
   onSyncComplete?: () => void;
-  syncType: "transactions" | "merchants";
+  syncType: "transactions" | "merchants" | "paymentLink" | "settlement" | "payout" | "payoutAntecipation";
 };
 
 export function SyncButton({ onSyncComplete, syncType }: SyncButtonProps) {
@@ -23,7 +30,17 @@ export function SyncButton({ onSyncComplete, syncType }: SyncButtonProps) {
           if (syncType === "transactions") {
             await syncTransactions();
           } else if (syncType === "merchants") {
-            console.log("syncing merchants");
+            await syncMerchant();
+            await syncMerchantPrices();
+            await syncAllMerchantPriceGroups();
+          } else if (syncType === "paymentLink") {
+            await syncPaymentLink();
+          } else if (syncType === "settlement") {
+            await syncSettlements();
+          } else if (syncType === "payout") {
+            await syncPayouts();
+          } else if (syncType === "payoutAntecipation") {
+            await syncPayoutAntecipations();
           }
           onSyncComplete?.();
           router.refresh();

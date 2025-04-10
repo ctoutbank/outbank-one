@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
-import type { MerchantAgendaAntecipationList } from "../server/merchantAgendaAntecipation";
+import type { MerchantAgendaAnticipationList } from "../server/merchantAgendaAntecipation";
 
-interface MerchantAgendaAntecipationListProps {
-  merchantAgendaAntecipationList: MerchantAgendaAntecipationList;
+interface MerchantAgendaAnticipationListProps {
+  merchantAgendaAnticipationList: MerchantAgendaAnticipationList;
 }
 
-export default function MerchantAgendaAntecipationList({
-  merchantAgendaAntecipationList,
-}: MerchantAgendaAntecipationListProps) {
+export default function MerchantAgendaAnticipationList({
+  merchantAgendaAnticipationList,
+}: MerchantAgendaAnticipationListProps) {
   const columns = [
     { id: "merchantName", name: "Estabelecimento", defaultVisible: true },
     { id: "rrn", name: "NSU / ID", defaultVisible: false },
@@ -137,9 +137,9 @@ export default function MerchantAgendaAntecipationList({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="border rounded-lg">
-        <div className="overflow-x-auto">
-          <Table className="w-full">
+      <div className="w-full">
+        <div className="border rounded-lg overflow-x-auto">
+          <Table>
             <TableHeader>
               <TableRow>
                 {columns
@@ -152,7 +152,7 @@ export default function MerchantAgendaAntecipationList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {merchantAgendaAntecipationList?.merchantAgendaAntecipations.map(
+              {merchantAgendaAnticipationList?.merchantAgendaAnticipations.map(
                 (item, index) => (
                   <TableRow key={index}>
                     {visibleColumns.includes("merchantName") && (

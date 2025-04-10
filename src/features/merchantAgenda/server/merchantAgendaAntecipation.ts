@@ -3,19 +3,19 @@
 import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import {
-    and,
-    count,
-    desc,
-    eq,
-    gte,
-    ilike,
-    inArray,
-    lte,
-    or,
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  or,
 } from "drizzle-orm";
 import { merchants, payoutAntecipations } from "../../../../drizzle/schema";
 
-export interface MerchantAgendaAntecipation {
+export interface MerchantAgendaAnticipation {
   merchantName: string | null;
   rrn: string | null;
   transactionDate: string | null;
@@ -38,12 +38,12 @@ export interface MerchantAgendaAntecipation {
   settlementUniqueNumber: string | null;
 }
 
-export interface MerchantAgendaAntecipationList {
-  merchantAgendaAntecipations: MerchantAgendaAntecipation[];
+export interface MerchantAgendaAnticipationList {
+  merchantAgendaAnticipations: MerchantAgendaAnticipation[];
   totalCount: number;
 }
 
-export async function getMerchantAgendaAntecipation(
+export async function getMerchantAgendaAnticipation(
   search: string,
   page: number,
   pageSize: number,
@@ -56,7 +56,7 @@ export async function getMerchantAgendaAntecipation(
   settlementDateTo?: string,
   expectedSettlementDateFrom?: string,
   expectedSettlementDateTo?: string
-): Promise<MerchantAgendaAntecipationList> {
+): Promise<MerchantAgendaAnticipationList> {
   const offset = (page - 1) * pageSize;
 
   // Get user's merchant access
@@ -65,7 +65,7 @@ export async function getMerchantAgendaAntecipation(
   // If user has no access and no full access, return empty result
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return {
-      merchantAgendaAntecipations: [],
+      merchantAgendaAnticipations: [],
       totalCount: 0,
     };
   }
@@ -167,7 +167,7 @@ export async function getMerchantAgendaAntecipation(
   const totalCount = totalCountResult[0]?.count || 0;
 
   return {
-    merchantAgendaAntecipations: result.map((item) => ({
+    merchantAgendaAnticipations: result.map((item) => ({
       merchantName: item.merchantName,
       rrn: item.rrn,
       transactionDate: item.transactionDate,

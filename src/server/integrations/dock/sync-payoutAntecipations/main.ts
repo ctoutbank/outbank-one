@@ -1,6 +1,6 @@
 "use server";
 
-import { insertAntecipationAndRelations } from "./antecipation";
+import { insertAntecipationAndRelations } from "./payoutAntecipation";
 import { truncateAntecipationTables } from "./truncate-table";
 import { Antecipation, AntecipationsResponse } from "./types";
 
@@ -42,7 +42,7 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return result;
 }
 
-export async function syncAntecipations() {
+export async function syncPayoutAntecipations() {
   try {
     console.log("Truncando tabelas de antecipações...");
     await truncateAntecipationTables();
