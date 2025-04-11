@@ -79,8 +79,6 @@ export function Calendar({
   monthlyData,
   handleMonthChange,
   isLoading = false,
-  onPrevMonth,
-  onNextMonth,
   currentMonth,
 }: CalendarProps) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
@@ -174,23 +172,6 @@ export function Calendar({
     return `${value}%`;
   };
 
-  const handlePrevMonth = () => {
-    if (onPrevMonth) {
-      onPrevMonth();
-    } else if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.prev();
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (onNextMonth) {
-      onNextMonth();
-    } else if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.next();
-    }
-  };
 
   return (
     <Card className="p-4 overflow-hidden">
