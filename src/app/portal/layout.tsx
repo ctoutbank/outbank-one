@@ -10,8 +10,10 @@ export default function PortalLayout({
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="">{children}</SidebarInset>
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-card rounded-lg shadow">
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }
