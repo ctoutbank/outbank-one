@@ -16,6 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Calendar } from "@/features/merchantAgenda/_components/calendar";
 import MerchantAgendaReceiptsTotal from "@/features/merchantAgenda/_components/merchantAgenda-receipts-total";
 import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
 import { formatDate } from "@/lib/utils";
@@ -24,6 +26,7 @@ import { useEffect, useState } from "react";
 import type {
   BrandData,
   DailyAmount,
+  GlobalSettlementResult,
   PaymentMethodData,
 } from "../server/merchantAgenda";
 
@@ -32,6 +35,7 @@ interface TableViewProps {
   isLoading: boolean;
   total: number;
   handleMonthChange: (newDate: Date) => void;
+  dailyData: GlobalSettlementResult;
 }
 
 // Lista fixa de métodos de pagamento para exibir sempre
@@ -87,9 +91,11 @@ export function TableView({
   isLoading,
   handleMonthChange,
   total,
+  dailyData,
 }: TableViewProps) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [monthView, setMonthView] = useState<"calendar" | "table">("calendar");
 
   // Function to navigate to previous month
   const goToPreviousMonth = () => {
@@ -199,131 +205,156 @@ export function TableView({
             }}
           />
         </div>
-        <div className="border overflow-x-auto rounded-lg px-2">
-          <Table className="">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-semibold w-[60%] min-w-[180px] text-black">
-                  Data
-                </TableHead>
-                <TableHead className="font-semibold w-[40%] min-w-[140px] text-right text-black">
-                  Valor Total
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+
+        <div className="mb-4 flex justify-start">
+          <ToggleGroup
+            type="single"
+            value={monthView}
+            onValueChange={(v) => v && setMonthView(v as "calendar" | "table")}
+          >
+            <ToggleGroupItem value="calendar">Calendário</ToggleGroupItem>
+            <ToggleGroupItem value="table">Tabela</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        {monthView === "table" ? (
+          <div className="border overflow-x-auto rounded-lg px-2">
+            <Table className="">
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={2} className="text-center py-4">
-                    Carregando dados...
-                  </TableCell>
+                  <TableHead className="font-semibold w-[60%] min-w-[180px] text-black">
+                    Data
+                  </TableHead>
+                  <TableHead className="font-semibold w-[40%] min-w-[140px] text-right text-black">
+                    Valor Total
+                  </TableHead>
                 </TableRow>
-              ) : sortedData.length > 0 ? (
-                sortedData.map((item) => (
-                  <tr key={item.date} className="w-full ">
-                    <td colSpan={2} className="p-0 border-0">
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value={item.date} className="border-0">
-                          <AccordionTrigger className="hover:no-underline w-full py-2 border-b border-gray-200 ">
-                            <div className="flex items-center justify-between w-full ">
-                              <div className="text-muted-foreground">
-                                {formatDate(new Date(item.date))}
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-4">
+                      Carregando dados...
+                    </TableCell>
+                  </TableRow>
+                ) : sortedData.length > 0 ? (
+                  sortedData.map((item) => (
+                    <tr key={item.date} className="w-full ">
+                      <td colSpan={2} className="p-0 border-0">
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value={item.date} className="border-0">
+                            <AccordionTrigger className="hover:no-underline w-full py-2 border-b border-gray-200 ">
+                              <div className="flex items-center justify-between w-full ">
+                                <div className="text-muted-foreground">
+                                  {formatDate(new Date(item.date))}
+                                </div>
+                                <div className="text-right text-muted-foreground">
+                                  {new Intl.NumberFormat("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  }).format(item.amount)}
+                                </div>
                               </div>
-                              <div className="text-right text-muted-foreground">
-                                {new Intl.NumberFormat("pt-BR", {
-                                  style: "currency",
-                                  currency: "BRL",
-                                }).format(item.amount)}
-                              </div>
-                            </div>
-                          </AccordionTrigger>
+                            </AccordionTrigger>
 
-                          <AccordionContent className="border-t bg-muted/20 border-b-2 border-gray-200">
-                            <div className="p-4">
-                              <div className="rounded-lg bg-white shadow-sm border border-gray-300">
-                                <div className="px-4 py-3">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Métodos de Pagamento */}
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-2">
-                                        Métodos de Pagamento
-                                      </h4>
-                                      <div className="space-y-1">
-                                        {FIXED_PAYMENT_METHODS.map((method) => (
-                                          <div
-                                            key={method.id}
-                                            className="flex items-center text-sm"
-                                          >
-                                            <div
-                                              className={`font-medium ${getPaymentMethodColor(
-                                                method.id
-                                              )} w-12 text-right`}
-                                            >
-                                              {formatPercentage(
-                                                getPaymentMethodPercentage(
-                                                  method.id,
-                                                  dailyStats[item.date]
-                                                )
-                                              )}
-                                            </div>
-                                            <div className="ml-2 text-muted-foreground">
-                                              {method.name}
-                                            </div>
-                                          </div>
-                                        ))}
+                            <AccordionContent className="border-t bg-muted/20 border-b-2 border-gray-200">
+                              <div className="p-4">
+                                <div className="rounded-lg bg-white shadow-sm border border-gray-300">
+                                  <div className="px-4 py-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      {/* Métodos de Pagamento */}
+                                      <div>
+                                        <h4 className="text-sm font-medium mb-2">
+                                          Métodos de Pagamento
+                                        </h4>
+                                        <div className="space-y-1">
+                                          {FIXED_PAYMENT_METHODS.map(
+                                            (method) => (
+                                              <div
+                                                key={method.id}
+                                                className="flex items-center text-sm"
+                                              >
+                                                <div
+                                                  className={`font-medium ${getPaymentMethodColor(
+                                                    method.id
+                                                  )} w-12 text-right`}
+                                                >
+                                                  {formatPercentage(
+                                                    getPaymentMethodPercentage(
+                                                      method.id,
+                                                      dailyStats[item.date]
+                                                    )
+                                                  )}
+                                                </div>
+                                                <div className="ml-2 text-muted-foreground">
+                                                  {method.name}
+                                                </div>
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
 
-                                    {/* Bandeiras */}
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-2">
-                                        Bandeiras
-                                      </h4>
-                                      <div className="space-y-1">
-                                        {FIXED_BRANDS.map((brand) => (
-                                          <div
-                                            key={brand.id}
-                                            className="flex items-center text-sm"
-                                          >
+                                      {/* Bandeiras */}
+                                      <div>
+                                        <h4 className="text-sm font-medium mb-2">
+                                          Bandeiras
+                                        </h4>
+                                        <div className="space-y-1">
+                                          {FIXED_BRANDS.map((brand) => (
                                             <div
-                                              className={`font-medium ${getBrandColor(
-                                                brand.id
-                                              )} w-12 text-right`}
+                                              key={brand.id}
+                                              className="flex items-center text-sm"
                                             >
-                                              {formatPercentage(
-                                                getBrandPercentage(
-                                                  brand.id,
-                                                  dailyStats[item.date]
-                                                )
-                                              )}
+                                              <div
+                                                className={`font-medium ${getBrandColor(
+                                                  brand.id
+                                                )} w-12 text-right`}
+                                              >
+                                                {formatPercentage(
+                                                  getBrandPercentage(
+                                                    brand.id,
+                                                    dailyStats[item.date]
+                                                  )
+                                                )}
+                                              </div>
+                                              <div className="ml-2 text-muted-foreground">
+                                                {brand.name}
+                                              </div>
                                             </div>
-                                            <div className="ml-2 text-muted-foreground">
-                                              {brand.name}
-                                            </div>
-                                          </div>
-                                        ))}
+                                          ))}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={2} className="text-center py-4">
-                    Nenhum dado disponível para este mês
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-4">
+                      Nenhum dado disponível para este mês
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <Calendar
+            monthlyData={monthlyData}
+            handleMonthChange={handleMonthChange}
+            isLoading={isLoading}
+            dailyData={dailyData}
+            onPrevMonth={goToPreviousMonth}
+            onNextMonth={goToNextMonth}
+            currentMonth={currentMonth}
+          />
+        )}
       </CardContent>
     </Card>
   );

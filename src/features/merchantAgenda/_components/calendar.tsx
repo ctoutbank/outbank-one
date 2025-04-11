@@ -2,25 +2,37 @@
 
 import { Card } from "@/components/ui/card";
 import type {
+  BrandData,
   DailyAmount,
-  GlobalSettlementResult
+  GlobalSettlementResult,
+  PaymentMethodData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
+import { useEffect, useRef, useState } from "react";
 
 // Importar a Server Action do arquivo dedicado
+import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
 
 interface CalendarProps {
   monthlyData: DailyAmount[];
   handleMonthChange: (newDate: Date) => void;
   dailyData?: GlobalSettlementResult;
   isLoading?: boolean;
+  onPrevMonth?: () => void;
+  onNextMonth?: () => void;
+  currentMonth?: Date;
 }
 
-
+interface DailyStats {
+  [date: string]: {
+    paymentMethods: PaymentMethodData[];
+    brands: BrandData[];
+  };
+}
 
 // Lista fixa de métodos de pagamento para exibir sempre
 const FIXED_PAYMENT_METHODS = [
@@ -67,9 +79,42 @@ export function Calendar({
   monthlyData,
   handleMonthChange,
   isLoading = false,
+  currentMonth,
 }: CalendarProps) {
+  const [dailyStats, setDailyStats] = useState<DailyStats>({});
+  const [statsLoading, setStatsLoading] = useState<boolean>(false);
+  const calendarRef = useRef<FullCalendar>(null);
 
+  useEffect(() => {
+    if (calendarRef.current && currentMonth) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(currentMonth);
+    }
+  }, [currentMonth]);
 
+  useEffect(() => {
+    async function loadDailyStatistics() {
+      if (monthlyData.length === 0) return;
+
+      setStatsLoading(true);
+      try {
+        // Para cada dia com dados, carregue as estatísticas
+        const datesWithData = monthlyData
+          .filter((day) => day.amount > 0)
+          .map((day) => day.date);
+
+        // Obter estatísticas via server action importada
+        const stats = await fetchDailyStats(datesWithData);
+        setDailyStats(stats);
+      } catch (error) {
+        console.error("Falha ao carregar estatísticas diárias:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    }
+
+    loadDailyStatistics();
+  }, [monthlyData]);
 
   const events = monthlyData.map(({ date, amount }) => ({
     title: new Intl.NumberFormat("pt-BR", {
@@ -83,8 +128,14 @@ export function Calendar({
   }));
 
   const handleDatesSet = (arg: DatesSetArg) => {
-    // Usa diretamente a data do FullCalendar
-    handleMonthChange(arg.view.currentStart);
+    // Só atualiza se não for uma mudança programática
+    if (
+      !currentMonth ||
+      currentMonth.getMonth() !== arg.view.currentStart.getMonth() ||
+      currentMonth.getFullYear() !== arg.view.currentStart.getFullYear()
+    ) {
+      handleMonthChange(arg.view.currentStart);
+    }
   };
 
   // Função para obter cor baseada no tipo de método de pagamento
@@ -97,8 +148,29 @@ export function Calendar({
     return brandColors[brandId] || "text-gray-600";
   };
 
+  // Função para obter a porcentagem de um método de pagamento
+  const getPaymentMethodPercentage = (
+    methodId: string,
+    dayStats: any
+  ): number => {
+    if (!dayStats || !dayStats.paymentMethods) return 0;
+    const method = dayStats.paymentMethods.find(
+      (m: PaymentMethodData) => m.name === methodId
+    );
+    return method ? Math.round(method.percentage) : 0;
+  };
 
+  // Função para obter a porcentagem de uma bandeira
+  const getBrandPercentage = (brandId: string, dayStats: any): number => {
+    if (!dayStats || !dayStats.brands) return 0;
+    const brand = dayStats.brands.find((b: BrandData) => b.name === brandId);
+    return brand ? Math.round(brand.percentage) : 0;
+  };
 
+  // Função para formatar a porcentagem com largura fixa
+  const formatPercentage = (value: number): string => {
+    return `${value}%`;
+  };
 
 
   return (
@@ -111,25 +183,27 @@ export function Calendar({
         </div>
       )}
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         datesSet={handleDatesSet}
         locale={ptBrLocale}
         events={events}
         showNonCurrentDates={false}
-        headerToolbar={{
-          left: "prev",
-          center: "title",
-          right: "next",
-        }}
+        headerToolbar={false}
         dayHeaderFormat={{ weekday: "short" }}
         eventContent={(eventInfo) => {
-        
+          const date = new Date(eventInfo.event.startStr);
 
           const hasData = eventInfo.event.extendedProps.amount > 0;
-       
+          const formattedDate = date.toISOString().split("T")[0];
+
           // Obtém estatísticas para o dia atual
-        
+          const dayStats = dailyStats[formattedDate] || {
+            paymentMethods: [],
+            brands: [],
+          };
+
           return (
             <div className="p-2 h-full flex flex-col">
               <div className="text-xs text-muted-foreground capitalize mb-1">
@@ -157,7 +231,9 @@ export function Calendar({
                               method.id
                             )} w-7 text-right`}
                           >
-                          
+                            {formatPercentage(
+                              getPaymentMethodPercentage(method.id, dayStats)
+                            )}
                           </div>
                           <div className="ml-1 w-[4.5rem] truncate text-muted-foreground">
                             {method.name}
@@ -175,7 +251,9 @@ export function Calendar({
                               brand.id
                             )} w-7 text-right`}
                           >
-                          
+                            {formatPercentage(
+                              getBrandPercentage(brand.id, dayStats)
+                            )}
                           </div>
                           <div className="ml-1 w-[4.5rem] truncate text-muted-foreground">
                             {brand.name}
@@ -185,7 +263,11 @@ export function Calendar({
                     </div>
                   </div>
 
-                 
+                  {statsLoading && (
+                    <div className="text-xs text-muted-foreground mt-1 text-center">
+                      Carregando...
+                    </div>
+                  )}
                 </>
               )}
             </div>
