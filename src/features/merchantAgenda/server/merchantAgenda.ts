@@ -358,6 +358,10 @@ export async function getMerchantAgendaReceipts(
           : lastDayOfMonth.toISOString()
       )
     );
+    console.log(date);
+    console.log(firstDayOfMonth);
+    console.log(today);
+    console.log(lastDayOfMonth);
   }
 
   // Mantém o filtro de dias da semana apenas para exibição no calendário
@@ -365,6 +369,7 @@ export async function getMerchantAgendaReceipts(
     sql`EXTRACT(DOW FROM ${payout.settlementDate}) NOT IN (0, 6)`
   );
 
+  console.log(whereConditions);
   const merchantAgendaReceipts = await db
     .select({
       day: sql`DATE(${payout.settlementDate})`.as("day"),
