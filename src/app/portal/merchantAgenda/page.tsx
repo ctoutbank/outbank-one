@@ -4,7 +4,8 @@ import BaseHeader from "@/components/layout/base-header";
 import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import PaginationRecords from "@/components/pagination-Records";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-filter";
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
 import { MerchantAgendaDashboardButton } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-button";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
@@ -20,6 +21,9 @@ import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";
 
 export const revalidate = 0;
+
+// Create TabChangeHandler in a separate file
+import { TabChangeHandler } from "@/features/merchantAgenda/_components/tab-change-handler";
 
 type MerchantAgendaProps = {
   page?: string;
@@ -54,6 +58,26 @@ export default async function MerchantAgendaPage({
   const search = searchParams.search || "";
   const dateFrom = searchParams.dateFrom || "";
   const dateTo = searchParams.dateTo || "";
+  const settlementDateFromIn = searchParams.settlementDateFrom
+    ? new Date(searchParams.settlementDateFrom)
+    : undefined;
+
+  const settlementDateToIn = searchParams.settlementDateTo
+    ? new Date(searchParams.settlementDateTo)
+    : undefined;
+
+  const saleDateFromIn = searchParams.saleDateFrom
+    ? new Date(searchParams.saleDateFrom)
+    : undefined;
+
+  const saleDateToIn = searchParams.saleDateTo
+    ? new Date(searchParams.saleDateTo)
+    : undefined;
+
+  const establishmentIn = searchParams.establishment || undefined;
+  const nsuIn = searchParams.nsu || undefined;
+  const statusIn = searchParams.status || undefined;
+  const orderIdIn = searchParams.orderId || undefined;
 
   const merchantAgenda = await getMerchantAgenda(
     search,
@@ -113,7 +137,7 @@ export default async function MerchantAgendaPage({
         subtitle={`Visualização da agenda dos Lojistas`}
         className="overflow-x-visible"
       >
-        <Tabs defaultValue="receivables" className="w-full">
+        <TabChangeHandler>
           <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
             <TabsTrigger value="receivables">Recebíveis</TabsTrigger>
             <TabsTrigger value="anticipations">Antecipações</TabsTrigger>
@@ -225,7 +249,18 @@ export default async function MerchantAgendaPage({
           <TabsContent value="anticipations" className="mt-6">
             <div className="flex flex-col space-y-4 mt-2">
               <div className="flex items-center justify-between gap-4 relative z-50">
-                <div className="flex items-start gap-4 flex-1"></div>
+                <div className="flex items-start gap-4 flex-1">
+                  <AnticipationsListFilter
+                    settlementDateFromIn={settlementDateFromIn}
+                    settlementDateToIn={settlementDateToIn}
+                    saleDateFromIn={saleDateFromIn}
+                    saleDateToIn={saleDateToIn}
+                    establishmentIn={establishmentIn}
+                    nsuIn={nsuIn}
+                    statusIn={statusIn}
+                    orderIdIn={orderIdIn}
+                  />
+                </div>
                 <ExcelExport
                   data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
                     (data) => ({
@@ -271,7 +306,7 @@ export default async function MerchantAgendaPage({
               description={""}
             />
           </TabsContent>
-        </Tabs>
+        </TabChangeHandler>
       </BaseBody>
     </>
   );
