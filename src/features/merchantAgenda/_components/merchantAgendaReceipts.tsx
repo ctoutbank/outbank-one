@@ -11,7 +11,6 @@ import {
   getMerchantAgendaReceipts,
   getMerchantAgendaTotal,
 } from "../server/merchantAgenda";
-import { Calendar } from "./calendar";
 import { DailyView } from "./dailyView";
 import { MerchantAgendaReceiptsFilter } from "./merchantAgenda-receipts-filter";
 import { TableView } from "./table-view";
@@ -25,7 +24,7 @@ export default function MerchantAgendaReceipts({
 }) {
   const searchParams = useSearchParams();
   const [view, setView] = useState("month");
-  const [monthView, setMonthView] = useState<"calendar" | "table">("calendar");
+
   const [monthTotal, setMonthTotal] = useState<number>(0);
   const [actualDate, setActualDate] = useState<Date>(new Date());
   const [monthlyData, setMonthlyData] =
@@ -91,17 +90,6 @@ export default function MerchantAgendaReceipts({
           />
         </div>
 
-        {view === "month" && (
-          <ToggleGroup
-            type="single"
-            value={monthView}
-            onValueChange={(v) => v && setMonthView(v as "calendar" | "table")}
-            className="ml-auto"
-          >
-            <ToggleGroupItem value="calendar">Calendário</ToggleGroupItem>
-            <ToggleGroupItem value="table">Tabela</ToggleGroupItem>
-          </ToggleGroup>
-        )}
       </div>
       {view === "day" && (
         <div className="mb-4">
@@ -114,21 +102,13 @@ export default function MerchantAgendaReceipts({
         </div>
       )}
       {view === "month" ? (
-        monthView === "calendar" ? (
-          <Calendar
-            monthlyData={monthlyData}
-            handleMonthChange={setActualDate}
-            isLoading={isLoading}
-            dailyData={dailyData}
-          />
-        ) : (
-          <TableView
-            monthlyData={monthlyData}
-            isLoading={isLoading}
-            handleMonthChange={setActualDate}
-            total={Number(monthTotal)}
-          />
-        )
+        <TableView
+          monthlyData={monthlyData}
+          isLoading={isLoading}
+          handleMonthChange={setActualDate}
+          total={Number(monthTotal)}
+          dailyData={dailyData}
+        />
       ) : (
         <DailyView dailyData={dailyData} />
       )}
