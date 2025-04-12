@@ -35,18 +35,70 @@ export async function scheduleReportsForNextDay() {
     `[REPORT-SCHEDULE] Total de relatórios encontrados: ${reportsToSchedule.length}`
   );
 
-  for (const report of reportsToSchedule) {
-    console.log(`\n[REPORT-SCHEDULE] Processando relatório ID: ${report.id}`);
-    console.log(`[REPORT-SCHEDULE] Título: ${report.title}`);
-    console.log(`[REPORT-SCHEDULE] Recorrência: ${report.recurrenceCode}`);
-    console.log(`[REPORT-SCHEDULE] Horário: ${report.shippingTime}`);
+  // Verifica relatórios para o mesmo dia
+  await checkAndScheduleSameDayReports(reportsToSchedule, today);
 
-    const scheduleDateTime = combineDateAndTime(
-      tomorrow,
-      report.shippingTime || "00:00:00"
+  // Verifica relatórios para o próximo dia
+  await checkAndScheduleSameDayReports(reportsToSchedule, tomorrow);
+
+  console.log("\n[REPORT-SCHEDULE] Processo de agendamento finalizado");
+}
+
+async function checkAndScheduleSameDayReports(
+  reports: any[],
+  targetDate: Date
+) {
+  const isToday =
+    format(targetDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+  console.log(
+    `[REPORT-SCHEDULE] Verificando relatórios para ${
+      isToday ? "hoje" : "amanhã"
+    }`
+  );
+
+  // Obtém a hora e minutos atuais no fuso horário de São Paulo
+  const currentTime = new Date().toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  console.log(`[REPORT-SCHEDULE] Hora atual em São Paulo: ${currentTime}`);
+
+  for (const report of reports) {
+    if (!report.shippingTime) continue;
+
+    const [reportHour, reportMinute] = report.shippingTime.split(":");
+    const [currentHour, currentMinute] = currentTime.split(":");
+
+    const currentTimeNumber =
+      parseInt(currentHour) * 60 + parseInt(currentMinute);
+    const reportTimeNumber = parseInt(reportHour) * 60 + parseInt(reportMinute);
+
+    console.log(currentTimeNumber);
+    console.log(reportTimeNumber);
+    // Se for hoje, só processa se o horário já passou
+    // Se for amanhã, processa todos os relatórios
+    if (isToday && reportTimeNumber <= currentTimeNumber) {
+      console.log(
+        `[REPORT-SCHEDULE] Relatório ID ${report.id} com horário ${report.shippingTime} já passou, pulando...`
+      );
+      continue;
+    }
+
+    console.log(
+      `[REPORT-SCHEDULE] Verificando relatório ID ${
+        report.id
+      } para execução em ${isToday ? "hoje" : "amanhã"}`
     );
 
-    // Verifica se o relatório já foi agendado para amanhã
+    const scheduleDateTime = combineDateAndTime(
+      targetDate,
+      report.shippingTime
+    );
+
+    // Verifica se o relatório já foi agendado para a data alvo
     const existingExecution = await db
       .select()
       .from(reportExecution)
@@ -57,24 +109,26 @@ export async function scheduleReportsForNextDay() {
             reportExecution.scheduleDate,
             format(scheduleDateTime, "yyyy-MM-dd HH:mm:ss")
           ),
-          // Adiciona uma condição que sempre será verdadeira mas evita cache
           sql`${sql.raw("1")} = 1`
         )
       );
 
     if (existingExecution.length > 0) {
-      console.log(existingExecution);
       console.log(
-        `[REPORT-SCHEDULE] Relatório já agendado para amanhã, pulando...`
+        `[REPORT-SCHEDULE] Relatório já agendado para ${
+          isToday ? "hoje" : "amanhã"
+        }, pulando...`
       );
       continue;
     }
 
-    // Verifica se o relatório deve ser executado amanhã baseado na recorrência
-    const shouldExecute = checkIfShouldExecute(report, tomorrow);
+    // Verifica se o relatório deve ser executado baseado na recorrência
+    const shouldExecute = checkIfShouldExecute(report, targetDate);
     if (!shouldExecute) {
       console.log(
-        `[REPORT-SCHEDULE] Relatório não deve ser executado amanhã, pulando...`
+        `[REPORT-SCHEDULE] Relatório não deve ser executado ${
+          isToday ? "hoje" : "amanhã"
+        }, pulando...`
       );
       continue;
     }
@@ -93,14 +147,8 @@ export async function scheduleReportsForNextDay() {
       )
       .where(eq(reportFilters.idReport, report.id));
 
-    console.log(
-      `[REPORT-SCHEDULE] Filtros encontrados: ${reportFiltersData.length}`
-    );
-
-    // Converte os filtros para o formato esperado
     const filters = reportFiltersData.reduce(
       (acc: Record<string, any>, filter: any) => {
-        // Converte o valor do filtro baseado no tipo
         let value: any = filter.filterValue;
 
         switch (filter.filterType) {
@@ -108,29 +156,17 @@ export async function scheduleReportsForNextDay() {
             value = Number(filter.filterValue);
             break;
           case "DATE":
-            value = filter.filterValue; // Mantém como string no formato da data
+            value = filter.filterValue;
             break;
           case "BOOLEAN":
             value = filter.filterValue.toLowerCase() === "true";
             break;
-          // Adicione outros tipos conforme necessário
         }
 
         acc[filter.filterName] = value;
         return acc;
       },
       {} as Record<string, any>
-    );
-
-    console.log("[REPORT-SCHEDULE] Filtros convertidos:", filters);
-
-    // Combina a data de amanhã com o horário de envio do relatório
-
-    console.log(
-      `[REPORT-SCHEDULE] Data/hora de agendamento: ${format(
-        scheduleDateTime,
-        "yyyy-MM-dd HH:mm:ss"
-      )}`
     );
 
     // Cria o registro de execução
@@ -141,17 +177,17 @@ export async function scheduleReportsForNextDay() {
         status: "SCHEDULED",
         scheduleDate: format(scheduleDateTime, "yyyy-MM-dd HH:mm:ss"),
         createdOn: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        filters, // Agora preenchido com os filtros do relatório
+        filters,
         emailsSent: report.emails,
       })
       .returning();
 
     console.log(
-      `[REPORT-SCHEDULE] Registro de execução criado com ID: ${execution[0].id}`
+      `[REPORT-SCHEDULE] Registro de execução criado para ${
+        isToday ? "hoje" : "amanhã"
+      } com ID: ${execution[0].id}`
     );
   }
-
-  console.log("\n[REPORT-SCHEDULE] Processo de agendamento finalizado");
 }
 
 function checkIfShouldExecute(

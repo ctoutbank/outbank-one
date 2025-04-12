@@ -2,7 +2,7 @@ import { getTransactions } from "@/features/transactions/serverActions/transacti
 import { resend } from "@/lib/resend";
 import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { reportExecution, reports } from "../../../../drizzle/schema";
 import { db } from "../../../server/db";
 import reportsExecutionSalesGeneratePDF, {
@@ -22,7 +22,7 @@ export async function reportExecutionsProcessing() {
   const pendingExecutions = await db
     .select()
     .from(reportExecution)
-    .where(eq(reportExecution.status, "SCHEDULED"))
+    .where(inArray(reportExecution.status, ["SCHEDULED", "ERROR"]))
     .limit(1);
 
   console.log(
@@ -70,47 +70,41 @@ export async function reportExecutionsProcessing() {
       if (report[0].reportType === "VN") {
         const status = undefined;
         const merchant = undefined;
+        const productType = undefined;
+
         // Define a data de início como hoje às 03:00 explicitamente
 
         // Aumentar 3 horas nas datas
-        const dateFromBase = new Date("2025-03-31 00:00:00");
-        const dateToBase = new Date("2025-03-31 12:00:59");
+        const dateFromBase = new Date("2025-04-11 00:00:00");
+        const dateToBase = new Date("2025-04-11 23:59:59");
 
         dateFromBase.setHours(dateFromBase.getHours() + 3);
         dateToBase.setHours(dateToBase.getHours() + 3);
 
-        const dateFrom = dateFromBase
-          .toISOString()
-          .replace("T", " ")
-          .substring(0, 19);
-        const dateTo = dateToBase
-          .toISOString()
-          .replace("T", " ")
-          .substring(0, 19);
-
-        console.log("dateFrom", dateFrom);
-        console.log("dateTo", dateTo);
-
-        const productType = undefined;
+        console.log("dateFrom", dateFromBase);
+        console.log("dateTo", dateFromBase);
 
         const transactions = await getTransactions(
           -1,
           -1,
           status,
           merchant,
-          dateFrom,
-          dateTo,
+          dateFromBase.toISOString(),
+          dateToBase.toISOString(),
           productType
         );
+        console.log("transactions", transactions);
         if (report[0].formatCode === "PDF") {
           pdfBytes = await reportsExecutionSalesGeneratePDF(
             transactions.transactions
           );
-        } else if (report[0].formatCode === "XLSX") {
+        } else if (report[0].formatCode === "EX") {
+          console.log("Gerando relatório em XLSX");
+          console.log(transactions.transactions);
           pdfBytes = await reportsExecutionSalesGenerateXLSX(
             transactions.transactions,
-            dateFrom,
-            dateTo
+            dateFromBase.toISOString(),
+            dateToBase.toISOString()
           );
         } else {
           throw new Error("Formato de relatório não suportado");
@@ -143,7 +137,7 @@ export async function reportExecutionsProcessing() {
       console.log(
         `[REPORT-PROCESSING] Enviando relatório para: ${emailList.join(", ")}`
       );
-
+      console.log("pdfBytes", pdfBytes);
       if (pdfBytes) {
         console.log("[REPORT-PROCESSING] PDF Gerado: ", pdfBytes);
         await resend.emails.send({
@@ -171,15 +165,6 @@ export async function reportExecutionsProcessing() {
               <p style="margin-top: 30px;">Atenciosamente,<br>Equipe Outbank One</p>
             </div>
           `,
-          attachments: [
-            {
-              filename: `relatorio-vendas-${format(
-                new Date(),
-                "yyyy-MM-dd-HH-mm-ss"
-              )}.${report[0].formatCode?.toLowerCase() || "pdf"}`,
-              content: Buffer.from(pdfBytes),
-            },
-          ],
         });
       } else {
         console.log("[REPORT-PROCESSING] PDF não gerado");

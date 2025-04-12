@@ -105,6 +105,7 @@ export async function reportsExecutionSalesGenerateXLSX(
     !Array.isArray(transactions) ||
     transactions.length === 0
   ) {
+    console.log("Não há transações para gerar o relatório");
     return null;
   }
 

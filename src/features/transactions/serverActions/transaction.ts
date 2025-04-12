@@ -46,31 +46,35 @@ export async function getTransactions(
   merchant?: string,
   dateFrom?: string,
   dateTo?: string,
-  productType?: string
+  productType?: string,
+  filterByUserMerchant?: boolean
 ): Promise<TransactionsList> {
   const conditions = [];
 
-  const userMerchants = await getUserMerchantSlugs();
-
-  if (userMerchants.fullAccess) {
-  } else {
-    if (userMerchants.slugMerchants.length > 0) {
-      conditions.push(
-        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
-      );
+  if (filterByUserMerchant) {
+    const userMerchants = await getUserMerchantSlugs();
+    if (userMerchants.fullAccess) {
     } else {
-      return {
-        transactions: [],
-        totalCount: 0,
-      };
+      if (userMerchants.slugMerchants.length > 0) {
+        conditions.push(
+          inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+        );
+      } else {
+        return {
+          transactions: [],
+          totalCount: 0,
+        };
+      }
     }
   }
 
   if (status) {
+    console.log("status", status);
     conditions.push(like(transactions.transactionStatus, `%${status}%`));
   }
 
   if (merchant) {
+    console.log("merchant", merchant);
     conditions.push(like(transactions.merchantName, `%${merchant}%`));
   }
 
@@ -90,10 +94,12 @@ export async function getTransactions(
   }
 
   if (productType) {
+    console.log("productType", productType);
     conditions.push(eq(transactions.productType, productType));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  console.log("whereClause", whereClause);
 
   let transactionList;
   let totalCount;
@@ -114,6 +120,7 @@ export async function getTransactions(
       .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
       .where(whereClause);
   } else {
+    console.log("page -1");
     transactionList = await db
       .select()
       .from(transactions)
@@ -121,6 +128,7 @@ export async function getTransactions(
       .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
       .where(whereClause);
   }
+  console.log("transactionList", transactionList);
   return {
     transactions: transactionList.map((item) => ({
       slug: item.transactions.slug,
