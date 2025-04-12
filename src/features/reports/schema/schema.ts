@@ -30,6 +30,7 @@ export const SchemaReport = z.object({
         idReportFilterParam: z
           .number()
           .min(1, "Parâmetro de filtro é obrigatório"),
+
         value: z.string().min(1, "Valor é obrigatório"),
       })
     )

@@ -25,6 +25,13 @@ type TransactionsProps = {
   dateFrom?: string;
   dateTo?: string;
   productType?: string;
+  brand?: string;
+  nsu?: string;
+  method?: string;
+  salesChannel?: string;
+  terminal?: string;
+  valueMin?: string;
+  valueMax?: string;
 };
 
 async function TransactionsContent({
@@ -38,6 +45,8 @@ async function TransactionsContent({
   const dateFrom = searchParams.dateFrom || getStartOfDay();
   const dateTo = searchParams.dateTo || getEndOfDay();
 
+  // Filtros para getTransactions (lista detalhada)
+  // Esta consulta suporta todos os filtros
   const transactionList = await getTransactions(
     page,
     pageSize,
@@ -45,14 +54,29 @@ async function TransactionsContent({
     searchParams.merchant,
     dateFrom,
     dateTo,
-    searchParams.productType
+    searchParams.productType,
+    searchParams.brand,
+    searchParams.nsu,
+    searchParams.method,
+    searchParams.salesChannel,
+    searchParams.terminal,
+    searchParams.valueMin,
+    searchParams.valueMax
   );
 
+  // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)
+  // Esta consulta suporta os filtros principais
   const transactionsGroupedReport = await getTransactionsGroupedReport(
     dateFrom,
     dateTo,
     searchParams.status,
-    searchParams.productType
+    searchParams.productType,
+    searchParams.brand,
+    searchParams.method,
+    searchParams.salesChannel,
+    searchParams.terminal,
+    searchParams.valueMin,
+    searchParams.valueMax
   );
 
   return (
@@ -66,6 +90,13 @@ async function TransactionsContent({
               dateFromIn={dateFrom}
               dateToIn={dateTo}
               productTypeIn={searchParams.productType}
+              brandIn={searchParams.brand}
+              nsuIn={searchParams.nsu}
+              methodIn={searchParams.method}
+              salesChannelIn={searchParams.salesChannel}
+              terminalIn={searchParams.terminal}
+              valueMinIn={searchParams.valueMin}
+              valueMaxIn={searchParams.valueMax}
             />
           </div>
           <TransactionsExport />

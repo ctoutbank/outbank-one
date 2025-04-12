@@ -1,9 +1,15 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { MultiSelect } from "@/components/multi-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import {
+  brandList,
+  cardPaymentMethod,
+  processingTypeList,
+  transactionProductTypeList,
+  transactionStatusList,
+} from "@/lib/lookuptables/lookuptables-transactions";
 import { Search } from "lucide-react";
 import { useState } from "react";
 
@@ -13,12 +19,26 @@ type FilterTransactionsContentProps = {
   dateFromIn?: string;
   dateToIn?: string;
   productTypeIn?: string;
+  brandIn?: string;
+  nsuIn?: string;
+  methodIn?: string;
+  salesChannelIn?: string;
+  terminalIn?: string;
+  valueMinIn?: string;
+  valueMaxIn?: string;
   onFilter: (filters: {
     status: string;
     merchant: string;
     dateFrom: string;
     dateTo: string;
     productType: string;
+    brand: string;
+    nsu: string;
+    method: string;
+    salesChannel: string;
+    terminal: string;
+    valueMin: string;
+    valueMax: string;
   }) => void;
   onClose: () => void;
 };
@@ -29,129 +49,191 @@ export function FilterTransactionsContent({
   dateFromIn,
   dateToIn,
   productTypeIn,
+  brandIn,
+  nsuIn,
+  methodIn,
+  salesChannelIn,
+  terminalIn,
+  valueMinIn,
+  valueMaxIn,
   onFilter,
   onClose,
 }: FilterTransactionsContentProps) {
-  const [status, setStatus] = useState(statusIn || "");
+  // Iniciar com arrays de valores separados por vírgulas, se existirem
+  const initialStatusValues = statusIn ? statusIn.split(",") : [];
+  const initialProductTypeValues = productTypeIn
+    ? productTypeIn.split(",")
+    : [];
+  const initialBrandValues = brandIn ? brandIn.split(",") : [];
+  const initialMethodValues = methodIn ? methodIn.split(",") : [];
+  const initialSalesChannelValues = salesChannelIn
+    ? salesChannelIn.split(",")
+    : [];
+
+  const [statusValues, setStatusValues] =
+    useState<string[]>(initialStatusValues);
+  const [productTypeValues, setProductTypeValues] = useState<string[]>(
+    initialProductTypeValues
+  );
+  const [brandValues, setBrandValues] = useState<string[]>(initialBrandValues);
+  const [methodValues, setMethodValues] =
+    useState<string[]>(initialMethodValues);
+  const [salesChannelValues, setSalesChannelValues] = useState<string[]>(
+    initialSalesChannelValues
+  );
   const [merchant, setMerchant] = useState(merchantIn || "");
   const [dateFrom, setDateFrom] = useState(dateFromIn || "");
   const [dateTo, setDateTo] = useState(dateToIn || "");
-  const [productType, setProductType] = useState(productTypeIn || "");
+  const [nsu, setNsu] = useState(nsuIn || "");
+  const [terminal, setTerminal] = useState(terminalIn || "");
+  const [valueMin, setValueMin] = useState(valueMinIn || "");
+  const [valueMax, setValueMax] = useState(valueMaxIn || "");
 
-  const statuses = [
-    {
-      value: "AUTHORIZED",
-      label: "Aprovada",
-      color: "bg-emerald-500 hover:bg-emerald-600",
-    },
-    {
-      value: "PENDING",
-      label: "Pendente",
-      color: "bg-yellow-500 hover:bg-yellow-600",
-    },
-    {
-      value: "REJECTED",
-      label: "Rejeitada",
-      color: "bg-red-500 hover:bg-red-600",
-    },
-    {
-      value: "CANCELED",
-      label: "Cancelada",
-      color: "bg-gray-500 hover:bg-gray-600",
-    },
-  ];
+  const handleSubmitFilter = () => {
+    // Converter os arrays de valores para strings separadas por vírgulas
+    const statusString = statusValues.join(",");
+    const productTypeString = productTypeValues.join(",");
+    const brandString = brandValues.join(",");
+    const methodString = methodValues.join(",");
+    const salesChannelString = salesChannelValues.join(",");
 
-  const productTypes = [
-    {
-      value: "DEBIT",
-      label: "Débito",
-      color: "bg-blue-500 hover:bg-blue-600",
-    },
-    {
-      value: "CREDIT",
-      label: "Crédito",
-      color: "bg-purple-500 hover:bg-purple-600",
-    },
-    {
-      value: "VOUCHER",
-      label: "Voucher",
-      color: "bg-orange-500 hover:bg-orange-600",
-    },
-    {
-      value: "PIX",
-      label: "PIX",
-      color: "bg-green-500 hover:bg-green-600",
-    },
-    {
-      value: "PREPAID_CREDIT",
-      label: "Crédito Pré-pago",
-      color: "bg-indigo-500 hover:bg-indigo-600",
-    },
-    {
-      value: "PREPAID_DEBIT",
-      label: "Débito Pré-pago",
-      color: "bg-teal-500 hover:bg-teal-600",
-    },
-  ];
+    onFilter({
+      status: statusString,
+      merchant,
+      dateFrom,
+      dateTo,
+      productType: productTypeString,
+      brand: brandString,
+      nsu,
+      method: methodString,
+      salesChannel: salesChannelString,
+      terminal,
+      valueMin,
+      valueMax,
+    });
+    onClose();
+  };
 
   return (
     <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium ml-2">Status</h3>
-          <div className="flex flex-wrap gap-2">
-            {statuses.map((s) => (
-              <Badge
-                key={s.value}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-24 h-7 select-none text-sm",
-                  status === s.value ? s.color : "bg-secondary",
-                  status === s.value
-                    ? "text-white"
-                    : "text-secondary-foreground"
-                )}
-                onClick={() => setStatus(status === s.value ? "" : s.value)}
-              >
-                {s.label}
-              </Badge>
-            ))}
+        {/* Primeira coluna */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Status</h3>
+            <MultiSelect
+              options={transactionStatusList}
+              onValueChange={setStatusValues}
+              defaultValue={initialStatusValues}
+              placeholder="Selecione o status"
+              className="w-full"
+              variant="secondary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">NSU / ID</h3>
+            <Input
+              placeholder="Número de Sequência Único"
+              value={nsu}
+              onChange={(e) => setNsu(e.target.value.replace(/\D/g, ""))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Estabelecimento</h3>
+            <Input
+              placeholder="Nome do estabelecimento"
+              value={merchant}
+              onChange={(e) => setMerchant(e.target.value)}
+            />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Tipo de Produto</h3>
-          <div className="flex flex-wrap gap-2">
-            {productTypes.map((pt) => (
-              <Badge
-                key={pt.value}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer select-none text-sm",
-                  productType === pt.value ? pt.color : "bg-secondary",
-                  productType === pt.value
-                    ? "text-white"
-                    : "text-secondary-foreground"
-                )}
-                onClick={() =>
-                  setProductType(productType === pt.value ? "" : pt.value)
-                }
-              >
-                {pt.label}
-              </Badge>
-            ))}
+        {/* Segunda coluna */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Tipo de Pagamento</h3>
+            <MultiSelect
+              options={transactionProductTypeList}
+              onValueChange={setProductTypeValues}
+              defaultValue={initialProductTypeValues}
+              placeholder="Selecione o tipo de pagamento"
+              className="w-full"
+              variant="secondary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Tipo da Transação</h3>
+            <MultiSelect
+              options={cardPaymentMethod}
+              onValueChange={setMethodValues}
+              defaultValue={initialMethodValues}
+              placeholder="Selecione o tipo"
+              className="w-full"
+              variant="secondary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Processamento</h3>
+            <MultiSelect
+              options={processingTypeList}
+              onValueChange={setSalesChannelValues}
+              defaultValue={initialSalesChannelValues}
+              placeholder="Selecione o processamento"
+              className="w-full"
+              variant="secondary"
+            />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Estabelecimento</h3>
-          <Input
-            placeholder="Nome do estabelecimento"
-            value={merchant}
-            onChange={(e) => setMerchant(e.target.value)}
-          />
-        </div>
+        {/* Terceira coluna */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Bandeira</h3>
+            <MultiSelect
+              options={brandList}
+              onValueChange={setBrandValues}
+              defaultValue={initialBrandValues}
+              placeholder="Selecione a bandeira"
+              className="w-full"
+              variant="secondary"
+            />
+          </div>
 
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Terminal</h3>
+            <Input
+              placeholder="Número do terminal"
+              value={terminal}
+              onChange={(e) => setTerminal(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Valor</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Mínimo"
+                type="number"
+                value={valueMin}
+                onChange={(e) => setValueMin(e.target.value)}
+              />
+              <Input
+                placeholder="Máximo"
+                type="number"
+                value={valueMax}
+                onChange={(e) => setValueMax(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Data range em uma linha separada */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Inicial</h3>
           <Input
@@ -161,7 +243,7 @@ export function FilterTransactionsContent({
           />
         </div>
 
-        <div className="space-y-2 md:col-start-2">
+        <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Final</h3>
           <Input
             type="datetime-local"
@@ -173,10 +255,7 @@ export function FilterTransactionsContent({
 
       <div className="flex justify-end pt-4 mt-4 border-t">
         <Button
-          onClick={() => {
-            onFilter({ status, merchant, dateFrom, dateTo, productType });
-            onClose();
-          }}
+          onClick={handleSubmitFilter}
           className="flex items-center gap-2"
         >
           <Search className="h-4 w-4" />
