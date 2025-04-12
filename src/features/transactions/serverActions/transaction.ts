@@ -47,14 +47,14 @@ export async function getTransactions(
   dateFrom?: string,
   dateTo?: string,
   productType?: string,
-  filterByUserMerchant?: boolean,
   brand?: string,
   nsu?: string,
   method?: string,
   salesChannel?: string,
   terminal?: string,
   valueMin?: string,
-  valueMax?: string
+  valueMax?: string,
+  filterByUserMerchant?: boolean
 ): Promise<TransactionsList> {
   const conditions = [];
 
