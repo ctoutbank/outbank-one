@@ -47,7 +47,14 @@ export async function getTransactions(
   dateFrom?: string,
   dateTo?: string,
   productType?: string,
-  filterByUserMerchant?: boolean
+  filterByUserMerchant?: boolean,
+  brand?: string,
+  nsu?: string,
+  method?: string,
+  salesChannel?: string,
+  terminal?: string,
+  valueMin?: string,
+  valueMax?: string
 ): Promise<TransactionsList> {
   const conditions = [];
 
@@ -71,6 +78,13 @@ export async function getTransactions(
   if (status) {
     console.log("status", status);
     conditions.push(like(transactions.transactionStatus, `%${status}%`));
+    // Verificar se status contém múltiplos valores separados por vírgula
+    const statusValues = status.split(",").map((s) => s.trim());
+    if (statusValues.length > 1) {
+      conditions.push(inArray(transactions.transactionStatus, statusValues));
+    } else {
+      conditions.push(eq(transactions.transactionStatus, status));
+    }
   }
 
   if (merchant) {
@@ -96,6 +110,61 @@ export async function getTransactions(
   if (productType) {
     console.log("productType", productType);
     conditions.push(eq(transactions.productType, productType));
+    // Verificar se productType contém múltiplos valores separados por vírgula
+    const productTypeValues = productType.split(",").map((p) => p.trim());
+    if (productTypeValues.length > 1) {
+      conditions.push(inArray(transactions.productType, productTypeValues));
+    } else {
+      conditions.push(eq(transactions.productType, productType));
+    }
+  }
+
+  // Adicionar novos filtros
+  if (brand) {
+    // Verificar se brand contém múltiplos valores separados por vírgula
+    const brandValues = brand.split(",").map((b) => b.trim());
+    if (brandValues.length > 1) {
+      conditions.push(inArray(transactions.brand, brandValues));
+    } else {
+      conditions.push(eq(transactions.brand, brand));
+    }
+  }
+
+  if (nsu) {
+    conditions.push(eq(transactions.muid, nsu));
+  }
+
+  if (method) {
+    // Verificar se method contém múltiplos valores separados por vírgula
+    const methodValues = method.split(",").map((m) => m.trim());
+    if (methodValues.length > 1) {
+      conditions.push(inArray(transactions.methodType, methodValues));
+    } else {
+      conditions.push(eq(transactions.methodType, method));
+    }
+  }
+
+  if (salesChannel) {
+    // Verificar se salesChannel contém múltiplos valores separados por vírgula
+    const salesChannelValues = salesChannel.split(",").map((s) => s.trim());
+    if (salesChannelValues.length > 1) {
+      conditions.push(inArray(transactions.salesChannel, salesChannelValues));
+    } else {
+      conditions.push(eq(transactions.salesChannel, salesChannel));
+    }
+  }
+
+  if (terminal) {
+    conditions.push(like(terminals.logicalNumber, `%${terminal}%`));
+  }
+
+  // Adicionar filtros de valor
+  if (valueMin) {
+    conditions.push(gte(transactions.totalAmount, valueMin));
+  }
+
+  if (valueMax) {
+    conditions.push(lte(transactions.totalAmount, valueMax));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -166,7 +235,12 @@ export async function getTransactionsGroupedReport(
   dateTo: string,
   status?: string,
   productType?: string,
-  terminalLogicalNumber?: string,
+  brand?: string,
+  method?: string,
+  salesChannel?: string,
+  terminal?: string,
+  valueMin?: string,
+  valueMax?: string,
   merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
   // Construir condições dinâmicas para a consulta SQL
@@ -204,8 +278,48 @@ export async function getTransactionsGroupedReport(
     }
   }
 
-  if (terminalLogicalNumber) {
-    conditions.push(eq(terminals.logicalNumber, terminalLogicalNumber));
+  // Adicionar novos filtros
+  if (brand) {
+    // Verificar se brand contém múltiplos valores separados por vírgula
+    const brandValues = brand.split(",").map((b) => b.trim());
+    if (brandValues.length > 1) {
+      conditions.push(inArray(transactions.brand, brandValues));
+    } else {
+      conditions.push(eq(transactions.brand, brand));
+    }
+  }
+
+  if (method) {
+    // Verificar se method contém múltiplos valores separados por vírgula
+    const methodValues = method.split(",").map((m) => m.trim());
+    if (methodValues.length > 1) {
+      conditions.push(inArray(transactions.methodType, methodValues));
+    } else {
+      conditions.push(eq(transactions.methodType, method));
+    }
+  }
+
+  if (salesChannel) {
+    // Verificar se salesChannel contém múltiplos valores separados por vírgula
+    const salesChannelValues = salesChannel.split(",").map((s) => s.trim());
+    if (salesChannelValues.length > 1) {
+      conditions.push(inArray(transactions.salesChannel, salesChannelValues));
+    } else {
+      conditions.push(eq(transactions.salesChannel, salesChannel));
+    }
+  }
+
+  if (terminal) {
+    conditions.push(like(terminals.logicalNumber, `%${terminal}%`));
+  }
+
+  // Adicionar filtros de valor
+  if (valueMin) {
+    conditions.push(gte(transactions.totalAmount, valueMin));
+  }
+
+  if (valueMax) {
+    conditions.push(lte(transactions.totalAmount, valueMax));
   }
 
   if (merchant) {
