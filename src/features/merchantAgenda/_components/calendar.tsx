@@ -12,7 +12,7 @@ import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Importar a Server Action do arquivo dedicado
 import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
@@ -22,6 +22,9 @@ interface CalendarProps {
   handleMonthChange: (newDate: Date) => void;
   dailyData?: GlobalSettlementResult;
   isLoading?: boolean;
+  onPrevMonth?: () => void;
+  onNextMonth?: () => void;
+  currentMonth?: Date;
 }
 
 interface DailyStats {
@@ -76,9 +79,18 @@ export function Calendar({
   monthlyData,
   handleMonthChange,
   isLoading = false,
+  currentMonth,
 }: CalendarProps) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
   const [statsLoading, setStatsLoading] = useState<boolean>(false);
+  const calendarRef = useRef<FullCalendar>(null);
+
+  useEffect(() => {
+    if (calendarRef.current && currentMonth) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(currentMonth);
+    }
+  }, [currentMonth]);
 
   useEffect(() => {
     async function loadDailyStatistics() {
@@ -116,8 +128,14 @@ export function Calendar({
   }));
 
   const handleDatesSet = (arg: DatesSetArg) => {
-    // Usa diretamente a data do FullCalendar
-    handleMonthChange(arg.view.currentStart);
+    // Só atualiza se não for uma mudança programática
+    if (
+      !currentMonth ||
+      currentMonth.getMonth() !== arg.view.currentStart.getMonth() ||
+      currentMonth.getFullYear() !== arg.view.currentStart.getFullYear()
+    ) {
+      handleMonthChange(arg.view.currentStart);
+    }
   };
 
   // Função para obter cor baseada no tipo de método de pagamento
@@ -154,6 +172,7 @@ export function Calendar({
     return `${value}%`;
   };
 
+
   return (
     <Card className="p-4 overflow-hidden">
       {isLoading && (
@@ -164,17 +183,14 @@ export function Calendar({
         </div>
       )}
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         datesSet={handleDatesSet}
         locale={ptBrLocale}
         events={events}
         showNonCurrentDates={false}
-        headerToolbar={{
-          left: "prev",
-          center: "title",
-          right: "next",
-        }}
+        headerToolbar={false}
         dayHeaderFormat={{ weekday: "short" }}
         eventContent={(eventInfo) => {
           const date = new Date(eventInfo.event.startStr);
