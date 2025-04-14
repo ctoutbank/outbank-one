@@ -1115,46 +1115,6 @@ export const merchantSettlementOrders = pgTable("merchant_settlement_orders", {
 	}
 });
 
-export const reportExecution = pgTable("report_execution", {
-	id: serial().primaryKey().notNull(),
-	idReport: integer("id_report"),
-	idUser: integer("id_user"),
-	totalRows: integer("total_rows"),
-	totalProcessedRows: integer("total_processed_rows"),
-	idFile: integer("id_file"),
-	status: varchar({ length: 20 }).notNull(),
-	createdOn: timestamp("created_on", { mode: 'string' }),
-	scheduleDate: timestamp("schedule_date", { mode: 'string' }).notNull(),
-	executionStart: timestamp("execution_start", { mode: 'string' }),
-	executionEnd: timestamp("execution_end", { mode: 'string' }),
-	emailsSent: text("emails_sent"),
-	filters: jsonb(),
-	errorMessage: text("error_message"),
-}, (table) => {
-	return {
-		reportExecutionIdReportFkey: foreignKey({
-			columns: [table.idReport],
-			foreignColumns: [reports.id],
-			name: "report_execution_id_report_fkey"
-		}),
-		reportExecutionIdUserFkey: foreignKey({
-			columns: [table.idUser],
-			foreignColumns: [users.id],
-			name: "report_execution_id_user_fkey"
-		}),
-		reportExecutionIdFileFkey: foreignKey({
-			columns: [table.idFile],
-			foreignColumns: [file.id],
-			name: "report_execution_id_file_fkey"
-		}),
-		reportExecutionStatusFkey: foreignKey({
-			columns: [table.status],
-			foreignColumns: [reportExecutionStatus.code],
-			name: "report_execution_status_fkey"
-		}),
-	}
-});
-
 export const payoutAntecipations = pgTable("payout_antecipations", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "payout_antecipations_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -1201,6 +1161,55 @@ export const payoutAntecipations = pgTable("payout_antecipations", {
 			columns: [table.idCustomer],
 			foreignColumns: [customers.id],
 			name: "payout_antecipations_id_customer_fkey"
+		}),
+	}
+});
+
+export const reportExecution = pgTable("report_execution", {
+	id: serial().primaryKey().notNull(),
+	idReport: integer("id_report"),
+	idUser: integer("id_user"),
+	totalRows: integer("total_rows"),
+	totalProcessedRows: integer("total_processed_rows"),
+	idFile: integer("id_file"),
+	status: varchar({ length: 20 }).notNull(),
+	createdOn: timestamp("created_on", { mode: 'string' }),
+	scheduleDate: timestamp("schedule_date", { mode: 'string' }).notNull(),
+	executionStart: timestamp("execution_start", { mode: 'string' }),
+	executionEnd: timestamp("execution_end", { mode: 'string' }),
+	emailsSent: text("emails_sent"),
+	filters: jsonb(),
+	errorMessage: text("error_message"),
+	reportFilterStartDate: varchar("report_filter_start_date", { length: 255 }),
+	reportFilterEndDateTime: varchar("report_filter_end_date_time", { length: 255 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	fileId: bigint("file_id", { mode: "number" }),
+}, (table) => {
+	return {
+		reportExecutionIdReportFkey: foreignKey({
+			columns: [table.idReport],
+			foreignColumns: [reports.id],
+			name: "report_execution_id_report_fkey"
+		}),
+		reportExecutionIdUserFkey: foreignKey({
+			columns: [table.idUser],
+			foreignColumns: [users.id],
+			name: "report_execution_id_user_fkey"
+		}),
+		reportExecutionIdFileFkey: foreignKey({
+			columns: [table.idFile],
+			foreignColumns: [file.id],
+			name: "report_execution_id_file_fkey"
+		}),
+		reportExecutionStatusFkey: foreignKey({
+			columns: [table.status],
+			foreignColumns: [reportExecutionStatus.code],
+			name: "report_execution_status_fkey"
+		}),
+		fkReportExecutionFile: foreignKey({
+			columns: [table.fileId],
+			foreignColumns: [file.id],
+			name: "fk_report_execution_file"
 		}),
 	}
 });

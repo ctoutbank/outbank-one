@@ -197,7 +197,6 @@ export async function getTransactions(
       .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
       .where(whereClause);
   }
-  console.log("transactionList", transactionList);
   return {
     transactions: transactionList.map((item) => ({
       slug: item.transactions.slug,

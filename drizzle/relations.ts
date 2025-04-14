@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, addresses, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, users, merchantpixaccount, customerFunctions, contacts, payout, merchantfile, file, userMerchants, merchantSettlementOrders, reportExecution, reportExecutionStatus, payoutAntecipations } from "./schema";
+import { customers, paymentInstitution, addresses, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, users, merchantpixaccount, customerFunctions, contacts, payout, merchantfile, file, userMerchants, merchantSettlementOrders, payoutAntecipations, reportExecution, reportExecutionStatus } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -293,7 +293,12 @@ export const merchantfileRelations = relations(merchantfile, ({one}) => ({
 
 export const fileRelations = relations(file, ({many}) => ({
 	merchantfiles: many(merchantfile),
-	reportExecutions: many(reportExecution),
+	reportExecutions_idFile: many(reportExecution, {
+		relationName: "reportExecution_idFile_file_id"
+	}),
+	reportExecutions_fileId: many(reportExecution, {
+		relationName: "reportExecution_fileId_file_id"
+	}),
 }));
 
 export const userMerchantsRelations = relations(userMerchants, ({one}) => ({
@@ -318,29 +323,6 @@ export const merchantSettlementOrdersRelations = relations(merchantSettlementOrd
 	}),
 }));
 
-export const reportExecutionRelations = relations(reportExecution, ({one}) => ({
-	report: one(reports, {
-		fields: [reportExecution.idReport],
-		references: [reports.id]
-	}),
-	user: one(users, {
-		fields: [reportExecution.idUser],
-		references: [users.id]
-	}),
-	file: one(file, {
-		fields: [reportExecution.idFile],
-		references: [file.id]
-	}),
-	reportExecutionStatus: one(reportExecutionStatus, {
-		fields: [reportExecution.status],
-		references: [reportExecutionStatus.code]
-	}),
-}));
-
-export const reportExecutionStatusRelations = relations(reportExecutionStatus, ({many}) => ({
-	reportExecutions: many(reportExecution),
-}));
-
 export const payoutAntecipationsRelations = relations(payoutAntecipations, ({one}) => ({
 	merchant: one(merchants, {
 		fields: [payoutAntecipations.idMerchants],
@@ -350,4 +332,33 @@ export const payoutAntecipationsRelations = relations(payoutAntecipations, ({one
 		fields: [payoutAntecipations.idCustomer],
 		references: [customers.id]
 	}),
+}));
+
+export const reportExecutionRelations = relations(reportExecution, ({one}) => ({
+	report: one(reports, {
+		fields: [reportExecution.idReport],
+		references: [reports.id]
+	}),
+	user: one(users, {
+		fields: [reportExecution.idUser],
+		references: [users.id]
+	}),
+	file_idFile: one(file, {
+		fields: [reportExecution.idFile],
+		references: [file.id],
+		relationName: "reportExecution_idFile_file_id"
+	}),
+	reportExecutionStatus: one(reportExecutionStatus, {
+		fields: [reportExecution.status],
+		references: [reportExecutionStatus.code]
+	}),
+	file_fileId: one(file, {
+		fields: [reportExecution.fileId],
+		references: [file.id],
+		relationName: "reportExecution_fileId_file_id"
+	}),
+}));
+
+export const reportExecutionStatusRelations = relations(reportExecutionStatus, ({many}) => ({
+	reportExecutions: many(reportExecution),
 }));
