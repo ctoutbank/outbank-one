@@ -12,8 +12,8 @@ export default function TransactionsExport() {
 
   const onGetExporTransactions = async () => {
     setIsLoading(true);
+
     try {
-      // Extrair todos os parâmetros do URL
       const page = 1; // Começa com a primeira página
       const pageSize = 10000; // Busca um número grande de registros
       const search = searchParams?.get("search") || "";
@@ -22,6 +22,13 @@ export default function TransactionsExport() {
       const dateFrom = searchParams?.get("dateFrom") || getStartOfDay();
       const dateTo = searchParams?.get("dateTo") || getEndOfDay();
       const productType = searchParams?.get("productType") || undefined;
+      const brand = searchParams?.get("brand") || undefined;
+      const nsu = searchParams?.get("nsu") || undefined;
+      const method = searchParams?.get("method") || undefined;
+      const salesChannel = searchParams?.get("salesChannel") || undefined;
+      const terminal = searchParams?.get("terminal") || undefined;
+      const valueMin = searchParams?.get("valueMin") || undefined;
+      const valueMax = searchParams?.get("valueMax") || undefined;
 
       console.log("Exportando transações para Excel...");
 
@@ -33,10 +40,16 @@ export default function TransactionsExport() {
       if (dateFrom) queryParams.append("dateFrom", dateFrom);
       if (dateTo) queryParams.append("dateTo", dateTo);
       if (productType) queryParams.append("productType", productType);
+      if (brand) queryParams.append("brand", brand);
+      if (nsu) queryParams.append("nsu", nsu);
+      if (method) queryParams.append("method", method);
+      if (salesChannel) queryParams.append("salesChannel", salesChannel);
+      if (terminal) queryParams.append("terminal", terminal);
+      if (valueMin) queryParams.append("valueMin", valueMin);
+      if (valueMax) queryParams.append("valueMax", valueMax);
       queryParams.append("page", page.toString());
       queryParams.append("pageSize", pageSize.toString());
 
-      // Preparar os dados para enviar para a API
       const response = await fetch(
         `/api/export-excel?${queryParams.toString()}`
       );

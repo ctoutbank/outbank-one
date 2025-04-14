@@ -89,3 +89,7 @@ export function getEndOfDay(): string {
 // Valores padrão para uso em toda a aplicação
 export const startOfDay = getStartOfDay();
 export const endOfDay = getEndOfDay();
+
+export function currentDateTimeSP() {
+  return DateTime.now().toUTC().setZone("America/Sao_Paulo").toISO();
+}

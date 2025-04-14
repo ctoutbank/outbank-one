@@ -1,37 +1,37 @@
 "use client";
 
 import {
+  Bolt,
   Calculator,
+  Calendar,
+  Check,
   DollarSign,
   DollarSignIcon,
-  HomeIcon,
-  Landmark,
-  User,
-  Settings,
-  Check,
-  Link,
-  PieChart,
-  Bolt,
   File,
   FileText,
+  HomeIcon,
+  Landmark,
+  Link,
   LucideIcon,
-  Calendar,
+  PieChart,
+  Settings,
+  User,
 } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
 
 import { NavMain } from "@/components/menu-portal/nav-projects";
 import { TeamSwitcher } from "@/components/team-switcher";
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
-import { UserButton } from "@clerk/nextjs";
 import { getAuthorizedMenu } from "@/features/menu/actions";
+import { UserButton } from "@clerk/nextjs";
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -117,7 +117,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarFooter>
           <div className="h-10 w-full animate-pulse bg-muted rounded-md" />
         </SidebarFooter>
-        <SidebarRail />
       </Sidebar>
     );
   }
@@ -136,8 +135,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="flex flex-col items-center">
         <TeamSwitcher teams={menuData.teams} />
+        <Separator orientation="horizontal" className="bg-[#d2d2d2]" />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menuData.navMain} />
@@ -157,7 +157,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           userProfileMode="navigation"
         />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

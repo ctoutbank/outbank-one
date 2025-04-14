@@ -97,6 +97,9 @@ export async function reportsExecutionSalesGenerateXLSX(
   dateFrom: string,
   dateTo: string
 ): Promise<Uint8Array | null> {
+  console.log("dateFrom", dateFrom);
+  console.log("dateTo", dateTo);
+
   const workbook = new ExcelJS.Workbook();
 
   // Verificar se transactions existe e é um array
@@ -105,6 +108,7 @@ export async function reportsExecutionSalesGenerateXLSX(
     !Array.isArray(transactions) ||
     transactions.length === 0
   ) {
+    console.log("Não há transações para gerar o relatório");
     return null;
   }
 
@@ -256,13 +260,6 @@ export async function reportsExecutionSalesGenerateXLSX(
     }),
     { quantidade: 0, valorTotal: 0, quantidadeNegada: 0, valorTotalNegado: 0 }
   );
-
-  const metadataSheet = workbook.addWorksheet("Metadados");
-  metadataSheet.columns = [
-    { header: "Data de Início", key: "dateFrom", width: 20 },
-    { header: "Data de Fim", key: "dateTo", width: 20 },
-  ];
-  metadataSheet.addRow({ dateFrom, dateTo });
 
   // Criar planilha de resumo
   const resumoSheet = workbook.addWorksheet("Resumo Geral");
