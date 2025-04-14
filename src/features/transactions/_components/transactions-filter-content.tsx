@@ -115,125 +115,98 @@ export function FilterTransactionsContent({
   };
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Primeira coluna */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Status</h3>
-            <MultiSelect
-              options={transactionStatusList}
-              onValueChange={setStatusValues}
-              defaultValue={initialStatusValues}
-              placeholder="Selecione o status"
-              className="w-full"
-              variant="secondary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">NSU / ID</h3>
-            <Input
-              placeholder="Número de Sequência Único"
-              value={nsu}
-              onChange={(e) => setNsu(e.target.value.replace(/\D/g, ""))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Estabelecimento</h3>
-            <Input
-              placeholder="Nome do estabelecimento"
-              value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
-            />
-          </div>
+    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1400px]">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Primeira linha - Status, Bandeira, Tipo de Pagamento, Processamento */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Status</h3>
+          <MultiSelect
+            options={transactionStatusList}
+            onValueChange={setStatusValues}
+            defaultValue={initialStatusValues}
+            placeholder="Selecione o status"
+            className="w-full"
+            variant="secondary"
+          />
         </div>
 
-        {/* Segunda coluna */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Tipo de Pagamento</h3>
-            <MultiSelect
-              options={transactionProductTypeList}
-              onValueChange={setProductTypeValues}
-              defaultValue={initialProductTypeValues}
-              placeholder="Selecione o tipo de pagamento"
-              className="w-full"
-              variant="secondary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Tipo da Transação</h3>
-            <MultiSelect
-              options={cardPaymentMethod}
-              onValueChange={setMethodValues}
-              defaultValue={initialMethodValues}
-              placeholder="Selecione o tipo"
-              className="w-full"
-              variant="secondary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Processamento</h3>
-            <MultiSelect
-              options={processingTypeList}
-              onValueChange={setSalesChannelValues}
-              defaultValue={initialSalesChannelValues}
-              placeholder="Selecione o processamento"
-              className="w-full"
-              variant="secondary"
-            />
-          </div>
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Bandeira</h3>
+          <MultiSelect
+            options={brandList}
+            onValueChange={setBrandValues}
+            defaultValue={initialBrandValues}
+            placeholder="Selecione a bandeira"
+            className="w-full"
+            variant="secondary"
+          />
         </div>
 
-        {/* Terceira coluna */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Bandeira</h3>
-            <MultiSelect
-              options={brandList}
-              onValueChange={setBrandValues}
-              defaultValue={initialBrandValues}
-              placeholder="Selecione a bandeira"
-              className="w-full"
-              variant="secondary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Terminal</h3>
-            <Input
-              placeholder="Número do terminal"
-              value={terminal}
-              onChange={(e) => setTerminal(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Valor</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                placeholder="Mínimo"
-                type="number"
-                value={valueMin}
-                onChange={(e) => setValueMin(e.target.value)}
-              />
-              <Input
-                placeholder="Máximo"
-                type="number"
-                value={valueMax}
-                onChange={(e) => setValueMax(e.target.value)}
-              />
-            </div>
-          </div>
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Tipo de Pagamento</h3>
+          <MultiSelect
+            options={transactionProductTypeList}
+            onValueChange={setProductTypeValues}
+            defaultValue={initialProductTypeValues}
+            placeholder="Selecione o tipo de pagamento"
+            className="w-full"
+            variant="secondary"
+          />
         </div>
-      </div>
 
-      {/* Data range em uma linha separada */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Processamento</h3>
+          <MultiSelect
+            options={processingTypeList}
+            onValueChange={setSalesChannelValues}
+            defaultValue={initialSalesChannelValues}
+            placeholder="Selecione o processamento"
+            className="w-full"
+            variant="secondary"
+          />
+        </div>
+
+        {/* Segunda linha - Tipo de Transação, Estabelecimento, Terminal, NSU */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Tipo da Transação</h3>
+          <MultiSelect
+            options={cardPaymentMethod}
+            onValueChange={setMethodValues}
+            defaultValue={initialMethodValues}
+            placeholder="Selecione o tipo"
+            className="w-full"
+            variant="secondary"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Estabelecimento</h3>
+          <Input
+            placeholder="Nome do estabelecimento"
+            value={merchant}
+            onChange={(e) => setMerchant(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Terminal</h3>
+          <Input
+            placeholder="Número do terminal"
+            value={terminal}
+            onChange={(e) => setTerminal(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">NSU / ID</h3>
+          <Input
+            placeholder="Número de Sequência Único"
+            value={nsu}
+            onChange={(e) => setNsu(e.target.value.replace(/\D/g, ""))}
+          />
+        </div>
+
+        {/* Terceira linha - Data Inicial, Data Final, Valor (ocupa 2 colunas) */}
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data Inicial</h3>
           <Input
@@ -250,6 +223,24 @@ export function FilterTransactionsContent({
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <h3 className="text-sm font-medium">Valor</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              placeholder="Mínimo"
+              type="number"
+              value={valueMin}
+              onChange={(e) => setValueMin(e.target.value)}
+            />
+            <Input
+              placeholder="Máximo"
+              type="number"
+              value={valueMax}
+              onChange={(e) => setValueMax(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
