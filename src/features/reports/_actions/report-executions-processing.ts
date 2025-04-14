@@ -1,201 +1,108 @@
-import { getTransactions } from "@/features/transactions/serverActions/transaction";
-import { resend } from "@/lib/resend";
-import { formatDate } from "@/lib/utils";
-import { format } from "date-fns";
-import { eq, inArray } from "drizzle-orm";
-import { reportExecution, reports } from "../../../../drizzle/schema";
-import { db } from "../../../server/db";
-import reportsExecutionSalesGeneratePDF, {
-  reportsExecutionSalesGenerateXLSX,
-} from "./reports-execution-sales";
+import {
+  getPendingReportExecutions,
+  getReportById,
+  updateReportExecutionCompletion,
+  updateReportExecutionStatus,
+} from "@/features/reports/_actions/utils/report-db";
+import { DateTime } from "luxon";
+import {
+  sendReportEmail,
+  validateAndProcessEmails,
+} from "./utils/report-email";
+import { generateSalesReport } from "./utils/report-generator";
+import { logger } from "./utils/report-logger";
+import { uploadReportFile } from "./utils/report-upload";
 
 export async function reportExecutionsProcessing() {
-  console.log(
-    "[REPORT-PROCESSING] Iniciando processamento de relatórios agendados"
-  );
-  const now = new Date();
-  console.log(
-    `[REPORT-PROCESSING] Data/hora atual: ${format(now, "yyyy-MM-dd HH:mm:ss")}`
-  );
+  logger.info("Iniciando processamento de relatórios agendados");
 
-  // Busca relatórios pendentes que devem ser executados agora
-  const pendingExecutions = await db
-    .select()
-    .from(reportExecution)
-    .where(inArray(reportExecution.status, ["SCHEDULED", "ERROR"]))
-    .limit(1);
+  const pendingExecutions = await getPendingReportExecutions();
+  if (pendingExecutions.length === 0) {
+    logger.info("Nenhum relatório pendente para processamento");
+    return;
+  }
 
-  console.log(
-    `[REPORT-PROCESSING] Total de relatórios pendentes: ${pendingExecutions.length}`
-  );
+  logger.info("Relatórios pendentes para processamento", {
+    pendingExecutions,
+  });
 
   for (const execution of pendingExecutions) {
-    console.log(
-      `\n[REPORT-PROCESSING] Processando execução ID: ${execution.id}`
-    );
-    console.log(`[REPORT-PROCESSING] Relatório ID: ${execution.idReport}`);
-    console.log(`[REPORT-PROCESSING] Data agendada: ${execution.scheduleDate}`);
-
     try {
-      // Busca os detalhes do relatório
-      const report = await db
-        .select()
-        .from(reports)
-        .where(eq(reports.id, execution.idReport as number))
-        .limit(1);
+      const report = await getReportById(execution.idReport as number);
+      logger.info("Processando relatório", {
+        executionId: execution.id,
+        reportTitle: report.title,
+        reportType: report.reportType,
+      });
 
-      if (!report.length) {
-        throw new Error("Relatório não encontrado");
-      }
+      await updateReportExecutionStatus(execution.id, "PROCESSING", new Date());
 
-      console.log(
-        `[REPORT-PROCESSING] Título do relatório: ${report[0].title}`
-      );
-      console.log(
-        `[REPORT-PROCESSING] Tipo do relatório: ${report[0].reportType}`
-      );
+      let excelBytes: Uint8Array<ArrayBufferLike> | null = null;
+      const dateStart = DateTime.fromISO(execution.reportFilterStartDate!, {
+        zone: "America/Sao_Paulo",
+      })
+        .toUTC()
+        .toISO();
+      const dateEnd = DateTime.fromISO(execution.reportFilterEndDateTime!, {
+        zone: "America/Sao_Paulo",
+      })
+        .toUTC()
+        .toISO();
 
-      // Atualiza o status para PROCESSING
-      await db
-        .update(reportExecution)
-        .set({
-          status: "PROCESSING",
-          executionStart: format(now, "yyyy-MM-dd HH:mm:ss"),
-        })
-        .where(eq(reportExecution.id, execution.id));
-
-      console.log("[REPORT-PROCESSING] Status atualizado para PROCESSING");
-
-      let pdfBytes: Uint8Array<ArrayBufferLike> | null = null;
-      if (report[0].reportType === "VN") {
-        const status = undefined;
-        const merchant = undefined;
-        const productType = undefined;
-
-        // Define a data de início como hoje às 03:00 explicitamente
-
-        // Aumentar 3 horas nas datas
-        const dateFromBase = new Date("2025-04-11 00:00:00");
-        const dateToBase = new Date("2025-04-11 23:59:59");
-
-        dateFromBase.setHours(dateFromBase.getHours() + 3);
-        dateToBase.setHours(dateToBase.getHours() + 3);
-
-        console.log("dateFrom", dateFromBase);
-        console.log("dateTo", dateFromBase);
-
-        const transactions = await getTransactions(
-          -1,
-          -1,
-          status,
-          merchant,
-          dateFromBase.toISOString(),
-          dateToBase.toISOString(),
-          productType
-        );
-        console.log("transactions", transactions);
-        if (report[0].formatCode === "PDF") {
-          pdfBytes = await reportsExecutionSalesGeneratePDF(
-            transactions.transactions
-          );
-        } else if (report[0].formatCode === "EX") {
-          console.log("Gerando relatório em XLSX");
-          console.log(transactions.transactions);
-          pdfBytes = await reportsExecutionSalesGenerateXLSX(
-            transactions.transactions,
-            dateFromBase.toISOString(),
-            dateToBase.toISOString()
-          );
-        } else {
-          throw new Error("Formato de relatório não suportado");
+      logger.info("Datas processadas", {
+        dateStart,
+        dateEnd,
+      });
+      try {
+        if (!report.periodCode) {
+          throw new Error("Código de período não definido");
         }
-        console.log(
-          "[REPORT-PROCESSING] Relatório de vendas gerado com sucesso"
+
+        if (report.reportType === "VN") {
+          excelBytes = await generateSalesReport(report, dateStart!, dateEnd!);
+        }
+
+        if (!excelBytes) {
+          throw new Error("Relatório não gerado");
+        }
+
+        const uploadResult = await uploadReportFile(
+          excelBytes,
+          `relatorio-${report.title}-${execution.scheduleDate}.xlsx`,
+          "application/xlsx"
         );
-      }
+        const emailList = validateAndProcessEmails(execution.emailsSent);
 
-      // Enviar email com o PDF
-      // Obter os emails do relatório
-      const emailsToSend = execution.emailsSent;
-
-      if (
-        !emailsToSend ||
-        (typeof emailsToSend === "string" && emailsToSend.trim() === "")
-      ) {
-        throw new Error("Não há destinatários para enviar o relatório");
-      }
-      const emailList = Array.isArray(emailsToSend)
-        ? emailsToSend
-        : typeof emailsToSend === "string"
-        ? emailsToSend.split(",").map((email) => email.trim())
-        : [];
-
-      if (emailList.length === 0) {
-        throw new Error("Lista de emails para envio está vazia");
-      }
-
-      console.log(
-        `[REPORT-PROCESSING] Enviando relatório para: ${emailList.join(", ")}`
-      );
-      console.log("pdfBytes", pdfBytes);
-      if (pdfBytes) {
-        console.log("[REPORT-PROCESSING] PDF Gerado: ", pdfBytes);
-        await resend.emails.send({
-          from: "noreply@outbank.cloud",
-          to: emailList,
-          subject: `Relatório de Vendas Outbank One`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-              <h2 style="color: #0066cc;">Relatório de Vendas Outbank One</h2>
-              <p>Prezado(a) cliente,</p>
-              <p>É com satisfação que enviamos o seu relatório de vendas do Outbank One, contendo todas as transações processadas no período de <strong>${formatDate(
-                new Date(execution.scheduleDate)
-              )}</strong> a <strong>${formatDate(
-            new Date(execution.scheduleDate)
-          )}</strong>.</p>
-              <p>Este relatório inclui informações detalhadas sobre:</p>
-              <ul>
-                <li>Volume total de transações</li>
-                <li>Valores por bandeira</li>
-                <li>Tipos de transações</li>
-                <li>Status das operações</li>
-              </ul>
-              <p>Utilize estas informações para otimizar suas estratégias de vendas e acompanhar o desempenho do seu negócio.</p>
-              <p>Em caso de dúvidas, nossa equipe de suporte está à disposição.</p>
-              <p style="margin-top: 30px;">Atenciosamente,<br>Equipe Outbank One</p>
-            </div>
-          `,
+        await sendReportEmail(emailList, uploadResult, execution, report);
+        logger.info("Relatório enviado com sucesso", {
+          recipients: emailList,
+          fileUrl: uploadResult.fileURL,
         });
-      } else {
-        console.log("[REPORT-PROCESSING] PDF não gerado");
-        throw new Error("PDF não gerado");
+
+        await updateReportExecutionCompletion(
+          execution.id,
+          "SUCCESS",
+          uploadResult.fileId,
+          new Date()
+        );
+      } catch (error) {
+        logger.error("Erro ao processar datas", {
+          error: error instanceof Error ? error.message : "Erro desconhecido",
+          scheduleDate: execution.scheduleDate,
+          periodCode: report.periodCode,
+          startTime: report.startTime,
+          endTime: report.endTime,
+        });
+        throw error;
       }
-
-      await db
-        .update(reportExecution)
-        .set({
-          status: "SUCCESS",
-          executionEnd: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        })
-        .where(eq(reportExecution.id, execution.id));
-
-      console.log("[REPORT-PROCESSING] Status atualizado para COMPLETED");
     } catch (error) {
-      console.error(`[REPORT-PROCESSING] Erro ao processar relatório:`, error);
-
-      await db
-        .update(reportExecution)
-        .set({
-          status: "ERROR",
-          errorMessage:
-            error instanceof Error ? error.message : "Erro desconhecido",
-          executionEnd: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        })
-        .where(eq(reportExecution.id, execution.id));
-
-      console.log("[REPORT-PROCESSING] Status atualizado para ERROR");
+      logger.error("Erro ao processar relatório", {
+        error: error instanceof Error ? error.message : "Erro desconhecido",
+        executionId: execution.id,
+      });
+      await updateReportExecutionStatus(execution.id, "ERROR", new Date());
     }
   }
 
-  console.log("\n[REPORT-PROCESSING] Processo de execução finalizado");
+  logger.info("Processamento de relatórios concluído");
 }
