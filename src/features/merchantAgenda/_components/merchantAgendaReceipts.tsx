@@ -7,7 +7,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import MerchantAgendaReceiptsTotal from "@/features/merchantAgenda/_components/merchantAgenda-receipts-total";
 import {
   type DailyAmount,
+  ExcelDailyData,
   type GlobalSettlementResult,
+  getMerchantAgendaExcelDailyData,
   getMerchantAgendaReceipts,
   getMerchantAgendaTotal,
 } from "../server/merchantAgenda";
@@ -30,21 +32,41 @@ export default function MerchantAgendaReceipts({
   const [monthlyData, setMonthlyData] =
     useState<DailyAmount[]>(initialMonthlyData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [excelData, setExcelData] = useState<ExcelDailyData[]>();
+
+  useEffect(() => {
+    const fetchExcelData = async () => {
+      try {
+        const date = searchParams.get("date");
+
+        console.log(date);
+        const data = await getMerchantAgendaExcelDailyData(
+          date == undefined || date == "" || date == null
+            ? new Date().toISOString()
+            : date
+        );
+        console.log(data);
+
+        setExcelData(data);
+      } catch (error) {
+        console.error("Error fetching excel data:", error);
+      }
+    };
+
+    fetchExcelData();
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Busca o total do mês
         const totalAmountByMonth = (await getMerchantAgendaTotal(
           actualDate
         )) as number;
         setMonthTotal(totalAmountByMonth || 0);
 
-        // Busca os dados diários para o mês
         const receipts = await getMerchantAgendaReceipts(null, actualDate);
 
-        // Converte para o formato esperado pelo calendário
         const dailyAmounts: DailyAmount[] = receipts
           .map((receipt) => ({
             date: String(receipt.day),
@@ -107,9 +129,13 @@ export default function MerchantAgendaReceipts({
           handleMonthChange={setActualDate}
           total={Number(monthTotal)}
           dailyData={dailyData}
+          setView={setView}
         />
       ) : (
-        <DailyView dailyData={dailyData} />
+        <DailyView
+          dailyData={dailyData}
+          exportExcelDailyData={excelData ?? []}
+        />
       )}
     </div>
   );

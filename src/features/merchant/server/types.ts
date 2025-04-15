@@ -1,0 +1,162 @@
+import {
+  addresses,
+  configurations,
+  contacts,
+  merchantpixaccount,
+} from "../../../../drizzle/schema";
+import {
+  CnaeMccDropdown,
+  EstablishmentFormatDropdown,
+  LegalNatureDropdown,
+} from "../server/merchant";
+import {
+  accountTypeDropdown,
+  banckDropdown,
+} from "../server/merchantpixacount";
+
+interface MerchantData {
+  id: number;
+  slug: string | null;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string | null;
+  idMerchant: string | null;
+  name: string | null;
+  idDocument: string | null;
+  corporateName: string | null;
+  email: string | null;
+  areaCode: string | null;
+  number: string | null;
+  phoneType: string | null;
+  language: string | null;
+  timezone: string | null;
+  slugCustomer: string | null;
+  riskAnalysisStatus: string | null;
+  riskAnalysisStatusJustification: string | null;
+  legalPerson: string | null;
+  openingDate: string | null;
+  inclusion: string | null;
+  openingDays: string | null;
+  openingHour: string | null;
+  closingHour: string | null;
+  municipalRegistration: string | null;
+  stateSubcription: string | null;
+  hasTef: boolean;
+  hasPix: boolean;
+  hasTop: boolean;
+  establishmentFormat: string | null;
+  revenue: number | null;
+  idCategory: number | null;
+  slugCategory: string | null;
+  idLegalNature: number | null;
+  slugLegalNature: string | null;
+  idSalesAgent: number | null;
+  slugSalesAgent: string | null;
+  idConfiguration: number | null;
+  slugConfiguration: string | null;
+  idAddress: number | null;
+  cnae: string;
+  mcc: string;
+  customer: string | null;
+  registration: string | null;
+  idMerchantPrice: number | null;
+  idCustomer: number | null;
+}
+
+interface AddressData {
+  id: number;
+  streetAddress: string | null;
+  streetNumber: string | null;
+  complement: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  zipCode: string | null;
+}
+
+interface ContactData {
+  contacts: typeof contacts.$inferSelect;
+  addresses: typeof addresses.$inferSelect;
+}
+
+interface ConfigurationData {
+  configurations: typeof configurations.$inferSelect;
+}
+
+interface PixAccountData {
+  pixaccounts: typeof merchantpixaccount.$inferSelect;
+  merchantcorporateName: string;
+  merchantdocumentId: string;
+  legalPerson: string;
+}
+
+interface TransactionPrice {
+  id: number;
+  slug: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  idMerchantPriceGroup: number;
+  installmentTransactionFeeStart: number;
+  installmentTransactionFeeEnd: number;
+  cardTransactionMdr: number;
+  cardTransactionFee: number;
+  nonCardTransactionFee: number;
+  nonCardTransactionMdr: number;
+  producttype: string;
+}
+
+interface MerchantPriceGroup {
+  id: number;
+  name: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  idMerchantPrice: number;
+  listMerchantTransactionPrice: TransactionPrice[];
+}
+
+interface MerchantPrice {
+  id: number;
+  name: string;
+  active: boolean;
+  dtinsert: string;
+  dtupdate: string;
+  tableType: string;
+  slugMerchant: string;
+  compulsoryAnticipationConfig: number;
+  anticipationType: string;
+  eventualAnticipationFee: number;
+  cardPixMdr: number;
+  cardPixCeilingFee: number;
+  cardPixMinimumCostFee: number;
+  nonCardPixMdr: number;
+  nonCardPixCeilingFee: number;
+  nonCardPixMinimumCostFee: number;
+  merchantpricegroup: MerchantPriceGroup[];
+}
+
+interface MerchantPriceGroupProps {
+  merchantPrice: MerchantPrice;
+  merchantpricegroup: MerchantPriceGroup[];
+}
+
+export interface MerchantTabsProps {
+  merchant: MerchantData;
+  address: AddressData;
+  Contacts: ContactData;
+  addresses: AddressData;
+
+  pixaccounts: PixAccountData;
+  configurations: ConfigurationData;
+
+  cnaeMccList: CnaeMccDropdown[];
+  legalNatures: LegalNatureDropdown[];
+  establishmentFormatList: EstablishmentFormatDropdown[];
+  DDAccountType: accountTypeDropdown[];
+  DDBank: banckDropdown[];
+
+  merchantPriceGroupProps: MerchantPriceGroupProps;
+  permissions: string[];
+}
