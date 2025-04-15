@@ -25,6 +25,7 @@ interface CalendarProps {
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
   currentMonth?: Date;
+  onDateClick?: (date: string) => void;
 }
 
 interface DailyStats {
@@ -80,6 +81,7 @@ export function Calendar({
   handleMonthChange,
   isLoading = false,
   currentMonth,
+  onDateClick,
 }: CalendarProps) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
   const [statsLoading, setStatsLoading] = useState<boolean>(false);
@@ -172,7 +174,6 @@ export function Calendar({
     return `${value}%`;
   };
 
-
   return (
     <Card className="p-4 overflow-hidden">
       {isLoading && (
@@ -205,7 +206,10 @@ export function Calendar({
           };
 
           return (
-            <div className="p-2 h-full flex flex-col">
+            <div
+              className="p-2 h-full flex flex-col cursor-pointer"
+              onClick={() => hasData && onDateClick?.(formattedDate)}
+            >
               <div className="text-xs text-muted-foreground capitalize mb-1">
                 {}
               </div>

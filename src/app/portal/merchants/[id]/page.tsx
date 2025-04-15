@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import MerchantDisplay from "@/features/merchant/_components/merchant-display";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
@@ -26,7 +27,6 @@ export default async function MerchantDetail({
     "Estabelecimentos",
     "Atualizar"
   );
- 
 
   const merchantId = parseInt(params.id);
 
@@ -131,77 +131,91 @@ export default async function MerchantDetail({
             : "Adicionar Estabelecimento"
         }
       >
-        <MerchantTabs
-          merchant={{
-            id: merchant?.merchants?.id || 0,
-            name: merchant?.merchants?.name || "",
-            slug: merchant?.merchants?.slug || "",
-            active: merchant?.merchants?.active || false,
-            idMerchantPrice: merchant?.merchants?.idMerchantPrice || 0,
-            establishmentFormat: merchant?.merchants?.establishmentFormat || "",
-            idCategory: merchant?.merchants?.idCategory || 0,
-            slugLegalNature: merchant?.merchants?.slugLegalNature || "",
-            slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
-            openingHour: merchant?.merchants?.openingHour || "",
-            closingHour: merchant?.merchants?.closingHour || "",
-            municipalRegistration:
-              merchant?.merchants?.municipalRegistration || "",
-            stateSubcription: merchant?.merchants?.stateSubcription || "",
-            idDocument: merchant?.merchants?.idDocument || "",
-            legalPerson: merchant?.merchants?.legalPerson || "",
-            corporateName: merchant?.merchants?.corporateName || "",
-            riskAnalysisStatusJustification:
-              merchant?.merchants?.riskAnalysisStatusJustification || "",
-            openingDate: merchant?.merchants?.openingDate || "",
-            inclusion: merchant?.merchants?.inclusion || "",
-            openingDays: merchant?.merchants?.openingDays || null,
-            phoneType: merchant?.merchants?.phoneType || "",
-            language: merchant?.merchants?.language || "",
-            slugCustomer: merchant?.merchants?.slugCustomer || "",
-            riskAnalysisStatus: merchant?.merchants?.riskAnalysisStatus || "",
-            idAddress: merchant?.merchants?.idAddress || 0,
-            idLegalNature: merchant?.merchants?.idLegalNature || 0,
-            idSalesAgent: merchant?.merchants?.idSalesAgent || 0,
-            areaCode: merchant?.merchants?.areaCode || "",
-            number: merchant?.merchants?.number
-              ? String(merchant?.merchants?.number)
-              : "",
-            email: merchant?.merchants?.email || "",
-            dtinsert: merchant?.merchants?.dtinsert || "",
-            dtupdate: merchant?.merchants?.dtupdate || "",
-            idMerchant: String(merchant?.merchants?.id),
-            idConfiguration: merchant?.configurations?.id || 0,
-            hasTef: Boolean(merchant?.merchants?.hasTef || false),
-            hasTop: Boolean(merchant?.merchants?.hasTop || false),
-            hasPix: Boolean(merchant?.merchants?.hasPix || false),
-            revenue: Number(merchant?.merchants.revenue),
-            cnae: merchant?.categories?.cnae || "",
-            mcc: merchant?.categories?.mcc || "",
-            slugConfiguration: merchant?.configurations?.slug || "",
+        {params.id == "0" ? (
+          <MerchantTabs
+            merchant={{
+              id: merchant?.merchants?.id || 0,
+              name: merchant?.merchants?.name || "",
+              slug: merchant?.merchants?.slug || "",
+              active: merchant?.merchants?.active || false,
+              idMerchantPrice: merchant?.merchants?.idMerchantPrice || 0,
+              establishmentFormat:
+                merchant?.merchants?.establishmentFormat || "",
+              idCategory: merchant?.merchants?.idCategory || 0,
+              slugLegalNature: merchant?.merchants?.slugLegalNature || "",
+              slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
+              openingHour: merchant?.merchants?.openingHour || "",
+              closingHour: merchant?.merchants?.closingHour || "",
+              municipalRegistration:
+                merchant?.merchants?.municipalRegistration || "",
+              stateSubcription: merchant?.merchants?.stateSubcription || "",
+              idDocument: merchant?.merchants?.idDocument || "",
+              legalPerson: merchant?.merchants?.legalPerson || "",
+              corporateName: merchant?.merchants?.corporateName || "",
+              riskAnalysisStatusJustification:
+                merchant?.merchants?.riskAnalysisStatusJustification || "",
+              openingDate: merchant?.merchants?.openingDate || "",
+              inclusion: merchant?.merchants?.inclusion || "",
+              openingDays: merchant?.merchants?.openingDays || null,
+              phoneType: merchant?.merchants?.phoneType || "",
+              language: merchant?.merchants?.language || "",
+              slugCustomer: merchant?.merchants?.slugCustomer || "",
+              riskAnalysisStatus: merchant?.merchants?.riskAnalysisStatus || "",
+              idAddress: merchant?.merchants?.idAddress || 0,
+              idLegalNature: merchant?.merchants?.idLegalNature || 0,
+              idSalesAgent: merchant?.merchants?.idSalesAgent || 0,
+              areaCode: merchant?.merchants?.areaCode || "",
+              number: merchant?.merchants?.number
+                ? String(merchant?.merchants?.number)
+                : "",
+              email: merchant?.merchants?.email || "",
+              dtinsert: merchant?.merchants?.dtinsert || "",
+              dtupdate: merchant?.merchants?.dtupdate || "",
+              idMerchant: String(merchant?.merchants?.id),
+              idConfiguration: merchant?.configurations?.id || 0,
+              hasTef: Boolean(merchant?.merchants?.hasTef || false),
+              hasTop: Boolean(merchant?.merchants?.hasTop || false),
+              hasPix: Boolean(merchant?.merchants?.hasPix || false),
+              revenue: Number(merchant?.merchants.revenue),
+              cnae: merchant?.categories?.cnae || "",
+              mcc: merchant?.categories?.mcc || "",
+              slugConfiguration: merchant?.configurations?.slug || "",
 
-            registration: merchant?.merchants?.municipalRegistration || "",
-            customer: merchant?.merchants?.slugCustomer || "",
+              registration: merchant?.merchants?.municipalRegistration || "",
+              customer: merchant?.merchants?.slugCustomer || "",
 
-            slugCategory: merchant?.merchants.slugCategory || null,
-            timezone: merchant?.merchants.timezone || "",
-            idCustomer: merchant?.merchants.idCustomer || null,
-          }}
-          address={{
-            id: merchant?.addresses?.id || 0,
-            streetAddress: merchant?.addresses?.streetAddress || "",
-            streetNumber: merchant?.addresses?.streetNumber || "",
-            complement: merchant?.addresses?.complement || "",
-            neighborhood: merchant?.addresses?.neighborhood || "",
-            city: merchant?.addresses?.city || "",
-            state: merchant?.addresses?.state || "",
-            country: merchant?.addresses?.country || "",
-            zipCode: merchant?.addresses?.zipCode || "",
-          }}
-          cnaeMccList={cnaeMccList}
-          legalNatures={legalNatures}
-          Contacts={{
-            contacts: contact?.[0]?.contacts || [],
-            addresses: contact?.[0]?.addresses || {
+              slugCategory: merchant?.merchants.slugCategory || null,
+              timezone: merchant?.merchants.timezone || "",
+              idCustomer: merchant?.merchants.idCustomer || null,
+            }}
+            address={{
+              id: merchant?.addresses?.id || 0,
+              streetAddress: merchant?.addresses?.streetAddress || "",
+              streetNumber: merchant?.addresses?.streetNumber || "",
+              complement: merchant?.addresses?.complement || "",
+              neighborhood: merchant?.addresses?.neighborhood || "",
+              city: merchant?.addresses?.city || "",
+              state: merchant?.addresses?.state || "",
+              country: merchant?.addresses?.country || "",
+              zipCode: merchant?.addresses?.zipCode || "",
+            }}
+            cnaeMccList={cnaeMccList}
+            legalNatures={legalNatures}
+            Contacts={{
+              contacts: contact?.[0]?.contacts || [],
+              addresses: contact?.[0]?.addresses || {
+                id: contact?.[0]?.addresses?.id || 0,
+                streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+                streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+                complement: contact?.[0]?.addresses?.complement || "",
+                neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+                city: contact?.[0]?.addresses?.city || "",
+                state: contact?.[0]?.addresses?.state || "",
+                country: contact?.[0]?.addresses?.country || "",
+                zipCode: contact?.[0]?.addresses?.zipCode || "",
+              },
+            }}
+            addresses={{
               id: contact?.[0]?.addresses?.id || 0,
               streetAddress: contact?.[0]?.addresses?.streetAddress || "",
               streetNumber: contact?.[0]?.addresses?.streetNumber || "",
@@ -211,108 +225,295 @@ export default async function MerchantDetail({
               state: contact?.[0]?.addresses?.state || "",
               country: contact?.[0]?.addresses?.country || "",
               zipCode: contact?.[0]?.addresses?.zipCode || "",
-            },
-          }}
-          addresses={{
-            id: contact?.[0]?.addresses?.id || 0,
-            streetAddress: contact?.[0]?.addresses?.streetAddress || "",
-            streetNumber: contact?.[0]?.addresses?.streetNumber || "",
-            complement: contact?.[0]?.addresses?.complement || "",
-            neighborhood: contact?.[0]?.addresses?.neighborhood || "",
-            city: contact?.[0]?.addresses?.city || "",
-            state: contact?.[0]?.addresses?.state || "",
-            country: contact?.[0]?.addresses?.country || "",
-            zipCode: contact?.[0]?.addresses?.zipCode || "",
-          }}
-          configurations={{
-            configurations: {
-              id: configurations?.id || 0,
-              slug: configurations?.slug || "",
-              active: configurations?.active || false,
-              dtinsert: configurations?.dtinsert || "",
-              dtupdate: configurations?.dtupdate || "",
-              lockCpAnticipationOrder:
-                configurations?.lockCpAnticipationOrder === true ? true : false,
-              lockCnpAnticipationOrder:
-                configurations?.lockCnpAnticipationOrder === true
-                  ? true
-                  : false,
-              url: configurations?.url || "",
-              anticipationRiskFactorCp:
-                configurations?.anticipationRiskFactorCp || "",
-              anticipationRiskFactorCnp:
-                configurations?.anticipationRiskFactorCnp || "",
-              waitingPeriodCp: configurations?.waitingPeriodCp || "",
-              waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
-            },
-          }}
-          pixaccounts={{
-            pixaccounts: {
-              id: pixaccount?.id || 0,
-              slug: pixaccount?.slug || "",
-              active: pixaccount?.active || false,
-              dtinsert: pixaccount?.dtinsert || "",
-              dtupdate: pixaccount?.dtupdate || "",
-              idRegistration: pixaccount?.idRegistration || "",
-              idAccount: pixaccount?.idAccount || "",
-              bankNumber: pixaccount?.bankNumber || "",
-              bankBranchNumber: pixaccount?.bankBranchNumber || "",
-              bankBranchDigit: pixaccount?.bankBranchDigit || "",
-              bankAccountNumber: pixaccount?.bankAccountNumber || "",
-              bankAccountDigit: pixaccount?.bankAccountDigit || "",
-              bankAccountType: pixaccount?.bankAccountType || "",
-              bankAccountStatus: pixaccount?.bankAccountStatus || "",
-              onboardingPixStatus: pixaccount?.onboardingPixStatus || "",
-              message: pixaccount?.message || "",
-              bankName: pixaccount?.bankName || "",
-              idMerchant: pixaccount?.idMerchant || 0,
-              slugMerchant: pixaccount?.slugMerchant || null,
-            },
-            merchantcorporateName: merchant?.merchants?.corporateName || "",
-            merchantdocumentId: merchant?.merchants?.idDocument || "",
-            legalPerson: merchant?.merchants?.legalPerson || "",
-          }}
-          merchantPriceGroupProps={{
-            merchantPrice: {
-              id: formattedMerchantPriceGroups.merchantPrice.id,
-              name: formattedMerchantPriceGroups.merchantPrice.name,
-              active: formattedMerchantPriceGroups.merchantPrice.active,
-              dtinsert: formattedMerchantPriceGroups.merchantPrice.dtinsert,
-              dtupdate: formattedMerchantPriceGroups.merchantPrice.dtupdate,
-              tableType: formattedMerchantPriceGroups.merchantPrice.tableType,
-              slugMerchant:
-                formattedMerchantPriceGroups.merchantPrice.slugMerchant,
-              compulsoryAnticipationConfig:
-                formattedMerchantPriceGroups.merchantPrice
-                  .compulsoryAnticipationConfig,
-              anticipationType:
-                formattedMerchantPriceGroups.merchantPrice.anticipationType,
-              eventualAnticipationFee:
-                formattedMerchantPriceGroups.merchantPrice
-                  .eventualAnticipationFee,
-              cardPixMdr: formattedMerchantPriceGroups.merchantPrice.cardPixMdr,
-              cardPixCeilingFee:
-                formattedMerchantPriceGroups.merchantPrice.cardPixCeilingFee,
-              cardPixMinimumCostFee:
-                formattedMerchantPriceGroups.merchantPrice
-                  .cardPixMinimumCostFee,
-              nonCardPixMdr:
-                formattedMerchantPriceGroups.merchantPrice.nonCardPixMdr,
-              nonCardPixCeilingFee:
-                formattedMerchantPriceGroups.merchantPrice.nonCardPixCeilingFee,
-              nonCardPixMinimumCostFee:
-                formattedMerchantPriceGroups.merchantPrice
-                  .nonCardPixMinimumCostFee,
+            }}
+            configurations={{
+              configurations: {
+                id: configurations?.id || 0,
+                slug: configurations?.slug || "",
+                active: configurations?.active || false,
+                dtinsert: configurations?.dtinsert || "",
+                dtupdate: configurations?.dtupdate || "",
+                lockCpAnticipationOrder:
+                  configurations?.lockCpAnticipationOrder === true
+                    ? true
+                    : false,
+                lockCnpAnticipationOrder:
+                  configurations?.lockCnpAnticipationOrder === true
+                    ? true
+                    : false,
+                url: configurations?.url || "",
+                anticipationRiskFactorCp:
+                  configurations?.anticipationRiskFactorCp || "",
+                anticipationRiskFactorCnp:
+                  configurations?.anticipationRiskFactorCnp || "",
+                waitingPeriodCp: configurations?.waitingPeriodCp || "",
+                waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
+              },
+            }}
+            pixaccounts={{
+              pixaccounts: {
+                id: pixaccount?.id || 0,
+                slug: pixaccount?.slug || "",
+                active: pixaccount?.active || false,
+                dtinsert: pixaccount?.dtinsert || "",
+                dtupdate: pixaccount?.dtupdate || "",
+                idRegistration: pixaccount?.idRegistration || "",
+                idAccount: pixaccount?.idAccount || "",
+                bankNumber: pixaccount?.bankNumber || "",
+                bankBranchNumber: pixaccount?.bankBranchNumber || "",
+                bankBranchDigit: pixaccount?.bankBranchDigit || "",
+                bankAccountNumber: pixaccount?.bankAccountNumber || "",
+                bankAccountDigit: pixaccount?.bankAccountDigit || "",
+                bankAccountType: pixaccount?.bankAccountType || "",
+                bankAccountStatus: pixaccount?.bankAccountStatus || "",
+                onboardingPixStatus: pixaccount?.onboardingPixStatus || "",
+                message: pixaccount?.message || "",
+                bankName: pixaccount?.bankName || "",
+                idMerchant: pixaccount?.idMerchant || 0,
+                slugMerchant: pixaccount?.slugMerchant || null,
+              },
+              merchantcorporateName: merchant?.merchants?.corporateName || "",
+              merchantdocumentId: merchant?.merchants?.idDocument || "",
+              legalPerson: merchant?.merchants?.legalPerson || "",
+            }}
+            merchantPriceGroupProps={{
+              merchantPrice: {
+                id: formattedMerchantPriceGroups.merchantPrice.id,
+                name: formattedMerchantPriceGroups.merchantPrice.name,
+                active: formattedMerchantPriceGroups.merchantPrice.active,
+                dtinsert: formattedMerchantPriceGroups.merchantPrice.dtinsert,
+                dtupdate: formattedMerchantPriceGroups.merchantPrice.dtupdate,
+                tableType: formattedMerchantPriceGroups.merchantPrice.tableType,
+                slugMerchant:
+                  formattedMerchantPriceGroups.merchantPrice.slugMerchant,
+                compulsoryAnticipationConfig:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .compulsoryAnticipationConfig,
+                anticipationType:
+                  formattedMerchantPriceGroups.merchantPrice.anticipationType,
+                eventualAnticipationFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .eventualAnticipationFee,
+                cardPixMdr:
+                  formattedMerchantPriceGroups.merchantPrice.cardPixMdr,
+                cardPixCeilingFee:
+                  formattedMerchantPriceGroups.merchantPrice.cardPixCeilingFee,
+                cardPixMinimumCostFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .cardPixMinimumCostFee,
+                nonCardPixMdr:
+                  formattedMerchantPriceGroups.merchantPrice.nonCardPixMdr,
+                nonCardPixCeilingFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .nonCardPixCeilingFee,
+                nonCardPixMinimumCostFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .nonCardPixMinimumCostFee,
+                merchantpricegroup:
+                  formattedMerchantPriceGroups.merchantpricegroup,
+              },
               merchantpricegroup:
                 formattedMerchantPriceGroups.merchantpricegroup,
-            },
-            merchantpricegroup: formattedMerchantPriceGroups.merchantpricegroup,
-          }}
-          establishmentFormatList={establishmentFormatList}
-          DDAccountType={DDAccountType}
-          DDBank={DDBank}
-          permissions={permissions}
-        />
+            }}
+            establishmentFormatList={establishmentFormatList}
+            DDAccountType={DDAccountType}
+            DDBank={DDBank}
+            permissions={permissions}
+          />
+        ) : merchant?.merchants?.id ? (
+          <MerchantDisplay
+            merchant={{
+              id: merchant?.merchants?.id || 0,
+              name: merchant?.merchants?.name || "",
+              slug: merchant?.merchants?.slug || "",
+              active: merchant?.merchants?.active || false,
+              idMerchantPrice: merchant?.merchants?.idMerchantPrice || 0,
+              establishmentFormat:
+                merchant?.merchants?.establishmentFormat || "",
+              idCategory: merchant?.merchants?.idCategory || 0,
+              slugLegalNature: merchant?.merchants?.slugLegalNature || "",
+              slugSalesAgent: merchant?.merchants?.slugSalesAgent || "",
+              openingHour: merchant?.merchants?.openingHour || "",
+              closingHour: merchant?.merchants?.closingHour || "",
+              municipalRegistration:
+                merchant?.merchants?.municipalRegistration || "",
+              stateSubcription: merchant?.merchants?.stateSubcription || "",
+              idDocument: merchant?.merchants?.idDocument || "",
+              legalPerson: merchant?.merchants?.legalPerson || "",
+              corporateName: merchant?.merchants?.corporateName || "",
+              riskAnalysisStatusJustification:
+                merchant?.merchants?.riskAnalysisStatusJustification || "",
+              openingDate: merchant?.merchants?.openingDate || "",
+              inclusion: merchant?.merchants?.inclusion || "",
+              openingDays: merchant?.merchants?.openingDays || null,
+              phoneType: merchant?.merchants?.phoneType || "",
+              language: merchant?.merchants?.language || "",
+              slugCustomer: merchant?.merchants?.slugCustomer || "",
+              riskAnalysisStatus: merchant?.merchants?.riskAnalysisStatus || "",
+              idAddress: merchant?.merchants?.idAddress || 0,
+              idLegalNature: merchant?.merchants?.idLegalNature || 0,
+              idSalesAgent: merchant?.merchants?.idSalesAgent || 0,
+              areaCode: merchant?.merchants?.areaCode || "",
+              number: merchant?.merchants?.number
+                ? String(merchant?.merchants?.number)
+                : "",
+              email: merchant?.merchants?.email || "",
+              dtinsert: merchant?.merchants?.dtinsert || "",
+              dtupdate: merchant?.merchants?.dtupdate || "",
+              idMerchant: String(merchant?.merchants?.id),
+              idConfiguration: merchant?.configurations?.id || 0,
+              hasTef: Boolean(merchant?.merchants?.hasTef || false),
+              hasTop: Boolean(merchant?.merchants?.hasTop || false),
+              hasPix: Boolean(merchant?.merchants?.hasPix || false),
+              revenue: Number(merchant?.merchants.revenue),
+              cnae: merchant?.categories?.cnae || "",
+              mcc: merchant?.categories?.mcc || "",
+              slugConfiguration: merchant?.configurations?.slug || "",
+
+              registration: merchant?.merchants?.municipalRegistration || "",
+              customer: merchant?.merchants?.slugCustomer || "",
+
+              slugCategory: merchant?.merchants.slugCategory || null,
+              timezone: merchant?.merchants.timezone || "",
+              idCustomer: merchant?.merchants.idCustomer || null,
+            }}
+            address={{
+              id: merchant?.addresses?.id || 0,
+              streetAddress: merchant?.addresses?.streetAddress || "",
+              streetNumber: merchant?.addresses?.streetNumber || "",
+              complement: merchant?.addresses?.complement || "",
+              neighborhood: merchant?.addresses?.neighborhood || "",
+              city: merchant?.addresses?.city || "",
+              state: merchant?.addresses?.state || "",
+              country: merchant?.addresses?.country || "",
+              zipCode: merchant?.addresses?.zipCode || "",
+            }}
+            cnaeMccList={cnaeMccList}
+            legalNatures={legalNatures}
+            Contacts={{
+              contacts: contact?.[0]?.contacts || [],
+              addresses: contact?.[0]?.addresses || {
+                id: contact?.[0]?.addresses?.id || 0,
+                streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+                streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+                complement: contact?.[0]?.addresses?.complement || "",
+                neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+                city: contact?.[0]?.addresses?.city || "",
+                state: contact?.[0]?.addresses?.state || "",
+                country: contact?.[0]?.addresses?.country || "",
+                zipCode: contact?.[0]?.addresses?.zipCode || "",
+              },
+            }}
+            addresses={{
+              id: contact?.[0]?.addresses?.id || 0,
+              streetAddress: contact?.[0]?.addresses?.streetAddress || "",
+              streetNumber: contact?.[0]?.addresses?.streetNumber || "",
+              complement: contact?.[0]?.addresses?.complement || "",
+              neighborhood: contact?.[0]?.addresses?.neighborhood || "",
+              city: contact?.[0]?.addresses?.city || "",
+              state: contact?.[0]?.addresses?.state || "",
+              country: contact?.[0]?.addresses?.country || "",
+              zipCode: contact?.[0]?.addresses?.zipCode || "",
+            }}
+            configurations={{
+              configurations: {
+                id: configurations?.id || 0,
+                slug: configurations?.slug || "",
+                active: configurations?.active || false,
+                dtinsert: configurations?.dtinsert || "",
+                dtupdate: configurations?.dtupdate || "",
+                lockCpAnticipationOrder:
+                  configurations?.lockCpAnticipationOrder === true
+                    ? true
+                    : false,
+                lockCnpAnticipationOrder:
+                  configurations?.lockCnpAnticipationOrder === true
+                    ? true
+                    : false,
+                url: configurations?.url || "",
+                anticipationRiskFactorCp:
+                  configurations?.anticipationRiskFactorCp || "",
+                anticipationRiskFactorCnp:
+                  configurations?.anticipationRiskFactorCnp || "",
+                waitingPeriodCp: configurations?.waitingPeriodCp || "",
+                waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
+              },
+            }}
+            pixaccounts={{
+              pixaccounts: {
+                id: pixaccount?.id || 0,
+                slug: pixaccount?.slug || "",
+                active: pixaccount?.active || false,
+                dtinsert: pixaccount?.dtinsert || "",
+                dtupdate: pixaccount?.dtupdate || "",
+                idRegistration: pixaccount?.idRegistration || "",
+                idAccount: pixaccount?.idAccount || "",
+                bankNumber: pixaccount?.bankNumber || "",
+                bankBranchNumber: pixaccount?.bankBranchNumber || "",
+                bankBranchDigit: pixaccount?.bankBranchDigit || "",
+                bankAccountNumber: pixaccount?.bankAccountNumber || "",
+                bankAccountDigit: pixaccount?.bankAccountDigit || "",
+                bankAccountType: pixaccount?.bankAccountType || "",
+                bankAccountStatus: pixaccount?.bankAccountStatus || "",
+                onboardingPixStatus: pixaccount?.onboardingPixStatus || "",
+                message: pixaccount?.message || "",
+                bankName: pixaccount?.bankName || "",
+                idMerchant: pixaccount?.idMerchant || 0,
+                slugMerchant: pixaccount?.slugMerchant || null,
+              },
+              merchantcorporateName: merchant?.merchants?.corporateName || "",
+              merchantdocumentId: merchant?.merchants?.idDocument || "",
+              legalPerson: merchant?.merchants?.legalPerson || "",
+            }}
+            merchantPriceGroupProps={{
+              merchantPrice: {
+                id: formattedMerchantPriceGroups.merchantPrice.id,
+                name: formattedMerchantPriceGroups.merchantPrice.name,
+                active: formattedMerchantPriceGroups.merchantPrice.active,
+                dtinsert: formattedMerchantPriceGroups.merchantPrice.dtinsert,
+                dtupdate: formattedMerchantPriceGroups.merchantPrice.dtupdate,
+                tableType: formattedMerchantPriceGroups.merchantPrice.tableType,
+                slugMerchant:
+                  formattedMerchantPriceGroups.merchantPrice.slugMerchant,
+                compulsoryAnticipationConfig:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .compulsoryAnticipationConfig,
+                anticipationType:
+                  formattedMerchantPriceGroups.merchantPrice.anticipationType,
+                eventualAnticipationFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .eventualAnticipationFee,
+                cardPixMdr:
+                  formattedMerchantPriceGroups.merchantPrice.cardPixMdr,
+                cardPixCeilingFee:
+                  formattedMerchantPriceGroups.merchantPrice.cardPixCeilingFee,
+                cardPixMinimumCostFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .cardPixMinimumCostFee,
+                nonCardPixMdr:
+                  formattedMerchantPriceGroups.merchantPrice.nonCardPixMdr,
+                nonCardPixCeilingFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .nonCardPixCeilingFee,
+                nonCardPixMinimumCostFee:
+                  formattedMerchantPriceGroups.merchantPrice
+                    .nonCardPixMinimumCostFee,
+                merchantpricegroup:
+                  formattedMerchantPriceGroups.merchantpricegroup,
+              },
+              merchantpricegroup:
+                formattedMerchantPriceGroups.merchantpricegroup,
+            }}
+            establishmentFormatList={establishmentFormatList}
+            DDAccountType={DDAccountType}
+            DDBank={DDBank}
+            permissions={permissions}
+          />
+        ) : (
+          <div>
+            <h1>Estabelecimento não encontrado</h1>
+          </div>
+        )}
       </BaseBody>
     </>
   );

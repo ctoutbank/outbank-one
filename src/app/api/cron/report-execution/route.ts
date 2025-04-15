@@ -10,7 +10,7 @@ export async function GET() {
     console.log("[API] Iniciando chamada para processamento de relatórios");
 
     // Executa o processamento dos relatórios de forma assíncrona
-    reportExecutionsProcessing().catch((error) => {
+    await reportExecutionsProcessing().catch((error) => {
       console.error("[API] Erro ao processar relatórios:", error);
     });
 

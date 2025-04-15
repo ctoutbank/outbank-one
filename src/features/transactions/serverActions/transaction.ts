@@ -109,7 +109,7 @@ export async function getTransactions(
 
   if (productType) {
     console.log("productType", productType);
-    conditions.push(eq(transactions.productType, productType));
+
     // Verificar se productType contém múltiplos valores separados por vírgula
     const productTypeValues = productType.split(",").map((p) => p.trim());
     if (productTypeValues.length > 1) {

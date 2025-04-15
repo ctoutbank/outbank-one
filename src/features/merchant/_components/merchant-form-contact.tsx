@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { states, UF } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Plus, Trash2, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -172,18 +180,79 @@ function ContactFormItem({
               )}
             </div>
 
-            <div>
-              <Label htmlFor={`icNumber-${id}`}>RG</Label>
-              <Input
-                id={`icNumber-${id}`}
-                placeholder="00.000.000-0"
-                {...registerContact("icNumber")}
-              />
-              {errorsContact.icNumber && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errorsContact.icNumber.message}
-                </p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={`icNumber-${id}`}>RG</Label>
+                <Input
+                  id={`icNumber-${id}`}
+                  placeholder="00.000.000-0"
+                  {...registerContact("icNumber")}
+                />
+                {errorsContact.icNumber && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.icNumber.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`icDateIssuance-${id}`}>Data de emissão</Label>
+                <Input
+                  id={`icDateIssuance-${id}`}
+                  type="date"
+                  {...registerContact("icDateIssuance", {
+                    setValueAs: (value) =>
+                      value ? new Date(value) : undefined,
+                  })}
+                />
+                {errorsContact.icDateIssuance && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.icDateIssuance.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                <Label htmlFor={`icDispatcher-${id}`}>Órgão expedidor</Label>
+                <Input
+                  id={`icDispatcher-${id}`}
+                  placeholder="SSP"
+                  {...registerContact("icDispatcher")}
+                />
+                {errorsContact.icDispatcher && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.icDispatcher.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor={`icFederativeUnit-${id}`}>UF</Label>
+                <Select
+                  onValueChange={(value) =>
+                    contactForm.setValue("icFederativeUnit", value)
+                  }
+                  value={watchContact("icFederativeUnit") || ""}
+                >
+                  <SelectTrigger id={`icFederativeUnit-${id}`}>
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UF.map((uf) => (
+                      <SelectItem key={uf.value} value={uf.value}>
+                        {uf.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errorsContact.icFederativeUnit && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errorsContact.icFederativeUnit.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -249,8 +318,10 @@ function ContactFormItem({
                     <input
                       type="radio"
                       id={`isPartnerContact-yes-${id}`}
-                      value="true"
-                      {...registerContact("isPartnerContact")}
+                      checked={watchContact("isPartnerContact") === true}
+                      onChange={() =>
+                        contactForm.setValue("isPartnerContact", true)
+                      }
                       className="h-4 w-4"
                     />
                     <Label
@@ -264,8 +335,10 @@ function ContactFormItem({
                     <input
                       type="radio"
                       id={`isPartnerContact-no-${id}`}
-                      value="false"
-                      {...registerContact("isPartnerContact")}
+                      checked={watchContact("isPartnerContact") === false}
+                      onChange={() =>
+                        contactForm.setValue("isPartnerContact", false)
+                      }
                       className="h-4 w-4"
                     />
                     <Label
@@ -285,8 +358,8 @@ function ContactFormItem({
                     <input
                       type="radio"
                       id={`isPep-yes-${id}`}
-                      value="true"
-                      {...registerContact("isPep")}
+                      checked={watchContact("isPep") === true}
+                      onChange={() => contactForm.setValue("isPep", true)}
                       className="h-4 w-4"
                     />
                     <Label htmlFor={`isPep-yes-${id}`} className="text-sm">
@@ -297,8 +370,8 @@ function ContactFormItem({
                     <input
                       type="radio"
                       id={`isPep-no-${id}`}
-                      value="false"
-                      {...registerContact("isPep")}
+                      checked={watchContact("isPep") === false}
+                      onChange={() => contactForm.setValue("isPep", false)}
                       className="h-4 w-4"
                     />
                     <Label htmlFor={`isPep-no-${id}`} className="text-sm">
@@ -441,11 +514,23 @@ function ContactFormItem({
                 <Label htmlFor={`state-${id}`}>
                   Estado <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`state-${id}`}
-                  placeholder="UF"
-                  {...registerAddress("state")}
-                />
+                <Select
+                  onValueChange={(value) =>
+                    addressForm.setValue("state", value)
+                  }
+                  value={watchAddress("state") || ""}
+                >
+                  <SelectTrigger id={`state-${id}`}>
+                    <SelectValue placeholder="Selecione o estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {states.map((state) => (
+                      <SelectItem key={state.value} value={state.value}>
+                        {state.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errorsAddress.state && (
                   <p className="text-sm text-red-500 mt-1">
                     {errorsAddress.state.message}

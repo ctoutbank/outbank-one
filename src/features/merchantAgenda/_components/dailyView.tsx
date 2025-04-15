@@ -1,6 +1,6 @@
 "use client";
 
-import { Download } from "lucide-react";
+import ExcelExport from "@/components/excelExport";
 import {
   Accordion,
   AccordionContent,
@@ -15,36 +15,93 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { GlobalSettlementResult } from "../server/merchantAgenda";
+import { formatDate } from "@/lib/utils";
+import { Fill, Font } from "exceljs";
+import {
+  ExcelDailyData,
+  GlobalSettlementResult,
+} from "../server/merchantAgenda";
 
 interface DailyViewProps {
   dailyData: GlobalSettlementResult;
+  exportExcelDailyData: ExcelDailyData[];
 }
 
-export function DailyView({ dailyData }: DailyViewProps) {
-  console.log(dailyData);
+export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
+  const globalStyles = {
+    header: {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "808080" },
+      } as Fill,
+      font: { color: { argb: "FFFFFF" }, bold: true } as Font,
+    },
+    row: {
+      font: { color: { argb: "000000" } } as Font,
+    },
+  };
+
+  const getExcelExport = (slugMerchant: string) => {
+    const filteredData = exportExcelDailyData.filter(
+      (excel) => excel.slugMerchant == slugMerchant
+    );
+
+    return (
+      <ExcelExport
+        data={filteredData.map((excel) => ({
+          Estabelecimento: excel.merchant,
+          "CNPJ/CPF": excel.cnpj,
+          "NSU/ID": excel.nsu,
+          "Data da Venda": formatDate(new Date(excel.saleDate)),
+          Tipo: excel.type,
+          Bandeira: excel.brand,
+          Parcela: excel.installmentNumber,
+          "Número de Parcelas": excel.installments,
+          "Valor Bruto da Taxa (%)": excel.transactionMdr,
+          "Taxa (R$)": excel.transactionMdrFee,
+          "Valor Fixo": excel.transactionFee,
+          "Valor Líquido da PJ": excel.settlementAmount,
+          "Data Prevista de Liquidação": formatDate(
+            new Date(excel.expectedDate)
+          ),
+          "Valor Liquidado na Data": excel.receivableAmount,
+          "Data de Liquidação": excel.settlementDate
+            ? formatDate(new Date(excel.settlementDate))
+            : "",
+        }))}
+        sheetName="Conciliação de recebíveis"
+        fileName={`CONCILIAÇÃO_DE_RECEBIMENTOS_${
+          new Date().toISOString().split("T")[0]
+        }.xlsx`}
+        globalStyles={globalStyles}
+        onlyIcon={true}
+      />
+    );
+  };
+
   return (
     <>
       {dailyData.merchants && (
         <>
           <Accordion type="multiple" className="space-y-4">
-            {dailyData.merchants.map((dailyData) => (
+            {dailyData.merchants.map((merchant) => (
               <AccordionItem
-                key={dailyData.merchant}
-                value={dailyData.merchant}
+                key={merchant.merchant}
+                value={merchant.merchant}
                 className="border rounded-lg px-4"
               >
                 <AccordionTrigger className="py-4 hover:no-underline">
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-medium">{dailyData.merchant}</span>
+                    <span className="font-medium">{merchant.merchant}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-primary font-medium">
                         {new Intl.NumberFormat("pt-BR", {
                           style: "currency",
                           currency: "BRL",
-                        }).format(dailyData.total)}
+                        }).format(merchant.total)}
                       </span>
-                      <Download className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
+                      {getExcelExport(merchant.slugmerchant)}
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -65,7 +122,7 @@ export function DailyView({ dailyData }: DailyViewProps) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {dailyData.producttype.map((productType, index) => (
+                        {merchant.producttype.map((productType, index) => (
                           <tr key={index} className="w-full">
                             <td colSpan={3} className="p-0 border-0">
                               <AccordionItem
@@ -75,28 +132,23 @@ export function DailyView({ dailyData }: DailyViewProps) {
                               >
                                 <TableRow>
                                   <TableCell className="w-[20%] text-muted-foreground">
-                                    {" "}
                                     <AccordionTrigger className="text-left w-1/4 py-4 hover:no-underline">
                                       {productType.name}
                                     </AccordionTrigger>
                                   </TableCell>
                                   <TableCell className="w-[40%] text-right text-muted-foreground">
-                                    {" "}
                                     {new Intl.NumberFormat("pt-BR", {
                                       style: "currency",
                                       currency: "BRL",
                                     }).format(productType.totalGross)}
                                   </TableCell>
                                   <TableCell className="w-[40%] text-right text-muted-foreground">
-                                    {" "}
                                     {new Intl.NumberFormat("pt-BR", {
                                       style: "currency",
                                       currency: "BRL",
                                     }).format(productType.totalSettlement)}
                                   </TableCell>
-                                  <TableCell className="w-full flex items-center gap-4"></TableCell>
                                 </TableRow>
-
                                 <AccordionContent>
                                   <div className="pr-4">
                                     <Table>

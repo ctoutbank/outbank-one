@@ -167,6 +167,9 @@ export default function MerchantFormCompany({
         // Criar o endereço
         addressId = await insertAddressFormAction(addressData);
       }
+      if (!data.idCategory && data.cnae) {
+        data.idCategory = Number(data.cnae);
+      }
 
       // Criar o merchant com o ID do endereço
       const merchantData = {
@@ -383,7 +386,10 @@ export default function MerchantFormCompany({
                                   (item) => item.value === value
                                 );
                                 if (selected) {
-                                  field.onChange(Number(value));
+                                  field.onChange(value);
+                                  form.setValue("idCategory", Number(value), {
+                                    shouldValidate: true,
+                                  });
                                   const mccField = form.getFieldState("mcc");
                                   if (mccField) {
                                     form.setValue("mcc", selected.mcc, {

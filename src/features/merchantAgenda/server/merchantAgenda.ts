@@ -32,10 +32,31 @@ export type MerchantProductType = {
 };
 
 export type MerchantData = {
+  slugmerchant: string;
   merchant: string;
   total: number;
   status: string;
   producttype: MerchantProductType[];
+};
+
+export type ExcelDailyData = {
+  slugMerchant: string;
+  merchant: string;
+  cnpj: string;
+  nsu: string;
+  saleDate: string;
+  type: string;
+  brand: string;
+  installments: number;
+  installmentNumber: number;
+  installmentValue: string;
+  transactionMdr: string;
+  transactionMdrFee: string;
+  transactionFee: string;
+  settlementAmount: string;
+  expectedDate: string;
+  receivableAmount: string;
+  settlementDate: string;
 };
 
 export type GlobalSettlementResult = {
@@ -263,6 +284,57 @@ export async function getMerchantAgenda(
   };
 }
 
+export async function getMerchantAgendaExcelDailyData(
+  date: string
+): Promise<ExcelDailyData[]> {
+  // Convert the input date to a Date object and then format it to YYYY-MM-DD
+  const formattedDate = new Date(date).toISOString().split("T")[0];
+
+  const result = await db
+    .select({
+      merchant: merchants.name,
+      slugMerchant: merchants.slug,
+      cnpj: merchants.idDocument,
+      nsu: payout.rrn,
+      saleDate: payout.transactionDate,
+      type: payout.productType,
+      brand: payout.brand,
+      installments: payout.installments,
+      installmentNumber: payout.installmentNumber,
+      installmentValue: payout.installmentAmount,
+      transactionMdr: payout.transactionMdr,
+      transactionMdrFee: payout.transactionMdrFee,
+      transactionFee: payout.transactionFee,
+      settlementAmount: payout.settlementAmount,
+      expectedDate: payout.expectedSettlementDate,
+      receivableAmount: payout.receivableAmount,
+      settlementDate: payout.settlementDate,
+    })
+    .from(payout)
+    .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
+    .where(sql`DATE(${payout.expectedSettlementDate}) = ${formattedDate}`);
+
+  return result.map((row) => ({
+    merchant: row.merchant || "",
+    slugMerchant: row.slugMerchant || "",
+    cnpj: row.cnpj || "",
+    nsu: row.nsu || "",
+    saleDate: row.saleDate || "",
+    type: row.type || "",
+    brand: row.brand || "",
+    installments: row.installments || 0,
+    installmentNumber: row.installmentNumber || 0,
+    installmentValue: String(row.installmentValue || 0),
+    transactionMdr: String(row.transactionMdr || 0),
+    transactionMdrFee: String(row.transactionMdrFee || 0),
+    transactionFee: String(row.transactionFee || 0),
+    settlementAmount: String(row.settlementAmount || 0),
+    expectedDate: row.expectedDate || "",
+    receivableAmount: String(row.receivableAmount || 0),
+    settlementDate: row.settlementDate || "",
+  }));
+}
+
 export async function getMerchantAgendaInfo(): Promise<{
   count: string | null;
   totalSettlementAmount: string | null;
@@ -347,11 +419,11 @@ export async function getMerchantAgendaReceipts(
     }
 
     whereConditions.push(
-      gte(payout.settlementDate, firstDayOfMonth.toISOString())
+      gte(payout.expectedSettlementDate, firstDayOfMonth.toISOString())
     );
     whereConditions.push(
       lte(
-        payout.settlementDate,
+        payout.expectedSettlementDate,
         firstDayOfMonth.getMonth() === today.getMonth() &&
           firstDayOfMonth.getFullYear() === today.getFullYear()
           ? today.toISOString()
@@ -366,20 +438,20 @@ export async function getMerchantAgendaReceipts(
 
   // Mantém o filtro de dias da semana apenas para exibição no calendário
   whereConditions.push(
-    sql`EXTRACT(DOW FROM ${payout.settlementDate}) NOT IN (0, 6)`
+    sql`EXTRACT(DOW FROM ${payout.expectedSettlementDate}) NOT IN (0, 6)`
   );
 
   console.log(whereConditions);
   const merchantAgendaReceipts = await db
     .select({
-      day: sql`DATE(${payout.settlementDate})`.as("day"),
+      day: sql`DATE(${payout.expectedSettlementDate})`.as("day"),
       totalAmount: sql`SUM(${payout.settlementAmount})`.as("total_amount"),
     })
     .from(payout)
     .innerJoin(merchants, eq(merchants.id, payout.idMerchant))
     .where(whereConditions.length > 0 ? and(...whereConditions) : sql`1=1`)
-    .groupBy(sql`DATE(${payout.settlementDate})`)
-    .orderBy(sql`DATE(${payout.settlementDate})`);
+    .groupBy(sql`DATE(${payout.expectedSettlementDate})`)
+    .orderBy(sql`DATE(${payout.expectedSettlementDate})`);
 
   return merchantAgendaReceipts;
 }
@@ -484,7 +556,7 @@ export async function getGlobalSettlement(
     WITH payout_filtered AS (
       SELECT *
       FROM payout
-      WHERE DATE(settlement_date) = DATE('${date}')
+      WHERE DATE(expected_settlement_date) = DATE('${date}')
     ),
     global_total AS (
       SELECT 
@@ -568,6 +640,7 @@ export async function getGlobalSettlement(
     merchant_data AS (
       SELECT
         m.name AS merchant,
+        m.slug AS slugMerchant,
         mt.merchant_total AS total,
         mt.merchant_gross_total AS gross_total,
         mt.merchant_status AS status,
@@ -611,7 +684,7 @@ export async function getGlobalSettlement(
       JOIN merchant_totals mt ON pp.id_merchant = mt.id_merchant
       JOIN merchants m ON mt.id_merchant = m.id
       WHERE (${searchTerm} IS NULL OR m.name ILIKE '%' || ${searchTerm} || '%')
-      GROUP BY m.name, mt.merchant_total, mt.merchant_gross_total, mt.merchant_status
+      GROUP BY m.name, m.slug, mt.merchant_total, mt.merchant_gross_total, mt.merchant_status
     ),
     payment_method_totals AS (
       SELECT 
@@ -698,7 +771,7 @@ export async function getDailyStatistics(date: string): Promise<{
     WITH payout_filtered AS (
       SELECT *
       FROM payout
-      WHERE DATE(settlement_date) = DATE('${date}')
+      WHERE DATE(expected_settlement_date) = DATE('${date}')
     ),
     global_total AS (
       SELECT 
