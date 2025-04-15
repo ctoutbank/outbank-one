@@ -100,7 +100,12 @@ export async function reportExecutionsProcessing() {
         error: error instanceof Error ? error.message : "Erro desconhecido",
         executionId: execution.id,
       });
-      await updateReportExecutionStatus(execution.id, "ERROR", new Date());
+      await updateReportExecutionStatus(
+        execution.id,
+        "ERROR",
+        new Date(),
+        error instanceof Error ? error.message : "Erro desconhecido"
+      );
     }
   }
 
