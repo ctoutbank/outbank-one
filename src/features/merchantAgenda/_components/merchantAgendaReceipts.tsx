@@ -106,8 +106,8 @@ export default function MerchantAgendaReceipts({
       <div className="flex justify-between">
         <div className="flex gap-2 items-center my-4 ">
           <MerchantAgendaReceiptsFilter
-            merchant={searchParams.get("search") || undefined}
-            date={searchParams.get("date") || undefined}
+            merchant={searchParams?.get("search") || undefined}
+            date={searchParams?.get("date") || undefined}
             view={view as "month" | "day"}
           />
         </div>

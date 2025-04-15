@@ -3,7 +3,6 @@
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-empty-object-type": "off"
-    
   },
   "ignorePatterns": ["src/components/ui/chart.tsx"]
 }

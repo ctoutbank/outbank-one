@@ -1,11 +1,11 @@
 "use server";
 
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "@/server/integrations/s3client";
 import { db } from "@/server/db";
-import { file, merchantfile } from "../../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { s3Client } from "@/server/integrations/s3client";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { file, merchantfile } from "../../drizzle/schema";
 
 // Tipos para gerenciamento de arquivos
 export type FileEntityType = "merchant" | "terminal" | "customer" | "payment";
@@ -19,19 +19,20 @@ export interface FileItem {
 }
 
 export type UploadFileResponse = {
-    fileExtension: string;
-    fileURL: string;
-    fileName: string;
-    fileId: number;
-}
+  fileExtension: string;
+  fileURL: string;
+  fileName: string;
+  fileId: number;
+};
 
 export type UploadFileRequest = {
-    formData: FormData;
-    path: string;
-    fileName: string;
-    fileType: string;
-    useBucketURL?: boolean;
-}
+  formData?: FormData;
+  file?: File;
+  path: string;
+  fileName: string;
+  fileType: string;
+  useBucketURL?: boolean;
+};
 
 interface CreateFileRelationParams {
   entityType: FileEntityType;
@@ -43,143 +44,156 @@ interface CreateFileRelationParams {
 /**
  * Função auxiliar para formatar o nome do arquivo
  */
-function formatFileName(title: string, originalFileName: string, fileType: string): string {
-    // Remove apenas os espaços do título e limita a 10 caracteres
-    const cleanTitle = originalFileName.replace(/\s+/g, '').split('.')[0].slice(0, 10);
-    const extension = getFileExtension(originalFileName);
-    return `${fileType}-${cleanTitle}.${extension}`;
-}
 
 /**
  * Função para fazer upload de um arquivo para o S3
  */
-export async function uploadFile(uploadFileRequest: UploadFileRequest): Promise<UploadFileResponse | null> {
-    const fileObject = uploadFileRequest.formData.get("File") as File
-    if (!fileObject || !fileObject.name) {
-        console.error("Arquivo inválido ou não encontrado no FormData")
-        return null
+export async function uploadFile(
+  uploadFileRequest: UploadFileRequest
+): Promise<UploadFileResponse | null> {
+  let fileObject: File | null = null;
+
+  if (uploadFileRequest.formData) {
+    fileObject = uploadFileRequest.formData.get("File") as File;
+  } else if (uploadFileRequest.file) {
+    fileObject = uploadFileRequest.file;
+  }
+
+  if (!fileObject || !fileObject.name) {
+    console.error("Arquivo inválido ou não encontrado");
+    return null;
+  }
+
+  try {
+    console.log("Processando arquivo para upload:", {
+      name: fileObject.name,
+      type: fileObject.type,
+      size: fileObject.size,
+      fileType: uploadFileRequest.fileType,
+    });
+
+    // Formatar o nome do arquivo usando o título fornecido
+
+    const fileExtension = getFileExtension(fileObject.name);
+
+    // Preparar o upload para o S3
+    const arrayBuffer = await fileObject.arrayBuffer();
+    const fileBuffer = Buffer.from(arrayBuffer);
+    const key = `${uploadFileRequest.path}/${uploadFileRequest.fileName}`;
+
+    console.log("Preparando upload para S3:", {
+      bucket: process.env.AWS_BUCKET_NAME,
+      key: key,
+      formattedFileName: uploadFileRequest.fileName,
+    });
+
+    // Enviar arquivo para o S3 primeiro
+    const putObjectParams = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME || "",
+      Key: key,
+      Body: fileBuffer,
+    });
+
+    await s3Client.send(putObjectParams);
+    const BUCKET_URL = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`;
+    const finalURL = `${BUCKET_URL}/${key}`;
+
+    console.log(
+      "Arquivo enviado para S3, criando registro no banco:",
+      finalURL
+    );
+
+    // Depois de fazer o upload, criar o registro no banco de dados com a URL já definida
+    const [newFile] = await db
+      .insert(file)
+      .values({
+        fileName: uploadFileRequest.fileName,
+        extension: fileExtension,
+        fileType: uploadFileRequest.fileType,
+        fileUrl: finalURL,
+        active: true,
+      })
+      .returning({ id: file.id });
+
+    if (!newFile || !newFile.id) {
+      console.error("Falha ao inserir registro de arquivo no banco de dados");
+
+      // já que o registro no banco falhou
+      return null;
     }
-    
-    try {
-        console.log("Processando arquivo para upload:", {
-            name: fileObject.name,
-            type: fileObject.type,
-            size: fileObject.size,
-            fileType: uploadFileRequest.fileType
-        })
 
-        // Formatar o nome do arquivo usando o título fornecido
-        const formattedFileName = formatFileName(uploadFileRequest.fileName, fileObject.name, uploadFileRequest.fileType)
-        const fileExtension = getFileExtension(fileObject.name)
-        
-        // Preparar o upload para o S3
-        const arrayBuffer = await fileObject.arrayBuffer()
-        const fileBuffer = Buffer.from(arrayBuffer)
-        const key = `${uploadFileRequest.path}/${formattedFileName}`
+    const fileId = Number(newFile.id);
+    console.log("Arquivo registrado no banco de dados com ID:", fileId);
 
-        console.log("Preparando upload para S3:", {
-            bucket: process.env.AWS_BUCKET_NAME,
-            key: key,
-            formattedFileName: formattedFileName
-        })
-
-        // Enviar arquivo para o S3 primeiro
-        const putObjectParams = new PutObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME || "",
-            Key: key,
-            Body: fileBuffer,
-        })
-
-        await s3Client.send(putObjectParams)
-        const BUCKET_URL = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`
-        const finalURL = `${BUCKET_URL}/${key}`
-
-        console.log("Arquivo enviado para S3, criando registro no banco:", finalURL)
-
-        // Depois de fazer o upload, criar o registro no banco de dados com a URL já definida
-        const [newFile] = await db.insert(file).values({
-            fileName: formattedFileName,
-            extension: fileExtension,
-            fileType: uploadFileRequest.fileType,
-            fileUrl: finalURL,
-            active: true,
-        }).returning({ id: file.id })
-
-        if (!newFile || !newFile.id) {
-            console.error("Falha ao inserir registro de arquivo no banco de dados")
-           
-            // já que o registro no banco falhou
-            return null
-        }
-
-        const fileId = Number(newFile.id)
-        console.log("Arquivo registrado no banco de dados com ID:", fileId)
-
-        return {
-            fileExtension,
-            fileURL: finalURL,
-            fileName: uploadFileRequest.fileName,
-            fileId
-        }
-    } catch (e) {
-        console.error("Erro detalhado ao fazer upload do arquivo:", e)
-        return null
-    }
+    return {
+      fileExtension,
+      fileURL: finalURL,
+      fileName: uploadFileRequest.fileName,
+      fileId,
+    };
+  } catch (e) {
+    console.error("Erro detalhado ao fazer upload do arquivo:", e);
+    return null;
+  }
 }
 
 /**
  * Função para excluir um arquivo do S3 e marcar como inativo no banco de dados
  */
 export async function deleteFile(fileId: number): Promise<boolean> {
-    try {
-        // Buscar informações do arquivo
-        const fileRecord = await db.select().from(file).where(eq(file.id, fileId)).limit(1);
+  try {
+    // Buscar informações do arquivo
+    const fileRecord = await db
+      .select()
+      .from(file)
+      .where(eq(file.id, fileId))
+      .limit(1);
 
-        if (!fileRecord || fileRecord.length === 0) {
-            console.error("Arquivo não encontrado no banco de dados");
-            return false;
-        }
-
-        // Extrair a chave do S3 a partir da URL
-        const fileUrl = fileRecord[0].fileUrl;
-        if (!fileUrl) {
-            console.error("URL do arquivo não encontrada");
-            return false;
-        }
-
-        const urlParts = fileUrl.split(`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`);
-        const key = urlParts.length > 1 ? urlParts[1] : null;
-
-        if (!key) {
-            console.error("Não foi possível extrair a chave do S3 da URL");
-            return false;
-        }
-
-        // Excluir o arquivo do S3
-        const deleteParams = new DeleteObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME || "",
-            Key: key,
-        });
-
-        await s3Client.send(deleteParams);
-
-        // Marcar o arquivo como inativo no banco de dados
-        await db.update(file)
-            .set({ active: false })
-            .where(eq(file.id, fileId));
-
-        return true;
-    } catch (e) {
-        console.error("Erro ao excluir arquivo:", e);
-        return false;
+    if (!fileRecord || fileRecord.length === 0) {
+      console.error("Arquivo não encontrado no banco de dados");
+      return false;
     }
+
+    // Extrair a chave do S3 a partir da URL
+    const fileUrl = fileRecord[0].fileUrl;
+    if (!fileUrl) {
+      console.error("URL do arquivo não encontrada");
+      return false;
+    }
+
+    const urlParts = fileUrl.split(
+      `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`
+    );
+    const key = urlParts.length > 1 ? urlParts[1] : null;
+
+    if (!key) {
+      console.error("Não foi possível extrair a chave do S3 da URL");
+      return false;
+    }
+
+    // Excluir o arquivo do S3
+    const deleteParams = new DeleteObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME || "",
+      Key: key,
+    });
+
+    await s3Client.send(deleteParams);
+
+    // Marcar o arquivo como inativo no banco de dados
+    await db.update(file).set({ active: false }).where(eq(file.id, fileId));
+
+    return true;
+  } catch (e) {
+    console.error("Erro ao excluir arquivo:", e);
+    return false;
+  }
 }
 
 /**
  * Função auxiliar para obter a extensão de um arquivo
  */
 function getFileExtension(filename: string): string {
-    return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+  return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }
 
 /**
@@ -191,12 +205,15 @@ export async function createFileRelation(params: CreateFileRelationParams) {
   try {
     // Implementação para merchant
     if (entityType === "merchant") {
-      const result = await db.insert(merchantfile).values({
-        idMerchant: entityId,
-        idFile: fileId,
-        extension,
-        active: true,
-      }).returning();
+      const result = await db
+        .insert(merchantfile)
+        .values({
+          idMerchant: entityId,
+          idFile: fileId,
+          extension,
+          active: true,
+        })
+        .returning();
 
       revalidatePath(`/merchants/${entityId}`);
       return result[0];
@@ -210,7 +227,10 @@ export async function createFileRelation(params: CreateFileRelationParams) {
 
     throw new Error(`Tipo de entidade não suportado: ${entityType}`);
   } catch (error) {
-    console.error(`Erro ao criar relação de arquivo para ${entityType}:`, error);
+    console.error(
+      `Erro ao criar relação de arquivo para ${entityType}:`,
+      error
+    );
     throw new Error("Falha ao criar relação com arquivo");
   }
 }
@@ -218,7 +238,10 @@ export async function createFileRelation(params: CreateFileRelationParams) {
 /**
  * Obtém os arquivos relacionados a uma entidade
  */
-export async function getFilesByEntity(entityType: FileEntityType, entityId: number): Promise<FileItem[]> {
+export async function getFilesByEntity(
+  entityType: FileEntityType,
+  entityId: number
+): Promise<FileItem[]> {
   try {
     // Implementação para merchant
     if (entityType === "merchant") {
@@ -232,16 +255,21 @@ export async function getFilesByEntity(entityType: FileEntityType, entityId: num
         })
         .from(merchantfile)
         .innerJoin(file, eq(merchantfile.idFile, file.id))
-        .where(and(
-          eq(merchantfile.idMerchant, entityId),
-          eq(merchantfile.active, true),
-          eq(file.active, true)
-        ));
+        .where(
+          and(
+            eq(merchantfile.idMerchant, entityId),
+            eq(merchantfile.active, true),
+            eq(file.active, true)
+          )
+        );
 
       // Filtrar e converter para garantir que todos os campos estão presentes e não são nulos
       return files
-        .filter(f => f.fileName !== null && f.fileUrl !== null && f.extension !== null)
-        .map(f => ({
+        .filter(
+          (f) =>
+            f.fileName !== null && f.fileUrl !== null && f.extension !== null
+        )
+        .map((f) => ({
           id: f.id,
           fileName: f.fileName as string,
           fileUrl: f.fileUrl as string,
@@ -266,9 +294,13 @@ export async function getFilesByEntity(entityType: FileEntityType, entityId: num
 /**
  * Exclui um arquivo e sua relação com uma entidade
  */
-export async function deleteFileRelation(entityType: FileEntityType, entityId: number, fileId?: number) {
+export async function deleteFileRelation(
+  entityType: FileEntityType,
+  entityId: number,
+  fileId?: number
+) {
   try {
-    let fileToDelete: { id: number, fileUrl: string | null } | undefined;
+    let fileToDelete: { id: number; fileUrl: string | null } | undefined;
 
     // Implementação para merchant
     if (entityType === "merchant") {
@@ -281,22 +313,24 @@ export async function deleteFileRelation(entityType: FileEntityType, entityId: n
           })
           .from(file)
           .innerJoin(merchantfile, eq(merchantfile.idFile, file.id))
-          .where(and(
-            eq(merchantfile.idMerchant, entityId),
-            eq(file.id, fileId)
-          ))
+          .where(
+            and(eq(merchantfile.idMerchant, entityId), eq(file.id, fileId))
+          )
           .limit(1);
 
         if (fileInfo.length > 0) {
           fileToDelete = fileInfo[0];
-          
+
           // Desativar a relação
-          await db.update(merchantfile)
+          await db
+            .update(merchantfile)
             .set({ active: false })
-            .where(and(
-              eq(merchantfile.idMerchant, entityId),
-              eq(merchantfile.idFile, fileId)
-            ));
+            .where(
+              and(
+                eq(merchantfile.idMerchant, entityId),
+                eq(merchantfile.idFile, fileId)
+              )
+            );
         }
       } else {
         // Buscar todos os arquivos relacionados
@@ -307,24 +341,25 @@ export async function deleteFileRelation(entityType: FileEntityType, entityId: n
           })
           .from(file)
           .innerJoin(merchantfile, eq(merchantfile.idFile, file.id))
-          .where(and(
-            eq(merchantfile.idMerchant, entityId),
-            eq(merchantfile.active, true)
-          ));
+          .where(
+            and(
+              eq(merchantfile.idMerchant, entityId),
+              eq(merchantfile.active, true)
+            )
+          );
 
         if (files.length > 0) {
           fileToDelete = files[0];
-          
+
           // Desativar todas as relações
-          await db.update(merchantfile)
+          await db
+            .update(merchantfile)
             .set({ active: false })
             .where(eq(merchantfile.idMerchant, entityId));
         }
       }
     }
-  
 
-    
     // Aqui você pode adicionar mais implementações para outros tipos de entidades
     // Por exemplo:
     // if (entityType === "terminal") { ... }
@@ -334,7 +369,8 @@ export async function deleteFileRelation(entityType: FileEntityType, entityId: n
     // Se encontrou um arquivo para excluir
     if (fileToDelete && fileToDelete.id && fileToDelete.fileUrl) {
       // Desativar o arquivo
-      await db.update(file)
+      await db
+        .update(file)
         .set({ active: false })
         .where(eq(file.id, fileToDelete.id));
 
@@ -354,54 +390,56 @@ export async function deleteFileRelation(entityType: FileEntityType, entityId: n
  * Função auxiliar para criar um arquivo e sua relação com uma entidade
  */
 export async function createFileWithRelation(
-  formData: FormData, 
-  entityType: FileEntityType, 
-  entityId: number, 
+  formData: FormData,
+  entityType: FileEntityType,
+  entityId: number,
   path: string,
   fileType: string
 ): Promise<UploadFileResponse> {
   try {
     // Obter o arquivo do FormData
-    const file = formData.get("File") as File
+    const file = formData.get("File") as File;
     if (!file) {
-      console.error("Nenhum arquivo encontrado no FormData")
-      throw new Error("Arquivo não encontrado")
+      console.error("Nenhum arquivo encontrado no FormData");
+      throw new Error("Arquivo não encontrado");
     }
 
     console.log("Iniciando upload do arquivo:", {
       fileName: file.name,
       fileType: fileType,
       fileSize: file.size,
-      path: path
-    })
-    
+      path: path,
+    });
+
     // Obter o nome do arquivo do FormData ou usar um padrão
-    const fileName = formData.get("fileName") as string || `${entityType}-${entityId}-${file.name}`
-    
+    const fileName =
+      (formData.get("fileName") as string) ||
+      `${entityType}-${entityId}-${file.name}`;
+
     // Configurar a requisição de upload
     const uploadRequest: UploadFileRequest = {
       formData,
       path,
       fileName,
       fileType,
-    }
-    
-    console.log("Fazendo upload do arquivo com configuração:", uploadRequest)
-    
+    };
+
+    console.log("Fazendo upload do arquivo com configuração:", uploadRequest);
+
     // Fazer o upload do arquivo
-    const uploadResult = await uploadFile(uploadRequest)
-    
+    const uploadResult = await uploadFile(uploadRequest);
+
     if (!uploadResult) {
-      console.error("Upload retornou null")
-      throw new Error("Falha ao fazer upload do arquivo")
+      console.error("Upload retornou null");
+      throw new Error("Falha ao fazer upload do arquivo");
     }
 
     console.log("Upload concluído, criando relação:", {
       entityType,
       entityId,
       fileId: uploadResult.fileId,
-      extension: uploadResult.fileExtension
-    })
+      extension: uploadResult.fileExtension,
+    });
 
     // Criar a relação entre a entidade e o arquivo
     await createFileRelation({
@@ -409,19 +447,26 @@ export async function createFileWithRelation(
       entityId,
       fileId: uploadResult.fileId,
       extension: uploadResult.fileExtension,
-    })
+    });
 
-    return uploadResult
+    return uploadResult;
   } catch (error) {
-    console.error(`Erro detalhado ao criar arquivo com relação para ${entityType}:`, error)
-    throw error // Propagar o erro original ao invés de criar um novo
+    console.error(
+      `Erro detalhado ao criar arquivo com relação para ${entityType}:`,
+      error
+    );
+    throw error; // Propagar o erro original ao invés de criar um novo
   }
 }
 
 /**
  * Obtém os arquivos por tipo de arquivo e entidade
  */
-export async function getFilesByFileType(entityType: FileEntityType, entityId: number, fileType: string): Promise<FileItem[]> {
+export async function getFilesByFileType(
+  entityType: FileEntityType,
+  entityId: number,
+  fileType: string
+): Promise<FileItem[]> {
   try {
     if (entityType === "merchant") {
       const files = await db
@@ -434,16 +479,21 @@ export async function getFilesByFileType(entityType: FileEntityType, entityId: n
         })
         .from(merchantfile)
         .innerJoin(file, eq(merchantfile.idFile, file.id))
-        .where(and(
-          eq(merchantfile.idMerchant, entityId),
-          eq(merchantfile.active, true),
-          eq(file.active, true),
-          eq(file.fileType, fileType)
-        ));
+        .where(
+          and(
+            eq(merchantfile.idMerchant, entityId),
+            eq(merchantfile.active, true),
+            eq(file.active, true),
+            eq(file.fileType, fileType)
+          )
+        );
 
       return files
-        .filter(f => f.fileName !== null && f.fileUrl !== null && f.extension !== null)
-        .map(f => ({
+        .filter(
+          (f) =>
+            f.fileName !== null && f.fileUrl !== null && f.extension !== null
+        )
+        .map((f) => ({
           id: f.id,
           fileName: f.fileName as string,
           fileUrl: f.fileUrl as string,
