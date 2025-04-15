@@ -22,6 +22,7 @@ import MerchantAgendaReceiptsTotal from "@/features/merchantAgenda/_components/m
 import { fetchDailyStats } from "@/features/merchantAgenda/server/actions/calendarActions";
 import { formatDate } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type {
   BrandData,
@@ -36,6 +37,7 @@ interface TableViewProps {
   total: number;
   handleMonthChange: (newDate: Date) => void;
   dailyData: GlobalSettlementResult;
+  setView: (view: "month" | "day") => void;
 }
 
 // Lista fixa de métodos de pagamento para exibir sempre
@@ -92,10 +94,20 @@ export function TableView({
   handleMonthChange,
   total,
   dailyData,
+  setView,
 }: TableViewProps) {
+  const router = useRouter();
   const [dailyStats, setDailyStats] = useState<DailyStats>({});
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [monthView, setMonthView] = useState<"calendar" | "table">("calendar");
+
+  // Function to handle date click
+  const handleDateClick = (date: string) => {
+    const params = new URLSearchParams();
+    params.set("date", date);
+    router.push(`?${params.toString()}`);
+    setView("day");
+  };
 
   // Function to navigate to previous month
   const goToPreviousMonth = () => {
@@ -189,7 +201,7 @@ export function TableView({
           </Button>
 
           <h3 className="text-lg font-medium capitalize">
-            {formattedMonthYear}
+            {formattedMonthYear.toUpperCase()}
           </h3>
 
           <Button variant="outline" size="sm" onClick={goToNextMonth}>
@@ -244,7 +256,13 @@ export function TableView({
                           <AccordionItem value={item.date} className="border-0">
                             <AccordionTrigger className="hover:no-underline w-full py-2 border-b border-gray-200 ">
                               <div className="flex items-center justify-between w-full ">
-                                <div className="text-muted-foreground">
+                                <div
+                                  className="text-muted-foreground hover:underline cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDateClick(item.date);
+                                  }}
+                                >
                                   {formatDate(new Date(item.date))}
                                 </div>
                                 <div className="text-right text-muted-foreground">
@@ -353,6 +371,7 @@ export function TableView({
             onPrevMonth={goToPreviousMonth}
             onNextMonth={goToNextMonth}
             currentMonth={currentMonth}
+            onDateClick={handleDateClick}
           />
         )}
       </CardContent>
