@@ -87,8 +87,6 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
         { label: "Crédito por Bandeira", value: "CREDIT" },
         { label: "Crédito Pré-pago por Bandeira", value: "PREPAID_CREDIT" },
         { label: "Débito Pré-pago por Bandeira", value: "PREPAID_DEBIT" },
-        { label: "PIX", value: "PIX" },
-        { label: "Voucher", value: "VOUCHER" },
       ]}
       onHeaderViewChange={handleHeaderViewChange}
     />

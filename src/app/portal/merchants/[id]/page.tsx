@@ -17,6 +17,7 @@ import {
 } from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { getFilesByEntity } from "@/server/upload";
 
 export default async function MerchantDetail({
   params,
@@ -35,6 +36,10 @@ export default async function MerchantDetail({
   const merchant = await getMerchantById(merchantId);
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
+
+  // Buscar arquivos do merchant
+  const merchantFiles =
+    merchantId > 0 ? await getFilesByEntity("merchant", merchantId) : [];
 
   const legalNatures = await getLegalNaturesForDropdown();
 
@@ -319,6 +324,7 @@ export default async function MerchantDetail({
             DDAccountType={DDAccountType}
             DDBank={DDBank}
             permissions={permissions}
+            merchantFiles={merchantFiles}
           />
         ) : merchant?.merchants?.id ? (
           <MerchantDisplay
@@ -508,6 +514,7 @@ export default async function MerchantDetail({
             DDAccountType={DDAccountType}
             DDBank={DDBank}
             permissions={permissions}
+            merchantFiles={merchantFiles}
           />
         ) : (
           <div>
