@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MerchantTabsProps } from "@/features/merchant/server/types";
-import { Edit } from "lucide-react";
+import { Edit, ExternalLink, FileText } from "lucide-react";
 import { useState } from "react";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
 import MerchantFormBank from "./merchant-form-bank";
@@ -20,9 +20,9 @@ const InfoItem = ({
   label: string;
   value: string | number | null | undefined;
 }) => (
-  <div className="mb-2">
-    <p className="text-sm text-gray-500">{label}</p>
-    <p className="font-medium">{value || "-"}</p>
+  <div className="mb-1">
+    <p className="text-xs text-gray-500">{label}</p>
+    <p className="text-sm font-medium">{value || "-"}</p>
   </div>
 );
 
@@ -39,9 +39,8 @@ export default function MerchantDisplay({
   DDBank,
   merchantPriceGroupProps,
   permissions,
+  merchantFiles = [],
 }: MerchantTabsProps) {
-
-
   const [activeEditSection, setActiveEditSection] = useState<string | null>(
     null
   );
@@ -50,8 +49,6 @@ export default function MerchantDisplay({
     setActiveEditSection(section === activeEditSection ? null : section);
   };
 
-  
-
   // Format dates for display
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "-";
@@ -59,24 +56,24 @@ export default function MerchantDisplay({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {activeEditSection == null ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Company Card */}
           <Card className="shadow-sm">
-            <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Dados da Empresa</CardTitle>
+            <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Dados da Empresa</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleEditClick("company")}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 h-7"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-3 w-3" />
                 Editar
               </Button>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               {activeEditSection === "company" ? (
                 <MerchantFormCompany
                   merchant={{
@@ -99,7 +96,7 @@ export default function MerchantDisplay({
                   permissions={permissions}
                 />
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <InfoItem label="Nome Fantasia" value={merchant.name} />
                   <InfoItem
                     label="Razão Social"
@@ -158,16 +155,24 @@ export default function MerchantDisplay({
                     }
                   />
 
-                  <div className="col-span-2 mt-3 border-t pt-3">
-                    <p className="font-medium mb-2">Endereço</p>
-                    <p>
-                      {address.streetAddress}, {address.streetNumber}
-                      {address.complement ? `, ${address.complement}` : ""}
-                    </p>
-                    <p>
-                      {address.neighborhood} - {address.city}/{address.state} -{" "}
-                      {address.zipCode}
-                    </p>
+                  <div className="col-span-2 mt-2 border-t pt-2">
+                    <p className="font-medium mb-1 text-sm">Endereço</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <InfoItem label="CEP" value={address.zipCode} />
+                      <InfoItem
+                        label="Logradouro"
+                        value={address.streetAddress}
+                      />
+                      <InfoItem label="Número" value={address.streetNumber} />
+                      <InfoItem
+                        label="Complemento"
+                        value={address.complement}
+                      />
+                      <InfoItem label="Bairro" value={address.neighborhood} />
+                      <InfoItem label="Cidade" value={address.city} />
+                      <InfoItem label="Estado" value={address.state} />
+                      <InfoItem label="País" value={address.country} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -176,19 +181,19 @@ export default function MerchantDisplay({
 
           {/* Contact Card */}
           <Card className="shadow-sm">
-            <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Dados do Responsável</CardTitle>
+            <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Dados do Responsável</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleEditClick("contact")}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 h-7"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-3 w-3" />
                 Editar
               </Button>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               {activeEditSection === "contact" ? (
                 <MerchantFormcontact
                   Contact={Contacts.contacts}
@@ -199,7 +204,7 @@ export default function MerchantDisplay({
                   permissions={permissions}
                 />
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <InfoItem label="Nome" value={Contacts?.contacts?.name} />
                   <InfoItem
                     label="CPF"
@@ -228,20 +233,44 @@ export default function MerchantDisplay({
                     value={Contacts?.contacts?.isPep ? "Sim" : "Não"}
                   />
 
-                  <div className="col-span-2 mt-3 border-t pt-3">
-                    <p className="font-medium mb-2">Endereço do Responsável</p>
-                    <p>
-                      {Contacts?.addresses?.streetAddress},{" "}
-                      {Contacts?.addresses?.streetNumber}
-                      {Contacts?.addresses?.complement
-                        ? `, ${Contacts.addresses.complement}`
-                        : ""}
+                  <div className="col-span-2 mt-2 border-t pt-2">
+                    <p className="font-medium mb-1 text-sm">
+                      Endereço do Responsável
                     </p>
-                    <p>
-                      {Contacts?.addresses?.neighborhood} -{" "}
-                      {Contacts?.addresses?.city}/{Contacts?.addresses?.state} -{" "}
-                      {Contacts?.addresses?.zipCode}
-                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <InfoItem
+                        label="CEP"
+                        value={Contacts?.addresses?.zipCode}
+                      />
+                      <InfoItem
+                        label="Logradouro"
+                        value={Contacts?.addresses?.streetAddress}
+                      />
+                      <InfoItem
+                        label="Número"
+                        value={Contacts?.addresses?.streetNumber}
+                      />
+                      <InfoItem
+                        label="Complemento"
+                        value={Contacts?.addresses?.complement}
+                      />
+                      <InfoItem
+                        label="Bairro"
+                        value={Contacts?.addresses?.neighborhood}
+                      />
+                      <InfoItem
+                        label="Cidade"
+                        value={Contacts?.addresses?.city}
+                      />
+                      <InfoItem
+                        label="Estado"
+                        value={Contacts?.addresses?.state}
+                      />
+                      <InfoItem
+                        label="País"
+                        value={Contacts?.addresses?.country}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -250,19 +279,19 @@ export default function MerchantDisplay({
 
           {/* Operations Card */}
           <Card className="shadow-sm">
-            <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Dados de Operação</CardTitle>
+            <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Dados de Operação</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleEditClick("operation")}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 h-7"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-3 w-3" />
                 Editar
               </Button>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               {activeEditSection === "operation" ? (
                 <MerchantFormOperations
                   Configuration={{
@@ -313,7 +342,7 @@ export default function MerchantDisplay({
                   idConfiguration={merchant.idConfiguration || undefined}
                 />
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <InfoItem
                     label="Possui Tef"
                     value={merchant.hasTef ? "Sim" : "Não"}
@@ -329,8 +358,8 @@ export default function MerchantDisplay({
                   <InfoItem label="Timezone" value={merchant.timezone} />
 
                   <div className="col-span-2 mt-2">
-                    <p className="font-medium mb-2">Configurações</p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <p className="font-medium mb-1 text-sm">Configurações</p>
+                    <div className="grid grid-cols-2 gap-2">
                       <InfoItem
                         label="URL"
                         value={configurations?.configurations?.url}
@@ -385,19 +414,19 @@ export default function MerchantDisplay({
           {/* Bank Card */}
           {permissions?.includes("Configurar dados Bancários") && (
             <Card className="shadow-sm">
-              <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Dados Bancários</CardTitle>
+              <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Dados Bancários</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleEditClick("bank")}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 h-7"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3 w-3" />
                   Editar
                 </Button>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 {activeEditSection === "bank" ? (
                   <MerchantFormBank
                     merchantpixaccount={{
@@ -441,7 +470,7 @@ export default function MerchantDisplay({
                     permissions={permissions}
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <InfoItem
                       label="Banco"
                       value={`${pixaccounts?.pixaccounts?.bankNumber || ""} - ${
@@ -492,47 +521,22 @@ export default function MerchantDisplay({
             </Card>
           )}
 
-          {/* Authorizers Card */}
-          <Card className="shadow-sm">
-            <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Autorizados</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEditClick("authorizers")}
-                className="flex items-center gap-1"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-            </CardHeader>
-            <CardContent className="p-4">
-              {activeEditSection === "authorizers" ? (
-                <MerchantFormAuthorizers />
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <p>Clique em Editar para gerenciar autorizadores</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Taxes Card */}
           {permissions?.includes("Configurar Taxas do EC") && (
-            <Card className="shadow-sm">
-              <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Taxas de Transação</CardTitle>
+            <Card className="shadow-sm col-span-1 md:col-span-2">
+              <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Taxas de Transação</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleEditClick("taxes")}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 h-7"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3 w-3" />
                   Editar
                 </Button>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 {activeEditSection === "taxes" ? (
                   <MerchantFormTax2
                     merchantprice={[
@@ -590,138 +594,164 @@ export default function MerchantDisplay({
                     permissions={permissions}
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <InfoItem
-                      label="Nome da Tabela"
-                      value={merchantPriceGroupProps?.merchantPrice?.name}
+                  <div className="scale-[0.85] transform origin-top-left w-[117%] overflow-x-auto">
+                    <MerchantFormTax2
+                      merchantprice={[
+                        {
+                          id: merchantPriceGroupProps?.merchantPrice?.id || 0,
+                          name:
+                            merchantPriceGroupProps?.merchantPrice?.name || "",
+                          active:
+                            merchantPriceGroupProps?.merchantPrice?.active ||
+                            false,
+                          dtinsert:
+                            merchantPriceGroupProps?.merchantPrice?.dtinsert ||
+                            "",
+                          dtupdate:
+                            merchantPriceGroupProps?.merchantPrice?.dtupdate ||
+                            "",
+                          tableType:
+                            merchantPriceGroupProps?.merchantPrice?.tableType ||
+                            "",
+                          slugMerchant:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.slugMerchant || "",
+                          compulsoryAnticipationConfig:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.compulsoryAnticipationConfig || 0,
+                          anticipationType:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.anticipationType || "",
+                          eventualAnticipationFee:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.eventualAnticipationFee || 0,
+                          cardPixMdr:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.cardPixMdr || 0,
+                          cardPixCeilingFee:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.cardPixCeilingFee || 0,
+                          cardPixMinimumCostFee:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.cardPixMinimumCostFee || 0,
+                          nonCardPixMdr:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.nonCardPixMdr || 0,
+                          nonCardPixCeilingFee:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.nonCardPixCeilingFee || 0,
+                          nonCardPixMinimumCostFee:
+                            merchantPriceGroupProps?.merchantPrice
+                              ?.nonCardPixMinimumCostFee || 0,
+                          merchantpricegroup:
+                            merchantPriceGroupProps?.merchantpricegroup || [],
+                        },
+                      ]}
+                      idMerchantPrice={merchant.idMerchantPrice || 0}
+                      permissions={[]}
                     />
-                    <InfoItem
-                      label="Tipo de Tabela"
-                      value={merchantPriceGroupProps?.merchantPrice?.tableType}
-                    />
-                    <InfoItem
-                      label="Tipo de Antecipação"
-                      value={
-                        merchantPriceGroupProps?.merchantPrice?.anticipationType
-                      }
-                    />
-                    <InfoItem
-                      label="Taxa de Antecipação Eventual"
-                      value={`${
-                        merchantPriceGroupProps?.merchantPrice
-                          ?.eventualAnticipationFee || 0
-                      }%`}
-                    />
-
-                    <div className="col-span-2 mt-2">
-                      <p className="font-medium mb-2">Taxas PIX</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <InfoItem
-                          label="MDR PIX com Cartão"
-                          value={`${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixMdr || 0
-                          }%`}
-                        />
-                        <InfoItem
-                          label="Taxa Teto PIX com Cartão"
-                          value={`R$ ${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixCeilingFee || 0
-                          }`}
-                        />
-                        <InfoItem
-                          label="Taxa Mínima PIX com Cartão"
-                          value={`R$ ${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixMinimumCostFee || 0
-                          }`}
-                        />
-                        <InfoItem
-                          label="MDR PIX sem Cartão"
-                          value={`${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixMdr || 0
-                          }%`}
-                        />
-                        <InfoItem
-                          label="Taxa Teto PIX sem Cartão"
-                          value={`R$ ${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixCeilingFee || 0
-                          }`}
-                        />
-                        <InfoItem
-                          label="Taxa Mínima PIX sem Cartão"
-                          value={`R$ ${
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixMinimumCostFee || 0
-                          }`}
-                        />
-                      </div>
-                    </div>
-
-                    {merchantPriceGroupProps?.merchantpricegroup?.length >
-                      0 && (
-                      <div className="col-span-2 mt-2">
-                        <p className="font-medium mb-2">Grupos de Preço</p>
-                        {merchantPriceGroupProps.merchantpricegroup.map(
-                          (group, index) => (
-                            <div key={index} className="mb-3 pb-2 border-b">
-                              <p className="font-medium">{group.name}</p>
-                              <p className="text-sm">
-                                Total de taxas:{" "}
-                                {group.listMerchantTransactionPrice?.length ||
-                                  0}
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* Documents Card */}
-          {permissions?.includes("Inserir documentos EC") && (
+          {/* Documents and Authorizers Cards Row */}
+          <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Documents Card */}
+            {permissions?.includes("Inserir documentos EC") && (
+              <Card className="shadow-sm">
+                <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-base">Documentos</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditClick("documents")}
+                    className="flex items-center gap-1 h-7"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Editar
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-3">
+                  {activeEditSection === "documents" ? (
+                    <MerchantFormDocuments
+                      merchantId={merchant.id.toString()}
+                      permissions={permissions}
+                    />
+                  ) : (
+                    <div className="py-2">
+                      {merchantFiles.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">
+                            Documentos disponíveis:
+                          </p>
+                          <div className="grid grid-cols-1 gap-2 mt-2">
+                            {merchantFiles.map((file) => (
+                              <div
+                                key={file.id}
+                                className="flex items-center border p-2 rounded-md"
+                              >
+                                <FileText className="h-5 w-5 mr-2 text-gray-500" />
+                                <span className="text-sm flex-1 truncate">
+                                  {file.fileName}
+                                </span>
+                                <a
+                                  href={file.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:text-primary/80 ml-2"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <p>Clique em Editar para gerenciar documentos</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Authorizers Card */}
             <Card className="shadow-sm">
-              <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Documentos</CardTitle>
+              <CardHeader className="bg-gray-50 py-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Autorizados</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleEditClick("documents")}
-                  className="flex items-center gap-1"
+                  onClick={() => handleEditClick("authorizers")}
+                  className="flex items-center gap-1 h-7"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3 w-3" />
                   Editar
                 </Button>
               </CardHeader>
-              <CardContent className="p-4">
-                {activeEditSection === "documents" ? (
-                  <MerchantFormDocuments
-                    merchantId={merchant.id.toString()}
-                    permissions={permissions}
-                  />
+              <CardContent className="p-3">
+                {activeEditSection === "authorizers" ? (
+                  <MerchantFormAuthorizers />
                 ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    <p>Clique em Editar para gerenciar documentos</p>
+                  <div className="text-center py-3 text-gray-500 text-sm">
+                    <p>Clique em Editar para gerenciar autorizadores</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          )}
+          </div>
         </div>
       ) : (
         <div>
-          <div className="mb-6 flex items-center">
+          <div className="mb-4 flex items-center">
             <Button
               variant="outline"
               onClick={() => setActiveEditSection(null)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 text-sm h-8"
             >
               Voltar
             </Button>

@@ -44,13 +44,15 @@ export async function getReportById(idReport: number) {
 export async function updateReportExecutionStatus(
   executionId: number,
   status: string,
-  now: Date
+  now: Date,
+  errorMessage?: string
 ) {
   await db
     .update(reportExecution)
     .set({
       status,
       executionStart: format(now, "yyyy-MM-dd HH:mm:ss"),
+      errorMessage,
     })
     .where(eq(reportExecution.id, executionId));
 }

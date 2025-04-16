@@ -1,3 +1,4 @@
+import { FileItem } from "@/server/upload";
 import {
   addresses,
   configurations,
@@ -159,4 +160,5 @@ export interface MerchantTabsProps {
 
   merchantPriceGroupProps: MerchantPriceGroupProps;
   permissions: string[];
+  merchantFiles?: FileItem[];
 }
