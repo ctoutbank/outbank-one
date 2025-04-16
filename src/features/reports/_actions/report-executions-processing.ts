@@ -4,6 +4,7 @@ import {
   updateReportExecutionCompletion,
   updateReportExecutionStatus,
 } from "@/features/reports/_actions/utils/report-db";
+import { ReportFilter } from "@/features/reports/_actions/utils/report-types";
 import { DateTime } from "luxon";
 import {
   sendReportEmail,
@@ -27,6 +28,22 @@ export async function reportExecutionsProcessing() {
   });
 
   for (const execution of pendingExecutions) {
+    // Definindo o tipo para os filtros do relatório
+
+    // Convertendo a string JSON para objeto e mapeando os nomes dos atributos
+    let filters: ReportFilter = {};
+    try {
+      filters =
+        typeof execution.filters === "string"
+          ? JSON.parse(execution.filters)
+          : execution.filters;
+
+      logger.info("Filtros processados para execução", { filters });
+    } catch (error) {
+      logger.error("Erro ao processar filtros do relatório", { error });
+      filters = {};
+    }
+
     try {
       const report = await getReportById(execution.idReport as number);
       logger.info("Processando relatório", {
@@ -59,7 +76,12 @@ export async function reportExecutionsProcessing() {
         }
 
         if (report.reportType === "VN") {
-          excelBytes = await generateSalesReport(report, dateStart!, dateEnd!);
+          excelBytes = await generateSalesReport(
+            report,
+            dateStart!,
+            dateEnd!,
+            filters
+          );
         }
 
         if (!excelBytes) {

@@ -22,19 +22,6 @@ export const SchemaReport = z.object({
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
   referenceDateType: z.string().optional(),
-  filters: z
-    .array(
-      z.object({
-        id: z.number().optional(),
-        idReport: z.number().optional(),
-        idReportFilterParam: z
-          .number()
-          .min(1, "Parâmetro de filtro é obrigatório"),
-
-        value: z.string().min(1, "Valor é obrigatório"),
-      })
-    )
-    .optional(),
 });
 
 export type ReportSchema = z.infer<typeof SchemaReport>;

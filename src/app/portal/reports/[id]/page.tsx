@@ -4,7 +4,6 @@ import ReportsWizardForm, {
   FormattedFilter,
 } from "@/features/reports/_components/reports-wizard-form";
 import {
-  getMerchantBySlug,
   getReportFilters,
   ReportFilterDetailWithTypeName,
 } from "@/features/reports/filter/filter-Actions";
@@ -16,7 +15,6 @@ import {
   getReportById,
   getreportTypes,
 } from "@/features/reports/server/reports";
-import { getTerminalBySlug } from "@/features/terminals/serverActions/terminal";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import {
   brandList,
@@ -111,8 +109,7 @@ export default async function ReportDetail({
             .join(", ");
         } else if (paramName === "Estabelecimento") {
           try {
-            const merchant = await getMerchantBySlug(filter.value);
-            displayValue = merchant?.name || filter.value;
+            displayValue = filter.value;
           } catch (error) {
             console.error(
               `Erro ao buscar merchant para slug ${filter.value}:`,
@@ -121,8 +118,7 @@ export default async function ReportDetail({
             displayValue = filter.value;
           }
         } else if (paramName === "Terminal") {
-          const terminal = await getTerminalBySlug(filter.value);
-          displayValue = terminal?.logicalNumber || filter.value;
+          displayValue = filter.value;
         } else if (paramName === "Ciclo da Transação") {
           const cycleValues = filter.value
             .split(",")

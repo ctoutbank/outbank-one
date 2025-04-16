@@ -115,7 +115,7 @@ async function processReportsForDate(reports: any[], targetDate: Date) {
             break;
         }
 
-        acc[filter.filterName] = value;
+        acc[filter.filterAttributeName] = value;
         return acc;
       },
       {} as Record<string, any>

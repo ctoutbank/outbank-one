@@ -78,7 +78,6 @@ export default function ReportForm({
       emails: report.emails || "",
       formatCode: report.formatCode || "",
       reportType: report.reportType || "",
-      filters: report.filters || [],
       referenceDateType: report.referenceDateType || "",
     },
   });

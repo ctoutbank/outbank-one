@@ -1175,8 +1175,8 @@ export default function FilterForm({
                                       setShowSuggestions(false);
 
                                       // Atualizar o valor do campo para usar o slug do merchant
-                                      if (merchant.slug) {
-                                        field.onChange(merchant.slug);
+                                      if (merchant.name) {
+                                        field.onChange(merchant.name);
                                       } else {
                                         // Fallback caso não tenha slug (pouco provável)
                                         field.onChange(
@@ -1322,7 +1322,9 @@ export default function FilterForm({
                                       setShowTerminalSuggestions(false);
 
                                       // Atualizar o valor do campo com o slug ao invés do logical_number
-                                      field.onChange(terminal.slug || "");
+                                      field.onChange(
+                                        terminal.logical_number || ""
+                                      );
                                     }}
                                   >
                                     {terminal.logical_number || "N/A"} -{" "}
