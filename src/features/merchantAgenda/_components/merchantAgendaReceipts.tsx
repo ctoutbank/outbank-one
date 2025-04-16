@@ -45,7 +45,6 @@ export default function MerchantAgendaReceipts({
             ? new Date().toISOString()
             : date
         );
-        console.log(data);
 
         setExcelData(data);
       } catch (error) {

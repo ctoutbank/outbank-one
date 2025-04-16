@@ -8,6 +8,7 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
   like,
   lte,
@@ -89,7 +90,7 @@ export async function getTransactions(
 
   if (merchant) {
     console.log("merchant", merchant);
-    conditions.push(like(transactions.merchantName, `%${merchant}%`));
+    conditions.push(ilike(transactions.merchantName, `%${merchant}%`));
   }
 
   if (dateFrom) {
@@ -322,7 +323,7 @@ export async function getTransactionsGroupedReport(
   }
 
   if (merchant) {
-    conditions.push(like(transactions.merchantName, `%${merchant}%`));
+    conditions.push(ilike(transactions.merchantName, `%${merchant}%`));
   }
   // Construir a cláusula WHERE
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
