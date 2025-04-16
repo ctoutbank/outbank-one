@@ -1,15 +1,32 @@
 "use server";
 
 import { db } from "@/server/db";
-import { max } from "drizzle-orm";
-import { payout } from "../../../../../drizzle/schema";
+import { eq, max } from "drizzle-orm";
+import { cronJobMonitoring, payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
 import { getOrCreateMerchants } from "../sync-settlements/merchant";
 import { InsertPayout, Payout } from "./types";
 
 export async function insertPayoutAndRelations(payoutList: Payout[]) {
+  const jobName = "Sincronização de Payouts";
+  const startTime = new Date().toISOString();
+  let monitoringId: number | undefined;
+
   try {
+    // Create monitoring record
+    const [monitoring] = await db
+      .insert(cronJobMonitoring)
+      .values({
+        jobName,
+        startTime,
+        status: "RUNNING",
+        logMessage: `Starting sync for ${payoutList.length} payouts`,
+      })
+      .returning({ id: cronJobMonitoring.id });
+
+    monitoringId = monitoring?.id;
+
     const customerids = await getOrCreateCustomer(
       payoutList.map((payouts) => payouts.customer)
     );
@@ -91,13 +108,55 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
     }));
 
     await insertPayout(insertPayoutVar);
+
+    // Update monitoring record on success
+    if (monitoringId) {
+      await db
+        .update(cronJobMonitoring)
+        .set({
+          endTime: new Date().toISOString(),
+          status: "SUCCESS",
+          logMessage: `Successfully processed ${payoutList.length} payouts`,
+        })
+        .where(eq(cronJobMonitoring.id, monitoringId));
+    }
   } catch (error) {
     console.error(`Erro ao processar payout:`, error);
+
+    // Update monitoring record on error
+    if (monitoringId) {
+      await db
+        .update(cronJobMonitoring)
+        .set({
+          endTime: new Date().toISOString(),
+          status: "ERROR",
+          errorMessage: error instanceof Error ? error.message : String(error),
+          logMessage: `Failed to process payouts`,
+        })
+        .where(eq(cronJobMonitoring.id, monitoringId));
+    }
   }
 }
 
 export async function insertPayout(payoutList: InsertPayout[]) {
+  const jobName = "Sincronização de Payouts";
+  const startTime = new Date().toISOString();
+  let monitoringId: number | undefined;
+
   try {
+    // Create monitoring record
+    const [monitoring] = await db
+      .insert(cronJobMonitoring)
+      .values({
+        jobName,
+        startTime,
+        status: "RUNNING",
+        logMessage: `Starting insertion of ${payoutList.length} payouts`,
+      })
+      .returning({ id: cronJobMonitoring.id });
+
+    monitoringId = monitoring?.id;
+
     const existingPayouts = await getIdBySlugs(
       "payout",
       payoutList.map((payouts) => payouts.slug)
@@ -112,6 +171,19 @@ export async function insertPayout(payoutList: InsertPayout[]) {
 
     if (filteredList.length < 1) {
       console.log("todos os payouts já foram adicionados");
+
+      // Update monitoring record when no new payouts
+      if (monitoringId) {
+        await db
+          .update(cronJobMonitoring)
+          .set({
+            endTime: new Date().toISOString(),
+            status: "SUCCESS",
+            logMessage: "All payouts already added to database",
+          })
+          .where(eq(cronJobMonitoring.id, monitoringId));
+      }
+
       return;
     }
 
@@ -120,17 +192,47 @@ export async function insertPayout(payoutList: InsertPayout[]) {
     await db.insert(payout).values(filteredList);
 
     console.log("Payout inserted successfully.");
+
+    // Update monitoring record on success
+    if (monitoringId) {
+      await db
+        .update(cronJobMonitoring)
+        .set({
+          endTime: new Date().toISOString(),
+          status: "SUCCESS",
+          logMessage: `Successfully inserted ${filteredList.length} payouts`,
+        })
+        .where(eq(cronJobMonitoring.id, monitoringId));
+    }
   } catch (error) {
     console.error("Error inserting Payout:", error);
+
+    // Update monitoring record on error
+    if (monitoringId) {
+      await db
+        .update(cronJobMonitoring)
+        .set({
+          endTime: new Date().toISOString(),
+          status: "ERROR",
+          errorMessage: error instanceof Error ? error.message : String(error),
+          logMessage: "Failed to insert payouts",
+        })
+        .where(eq(cronJobMonitoring.id, monitoringId));
+    }
   }
 }
 
 export async function getPayoutSyncConfig() {
-  const maxDateResult = await db
-    .select({ maxDate: max(payout.transactionDate) })
-    .from(payout);
+  try {
+    const maxDateResult = await db
+      .select({ maxDate: max(payout.transactionDate) })
+      .from(payout);
 
+    console.log(maxDateResult[0]?.maxDate);
 
-  console.log(maxDateResult[0]?.maxDate);
-  return maxDateResult[0]?.maxDate;
+    return maxDateResult[0]?.maxDate;
+  } catch (error) {
+    console.error("Error getting payout sync config:", error);
+    return null;
+  }
 }

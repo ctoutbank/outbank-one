@@ -5,25 +5,29 @@ import { getPayoutSyncConfig, insertPayoutAndRelations } from "./payout";
 import { Payout, PayoutResponse } from "./types";
 
 async function fetchPayout(offset: number, transactionDate: Date | undefined) {
-  let stringTransactionDate = "";
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  let nextDay: Date | undefined = undefined;
+  let currentDate: Date;
 
-  if (transactionDate === undefined || transactionDate === null) {
-    stringTransactionDate = "2024-09-05";
-
-    console.log("transaction date", stringTransactionDate, offset);
-  } else if (transactionDate == yesterday) {
-    stringTransactionDate = formatDateToAPIFilter(yesterday);
+  // Se não houver data de referência, usa uma data padrão
+  if (!transactionDate) {
+    currentDate = new Date("2024-09-05");
+    console.log(
+      "transaction date (default)",
+      formatDateToAPIFilter(currentDate),
+      offset
+    );
   } else {
-    nextDay = new Date(transactionDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    console.log("nextDay", nextDay, transactionDate);
-    stringTransactionDate = formatDateToAPIFilter(nextDay);
-
-    console.log("transaction date", stringTransactionDate, offset);
+    currentDate = new Date(transactionDate);
   }
+
+  // Se a data para buscar ultrapassar ontem, encerra a busca retornando null
+  if (currentDate > yesterday) {
+    console.log("Data ultrapassa ontem, encerrando busca.");
+    return null;
+  }
+
+  const stringTransactionDate = formatDateToAPIFilter(currentDate);
   console.log("fetching", stringTransactionDate, offset, transactionDate);
 
   const response = await fetch(
@@ -41,10 +45,7 @@ async function fetchPayout(offset: number, transactionDate: Date | undefined) {
   }
 
   const data: PayoutResponse = await response.json();
-  if (data.meta.total_count === 0 && nextDay) {
-    fetchPayout(0, nextDay);
-  }
-  return data;
+  return { data, currentDate };
 }
 
 export async function syncPayouts() {
@@ -52,27 +53,50 @@ export async function syncPayouts() {
     console.log("Buscando payouts...");
 
     const payoutConfig = await getPayoutSyncConfig();
+    // Se houver data sincronizada, usa como referência; caso contrário, define uma data anterior à primeira busca
+    const lastSyncedDate: Date = payoutConfig
+      ? new Date(payoutConfig)
+      : new Date("2024-09-04");
+
+    // Próxima data a ser sincronizada (avança 1 dia)
+    const nextDateToSync = new Date(lastSyncedDate);
+    nextDateToSync.setDate(nextDateToSync.getDate() + 1);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Se a próxima data ultrapassar ontem, não há nada para sincronizar
+    if (nextDateToSync > yesterday) {
+      console.log(
+        "Data de sync ultrapassou a data de ontem, encerrando busca."
+      );
+      return;
+    }
 
     let offset = 0;
-    const transactionDate = payoutConfig ? new Date(payoutConfig) : undefined;
-    console.log("transactionDate", transactionDate);
-
     while (true) {
-      const response = await fetchPayout(offset, transactionDate);
-      const payouts: Payout[] = response.objects || [];
+      const result = await fetchPayout(offset, nextDateToSync);
+      // Se fetchPayout retornar null, significa que a data ultrapassou ontem
+      if (!result) break;
 
-      // Insere no banco os novos registros
+      const { data } = result;
+      const payouts: Payout[] = data.objects || [];
+
+      // Insere os novos registros no banco
       await insertPayoutAndRelations(payouts);
 
-      // Atualiza o offset e verifica se há mais registros para essa data
       offset += payouts.length;
-      if (offset >= response.meta.total_count) {
-        console.log("payouts adicionados");
+      // Se já buscou todos os registros para essa data, encerra o loop
+      if (offset >= data.meta.total_count) {
+        console.log(
+          `Payouts do dia ${formatDateToAPIFilter(
+            nextDateToSync
+          )} processados com sucesso.`
+        );
         break;
       }
     }
   } catch (error) {
     console.error("Erro ao processar payout:", error);
-  } finally {
   }
 }
