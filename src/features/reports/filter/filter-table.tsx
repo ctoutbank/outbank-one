@@ -226,9 +226,9 @@ export default function FilterTableAndForm({
     }
 
     // Verificar se é filtro de Estabelecimento
-    if (isMerchantFilter(record) && record.value.includes("|")) {
-      // Mostrar apenas o nome do estabelecimento (sem o ID)
-      return record.value.split("|")[0];
+    if (isMerchantFilter(record)) {
+      // Retornar o valor como está, agora apenas contém o nome
+      return record.value;
     }
 
     // Padrão: mostrar o valor como está

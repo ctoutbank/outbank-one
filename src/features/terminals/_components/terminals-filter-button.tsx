@@ -20,7 +20,7 @@ export function TerminalsFilterButton({
   onVisibilityChange,
 }: TerminalsFilterButtonProps) {
   return (
-    <div className="relative z-50">
+    <div className="relative z-[999]">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"

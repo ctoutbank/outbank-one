@@ -4,8 +4,12 @@ import ReportsWizardForm, {
   FormattedFilter,
 } from "@/features/reports/_components/reports-wizard-form";
 import {
+  getAllBrands,
+  getMerchantByName,
   getReportFilters,
+  PreloadedFilterData,
   ReportFilterDetailWithTypeName,
+  searchTerminals,
 } from "@/features/reports/filter/filter-Actions";
 import {
   fetchReportFilterParams,
@@ -36,6 +40,7 @@ interface ReportDetailProps {
   };
   searchParams: {
     activeTab?: string;
+    filterId?: string;
   };
 }
 
@@ -50,6 +55,11 @@ export default async function ReportDetail({
   let report = null;
   let reportFilters: ReportFilterDetailWithTypeName[] = [];
   let formattedFilters: FormattedFilter[] = [];
+  const preloadedFilterData: PreloadedFilterData = {
+    merchant: null,
+    terminal: null,
+    brands: [],
+  };
 
   const reportFilterParams = await fetchReportFilterParams();
 
@@ -59,6 +69,38 @@ export default async function ReportDetail({
 
     // Buscar os filtros do relatório
     reportFilters = await getReportFilters(reportId);
+
+    // Pré-carregar as bandeiras para evitar chamadas no cliente
+    preloadedFilterData.brands = await getAllBrands();
+
+    // Se temos um ID de filtro específico, pré-carregar os dados do merchant ou terminal
+    if (searchParams.filterId) {
+      const filterId = parseInt(searchParams.filterId);
+      const filterToEdit = reportFilters.find(
+        (filter) => filter.id === filterId
+      );
+
+      if (filterToEdit) {
+        const paramInfo = reportFilterParams.find(
+          (p) => p.id === filterToEdit.idReportFilterParam
+        );
+
+        // Se for um filtro de estabelecimento, buscar os dados do merchant
+        if (paramInfo?.name === "Estabelecimento" && filterToEdit.value) {
+          preloadedFilterData.merchant = await getMerchantByName(
+            filterToEdit.value
+          );
+        }
+
+        // Se for um filtro de terminal, buscar os dados do terminal
+        if (paramInfo?.name === "Terminal" && filterToEdit.value) {
+          const terminals = await searchTerminals(filterToEdit.value);
+          preloadedFilterData.terminal =
+            terminals.find((t) => t.logical_number === filterToEdit.value) ||
+            null;
+        }
+      }
+    }
 
     // Formatar os filtros com as labels adequadas
     formattedFilters = await Promise.all(
@@ -224,6 +266,10 @@ export default async function ReportDetail({
           reportFilterParams={reportFilterParams}
           activeTabDefault={activeTab}
           existingFilters={formattedFilters}
+          preloadedFilterData={preloadedFilterData}
+          editFilterId={
+            searchParams.filterId ? parseInt(searchParams.filterId) : undefined
+          }
         />
       </BaseBody>
     </>

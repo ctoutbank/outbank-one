@@ -2,14 +2,13 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import { SalesAgentDashboardButton } from "@/features/salesAgents/_components/salesAgents-dashboard-button";
 import { SalesAgentDashboardContent } from "@/features/salesAgents/_components/salesAgents-dashboard-content";
+import { SalesAgentsFilter } from "@/features/salesAgents/_components/salesAgents-filter";
 import { getSalesAgents } from "@/features/salesAgents/server/salesAgent";
+import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
-import { SalesAgentsFilter } from "@/features/salesAgents/_components/salesAgents-filter";
-import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
 
@@ -55,52 +54,56 @@ export default async function SalesAgentsPage({
         subtitle={`Visualização de todos os Consultores`}
       >
         <div className="flex flex-col space-y-4">
+          <div className="mb-4">
+            <SalesAgentsFilter
+              dateFromIn={searchParams.dateFrom}
+              dateToIn={searchParams.dateTo}
+              nameIn={searchParams.name}
+              statusIn={searchParams.status}
+              emailIn={searchParams.email}
+            />
+          </div>
+
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <SalesAgentsFilter
-                dateFromIn={searchParams.dateFrom}
-                dateToIn={searchParams.dateTo}
-                nameIn={searchParams.name}
-                statusIn={searchParams.status}
-                emailIn={searchParams.email}
+            <div className="max-w-md">
+              <SalesAgentDashboardContent
+                totalAgents={salesAgents.totalCount}
+                activeAgents={
+                  salesAgents.salesAgents.filter((a) => a.active).length
+                }
+                inactiveAgents={
+                  salesAgents.salesAgents.filter((a) => !a.active).length
+                }
+                totalMerchants={salesAgents.salesAgents.reduce(
+                  (acc, agent) => acc + (agent.totalMerchants || 0),
+                  0
+                )}
+                pendingMerchants={salesAgents.salesAgents.reduce(
+                  (acc, agent) => acc + (agent.pendingMerchants || 0),
+                  0
+                )}
+                approvedMerchants={salesAgents.salesAgents.reduce(
+                  (acc, agent) => acc + (agent.approvedMerchants || 0),
+                  0
+                )}
+                rejectedMerchants={salesAgents.salesAgents.reduce(
+                  (acc, agent) => acc + (agent.rejectedMerchants || 0),
+                  0
+                )}
               />
-              <SalesAgentDashboardButton>
-                <SalesAgentDashboardContent
-                  totalAgents={salesAgents.totalCount}
-                  activeAgents={
-                    salesAgents.salesAgents.filter((a) => a.active).length
-                  }
-                  inactiveAgents={
-                    salesAgents.salesAgents.filter((a) => !a.active).length
-                  }
-                  totalMerchants={salesAgents.salesAgents.reduce(
-                    (acc, agent) => acc + (agent.totalMerchants || 0),
-                    0
-                  )}
-                  pendingMerchants={salesAgents.salesAgents.reduce(
-                    (acc, agent) => acc + (agent.pendingMerchants || 0),
-                    0
-                  )}
-                  approvedMerchants={salesAgents.salesAgents.reduce(
-                    (acc, agent) => acc + (agent.approvedMerchants || 0),
-                    0
-                  )}
-                  rejectedMerchants={salesAgents.salesAgents.reduce(
-                    (acc, agent) => acc + (agent.rejectedMerchants || 0),
-                    0
-                  )}
-                />
-              </SalesAgentDashboardButton>
             </div>
-            <Button asChild className="shrink-0">
-              <Link href="/portal/salesAgents/0">
-                <Plus className="h-4 w-4" />
-                Novo Consultor
-              </Link>
-            </Button>
+            <div className="flex items-end self-stretch">
+              <Button asChild className="shrink-0">
+                <Link href="/portal/salesAgents/0">
+                  <Plus className="h-4 w-4" />
+                  Novo Consultor
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <SalesAgentlist SalesAgents={salesAgents} />
+
           {totalRecords > 0 && (
             <PaginationRecords
               totalRecords={totalRecords}

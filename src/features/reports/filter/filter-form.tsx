@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { PreloadedFilterData } from "@/features/reports/filter/filter-Actions";
 import {
   cardPaymentMethod,
   cycleTypeList,
@@ -29,9 +30,9 @@ import {
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { ReportTypeDD } from "../server/reports";
 import {
   BrandOption,
@@ -69,6 +70,7 @@ interface FilterFormProps {
   reportFilterParams: ReportFilterParamDetail[];
   closeDialog: () => void;
   reportTypeDD: ReportTypeDD[];
+  preloadedData?: PreloadedFilterData;
 }
 
 // Definir a lista de status da agenda do merchant como uma constante local
@@ -88,8 +90,8 @@ export default function FilterForm({
   reportFilterParams,
   closeDialog,
   reportTypeDD,
+  preloadedData,
 }: FilterFormProps) {
-  const router = useRouter();
   const [selectedType, setSelectedType] = useState<string>(
     filter.typeName === "Agenda dos logistas"
       ? "AL"
@@ -171,6 +173,11 @@ export default function FilterForm({
               setFilteredParams(reportFilterParams);
             }
 
+            // Se estamos editando um filtro existente, garantir que paramSelected seja true
+            if (filter.id) {
+              setParamSelected(true);
+            }
+
             return; // Sair da função já que já definimos o tipo
           }
         } catch (error) {
@@ -226,6 +233,7 @@ export default function FilterForm({
 
       // Se existe um ID de filtro, então é edição e inicializamos os controles
       if (filter.id) {
+        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
         const paramId = filter.idReportFilterParam;
         const param = reportFilterParams.find((p) => p.id === paramId);
 
@@ -233,6 +241,7 @@ export default function FilterForm({
           // Atualizar o tipo de seletor com base no nome do parâmetro
           if (param.name === "Bandeira") {
             setSelectorType("brand");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar seleção de bandeiras
             if (filter.value) {
@@ -247,6 +256,7 @@ export default function FilterForm({
             }
           } else if (param.name === "totalAmount" && selectedType === "VN") {
             setSelectorType("dateRange");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar datas
             if (filter.value && filter.value.includes(",")) {
@@ -260,6 +270,7 @@ export default function FilterForm({
             selectedType === "VN"
           ) {
             setSelectorType("valueRange");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar valores
             if (filter.value && filter.value.includes(",")) {
@@ -269,6 +280,7 @@ export default function FilterForm({
             }
           } else if (param.name === "Status") {
             setSelectorType("status");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar status selecionado
             if (filter.value) {
@@ -283,70 +295,45 @@ export default function FilterForm({
             }
           } else if (param.name === "Estabelecimento") {
             setSelectorType("merchant");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
-            // Inicializar estabelecimento se houver valor
-            if (filter.value) {
-              // Verificar se o valor está no formato "nome|id"
-              if (filter.value.includes("|")) {
-                const [merchantName, merchantId] = filter.value.split("|");
+            // Se temos merchant pré-carregado e estamos em modo de edição, usar ele
+            if (filter.id && filter.value && preloadedData?.merchant) {
+              setSelectedMerchant(preloadedData.merchant);
+              setSearchTerm(preloadedData.merchant.name || "");
+              return;
+            }
 
-                // Se temos o ID, buscamos diretamente
-                if (merchantId) {
-                  setLoading(true);
-                  try {
-                    // Carregamos uma lista de estabelecimentos
-                    const merchantsData = await searchMerchants();
-                    setMerchants(merchantsData);
+            // Carregar estabelecimentos iniciais
+            setLoading(true);
+            try {
+              // Se estiver editando, buscar com o valor atual para encontrar o estabelecimento
+              const searchValue = filter.id && filter.value ? filter.value : "";
+              const merchantsData = await searchMerchants(searchValue);
+              setMerchants(merchantsData);
 
-                    // Procurar pelo ID nas merchants carregadas
-                    const foundMerchant = merchantsData.find(
-                      (m) => m.id === Number(merchantId)
-                    );
-
-                    if (foundMerchant) {
-                      // Se encontrar, usar os dados completos do merchant
-                      setSelectedMerchant(foundMerchant);
-                      setSearchTerm(foundMerchant.name || "");
-                    } else {
-                      // Se não encontrar, usar os dados parciais
-                      setSelectedMerchant({
-                        id: Number(merchantId),
-                        name: merchantName,
-                        slug: null,
-                        corporateName: null,
-                      });
-                      setSearchTerm(merchantName);
-                    }
-                  } catch (error) {
-                    console.error("Erro ao carregar estabelecimentos:", error);
-                  } finally {
-                    setLoading(false);
-                  }
-                }
-              } else {
-                // Formato antigo - apenas o nome ou slug
-                setLoading(true);
-                try {
-                  const merchantsData = await searchMerchants(filter.value);
-                  setMerchants(merchantsData);
-
-                  // Encontrar o estabelecimento pelo slug (prioridade) ou nome
-                  const merchant = merchantsData.find(
-                    (m) => m.slug === filter.value || m.name === filter.value
-                  );
-                  if (merchant) {
-                    setSelectedMerchant(merchant);
-                    setSearchTerm(merchant.name || "");
-                  }
-                } catch (error) {
-                  console.error("Erro ao carregar estabelecimentos:", error);
-                } finally {
-                  setLoading(false);
+              // Se estiver editando, buscar e definir o estabelecimento
+              if (filter.id && filter.value) {
+                // Tentar encontrar o estabelecimento pelo nome
+                const merchant = merchantsData.find(
+                  (m) => m.name === filter.value
+                );
+                if (merchant) {
+                  setSelectedMerchant(merchant);
+                  setSearchTerm(merchant.name || "");
+                } else {
+                  // Se não encontrar, apenas definir o termo de busca
+                  setSearchTerm(filter.value);
                 }
               }
+            } catch (error) {
+              console.error("Erro ao carregar estabelecimentos:", error);
+            } finally {
+              setLoading(false);
             }
           } else if (param.name === "Tipo de Pagamento") {
             setSelectorType("paymentType");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar tipo de pagamento selecionado
             if (filter.value) {
@@ -361,31 +348,47 @@ export default function FilterForm({
             }
           } else if (param.name === "Terminal") {
             setSelectorType("terminal");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
-            // Inicializar terminal selecionado
-            if (filter.value) {
-              setLoading(true);
-              try {
-                const terminalsData = await searchTerminals(filter.value);
-                setTerminals(terminalsData);
+            // Se temos terminal pré-carregado e estamos em modo de edição, usar ele
+            if (filter.id && filter.value && preloadedData?.terminal) {
+              setSelectedTerminal(preloadedData.terminal);
+              setTerminalSearchTerm(
+                preloadedData.terminal.logical_number || ""
+              );
+              return;
+            }
 
-                // Encontrar o terminal pelo slug (prioridade) ou logical_number
+            // Carregar terminais iniciais
+            setLoading(true);
+            try {
+              // Se estiver editando, buscar com o valor atual para encontrar o terminal
+              const searchValue = filter.id && filter.value ? filter.value : "";
+              const terminalsData = await searchTerminals(searchValue);
+              setTerminals(terminalsData);
+
+              // Se estiver editando, buscar e definir o terminal
+              if (filter.id && filter.value) {
+                // Tentar encontrar o terminal pelo logical_number
                 const terminal = terminalsData.find(
-                  (t) =>
-                    t.slug === filter.value || t.logical_number === filter.value
+                  (t) => t.logical_number === filter.value
                 );
                 if (terminal) {
                   setSelectedTerminal(terminal);
-                  setTerminalSearchTerm(terminal.logical_number ?? "");
+                  setTerminalSearchTerm(terminal.logical_number || "");
+                } else {
+                  // Se não encontrar, apenas definir o termo de busca
+                  setTerminalSearchTerm(filter.value);
                 }
-              } catch (error) {
-                console.error("Erro ao carregar terminais:", error);
-              } finally {
-                setLoading(false);
               }
+            } catch (error) {
+              console.error("Erro ao carregar terminais:", error);
+            } finally {
+              setLoading(false);
             }
           } else if (param.name === "Ciclo da Transação") {
             setSelectorType("cycleType");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar ciclos de transação selecionados
             if (filter.value) {
@@ -400,6 +403,7 @@ export default function FilterForm({
             }
           } else if (param.name === "Repasse da Transação") {
             setSelectorType("splitType");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar tipos de repasse selecionados
             if (filter.value) {
@@ -414,6 +418,7 @@ export default function FilterForm({
             }
           } else if (param.name === "Modo de Captura") {
             setSelectorType("captureMode");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar modos de captura selecionados
             if (filter.value) {
@@ -428,6 +433,7 @@ export default function FilterForm({
             }
           } else if (param.name === "Modo de Entrada") {
             setSelectorType("entryMode");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
             // Inicializar modos de entrada selecionados
             if (filter.value) {
@@ -439,6 +445,17 @@ export default function FilterForm({
               } else if (filter.value) {
                 setSelectedEntryModes([filter.value]);
               }
+            }
+          } else if (
+            param.name === "NSU" &&
+            (selectedType === "AL" || filter.typeName === "Agenda dos logistas")
+          ) {
+            setSelectorType("nsu");
+            setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+            // Se estiver editando, garantir que o valor do NSU seja definido no formulário
+            if (filter.id && filter.value) {
+              form.setValue("value", filter.value);
             }
           } else {
             setSelectorType("none");
@@ -475,6 +492,17 @@ export default function FilterForm({
   useEffect(() => {
     const loadBrands = async () => {
       if (brands.length === 0) {
+        // Se temos dados pré-carregados, usar eles
+        if (preloadedData?.brands && preloadedData.brands.length > 0) {
+          console.log(
+            "Usando bandeiras pré-carregadas",
+            preloadedData.brands.length
+          );
+          setBrands(preloadedData.brands);
+          return;
+        }
+
+        // Caso contrário, buscar do servidor
         setLoading(true);
         try {
           const brandsData = await getAllBrands();
@@ -488,7 +516,7 @@ export default function FilterForm({
     };
 
     loadBrands();
-  }, [brands.length]);
+  }, [brands.length, preloadedData?.brands]);
 
   useEffect(() => {
     // Garantir que o tipo selecionado está definido com base no tipo do relatório
@@ -552,6 +580,21 @@ export default function FilterForm({
     }
   }, [filter.typeName, selectedType, reportFilterParams]);
 
+  // UseEffect especial para forçar a seleção do parâmetro quando o filtro é carregado para edição
+  useEffect(() => {
+    if (filter.id && filter.idReportFilterParam) {
+      console.log(
+        `Forçando seleção do parâmetro ${filter.idReportFilterParam} para edição`
+      );
+
+      // Definir o parâmetro no formulário
+      form.setValue("idReportFilterParam", filter.idReportFilterParam);
+
+      // Chamar a função handleParamChange para configurar o tipo de seletor
+      handleParamChange(filter.idReportFilterParam);
+    }
+  }, [filter.id, filter.idReportFilterParam, form]);
+
   // Função para lidar com a alteração de parâmetro
   const handleParamChange = async (paramId: number) => {
     console.log("Parâmetro selecionado ID:", paramId);
@@ -573,7 +616,6 @@ export default function FilterForm({
     setMaxValue("");
     setSelectedStatusList([]);
     setSelectedMerchant(null);
-
     setSelectedPaymentTypes([]);
     setSelectedCycleTypes([]);
     setSelectedSplitTypes([]);
@@ -583,37 +625,110 @@ export default function FilterForm({
     setTerminalSearchTerm("");
     setTerminals([]);
 
+    // Verificar se estamos em modo de edição
+    const isEditing = !!filter.id;
+    console.log("Modo de edição:", isEditing);
+
+    // Se estiver em modo de edição, inicializar os valores baseados no tipo do parâmetro
+    if (isEditing && filter.value) {
+      console.log("Inicializando valores do filtro para edição:", filter.value);
+    }
+
     // Determinar qual tipo de seletor deve ser exibido com base no nome do parâmetro
     if (param.name === "Bandeira") {
       setSelectorType("brand");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
 
       // Carregar bandeiras iniciais
       try {
         const brandsData = await getAllBrands();
         setBrands(brandsData);
+
+        // Se estiver editando, inicializar as bandeiras selecionadas
+        if (isEditing && filter.value) {
+          if (filter.value.includes(",")) {
+            const brandValues = filter.value.split(",").map((b) => b.trim());
+            setSelectedBrands(brandValues);
+          } else {
+            setSelectedBrands([filter.value]);
+          }
+        }
       } catch (error) {
         console.error("Erro ao carregar bandeiras:", error);
         setBrands([]);
       }
-    } else if (param.name === "Data") {
+    } else if (param.name === "Data" || param.name === "totalAmount") {
       setSelectorType("dateRange");
-    } else if (param.name === "Valor") {
+
+      // Se estiver editando, inicializar as datas
+      if (isEditing && filter.value && filter.value.includes(",")) {
+        const [start, end] = filter.value.split(",").map((d) => d.trim());
+        setStartDate(start);
+        setEndDate(end);
+      }
+    } else if (param.name === "Valor" || param.name.toLowerCase() === "valor") {
       setSelectorType("valueRange");
+
+      // Se estiver editando, inicializar os valores
+      if (isEditing && filter.value && filter.value.includes(",")) {
+        const [min, max] = filter.value.split(",").map((v) => v.trim());
+        setMinValue(min);
+        setMaxValue(max);
+      }
     } else if (param.name === "Status") {
       setSelectorType("status");
+
+      // Se estiver editando, inicializar os status
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const statusValues = filter.value.split(",").map((s) => s.trim());
+          setSelectedStatusList(statusValues);
+        } else {
+          setSelectedStatusList([filter.value]);
+        }
+      }
     } else if (
       param.name === "NSU" &&
       (selectedType === "AL" || filter.typeName === "Agenda dos logistas")
     ) {
       setSelectorType("nsu");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, garantir que o valor do NSU seja definido no formulário
+      if (filter.id && filter.value) {
+        form.setValue("value", filter.value);
+      }
     } else if (param.name === "Estabelecimento") {
       setSelectorType("merchant");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se temos merchant pré-carregado e estamos em modo de edição, usar ele
+      if (isEditing && filter.value && preloadedData?.merchant) {
+        setSelectedMerchant(preloadedData.merchant);
+        setSearchTerm(preloadedData.merchant.name || "");
+        return;
+      }
 
       // Carregar estabelecimentos iniciais
       setLoading(true);
       try {
-        const merchantsData = await searchMerchants();
+        // Se estiver editando, buscar com o valor atual para encontrar o estabelecimento
+        const searchValue = isEditing && filter.value ? filter.value : "";
+        const merchantsData = await searchMerchants(searchValue);
         setMerchants(merchantsData);
+
+        // Se estiver editando, buscar e definir o estabelecimento
+        if (isEditing && filter.value) {
+          // Tentar encontrar o estabelecimento pelo nome
+          const merchant = merchantsData.find((m) => m.name === filter.value);
+          if (merchant) {
+            setSelectedMerchant(merchant);
+            setSearchTerm(merchant.name || "");
+          } else {
+            // Se não encontrar, apenas definir o termo de busca
+            setSearchTerm(filter.value);
+          }
+        }
       } catch (error) {
         console.error("Erro ao carregar estabelecimentos:", error);
       } finally {
@@ -621,14 +736,50 @@ export default function FilterForm({
       }
     } else if (param.name === "Tipo de Pagamento") {
       setSelectorType("paymentType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os tipos de pagamento
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const paymentValues = filter.value.split(",").map((p) => p.trim());
+          setSelectedPaymentTypes(paymentValues);
+        } else {
+          setSelectedPaymentTypes([filter.value]);
+        }
+      }
     } else if (param.name === "Terminal") {
       setSelectorType("terminal");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se temos terminal pré-carregado e estamos em modo de edição, usar ele
+      if (isEditing && filter.value && preloadedData?.terminal) {
+        setSelectedTerminal(preloadedData.terminal);
+        setTerminalSearchTerm(preloadedData.terminal.logical_number || "");
+        return;
+      }
 
       // Carregar terminais iniciais
       setLoading(true);
       try {
-        const terminalsData = await searchTerminals();
+        // Se estiver editando, buscar com o valor atual para encontrar o terminal
+        const searchValue = isEditing && filter.value ? filter.value : "";
+        const terminalsData = await searchTerminals(searchValue);
         setTerminals(terminalsData);
+
+        // Se estiver editando, buscar e definir o terminal
+        if (isEditing && filter.value) {
+          // Tentar encontrar o terminal pelo logical_number
+          const terminal = terminalsData.find(
+            (t) => t.logical_number === filter.value
+          );
+          if (terminal) {
+            setSelectedTerminal(terminal);
+            setTerminalSearchTerm(terminal.logical_number || "");
+          } else {
+            // Se não encontrar, apenas definir o termo de busca
+            setTerminalSearchTerm(filter.value);
+          }
+        }
       } catch (error) {
         console.error("Erro ao carregar terminais:", error);
       } finally {
@@ -636,12 +787,56 @@ export default function FilterForm({
       }
     } else if (param.name === "Ciclo da Transação") {
       setSelectorType("cycleType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os ciclos
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const cycleValues = filter.value.split(",").map((c) => c.trim());
+          setSelectedCycleTypes(cycleValues);
+        } else {
+          setSelectedCycleTypes([filter.value]);
+        }
+      }
     } else if (param.name === "Repasse da Transação") {
       setSelectorType("splitType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os tipos de repasse
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const splitValues = filter.value.split(",").map((s) => s.trim());
+          setSelectedSplitTypes(splitValues);
+        } else {
+          setSelectedSplitTypes([filter.value]);
+        }
+      }
     } else if (param.name === "Modo de Captura") {
       setSelectorType("captureMode");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os modos de captura
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const captureValues = filter.value.split(",").map((c) => c.trim());
+          setSelectedCaptureModes(captureValues);
+        } else {
+          setSelectedCaptureModes([filter.value]);
+        }
+      }
     } else if (param.name === "Modo de Entrada") {
       setSelectorType("entryMode");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os modos de entrada
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const entryValues = filter.value.split(",").map((e) => e.trim());
+          setSelectedEntryModes(entryValues);
+        } else {
+          setSelectedEntryModes([filter.value]);
+        }
+      }
     } else {
       setSelectorType("none");
     }
@@ -759,8 +954,10 @@ export default function FilterForm({
           dtupdate: (data.dtinsert || new Date()).toISOString(),
           typeName: data.typeName || null,
         });
-        router.refresh();
+        toast.success("Filtro atualizado com sucesso");
         closeDialog();
+        // Forçar recarregamento completo da página para garantir atualização da tabela
+        window.location.href = `/portal/reports/${reportId}?activeTab=step2`;
       } else {
         await insertReportFilter({
           ...data,
@@ -769,17 +966,48 @@ export default function FilterForm({
           dtinsert: (data.dtinsert || new Date()).toISOString(),
           dtupdate: (data.dtinsert || new Date()).toISOString(),
         });
-        router.refresh(); // Apenas atualiza os dados
+        toast.success("Filtro adicionado com sucesso");
         closeDialog();
+        // Forçar recarregamento completo da página para garantir atualização da tabela
+        window.location.href = `/portal/reports/${reportId}?activeTab=step2`;
       }
     } catch (error) {
       console.error("Erro ao salvar filtro:", error);
+      toast.error("Erro ao salvar filtro");
     }
   };
+
+  // Atualizar o valor do campo de estabelecimento quando selectedMerchant muda
+  useEffect(() => {
+    if (selectedMerchant && form) {
+      // Formatar o valor no formato nome para salvar
+      const value = selectedMerchant.name || "";
+      form.setValue("value", value);
+    }
+  }, [selectedMerchant, form]);
+
+  // Atualizar o valor do campo de terminal quando selectedTerminal muda
+  useEffect(() => {
+    if (selectedTerminal && form) {
+      form.setValue("value", selectedTerminal.logical_number || "");
+    }
+  }, [selectedTerminal, form]);
 
   if (loading) {
     return <div className="text-center py-4">Carregando...</div>;
   }
+
+  // Log para depuração
+  console.log("Estado atual do form:", {
+    filter,
+    paramSelected,
+    selectorType,
+    selectedBrands,
+    selectedStatusList,
+    selectedMerchant,
+    selectedTerminal,
+    selectedType,
+  });
 
   return (
     <>
@@ -803,7 +1031,13 @@ export default function FilterForm({
                         field.onChange(Number(value));
                         handleParamChange(Number(value));
                       }}
-                      value={field.value ? String(field.value) : undefined}
+                      value={
+                        filter.id && filter.idReportFilterParam
+                          ? String(filter.idReportFilterParam)
+                          : field.value
+                          ? String(field.value)
+                          : undefined
+                      }
                       disabled={filteredParams.length === 0}
                     >
                       <FormControl>
@@ -1174,15 +1408,8 @@ export default function FilterForm({
                                       setSearchTerm(merchant.name || "");
                                       setShowSuggestions(false);
 
-                                      // Atualizar o valor do campo para usar o slug do merchant
-                                      if (merchant.name) {
-                                        field.onChange(merchant.name);
-                                      } else {
-                                        // Fallback caso não tenha slug (pouco provável)
-                                        field.onChange(
-                                          `${merchant.name}|${merchant.id}`
-                                        );
-                                      }
+                                      // Atualizar o valor do campo usando apenas o nome
+                                      field.onChange(merchant.name || "");
                                     }}
                                   >
                                     {merchant.name || "N/A"}

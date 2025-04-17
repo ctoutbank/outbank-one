@@ -29,9 +29,7 @@ export function ReportsDashboardContent({
 }: ReportsDashboardContentProps) {
   return (
     <div className="space-y-4">
-      <Separator />
-
-      <div className="w-full mt-4 mb-2">
+      <div className="w-full  mb-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total Reports Card */}
           <Card className="bg-white min-w-[280px]">

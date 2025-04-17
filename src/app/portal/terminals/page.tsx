@@ -2,7 +2,6 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
-import { TerminalsDashboardButton } from "@/features/terminals/_components/terminals-dashboard-button";
 import { TerminalsDashboardContent } from "@/features/terminals/_components/terminals-dashboard-content";
 import { TerminalsFilter } from "@/features/terminals/_components/terminals-filter";
 import TerminalsList from "@/features/terminals/_components/terminals-list";
@@ -59,6 +58,8 @@ export default async function TerminalsPage({
   const inativosTerminals = terminalsList.inactiveCount || 0;
   const desativadosTerminals = terminalsList.desativadosCount || 0;
   const totalModelosAtivos = terminalsList.totalModelosAtivos || 0;
+  const modelosAtivos = terminalsList.modelosAtivos || [];
+  const modelosAtivosDetalhes = terminalsList.modelosAtivosDetalhes || [];
 
   return (
     <>
@@ -67,8 +68,8 @@ export default async function TerminalsPage({
       />
       <BaseBody title="Terminais" subtitle="Visualização de todos os terminais">
         <div className="flex flex-col space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
+          <div className="flex flex-col items-start gap-4">
+            <div>
               <TerminalsFilter
                 dateFromIn={dateFrom}
                 dateToIn={dateTo}
@@ -79,15 +80,18 @@ export default async function TerminalsPage({
                 statusIn={status}
                 provedorIn={provedor}
               />
-              <TerminalsDashboardButton>
-                <TerminalsDashboardContent
-                  totalTerminals={totalRecords}
-                  ativosTerminals={ativosTerminals}
-                  inativosTerminals={inativosTerminals}
-                  desativadosTerminals={desativadosTerminals}
-                  totalModelosAtivos={totalModelosAtivos}
-                />
-              </TerminalsDashboardButton>
+            </div>
+
+            <div>
+              <TerminalsDashboardContent
+                totalTerminals={totalRecords}
+                ativosTerminals={ativosTerminals}
+                inativosTerminals={inativosTerminals}
+                desativadosTerminals={desativadosTerminals}
+                totalModelosAtivos={totalModelosAtivos}
+                modelosAtivos={modelosAtivos}
+                modelosAtivosDetalhes={modelosAtivosDetalhes}
+              />
             </div>
           </div>
           <TerminalsList terminals={terminalsList} />
