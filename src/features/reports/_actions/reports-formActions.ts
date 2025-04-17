@@ -10,7 +10,6 @@ import { ReportSchema } from "../schema/schema";
 import {
   ReportDetail,
   ReportInsert,
-  deleteReportFilters,
   insertReport,
   updateReport,
 } from "../server/reports";
@@ -38,21 +37,6 @@ export async function insertReportFormAction(data: ReportSchema) {
   console.log("Dados a serem inseridos:", reportInsert);
 
   const newId = await insertReport(reportInsert);
-
-  // Adicionar filtros, se houver
-  if (data.filters && data.filters.length > 0) {
-    for (const filter of data.filters) {
-      const filterInsert: ReportFilterInsert = {
-        idReport: newId,
-        idReportFilterParam: filter.idReportFilterParam,
-        value: filter.value,
-        dtinsert: new Date().toISOString(),
-        dtupdate: new Date().toISOString(),
-      };
-
-      await insertReportFilter(filterInsert);
-    }
-  }
 
   return newId;
 }
@@ -85,25 +69,6 @@ export async function updateReportFormAction(data: ReportSchema) {
   console.log("Dados a serem atualizados:", reportUpdate);
 
   await updateReport(reportUpdate);
-
-  // Atualizar filtros
-  // Primeiro, remover filtros existentes
-  await deleteReportFilters(data.id);
-
-  // Adicionar novos filtros
-  if (data.filters && data.filters.length > 0) {
-    for (const filter of data.filters) {
-      const filterInsert: ReportFilterInsert = {
-        idReport: data.id,
-        idReportFilterParam: filter.idReportFilterParam,
-        value: filter.value,
-        dtinsert: new Date().toISOString(),
-        dtupdate: new Date().toISOString(),
-      };
-
-      await insertReportFilter(filterInsert);
-    }
-  }
 }
 
 export async function insertReportFilterAction(data: ReportFilterSchema) {

@@ -71,7 +71,7 @@ export function TerminalsFilterContent({
   ];
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-[999] w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Número Lógico</h3>
@@ -125,7 +125,7 @@ export function TerminalsFilterContent({
                 key={s.value}
                 variant="secondary"
                 className={cn(
-                  "cursor-pointer select-none text-sm px-3 py-1",
+                  "cursor-pointer w-20 h-7 select-none text-sm",
                   status === s.value ? s.color : "bg-secondary",
                   status === s.value
                     ? "text-white"
@@ -139,33 +139,25 @@ export function TerminalsFilterContent({
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Inclusão</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <h4 className="text-xs text-muted-foreground mb-1">De</h4>
-              <Input
-                type="date"
-                value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
-                onChange={(e) =>
-                  setDateFrom(
-                    e.target.value ? new Date(e.target.value) : undefined
-                  )
-                }
-              />
-            </div>
-            <div>
-              <h4 className="text-xs text-muted-foreground mb-1">Até</h4>
-              <Input
-                type="date"
-                value={dateTo ? dateTo.toISOString().split("T")[0] : ""}
-                onChange={(e) =>
-                  setDateTo(
-                    e.target.value ? new Date(e.target.value) : undefined
-                  )
-                }
-              />
-            </div>
-          </div>
+          <h3 className="text-sm font-medium">Data de Inclusão Inicial</h3>
+          <Input
+            type="date"
+            value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
+            onChange={(e) =>
+              setDateFrom(e.target.value ? new Date(e.target.value) : undefined)
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Data de Inclusão Final</h3>
+          <Input
+            type="date"
+            value={dateTo ? dateTo.toISOString().split("T")[0] : ""}
+            onChange={(e) =>
+              setDateTo(e.target.value ? new Date(e.target.value) : undefined)
+            }
+          />
         </div>
       </div>
 

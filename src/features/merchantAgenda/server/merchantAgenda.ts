@@ -1,6 +1,10 @@
 "use server";
 
 import { getUserMerchantsAccess } from "@/features/users/server/users";
+import {
+  brandList,
+  transactionProductTypeList,
+} from "@/lib/lookuptables/lookuptables-transactions";
 import { db } from "@/server/db";
 import {
   and,
@@ -12,6 +16,7 @@ import {
   inArray,
   lte,
   max,
+  notInArray,
   or,
   sql,
   sum,
@@ -399,7 +404,7 @@ export async function getMerchantAgendaReceipts(
   date?: Date
 ) {
   const whereConditions = [];
-
+  whereConditions.push(notInArray(payout.status, ["CANCELLED"]));
   if (search) {
     whereConditions.push(ilike(merchants.name, `%${search}%`));
   }
@@ -418,40 +423,74 @@ export async function getMerchantAgendaReceipts(
       return [];
     }
 
+    // Condição que considera settlementDate quando não for null, e expectedSettlementDate quando settlementDate for null
     whereConditions.push(
-      gte(payout.expectedSettlementDate, firstDayOfMonth.toISOString())
-    );
-    whereConditions.push(
-      lte(
-        payout.expectedSettlementDate,
-        firstDayOfMonth.getMonth() === today.getMonth() &&
-          firstDayOfMonth.getFullYear() === today.getFullYear()
-          ? today.toISOString()
-          : lastDayOfMonth.toISOString()
+      or(
+        and(
+          sql`${payout.settlementDate} IS NOT NULL`,
+          gte(payout.settlementDate, firstDayOfMonth.toISOString()),
+          lte(
+            payout.settlementDate,
+            firstDayOfMonth.getMonth() === today.getMonth() &&
+              firstDayOfMonth.getFullYear() === today.getFullYear()
+              ? today.toISOString()
+              : lastDayOfMonth.toISOString()
+          )
+        ),
+        and(
+          sql`${payout.settlementDate} IS NULL`,
+          gte(payout.expectedSettlementDate, firstDayOfMonth.toISOString()),
+          lte(
+            payout.expectedSettlementDate,
+            firstDayOfMonth.getMonth() === today.getMonth() &&
+              firstDayOfMonth.getFullYear() === today.getFullYear()
+              ? today.toISOString()
+              : lastDayOfMonth.toISOString()
+          )
+        )
       )
     );
-    console.log(date);
-    console.log(firstDayOfMonth);
-    console.log(today);
-    console.log(lastDayOfMonth);
   }
 
   // Mantém o filtro de dias da semana apenas para exibição no calendário
+  // Modificado para usar a data de liquidação ou a data esperada, dependendo de qual está sendo usada
   whereConditions.push(
-    sql`EXTRACT(DOW FROM ${payout.expectedSettlementDate}) NOT IN (0, 6)`
+    or(
+      and(
+        sql`${payout.settlementDate} IS NOT NULL`,
+        sql`EXTRACT(DOW FROM ${payout.settlementDate}) NOT IN (0, 6)`
+      ),
+      and(
+        sql`${payout.settlementDate} IS NULL`,
+        sql`EXTRACT(DOW FROM ${payout.expectedSettlementDate}) NOT IN (0, 6)`
+      )
+    )
   );
 
   console.log(whereConditions);
+
+  // Ajustando também a seleção e agrupamento para considerar ambas as datas
   const merchantAgendaReceipts = await db
     .select({
-      day: sql`DATE(${payout.expectedSettlementDate})`.as("day"),
+      day: sql`CASE 
+                WHEN ${payout.settlementDate} IS NOT NULL 
+                THEN DATE(${payout.settlementDate}) 
+                ELSE DATE(${payout.expectedSettlementDate})
+              END`.as("day"),
       totalAmount: sql`SUM(${payout.settlementAmount})`.as("total_amount"),
     })
     .from(payout)
     .innerJoin(merchants, eq(merchants.id, payout.idMerchant))
     .where(whereConditions.length > 0 ? and(...whereConditions) : sql`1=1`)
-    .groupBy(sql`DATE(${payout.expectedSettlementDate})`)
-    .orderBy(sql`DATE(${payout.expectedSettlementDate})`);
+    .groupBy(sql`CASE 
+                  WHEN ${payout.settlementDate} IS NOT NULL 
+                  THEN DATE(${payout.settlementDate}) 
+                  ELSE DATE(${payout.expectedSettlementDate})
+                END`).orderBy(sql`CASE 
+                  WHEN ${payout.settlementDate} IS NOT NULL 
+                  THEN DATE(${payout.settlementDate}) 
+                  ELSE DATE(${payout.expectedSettlementDate})
+                END`);
 
   return merchantAgendaReceipts;
 }
@@ -552,11 +591,28 @@ export async function getGlobalSettlement(
 
   const searchTerm = search ? `'${search}'` : "NULL";
 
+  // Criar um objeto JavaScript com os mapeamentos de product_type para label
+  const productTypeMapping = transactionProductTypeList.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {} as Record<string, string>);
+
+  // Criar um objeto JavaScript com os mapeamentos de brand para label
+  const brandMapping = brandList.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {} as Record<string, string>);
+
   const query = `
     WITH payout_filtered AS (
       SELECT *
       FROM payout
-      WHERE DATE(expected_settlement_date) = DATE('${date}')
+      WHERE (
+        (settlement_date IS NOT NULL AND DATE(settlement_date) = DATE('${date}'))
+        OR
+        (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
+      ) 
+      AND status not in ('CANCELLED')
     ),
     global_total AS (
       SELECT 
@@ -749,7 +805,53 @@ export async function getGlobalSettlement(
 
   try {
     const result = await db.execute(query);
-    return result.rows[0].result as GlobalSettlementResult;
+    const data = result.rows[0].result as GlobalSettlementResult;
+
+    // Traduzir os nomes dos tipos de produto
+    if (data.paymentMethods) {
+      data.paymentMethods = data.paymentMethods.map((method) => ({
+        ...method,
+        name: productTypeMapping[method.name] || method.name,
+      }));
+    }
+
+    // Traduzir os nomes das bandeiras
+    if (data.brands) {
+      data.brands = data.brands.map((brand) => ({
+        ...brand,
+        name: brandMapping[brand.name] || brand.name,
+      }));
+    }
+
+    // Traduzir os tipos de produto em cada merchant
+    if (data.merchants) {
+      data.merchants = data.merchants.map((merchant) => {
+        if (merchant.producttype) {
+          merchant.producttype = merchant.producttype.map((product) => {
+            // Traduzir o nome do tipo de produto
+            const translatedProduct = {
+              ...product,
+              name: productTypeMapping[product.name] || product.name,
+            };
+
+            // Traduzir os nomes das bandeiras dentro do tipo de produto
+            if (translatedProduct.brand) {
+              translatedProduct.brand = translatedProduct.brand.map(
+                (brandItem) => ({
+                  ...brandItem,
+                  name: brandMapping[brandItem.name] || brandItem.name,
+                })
+              );
+            }
+
+            return translatedProduct;
+          });
+        }
+        return merchant;
+      });
+    }
+
+    return data;
   } catch (error) {
     console.error("Erro ao executar consulta SQL:", error);
     throw new Error("Falha ao obter dados de liquidação global");
@@ -771,7 +873,11 @@ export async function getDailyStatistics(date: string): Promise<{
     WITH payout_filtered AS (
       SELECT *
       FROM payout
-      WHERE DATE(expected_settlement_date) = DATE('${date}')
+      WHERE (
+        (settlement_date IS NOT NULL AND DATE(settlement_date) = DATE('${date}'))
+        OR
+        (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
+      )
     ),
     global_total AS (
       SELECT 

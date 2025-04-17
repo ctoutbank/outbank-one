@@ -37,7 +37,7 @@ export default function MerchantAgendaReceipts({
   useEffect(() => {
     const fetchExcelData = async () => {
       try {
-        const date = searchParams.get("date");
+        const date = searchParams?.get("date");
 
         console.log(date);
         const data = await getMerchantAgendaExcelDailyData(
@@ -45,7 +45,6 @@ export default function MerchantAgendaReceipts({
             ? new Date().toISOString()
             : date
         );
-        console.log(data);
 
         setExcelData(data);
       } catch (error) {

@@ -76,7 +76,8 @@ async function TransactionsContent({
     searchParams.salesChannel,
     searchParams.terminal,
     searchParams.valueMin,
-    searchParams.valueMax
+    searchParams.valueMax,
+    searchParams.merchant
   );
 
   return (

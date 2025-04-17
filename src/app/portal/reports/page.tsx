@@ -2,7 +2,6 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
-import { ReportsDashboardButton } from "@/features/reports/_components/reports-dashboard-button";
 import { ReportsDashboardContent } from "@/features/reports/_components/reports-dashboard-content";
 import { ReportsFilter } from "@/features/reports/_components/reports-filter";
 import ReportList from "@/features/reports/_components/reports-list";
@@ -59,32 +58,33 @@ export default async function ReportsPage({
         subtitle={`Visualização de todos os Relatórios`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <ReportsFilter
-                searchIn={searchParams.search}
-                typeIn={searchParams.type}
-                formatIn={searchParams.format}
-                recurrenceIn={searchParams.recurrence}
-                periodIn={searchParams.period}
-                emailIn={searchParams.email}
-                creationDateIn={searchParams.creationDate}
-              />
-              <ReportsDashboardButton>
-                <ReportsDashboardContent
-                  totalReports={reportStats.totalReports}
-                  recurrenceStats={reportStats.recurrenceStats}
-                  formatStats={reportStats.formatStats}
-                  typeStats={reportStats.typeStats}
-                />
-              </ReportsDashboardButton>
+          <div className="mb-1">
+            <ReportsFilter
+              searchIn={searchParams.search}
+              typeIn={searchParams.type}
+              formatIn={searchParams.format}
+              recurrenceIn={searchParams.recurrence}
+              periodIn={searchParams.period}
+              emailIn={searchParams.email}
+              creationDateIn={searchParams.creationDate}
+            />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <ReportsDashboardContent
+              totalReports={reportStats.totalReports}
+              recurrenceStats={reportStats.recurrenceStats}
+              formatStats={reportStats.formatStats}
+              typeStats={reportStats.typeStats}
+            />
+            <div className="flex items-end self-stretch">
+              <Button asChild className="shrink-0">
+                <Link href="/portal/reports/0">
+                  <Plus className="h-4 w-4" />
+                  Novo Relatório
+                </Link>
+              </Button>
             </div>
-            <Button asChild className="shrink-0">
-              <Link href="/portal/reports/0">
-                <Plus className="h-4 w-4" />
-                Novo Relatório
-              </Link>
-            </Button>
           </div>
 
           <ReportList Reports={reports} />

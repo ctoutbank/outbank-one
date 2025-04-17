@@ -147,6 +147,11 @@ export type TerminalFull = {
   slugCustomer: string | null;
 };
 
+export type ModeloAtivo = {
+  nome: string;
+  quantidade: number;
+};
+
 export interface TerminallsList {
   terminals: TerminalFull[];
   totalCount: number;
@@ -157,6 +162,8 @@ export interface TerminallsList {
   rejectedCount: number;
   desativadosCount: number;
   totalModelosAtivos: number;
+  modelosAtivos: string[];
+  modelosAtivosDetalhes: ModeloAtivo[];
 }
 
 export type TerminalesDetail = typeof terminals.$inferSelect;
@@ -297,6 +304,34 @@ export async function getTerminals(
     );
   const activeModelsCount = activeModelsCountResult[0]?.count || 0;
 
+  // Obter lista de modelos ativos distintos com contagem
+  const activeModelsDetailResult = await db
+    .select({
+      model: terminals.model,
+      count: count(),
+    })
+    .from(terminals)
+    .where(
+      and(
+        eq(terminals.active, true),
+        eq(terminals.status, "ACTIVE"),
+        ...conditions
+      )
+    )
+    .groupBy(terminals.model)
+    .orderBy(desc(count()));
+
+  const activeModelsDetails = activeModelsDetailResult
+    .filter((item) => item.model)
+    .map((item) => ({
+      nome: item.model || "",
+      quantidade: Number(item.count) || 0,
+    }));
+
+  const activeModels = activeModelsDetails
+    .map((item) => item.nome)
+    .filter(Boolean);
+
   return {
     terminals: result.map((terminal) => ({
       slug: terminal.slug || "",
@@ -317,6 +352,8 @@ export async function getTerminals(
     inactiveCount: totalInactiveCount,
     desativadosCount: totalDesativadosCount,
     totalModelosAtivos: activeModelsCount,
+    modelosAtivos: activeModels,
+    modelosAtivosDetalhes: activeModelsDetails,
     pendingCount: result.filter((t) => t.status === "PENDING").length,
     approvedCount: result.filter((t) => t.status === "APPROVED").length,
     rejectedCount: result.filter((t) => t.status === "REJECTED").length,

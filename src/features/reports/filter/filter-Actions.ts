@@ -141,6 +141,12 @@ export async function getFilterFormData(reportId: number): Promise<{
   }
 }
 
+export interface PreloadedFilterData {
+  merchant: MerchantOption | null;
+  terminal: TerminalOption | null;
+  brands: BrandOption[];
+}
+
 export type MerchantOption = {
   id: number;
   name: string | null;
@@ -389,3 +395,29 @@ export const getMerchantBySlug = async (
     return null;
   }
 };
+
+// Função para buscar dados de um merchant específico pelo nome ou id
+export async function getMerchantByName(
+  merchantName: string
+): Promise<MerchantOption | null> {
+  if (!merchantName) return null;
+
+  try {
+    // Buscar o merchant específico pelo nome
+    const result = await db
+      .select({
+        id: merchants.id,
+        name: merchants.name,
+        corporateName: merchants.corporateName,
+        slug: merchants.slug,
+      })
+      .from(merchants)
+      .where(ilike(merchants.name, merchantName))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("Erro ao buscar merchant pelo nome:", error);
+    return null;
+  }
+}

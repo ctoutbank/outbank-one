@@ -50,11 +50,13 @@ export function TransactionSummaryTable({
   };
 
   return (
-    <div className="overflow-x-auto border rounded-md shadow-sm">
+    <div className=" overflow-x-auto border rounded-md shadow-sm">
       <table className="w-full text-[12px]">
         <tbody className="">
           {/* Total Geral como primeira linha */}
-          <tr className={`border-b ${headerbg} font-medium`}>
+          <tr
+            className={`border-b ${headerbg} whitespace-nowrap text-nowrap font-medium`}
+          >
             <td className="px-2 py-1 flex items-center gap-2">
               {!headersViews || headersViews.length <= 1 ? (
                 // Se houver apenas um item, mostrar apenas o label sem os ícones

@@ -91,6 +91,7 @@ export async function getReportFilterParameters(reportId: number) {
       filterName: reportFiltersParam.name,
       filterValue: reportFilters.value,
       filterType: reportFiltersParam.type,
+      filterAttributeName: reportFiltersParam.attributename,
     })
     .from(reportFilters)
     .innerJoin(

@@ -22,6 +22,9 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
+  // Log para debug quando o estado muda
+  console.log("Estado dos filtros:", isFiltersVisible);
+
   const handleFilter = (filters: {
     dateFrom?: Date;
     dateTo?: Date;

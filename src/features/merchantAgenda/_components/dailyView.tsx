@@ -131,18 +131,27 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                                 className="border-b-0"
                               >
                                 <TableRow>
-                                  <TableCell className="w-[20%] text-muted-foreground">
+                                  <TableCell
+                                    className="text-muted-foreground"
+                                    style={{ width: "312px" }}
+                                  >
                                     <AccordionTrigger className="text-left w-1/4 py-4 hover:no-underline">
                                       {productType.name}
                                     </AccordionTrigger>
                                   </TableCell>
-                                  <TableCell className="w-[40%] text-right text-muted-foreground">
+                                  <TableCell
+                                    className="text-right text-muted-foreground"
+                                    style={{ width: "40%" }}
+                                  >
                                     {new Intl.NumberFormat("pt-BR", {
                                       style: "currency",
                                       currency: "BRL",
                                     }).format(productType.totalGross)}
                                   </TableCell>
-                                  <TableCell className="w-[40%] text-right text-muted-foreground">
+                                  <TableCell
+                                    className="text-right text-muted-foreground"
+                                    style={{ width: "40%" }}
+                                  >
                                     {new Intl.NumberFormat("pt-BR", {
                                       style: "currency",
                                       currency: "BRL",
@@ -160,7 +169,7 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                                                 className="text-sm text-muted-foreground"
                                                 style={{ width: "20%" }}
                                               >
-                                                {brand.name}
+                                                {brand.name }
                                               </TableCell>
                                               <TableCell
                                                 className="text-sm text-right text-muted-foreground"

@@ -1,3 +1,4 @@
+import { ReportFilter } from "@/features/reports/_actions/utils/report-types";
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
 import reportsExecutionSalesGeneratePDF, {
   reportsExecutionSalesGenerateXLSX,
@@ -6,11 +7,12 @@ import reportsExecutionSalesGeneratePDF, {
 export async function generateSalesReport(
   report: any,
   dateFromBase: string,
-  dateToBase: string
+  dateToBase: string,
+  filters: ReportFilter
 ) {
-  const status = undefined;
-  const merchant = undefined;
-  const productType = undefined;
+  const status = filters.status || undefined;
+  const merchant = filters.merchant || undefined;
+  const productType = filters.paymentType || undefined;
 
   const transactions = await getTransactions(
     -1,
@@ -19,7 +21,12 @@ export async function generateSalesReport(
     merchant,
     dateFromBase,
     dateToBase,
-    productType
+    productType,
+    filters.cardBrand,
+    filters.nsu,
+    filters.captureMode,
+    undefined,
+    filters.terminal
   );
 
   let excelBytes: Uint8Array<ArrayBufferLike> | null = null;

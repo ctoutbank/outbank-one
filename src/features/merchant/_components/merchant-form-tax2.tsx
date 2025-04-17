@@ -94,13 +94,14 @@ type MerchantPriceGroup = {
 
 export default function MerchantFormTax2({
   merchantprice,
-
   idMerchantPrice,
   permissions,
 }: MerchantpriceList) {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTab, setSelectedTab] = useState("todas");
   const [feeData, setFeeData] = useState<any[]>([]);
+  const [posData, setPosData] = useState<any[]>([]);
+  const [onlineData, setOnlineData] = useState<any[]>([]);
   const [pixFees, setPixFees] = useState({
     mdr: merchantprice[0].cardPixMdr,
     custoMinimo: merchantprice[0].cardPixMinimumCostFee,
@@ -116,72 +117,81 @@ export default function MerchantFormTax2({
     console.log("Todos merchantprices:", merchantprice);
 
     if (merchantprice) {
-      let groupsToShow = [];
+      // Encontrar dados POS e ONLINE
+      const posPrice = merchantprice.find((mp) => mp.tableType === "POS");
+      const onlinePrice = merchantprice.find((mp) => mp.tableType === "ONLINE");
 
-      switch (selectedTab) {
-        case "todas":
-          // Combina os grupos de todos os merchantprice
-          groupsToShow = merchantprice.flatMap(
-            (mp) => mp.merchantpricegroup || []
-          );
-          break;
-        case "pos":
-          // Filtra apenas os grupos do merchantprice do tipo POS
-          const posPrice = merchantprice.find((mp) => mp.tableType === "POS");
-          groupsToShow = posPrice?.merchantpricegroup || [];
-          break;
-        case "online":
-          // Filtra apenas os grupos do merchantprice do tipo ONLINE
-          const onlinePrice = merchantprice.find(
-            (mp) => mp.tableType === "ONLINE"
-          );
-          groupsToShow = onlinePrice?.merchantpricegroup || [];
-          break;
-        default:
-          groupsToShow = merchantprice.flatMap(
-            (mp) => mp.merchantpricegroup || []
-          );
-      }
+      // Processar dados para a aba "todas"
+      const groupsToShow = merchantprice.reduce((acc: any[], mp) => {
+        const groups = mp.merchantpricegroup || [];
+        return [...acc, ...groups];
+      }, []);
 
-      const organizedData = groupsToShow.map((group) => {
+      // Remover duplicatas baseadas no nome da bandeira
+      const uniqueGroups = Array.from(
+        new Map(groupsToShow.map((group) => [group.name, group])).values()
+      );
+
+      const organizeTransactions = (group: any) => {
         const transactions = group.listMerchantTransactionPrice || [];
         return {
           ...group,
           transactions: {
             credit: {
               vista: transactions.find(
-                (tx) =>
+                (tx: any) =>
                   tx.producttype === "CREDIT" &&
                   tx.installmentTransactionFeeStart === 1 &&
                   tx.installmentTransactionFeeEnd === 1
               ),
               parcela2_6: transactions.find(
-                (tx) =>
+                (tx: any) =>
                   tx.producttype === "CREDIT" &&
                   tx.installmentTransactionFeeStart === 2 &&
                   tx.installmentTransactionFeeEnd === 6
               ),
               parcela7_12: transactions.find(
-                (tx) =>
+                (tx: any) =>
                   tx.producttype === "CREDIT" &&
                   tx.installmentTransactionFeeStart === 7 &&
                   tx.installmentTransactionFeeEnd === 12
               ),
             },
-            debit: transactions.find((tx) => tx.producttype === "DEBIT"),
-            prepaid: transactions.find((tx) => tx.producttype === "PREPAID"),
+            debit: transactions.find((tx: any) => tx.producttype === "DEBIT"),
+            prepaid: transactions.find(
+              (tx: any) => tx.producttype === "PREPAID"
+            ),
           },
         };
-      });
+      };
 
-      console.log("Dados organizados por tab:", selectedTab, organizedData);
-      setFeeData(organizedData);
+      // Organizar dados para cada aba
+      const organizedAllData = uniqueGroups.map(organizeTransactions);
+
+      // Dados específicos para POS
+      const posGroups = posPrice?.merchantpricegroup || [];
+      const organizedPosData = posGroups.map(organizeTransactions);
+
+      // Dados específicos para ONLINE
+      const onlineGroups = onlinePrice?.merchantpricegroup || [];
+      const organizedOnlineData = onlineGroups.map(organizeTransactions);
+
+      setFeeData(organizedAllData);
+      setPosData(organizedPosData);
+      setOnlineData(organizedOnlineData);
     }
-  }, [merchantprice, selectedTab]);
+  }, [merchantprice]);
 
   const handleSaveChanges = async () => {
     try {
-      const updatePromises = feeData.map(async (group) => {
+      // Combinar todos os dados para atualização
+      const allData = [
+        ...feeData,
+        ...posData.filter((pd) => !feeData.some((fd) => fd.id === pd.id)),
+        ...onlineData.filter((od) => !feeData.some((fd) => fd.id === od.id)),
+      ];
+
+      const updatePromises = allData.map(async (group) => {
         await updateMerchantPriceGroupFormAction({
           id: group.id,
           slug: group.name,
@@ -200,26 +210,27 @@ export default function MerchantFormTax2({
         idMerchantPrice
       );
       if (updatedGroups) {
-        setFeeData(
-          updatedGroups
-            .map((group) => {
-              if (!group.priceGroup) {
-                return null;
-              }
-              return {
-                id: group.priceGroup.id,
-                name: group.priceGroup.brand || "",
-                active: group.priceGroup.active || false,
-                dtinsert: group.priceGroup.dtinsert || "",
-                dtupdate: group.priceGroup.dtupdate || "",
-                idMerchantPrice: group.priceGroup.idMerchantPrice || 0,
-                listMerchantTransactionPrice: JSON.parse(
-                  group.transactionPrices || "[]"
-                ),
-              };
-            })
-            .filter((group): group is MerchantPriceGroup => group !== null)
-        );
+        const updatedData = updatedGroups
+          .map((group) => {
+            if (!group.priceGroup) {
+              return null;
+            }
+            return {
+              id: group.priceGroup.id,
+              name: group.priceGroup.brand || "",
+              active: group.priceGroup.active || false,
+              dtinsert: group.priceGroup.dtinsert || "",
+              dtupdate: group.priceGroup.dtupdate || "",
+              idMerchantPrice: group.priceGroup.idMerchantPrice || 0,
+              listMerchantTransactionPrice: JSON.parse(
+                group.transactionPrices || "[]"
+              ),
+            };
+          })
+          .filter((group): group is MerchantPriceGroup => group !== null);
+
+        // Atualizar todos os dados após salvar
+        setFeeData(updatedData);
       }
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
@@ -237,7 +248,7 @@ export default function MerchantFormTax2({
       </div>
 
       <Tabs
-        defaultValue="todas"
+        value={selectedTab}
         className="w-full"
         onValueChange={setSelectedTab}
       >
@@ -342,6 +353,10 @@ export default function MerchantFormTax2({
 
         <TabsContent value="todas">
           <div className="bg-gray-50 rounded-lg p-4 mb-5">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 bg-gray-100 p-2 rounded">
+              Taxas Transações no POS
+            </h3>
+
             <table className="w-full ">
               <thead>
                 <tr>
@@ -595,6 +610,9 @@ export default function MerchantFormTax2({
               </div>
             </div>
           </div>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3 bg-gray-100 p-2 rounded">
+            Taxas Transações Online
+          </h3>
           <div className="bg-gray-50 rounded-lg p-4">
             <table className="w-full">
               <thead>
@@ -877,6 +895,9 @@ export default function MerchantFormTax2({
 
         <TabsContent value="pos">
           <div className="bg-gray-50 rounded-lg p-4 mb-5">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 bg-gray-100 p-2 rounded">
+              Taxas Transações no POS
+            </h3>
             <table className="w-full ">
               <thead>
                 <tr>
@@ -1134,6 +1155,9 @@ export default function MerchantFormTax2({
 
         <TabsContent value="online">
           <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 bg-gray-100 p-2 rounded">
+              Taxas Transações Online
+            </h3>
             <table className="w-full">
               <thead>
                 <tr>
@@ -1344,7 +1368,7 @@ export default function MerchantFormTax2({
                 Taxa Pix
               </h2>
               <div className="flex gap-10">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-left">
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
@@ -1393,7 +1417,7 @@ export default function MerchantFormTax2({
                   )}
                 </div>
                 <div className="flex flex-col items-center">
-                  <p className="text-sm text-gray-600 mb-2">Antecipação</p>
+                  <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
                   {isEditing ? (
                     <Input
                       value={merchantprice[0].eventualAnticipationFee}

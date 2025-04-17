@@ -34,8 +34,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   DDMerchant,
   insertPaymentLink,
@@ -172,13 +172,15 @@ export default function PaymentLinkForm({
 
   const onSubmit = async (data: PaymentLinkSchema) => {
     try {
-      toast.loading("Salvando link de pagamento...");
+      const toastId = toast.loading("Salvando link de pagamento...");
       if (data?.id) {
         await updatePaymentLinkFormAction(data);
+        toast.dismiss(toastId);
         toast.success("Link de pagamento atualizado com sucesso!");
         router.refresh();
       } else {
         const newId = await insertPaymentLinkFormAction(data);
+        toast.dismiss(toastId);
         toast.success("Link de pagamento criado com sucesso!");
         router.push(`/portal/paymentLink/${newId}`);
       }

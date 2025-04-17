@@ -18,7 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { PreloadedFilterData } from "@/features/reports/filter/filter-Actions";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ReportFilterParamDetail,
@@ -58,6 +59,8 @@ interface ReportsWizardFormProps {
   reportFilterParams: ReportFilterParamDetail[];
   activeTabDefault: string;
   existingFilters: FormattedFilter[];
+  preloadedFilterData?: PreloadedFilterData;
+  editFilterId?: number;
 }
 
 export default function ReportsWizardForm({
@@ -70,6 +73,8 @@ export default function ReportsWizardForm({
   reportFilterParams,
   activeTabDefault,
   existingFilters,
+  preloadedFilterData,
+  editFilterId,
 }: ReportsWizardFormProps) {
   const [activeTab, setActiveTab] = useState(activeTabDefault);
   const [newReportId, setNewReportId] = useState<number | null>(
@@ -104,14 +109,10 @@ export default function ReportsWizardForm({
     onReportCreated(id);
   };
 
-  // Função que simula o fechamento do dialog para o FilterForm
+  // Função para fechar o dialog
   const handleCloseDialog = () => {
     setOpen(false);
-    // Após fechar o diálogo, redireciona para a mesma página com o parâmetro para recarregar os dados
-    if (newReportId || report.id) {
-      const id = newReportId || report.id;
-      window.location.href = `/portal/reports/${id}?activeTab=step2`;
-    }
+    setEditingFilter(null);
   };
 
   // Função para abrir o dialog de adição de novo filtro
@@ -158,7 +159,7 @@ export default function ReportsWizardForm({
       try {
         await deleteReportFilter(id);
         toast.success("Filtro excluído com sucesso");
-        // Após excluir, redireciona para a mesma página com o parâmetro para recarregar os dados
+        // Forçar refresh da página após exclusão, mantendo na aba de filtros
         const reportId = newReportId || report.id;
         window.location.href = `/portal/reports/${reportId}?activeTab=step2`;
       } catch (error) {
@@ -186,6 +187,18 @@ export default function ReportsWizardForm({
       return "-";
     }
   };
+
+  // Adicionando o useEffect para abrir automaticamente o filtro para edição
+  useEffect(() => {
+    if (editFilterId && existingFilters.length > 0) {
+      const filterToEdit = existingFilters.find(
+        (filter) => filter.id === editFilterId
+      );
+      if (filterToEdit) {
+        handleEditFilter(filterToEdit);
+      }
+    }
+  }, [editFilterId, existingFilters]);
 
   return (
     <div className="w-full">
@@ -262,6 +275,7 @@ export default function ReportsWizardForm({
                             reportFilterParams={reportFilterParams}
                             closeDialog={handleCloseDialog}
                             reportTypeDD={reportType}
+                            preloadedData={preloadedFilterData}
                           />
                         )}
                       </DialogContent>
