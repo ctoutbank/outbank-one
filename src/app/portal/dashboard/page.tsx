@@ -2,14 +2,17 @@ import CardValue from "@/components/dashboard/cardValue";
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import DashboardFilters from "./_components/dashboard-filters";
 import {
   getTotalTransactions,
   getTotalTransactionsByMonth,
 } from "@/features/transactions/serverActions/transaction";
-import { BarChartCustom } from "./_components/barChart";
 import { gateDateByViewMode } from "@/lib/utils";
 import { Suspense } from "react";
+import { BarChartCustom } from "./_components/barChart";
+import DashboardFilters from "./_components/dashboard-filters";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function SalesDashboard({
   searchParams,
@@ -37,7 +40,8 @@ export default async function SalesDashboard({
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
     period.from!,
-    period.to!
+    period.to!,
+    viewMode
   );
 
   return (
@@ -105,7 +109,10 @@ export default async function SalesDashboard({
             />
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
-            <BarChartCustom chartData={totalTransactionsByMonth} />
+            <BarChartCustom
+              chartData={totalTransactionsByMonth}
+              viewMode={viewMode}
+            />
           </div>
         </Suspense>
       </BaseBody>

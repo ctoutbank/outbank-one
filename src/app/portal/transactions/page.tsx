@@ -40,7 +40,7 @@ async function TransactionsContent({
   searchParams: TransactionsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
+  const pageSize = parseInt(searchParams.pageSize || "20"); 
 
   const dateFrom = searchParams.dateFrom || getStartOfDay();
   const dateTo = searchParams.dateTo || getEndOfDay();

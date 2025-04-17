@@ -7,10 +7,10 @@ import { LegalNatureDashboardButton } from "@/features/legalNature/_components/l
 import { LegalNatureDashboardContent } from "@/features/legalNature/_components/legalNature-dashboard-content";
 import { LegalNatureFilter } from "@/features/legalNature/_components/legalNature-filter";
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
-import { Plus } from "lucide-react";
 import { getLegalNatures } from "@/features/legalNature/server/legalNature-db";
-import Link from "next/link";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export const revalidate = 0;
 
@@ -28,7 +28,7 @@ export default async function LegalNaturesPage({
 }: {
   searchParams: LegalNatureProps;
 }) {
-  await checkPagePermission("Naturezas Jurídicas");
+  await checkPagePermission("Natureza Juridica");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");

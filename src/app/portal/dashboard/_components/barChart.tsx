@@ -32,15 +32,30 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const DAYS_OF_WEEK = [
+  "Domingo",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado",
+];
+
 export function BarChartCustom({
   chartData,
+  viewMode,
 }: {
   chartData: GetTotalTransactionsByMonthResult[];
+  viewMode?: string;
 }) {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("bruto");
 
-  console.log(chartData);
+  const isHourlyView = viewMode === "today" || viewMode === "yesterday";
+  const isWeeklyView = viewMode === "week";
+  const isMonthlyView = viewMode === "month";
+
   const total = React.useMemo(
     () => ({
       bruto: chartData.reduce((acc, curr) => acc + curr.bruto, 0),
@@ -55,7 +70,13 @@ export function BarChartCustom({
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>Gráfico de Barras</CardTitle>
           <CardDescription>
-            Mostrando o total de transações por dia
+            {isHourlyView
+              ? "Mostrando o total de transações por hora"
+              : isWeeklyView
+              ? "Mostrando o total de transações por dia da semana"
+              : isMonthlyView
+              ? "Mostrando o total de transações por dia do mês"
+              : "Mostrando o total de transações por dia"}
           </CardDescription>
         </div>
         <div className="flex">
@@ -97,12 +118,29 @@ export function BarChartCustom({
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="date"
+              dataKey={
+                isHourlyView
+                  ? "hour"
+                  : isWeeklyView
+                  ? "dayOfWeek"
+                  : isMonthlyView
+                  ? "dayOfMonth"
+                  : "date"
+              }
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) => {
+                if (isHourlyView) {
+                  return `${value}:00`;
+                }
+                if (isWeeklyView) {
+                  return DAYS_OF_WEEK[value];
+                }
+                if (isMonthlyView) {
+                  return value;
+                }
                 const date = new Date(value);
                 return date.toLocaleDateString("pt-BR", {
                   month: "short",
@@ -116,6 +154,15 @@ export function BarChartCustom({
                   className="w-[150px]"
                   nameKey="sum"
                   labelFormatter={(value) => {
+                    if (isHourlyView) {
+                      return `${value}:00`;
+                    }
+                    if (isWeeklyView) {
+                      return DAYS_OF_WEEK[value];
+                    }
+                    if (isMonthlyView) {
+                      return `Dia ${value}`;
+                    }
                     return new Date(value).toLocaleDateString("pt-BR", {
                       month: "short",
                       day: "numeric",

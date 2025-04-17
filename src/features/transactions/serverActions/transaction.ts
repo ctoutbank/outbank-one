@@ -358,6 +358,9 @@ export type GetTotalTransactionsByMonthResult = {
   lucro: number;
   count: number;
   date?: Date;
+  hour?: number;
+  dayOfWeek?: number;
+  dayOfMonth?: number;
 };
 
 export async function getTotalTransactions(
@@ -385,13 +388,24 @@ export async function getTotalTransactions(
 
 export async function getTotalTransactionsByMonth(
   dateFrom: Date,
-  dateTo: Date
+  dateTo: Date,
+  viewMode?: string
 ) {
+  const isHourlyView = viewMode === "today" || viewMode === "yesterday";
+  const isWeeklyView = viewMode === "week";
+  const isMonthlyView = viewMode === "month";
+
   const result = await db
     .select({
       sum: sum(transactions.totalAmount),
       count: count(),
-      date: sql`DATE(dt_update::TIMESTAMP)`,
+      date: isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP)`
+        : isWeeklyView
+        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP)`
+        : isMonthlyView
+        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP)`
+        : sql`DATE(dt_update::TIMESTAMP)`,
     })
     .from(transactions)
     .where(
@@ -400,15 +414,96 @@ export async function getTotalTransactionsByMonth(
         lte(transactions.dtInsert, dateTo.toISOString())
       )
     )
-    .groupBy(sql`DATE(dt_update::TIMESTAMP)`)
-    .orderBy(sql`DATE(dt_update::TIMESTAMP) ASC`);
+    .groupBy(
+      isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP)`
+        : isWeeklyView
+        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP)`
+        : isMonthlyView
+        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP)`
+        : sql`DATE(dt_update::TIMESTAMP)`
+    )
+    .orderBy(
+      isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP) ASC`
+        : isWeeklyView
+        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP) ASC`
+        : isMonthlyView
+        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP) ASC`
+        : sql`DATE(dt_update::TIMESTAMP) ASC`
+    );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({
     bruto: item.sum ? parseFloat(item.sum) : 0,
     count: item.count,
     lucro: item.sum ? parseFloat(item.sum) * 0.08 : 0,
-    date: item.date as Date,
+    date: isHourlyView ? new Date(dateFrom) : (item.date as Date),
+    hour: isHourlyView ? Number(item.date) : undefined,
+    dayOfWeek: isWeeklyView ? Number(item.date) : undefined,
+    dayOfMonth: isMonthlyView ? Number(item.date) : undefined,
   }));
+
+  // For hourly view, ensure we have all hours from 0 to 23
+  if (isHourlyView) {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const existingHours = new Set(totals.map((item) => item.hour));
+
+    return hours.map((hour) => {
+      const existingData = totals.find((item) => item.hour === hour);
+      return (
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(dateFrom),
+          hour,
+        }
+      );
+    });
+  }
+
+  // For weekly view, ensure we have all days from 0 (Sunday) to 6 (Saturday)
+  if (isWeeklyView) {
+    const days = Array.from({ length: 7 }, (_, i) => i);
+    const existingDays = new Set(totals.map((item) => item.dayOfWeek));
+
+    return days.map((day) => {
+      const existingData = totals.find((item) => item.dayOfWeek === day);
+      return (
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(dateFrom),
+          dayOfWeek: day,
+        }
+      );
+    });
+  }
+
+  // For monthly view, ensure we have all days from 1 to last day of month
+  if (isMonthlyView) {
+    const lastDayOfMonth = new Date(
+      dateFrom.getFullYear(),
+      dateFrom.getMonth() + 1,
+      0
+    ).getDate();
+    const days = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
+    const existingDays = new Set(totals.map((item) => item.dayOfMonth));
+
+    return days.map((day) => {
+      const existingData = totals.find((item) => item.dayOfMonth === day);
+      return (
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(dateFrom.getFullYear(), dateFrom.getMonth(), day),
+          dayOfMonth: day,
+        }
+      );
+    });
+  }
 
   return totals;
 }
