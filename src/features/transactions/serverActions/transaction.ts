@@ -446,7 +446,6 @@ export async function getTotalTransactionsByMonth(
   // For hourly view, ensure we have all hours from 0 to 23
   if (isHourlyView) {
     const hours = Array.from({ length: 24 }, (_, i) => i);
-    const existingHours = new Set(totals.map((item) => item.hour));
 
     return hours.map((hour) => {
       const existingData = totals.find((item) => item.hour === hour);
@@ -465,7 +464,6 @@ export async function getTotalTransactionsByMonth(
   // For weekly view, ensure we have all days from 0 (Sunday) to 6 (Saturday)
   if (isWeeklyView) {
     const days = Array.from({ length: 7 }, (_, i) => i);
-    const existingDays = new Set(totals.map((item) => item.dayOfWeek));
 
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfWeek === day);
@@ -489,7 +487,7 @@ export async function getTotalTransactionsByMonth(
       0
     ).getDate();
     const days = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
-    const existingDays = new Set(totals.map((item) => item.dayOfMonth));
+
 
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfMonth === day);
