@@ -7,7 +7,6 @@ import PaginationRecords from "@/components/pagination-Records";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-filter";
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
-import { MerchantAgendaDashboardButton } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-button";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
@@ -145,93 +144,92 @@ export default async function MerchantAgendaPage({
           </TabsList>
           <TabsContent value="receivables" className="overflow-x-visible">
             <div className="flex flex-col space-y-4 mt-2">
-              <div className="flex items-center justify-between gap-4 relative z-50">
-                <div className="flex items-start gap-4 flex-1">
-                  <MerchantAgendaFilter
-                    dateFromIn={dateFrom}
-                    dateToIn={dateTo}
-                    establishmentIn={searchParams.establishment}
-                    statusIn={searchParams.status}
-                    cardBrandIn={searchParams.cardBrand}
-                    settlementDateFromIn={searchParams.settlementDateFrom}
-                    settlementDateToIn={searchParams.settlementDateTo}
-                    expectedSettlementDateFromIn={
-                      searchParams.expectedSettlementDateFrom
-                    }
-                    expectedSettlementDateToIn={
-                      searchParams.expectedSettlementDateTo
-                    }
-                  />
-                  <MerchantAgendaDashboardButton>
-                    <div className="ml-1">
-                      <MerchantAgendaDashboardContent
-                        totalMerchant={merchantAgenda.merchantAgenda.length}
-                        date={new Date()}
-                        totalSales={merchantAgenda.merchantAgenda.length}
-                        grossAmount={merchantAgenda.merchantAgenda.reduce(
-                          (acc, item) => acc + item.grossAmount,
-                          0
-                        )}
-                        taxAmount={merchantAgenda.merchantAgenda.reduce(
-                          (acc, item) => acc + item.feeAmount,
-                          0
-                        )}
-                        settledInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => item.settlementDate
-                          ).length
-                        }
-                        pendingInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => !item.settlementDate
-                          ).length
-                        }
-                        settledGrossAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => item.settlementDate)
-                          .reduce((acc, item) => acc + item.grossAmount, 0)}
-                        settledTaxAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => item.settlementDate)
-                          .reduce((acc, item) => acc + item.feeAmount, 0)}
-                        anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
-                        anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
-                        toSettleInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => !item.settlementDate
-                          ).length
-                        }
-                        toSettleGrossAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => !item.settlementDate)
-                          .reduce((acc, item) => acc + item.grossAmount, 0)}
-                        toSettleTaxAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => !item.settlementDate)
-                          .reduce((acc, item) => acc + item.feeAmount, 0)}
-                      />
-                    </div>
-                  </MerchantAgendaDashboardButton>
-                </div>
-                <ExcelExport
-                  data={excelDataToExportReceivables.map((data) => ({
-                    Merchant: data.merchant,
-                    CNPJ: data.cnpj,
-                    NSU: data.nsu,
-                    SaleDate: data.saleDate,
-                    Type: data.type,
-                    Brand: data.brand,
-                    Installments: data.installments,
-                    InstallmentNumber: data.installmentNumber,
-                    InstallmentValue: data.installmentValue,
-                    TransactionMdr: data.transactionMdr,
-                    TransactionMdrFee: data.transactionMdrFee,
-                    TransactionFee: data.transactionFee,
-                    SettlementAmount: data.settlementAmount,
-                    ExpectedDate: data.expectedDate,
-                    ReceivableAmount: data.receivableAmount,
-                    SettlementDate: data.settlementDate,
-                  }))}
-                  globalStyles={globalStyles}
-                  sheetName="Conciliação de recebíveis"
-                  fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
+              <div className="mb-1">
+                <MerchantAgendaFilter
+                  dateFromIn={dateFrom}
+                  dateToIn={dateTo}
+                  establishmentIn={searchParams.establishment}
+                  statusIn={searchParams.status}
+                  cardBrandIn={searchParams.cardBrand}
+                  settlementDateFromIn={searchParams.settlementDateFrom}
+                  settlementDateToIn={searchParams.settlementDateTo}
+                  expectedSettlementDateFromIn={
+                    searchParams.expectedSettlementDateFrom
+                  }
+                  expectedSettlementDateToIn={
+                    searchParams.expectedSettlementDateTo
+                  }
                 />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <MerchantAgendaDashboardContent
+                  totalMerchant={merchantAgenda.merchantAgenda.length}
+                  date={new Date()}
+                  totalSales={merchantAgenda.merchantAgenda.length}
+                  grossAmount={merchantAgenda.merchantAgenda.reduce(
+                    (acc, item) => acc + item.grossAmount,
+                    0
+                  )}
+                  taxAmount={merchantAgenda.merchantAgenda.reduce(
+                    (acc, item) => acc + item.feeAmount,
+                    0
+                  )}
+                  settledInstallments={
+                    merchantAgenda.merchantAgenda.filter(
+                      (item) => item.settlementDate
+                    ).length
+                  }
+                  pendingInstallments={
+                    merchantAgenda.merchantAgenda.filter(
+                      (item) => !item.settlementDate
+                    ).length
+                  }
+                  settledGrossAmount={merchantAgenda.merchantAgenda
+                    .filter((item) => item.settlementDate)
+                    .reduce((acc, item) => acc + item.grossAmount, 0)}
+                  settledTaxAmount={merchantAgenda.merchantAgenda
+                    .filter((item) => item.settlementDate)
+                    .reduce((acc, item) => acc + item.feeAmount, 0)}
+                  anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
+                  anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
+                  toSettleInstallments={
+                    merchantAgenda.merchantAgenda.filter(
+                      (item) => !item.settlementDate
+                    ).length
+                  }
+                  toSettleGrossAmount={merchantAgenda.merchantAgenda
+                    .filter((item) => !item.settlementDate)
+                    .reduce((acc, item) => acc + item.grossAmount, 0)}
+                  toSettleTaxAmount={merchantAgenda.merchantAgenda
+                    .filter((item) => !item.settlementDate)
+                    .reduce((acc, item) => acc + item.feeAmount, 0)}
+                />
+                <div className="flex items-end self-stretch">
+                  <ExcelExport
+                    data={excelDataToExportReceivables.map((data) => ({
+                      Merchant: data.merchant,
+                      CNPJ: data.cnpj,
+                      NSU: data.nsu,
+                      SaleDate: data.saleDate,
+                      Type: data.type,
+                      Brand: data.brand,
+                      Installments: data.installments,
+                      InstallmentNumber: data.installmentNumber,
+                      InstallmentValue: data.installmentValue,
+                      TransactionMdr: data.transactionMdr,
+                      TransactionMdrFee: data.transactionMdrFee,
+                      TransactionFee: data.transactionFee,
+                      SettlementAmount: data.settlementAmount,
+                      ExpectedDate: data.expectedDate,
+                      ReceivableAmount: data.receivableAmount,
+                      SettlementDate: data.settlementDate,
+                    }))}
+                    globalStyles={globalStyles}
+                    sheetName="Conciliação de recebíveis"
+                    fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
+                  />
+                </div>
               </div>
               <div className="w-full overflow-x-auto">
                 <MerchantAgendaList merchantAgendaList={merchantAgenda} />
@@ -248,19 +246,20 @@ export default async function MerchantAgendaPage({
           </TabsContent>
           <TabsContent value="anticipations" className="mt-6">
             <div className="flex flex-col space-y-4 mt-2">
-              <div className="flex items-center justify-between gap-4 relative z-50">
-                <div className="flex items-start gap-4 flex-1">
-                  <AnticipationsListFilter
-                    settlementDateFromIn={settlementDateFromIn}
-                    settlementDateToIn={settlementDateToIn}
-                    saleDateFromIn={saleDateFromIn}
-                    saleDateToIn={saleDateToIn}
-                    establishmentIn={establishmentIn}
-                    nsuIn={nsuIn}
-                    statusIn={statusIn}
-                    orderIdIn={orderIdIn}
-                  />
-                </div>
+              <div className="mb-1">
+                <AnticipationsListFilter
+                  settlementDateFromIn={settlementDateFromIn}
+                  settlementDateToIn={settlementDateToIn}
+                  saleDateFromIn={saleDateFromIn}
+                  saleDateToIn={saleDateToIn}
+                  establishmentIn={establishmentIn}
+                  nsuIn={nsuIn}
+                  statusIn={statusIn}
+                  orderIdIn={orderIdIn}
+                />
+              </div>
+
+              <div className="flex items-end justify-end mb-2">
                 <ExcelExport
                   data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
                     (data) => ({
