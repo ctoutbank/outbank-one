@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 type MerchantAgendaFilterContentProps = {
   dateFromIn?: Date;
@@ -77,26 +76,13 @@ export function MerchantAgendaFilterContent({
   >(expectedSettlementDateToIn);
 
   const statuses = [
-    {
-      value: "PENDING",
-      label: "Pendente",
-      color: "bg-orange-500 hover:bg-orange-600",
-    },
-    {
-      value: "PROCESSING",
-      label: "Processando",
-      color: "bg-yellow-500 hover:bg-yellow-600",
-    },
-    {
-      value: "SETTLED",
-      label: "Liquidado",
-      color: "bg-emerald-500 hover:bg-emerald-600",
-    },
-    { value: "FAILED", label: "Falhou", color: "bg-red-500 hover:bg-red-600" },
+    { value: "PENDING", label: "Pendente" },
+    { value: "PROCESSING", label: "Processando" },
+    { value: "SETTLED", label: "Liquidado" },
+    { value: "FAILED", label: "Falhou" },
   ];
 
   const cardBrands = [
-    { value: "all", label: "Todas" },
     { value: "VISA", label: "Visa" },
     { value: "MASTERCARD", label: "Mastercard" },
     { value: "ELO", label: "Elo" },
@@ -105,47 +91,84 @@ export function MerchantAgendaFilterContent({
     { value: "NÃO IDENTIFICADA", label: "Não Identificada" },
   ];
 
+  const handleStatusChange = (value: string) => {
+    setStatus(value === "all" ? "" : value);
+  };
+
+  const handleCardBrandChange = (value: string) => {
+    setCardBrand(value === "all" ? "" : value);
+  };
+
+  const applyFilters = () => {
+    onFilter({
+      dateFrom,
+      dateTo,
+      establishment,
+      status,
+      cardBrand,
+      settlementDateFrom,
+      settlementDateTo,
+      expectedSettlementDateFrom,
+      expectedSettlementDateTo,
+    });
+    onClose();
+  };
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
+
   return (
-    <div className="relative mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Estabelecimento</h3>
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md w-[900px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <div className="text-xs font-medium mb-1.5">Estabelecimento</div>
           <Input
             placeholder="Nome do estabelecimento"
             value={establishment}
             onChange={(e) => setEstablishment(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="h-9"
           />
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Status</h3>
-          <div className="flex flex-wrap gap-2">
-            {statuses.map((s) => (
-              <Badge
-                key={s.value}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-24 h-7 select-none text-sm",
-                  status === s.value ? s.color : "bg-secondary",
-                  status === s.value
-                    ? "text-white"
-                    : "text-secondary-foreground"
-                )}
-                onClick={() => setStatus(status === s.value ? "" : s.value)}
-              >
-                {s.label}
-              </Badge>
-            ))}
-          </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Status</div>
+          <Select value={status || "all"} onValueChange={handleStatusChange}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {statuses.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Bandeira</h3>
-          <Select value={cardBrand || "all"} onValueChange={setCardBrand}>
-            <SelectTrigger>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Bandeira</div>
+          <Select
+            value={cardBrand || "all"}
+            onValueChange={handleCardBrandChange}
+          >
+            <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione a bandeira" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
               {cardBrands.map((brand) => (
                 <SelectItem key={brand.value} value={brand.value}>
                   {brand.label}
@@ -155,20 +178,21 @@ export function MerchantAgendaFilterContent({
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Venda</h3>
-          <div className="flex flex-col gap-2">
+        <div>
+          <div className="text-xs font-medium mb-1.5">Data de Venda</div>
+          <div className="grid grid-cols-2 gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !dateFrom && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFrom ? format(dateFrom, "PPP") : "Data Inicial"}
+                  <CalendarIcon className="mr-1 h-3 w-3" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Inicial"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -185,13 +209,14 @@ export function MerchantAgendaFilterContent({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !dateTo && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateTo ? format(dateTo, "PPP") : "Data Final"}
+                  <CalendarIcon className="mr-1 h-3 w-3" />
+                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "Final"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -206,22 +231,23 @@ export function MerchantAgendaFilterContent({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Liquidação</h3>
-          <div className="flex flex-col gap-2">
+        <div>
+          <div className="text-xs font-medium mb-1.5">Data de Liquidação</div>
+          <div className="grid grid-cols-2 gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !settlementDateFrom && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-1 h-3 w-3" />
                   {settlementDateFrom
-                    ? format(settlementDateFrom, "PPP")
-                    : "Data Inicial"}
+                    ? format(settlementDateFrom, "dd/MM/yyyy")
+                    : "Inicial"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -238,15 +264,16 @@ export function MerchantAgendaFilterContent({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !settlementDateTo && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-1 h-3 w-3" />
                   {settlementDateTo
-                    ? format(settlementDateTo, "PPP")
-                    : "Data Final"}
+                    ? format(settlementDateTo, "dd/MM/yyyy")
+                    : "Final"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -261,22 +288,25 @@ export function MerchantAgendaFilterContent({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data Prevista de Liquidação</h3>
-          <div className="flex flex-col gap-2">
+        <div>
+          <div className="text-xs font-medium mb-1.5">
+            Data Prevista de Liquidação
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !expectedSettlementDateFrom && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-1 h-3 w-3" />
                   {expectedSettlementDateFrom
-                    ? format(expectedSettlementDateFrom, "PPP")
-                    : "Data Inicial"}
+                    ? format(expectedSettlementDateFrom, "dd/MM/yyyy")
+                    : "Inicial"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -293,15 +323,16 @@ export function MerchantAgendaFilterContent({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "h-9 text-xs justify-start text-left font-normal",
                     !expectedSettlementDateTo && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-1 h-3 w-3" />
                   {expectedSettlementDateTo
-                    ? format(expectedSettlementDateTo, "PPP")
-                    : "Data Final"}
+                    ? format(expectedSettlementDateTo, "dd/MM/yyyy")
+                    : "Final"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -319,21 +350,9 @@ export function MerchantAgendaFilterContent({
 
       <div className="flex justify-end pt-4 mt-4 border-t">
         <Button
-          onClick={() => {
-            onFilter({
-              dateFrom,
-              dateTo,
-              establishment,
-              status,
-              cardBrand,
-              settlementDateFrom,
-              settlementDateTo,
-              expectedSettlementDateFrom,
-              expectedSettlementDateTo,
-            });
-            onClose();
-          }}
+          onClick={applyFilters}
           className="flex items-center gap-2"
+          size="sm"
         >
           <Search className="h-4 w-4" />
           Filtrar

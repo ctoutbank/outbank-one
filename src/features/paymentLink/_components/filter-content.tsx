@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 type FilterPaymentLinkContentProps = {
   identifierIn?: string;
@@ -53,8 +53,26 @@ export function FilterPaymentLinkContent({
     },
   ];
 
+  const applyFilters = () => {
+    onFilter({ identifier, status, merchant });
+    onClose();
+  };
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
+
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Identificador do link</h3>
@@ -62,6 +80,7 @@ export function FilterPaymentLinkContent({
             placeholder="Identificador do link"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -93,18 +112,13 @@ export function FilterPaymentLinkContent({
             placeholder="Nome do estabelecimento"
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button
-          onClick={() => {
-            onFilter({ identifier, status, merchant });
-            onClose();
-          }}
-          className="flex items-center gap-2"
-        >
+        <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar
         </Button>
