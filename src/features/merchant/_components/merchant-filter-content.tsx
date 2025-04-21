@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Search } from "lucide-react"
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Search } from "lucide-react";
+import { KeyboardEvent, useState } from "react";
 
 type FilterMerchantsContentProps = {
-  dateFromIn?: Date
-  dateToIn?: Date
-  establishmentIn?: string
-  statusIn?: string
-  stateIn?: string
+  dateFromIn?: Date;
+  dateToIn?: Date;
+  establishmentIn?: string;
+  statusIn?: string;
+  stateIn?: string;
   onFilter: (filters: {
-    dateFrom?: Date
-    dateTo?: Date
-    establishment: string
-    status: string
-    state: string
-  }) => void
-  onClose: () => void
-}
+    dateFrom?: Date;
+    dateTo?: Date;
+    establishment: string;
+    status: string;
+    state: string;
+  }) => void;
+  onClose: () => void;
+};
 
 export function FilterMerchantsContent({
   establishmentIn,
@@ -30,18 +30,48 @@ export function FilterMerchantsContent({
   onFilter,
   onClose,
 }: FilterMerchantsContentProps) {
-  const [establishment, setEstablishment] = useState(establishmentIn || "")
-  const [status, setStatus] = useState(statusIn || "")
-  const [state, setState] = useState(stateIn || "")
+  const [establishment, setEstablishment] = useState(establishmentIn || "");
+  const [status, setStatus] = useState(statusIn || "");
+  const [state, setState] = useState(stateIn || "");
 
   const statuses = [
-    { value: "APPROVED", label: "Aprovado", color: "bg-emerald-500 hover:bg-emerald-600" },
-    { value: "PENDING", label: "Pendente", color: "bg-yellow-500 hover:bg-yellow-600" },
-    { value: "REJECTED", label: "Rejeitado", color: "bg-red-500 hover:bg-red-600" },
-  ]
+    {
+      value: "APPROVED",
+      label: "Aprovado",
+      color: "bg-emerald-500 hover:bg-emerald-600",
+    },
+    {
+      value: "PENDING",
+      label: "Pendente",
+      color: "bg-yellow-500 hover:bg-yellow-600",
+    },
+    {
+      value: "REJECTED",
+      label: "Rejeitado",
+      color: "bg-red-500 hover:bg-red-600",
+    },
+  ];
+
+  const applyFilters = () => {
+    onFilter({ establishment, status, state });
+    onClose();
+  };
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Your existing filter inputs */}
         <div className="space-y-2">
@@ -50,6 +80,7 @@ export function FilterMerchantsContent({
             placeholder="Nome do estabelecimento"
             value={establishment}
             onChange={(e) => setEstablishment(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -63,7 +94,9 @@ export function FilterMerchantsContent({
                 className={cn(
                   "cursor-pointer w-24 h-7 select-none text-sm",
                   status === s.value ? s.color : "bg-secondary",
-                  status === s.value ? "text-white" : "text-secondary-foreground"
+                  status === s.value
+                    ? "text-white"
+                    : "text-secondary-foreground"
                 )}
                 onClick={() => setStatus(status === s.value ? "" : s.value)}
               >
@@ -79,6 +112,7 @@ export function FilterMerchantsContent({
             placeholder="UF"
             value={state}
             onChange={(e) => setState(e.target.value)}
+            onKeyDown={handleKeyDown}
             maxLength={2}
             className="uppercase"
           />
@@ -88,17 +122,11 @@ export function FilterMerchantsContent({
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button 
-          onClick={() => {
-            onFilter({ establishment, status, state })
-            onClose()
-          }} 
-          className="flex items-center gap-2"
-        >
+        <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar
         </Button>
       </div>
     </div>
-  )
+  );
 }

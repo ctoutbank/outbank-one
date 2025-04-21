@@ -3,7 +3,6 @@ import BaseHeader from "@/components/layout/base-header";
 
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import { LegalNatureDashboardButton } from "@/features/legalNature/_components/legalNature-dashboard-button";
 import { LegalNatureDashboardContent } from "@/features/legalNature/_components/legalNature-dashboard-content";
 import { LegalNatureFilter } from "@/features/legalNature/_components/legalNature-filter";
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
@@ -60,33 +59,33 @@ export default async function LegalNaturesPage({
         title="Natureza Jurídica"
         subtitle={`visualização de todas Natureza Jurídica`}
       >
-        <div className="flex flex-col space-y-4 ">
+        <div className="flex flex-col space-y-4">
+          <div className="mb-1">
+            <LegalNatureFilter
+              nameIn={searchParams.name}
+              codeIn={searchParams.code}
+              activeIn={searchParams.active}
+            />
+          </div>
+
           <div className="flex items-start justify-between gap-4 mb-2">
-            <div className="flex items-start gap-4 flex-1">
-              <LegalNatureFilter
-                nameIn={searchParams.name}
-                codeIn={searchParams.code}
-                activeIn={searchParams.active}
-              />
-              <LegalNatureDashboardButton>
-                <div>
-                  <LegalNatureDashboardContent
-                    totalLegalNatures={legalNatures.totalCount}
-                    activeLegalNatures={legalNatures.activeCount}
-                    inactiveLegalNatures={legalNatures.inactiveCount}
-                  />
-                </div>
-              </LegalNatureDashboardButton>
+            <LegalNatureDashboardContent
+              totalLegalNatures={legalNatures.totalCount}
+              activeLegalNatures={legalNatures.activeCount}
+              inactiveLegalNatures={legalNatures.inactiveCount}
+            />
+            <div className="flex items-end self-stretch">
+              <Button asChild className="shrink-0">
+                <Link href="/portal/legalNatures/0">
+                  <Plus className="h-4 w-4" />
+                  Nova Natureza Jurídica
+                </Link>
+              </Button>
             </div>
-            <Button asChild className="shrink-0">
-              <Link href="/portal/legalNatures/0">
-                <Plus className="h-4 w-4" />
-                Nova Natureza Jurídica
-              </Link>
-            </Button>
           </div>
 
           <LegalNaturelist LegalNatures={legalNatures} />
+
           {totalRecords > 0 && (
             <PaginationRecords
               totalRecords={totalRecords}

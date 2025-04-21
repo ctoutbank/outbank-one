@@ -1,11 +1,16 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 type ReportsFilterContentProps = {
   searchIn?: string;
@@ -74,67 +79,82 @@ export function ReportsFilterContent({
     { code: "MR", name: "Mês Anterior" },
   ];
 
-  // Definir cores para cada tipo de filtro
-  const typeColors: Record<string, string> = {
-    VN: "bg-amber-500 hover:bg-amber-600",
-    AL: "bg-blue-500 hover:bg-blue-600",
+  // Função para lidar com a alteração do tipo
+  const handleTypeChange = (value: string) => {
+    setType(value === "all" ? "" : value);
   };
 
-  const formatColors: Record<string, string> = {
-    PDF: "bg-red-500 hover:bg-red-600",
-    EX: "bg-green-500 hover:bg-green-600",
-    CSV: "bg-blue-500 hover:bg-blue-600",
-    TXT: "bg-gray-500 hover:bg-gray-600",
+  // Função para lidar com a alteração do formato
+  const handleFormatChange = (value: string) => {
+    setFormat(value === "all" ? "" : value);
   };
 
-  const recurrenceColors: Record<string, string> = {
-    DIA: "bg-blue-500 hover:bg-blue-600",
-    SEM: "bg-purple-500 hover:bg-purple-600",
-    MES: "bg-emerald-500 hover:bg-emerald-600",
+  // Função para lidar com a alteração da recorrência
+  const handleRecurrenceChange = (value: string) => {
+    setRecurrence(value === "all" ? "" : value);
   };
 
-  const periodColors: Record<string, string> = {
-    DT: "bg-yellow-500 hover:bg-yellow-600",
-    DA: "bg-cyan-500 hover:bg-cyan-600",
-    SA: "bg-orange-500 hover:bg-orange-600",
-    SR: "bg-teal-500 hover:bg-teal-600",
-    MA: "bg-indigo-500 hover:bg-indigo-600",
-    MR: "bg-pink-500 hover:bg-pink-600",
+  // Função para lidar com a alteração do período
+  const handlePeriodChange = (value: string) => {
+    setPeriod(value === "all" ? "" : value);
   };
 
-  const getColorForType = (code: string) =>
-    typeColors[code] || "bg-gray-500 hover:bg-gray-600";
-  const getColorForFormat = (code: string) =>
-    formatColors[code] || "bg-gray-500 hover:bg-gray-600";
-  const getColorForRecurrence = (code: string) =>
-    recurrenceColors[code] || "bg-gray-500 hover:bg-gray-600";
-  const getColorForPeriod = (code: string) =>
-    periodColors[code] || "bg-gray-500 hover:bg-gray-600";
+  // Função para aplicar os filtros e fechar o modal
+  const applyFilters = () => {
+    onFilter({
+      search,
+      type,
+      format,
+      recurrence,
+      period,
+      email,
+      creationDate,
+    });
+    onClose();
+  };
+
+  // Handler para a tecla Enter
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Título do Relatório</h3>
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md w-[900px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <div className="text-xs font-medium mb-1.5">Título do Relatório</div>
           <Input
             placeholder="Título do relatório"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="h-9"
           />
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Email</h3>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Email</div>
           <Input
             placeholder="Email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="h-9"
           />
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Criação</h3>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Data de Criação</div>
           <Input
             type="date"
             value={creationDate ? creationDate.toISOString().split("T")[0] : ""}
@@ -143,115 +163,88 @@ export function ReportsFilterContent({
                 e.target.value ? new Date(e.target.value) : undefined
               )
             }
+            onKeyDown={handleKeyDown}
+            className="h-9"
           />
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium ml-2">Tipo de Relatório</h3>
-          <div className="flex flex-wrap gap-2">
-            {types.map((t) => (
-              <Badge
-                key={t.code}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-auto px-3 py-1 select-none text-sm",
-                  type === t.code ? getColorForType(t.code) : "bg-secondary",
-                  type === t.code ? "text-white" : "text-secondary-foreground"
-                )}
-                onClick={() => setType(type === t.code ? "" : t.code)}
-              >
-                {t.name}
-              </Badge>
-            ))}
-          </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Tipo de Relatório</div>
+          <Select value={type || "all"} onValueChange={handleTypeChange}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione o tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {types.map((t) => (
+                <SelectItem key={t.code} value={t.code}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-2 ml-2">
-          <h3 className="text-sm font-medium ml-2">Formato</h3>
-          <div className="flex flex-wrap gap-2">
-            {formats.map((f) => (
-              <Badge
-                key={f.code}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-auto px-3 py-1 select-none text-sm",
-                  format === f.code
-                    ? getColorForFormat(f.code)
-                    : "bg-secondary",
-                  format === f.code ? "text-white" : "text-secondary-foreground"
-                )}
-                onClick={() => setFormat(format === f.code ? "" : f.code)}
-              >
-                {f.name}
-              </Badge>
-            ))}
-          </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Formato</div>
+          <Select value={format || "all"} onValueChange={handleFormatChange}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione o formato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {formats.map((f) => (
+                <SelectItem key={f.code} value={f.code}>
+                  {f.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-2 ml-2">
-          <h3 className="text-sm font-medium ml-2">Recorrência</h3>
-          <div className="flex flex-wrap gap-2">
-            {recorrences.map((r) => (
-              <Badge
-                key={r.code}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-auto px-3 py-1 select-none text-sm",
-                  recurrence === r.code
-                    ? getColorForRecurrence(r.code)
-                    : "bg-secondary",
-                  recurrence === r.code
-                    ? "text-white"
-                    : "text-secondary-foreground"
-                )}
-                onClick={() =>
-                  setRecurrence(recurrence === r.code ? "" : r.code)
-                }
-              >
-                {r.name}
-              </Badge>
-            ))}
-          </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Recorrência</div>
+          <Select
+            value={recurrence || "all"}
+            onValueChange={handleRecurrenceChange}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione a recorrência" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {recorrences.map((r) => (
+                <SelectItem key={r.code} value={r.code}>
+                  {r.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-2 ">
-          <h3 className="text-sm font-medium ml-2">Período</h3>
-          <div className="flex flex-wrap gap-2">
-            {periods.map((p) => (
-              <Badge
-                key={p.code}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-auto px-3 py-1 select-none text-sm",
-                  period === p.code
-                    ? getColorForPeriod(p.code)
-                    : "bg-secondary",
-                  period === p.code ? "text-white" : "text-secondary-foreground"
-                )}
-                onClick={() => setPeriod(period === p.code ? "" : p.code)}
-              >
-                {p.name}
-              </Badge>
-            ))}
-          </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Período</div>
+          <Select value={period || "all"} onValueChange={handlePeriodChange}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {periods.map((p) => (
+                <SelectItem key={p.code} value={p.code}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
         <Button
-          onClick={() => {
-            onFilter({
-              search,
-              type,
-              format,
-              recurrence,
-              period,
-              email,
-              creationDate,
-            });
-            onClose();
-          }}
+          onClick={applyFilters}
           className="flex items-center gap-2"
+          size="sm"
         >
           <Search className="h-4 w-4" />
           Filtrar

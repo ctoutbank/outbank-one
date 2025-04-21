@@ -144,13 +144,32 @@ export default function MerchantDisplay({
                   />
                   <InfoItem
                     label="Dias de Funcionamento"
-                    value={merchant.openingDays}
+                    value={
+                      merchant.openingDays
+                        ? merchant.openingDays
+                            .split("")
+                            .map((day, index) => {
+                              const dias = [
+                                "Dom",
+                                "Seg",
+                                "Ter",
+                                "Qua",
+                                "Qui",
+                                "Sex",
+                                "Sáb",
+                              ];
+                              return day === "1" ? dias[index] : null;
+                            })
+                            .filter(Boolean)
+                            .join(", ")
+                        : "-"
+                    }
                   />
                   <InfoItem
                     label="Horário de Funcionamento"
                     value={
                       merchant.openingHour && merchant.closingHour
-                        ? `${merchant.openingHour} - ${merchant.closingHour}`
+                        ? `Das ${merchant.openingHour} As ${merchant.closingHour}`
                         : "-"
                     }
                   />
@@ -225,11 +244,11 @@ export default function MerchantDisplay({
                     value={formatDate(Contacts?.contacts?.birthDate)}
                   />
                   <InfoItem
-                    label="É sócio?"
+                    label="Sócio ou Proprietário"
                     value={Contacts?.contacts?.isPartnerContact ? "Sim" : "Não"}
                   />
                   <InfoItem
-                    label="É PEP?"
+                    label="PEP"
                     value={Contacts?.contacts?.isPep ? "Sim" : "Não"}
                   />
 
@@ -344,18 +363,27 @@ export default function MerchantDisplay({
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <InfoItem
-                    label="Possui Tef"
+                    label="Terminal TEF"
                     value={merchant.hasTef ? "Sim" : "Não"}
                   />
                   <InfoItem
-                    label="Possui Top"
+                    label="Terminal Tap On Phone"
                     value={merchant.hasTop ? "Sim" : "Não"}
                   />
                   <InfoItem
-                    label="Possui Pix"
+                    label="Pix"
                     value={merchant.hasPix ? "Sim" : "Não"}
                   />
-                  <InfoItem label="Timezone" value={merchant.timezone} />
+                  <InfoItem
+                    label="Timezone"
+                    value={
+                      merchant.timezone
+                        ? merchant.timezone === "-0300"
+                          ? "(UTC-03:00) Brasilia"
+                          : merchant.timezone
+                        : "-"
+                    }
+                  />
 
                   <div className="col-span-2 mt-2">
                     <p className="font-medium mb-1 text-sm">Configurações</p>
@@ -365,44 +393,56 @@ export default function MerchantDisplay({
                         value={configurations?.configurations?.url}
                       />
                       <InfoItem
-                        label="Bloquear Antecipação CP"
+                        label="Bloqueio da Antecipação CP"
                         value={
                           configurations?.configurations
                             ?.lockCpAnticipationOrder
-                            ? "Sim"
-                            : "Não"
+                            ? "Ativo"
+                            : "Bloqueado"
                         }
                       />
                       <InfoItem
-                        label="Bloquear Antecipação CNP"
+                        label="Bloqueio da Antecipação CNP"
                         value={
                           configurations?.configurations
                             ?.lockCnpAnticipationOrder
-                            ? "Sim"
-                            : "Não"
+                            ? "Ativo"
+                            : "Bloqueado"
                         }
                       />
                       <InfoItem
-                        label="Fator de Risco Antecipação CP"
+                        label="Valor Cartão Presente antecipável"
                         value={
                           configurations?.configurations
                             ?.anticipationRiskFactorCp
+                            ? `${configurations?.configurations?.anticipationRiskFactorCp}%`
+                            : "-"
                         }
                       />
                       <InfoItem
-                        label="Fator de Risco Antecipação CNP"
+                        label="Valor Cartão Presente antecipável"
                         value={
                           configurations?.configurations
                             ?.anticipationRiskFactorCnp
+                            ? `${configurations?.configurations?.anticipationRiskFactorCnp}%`
+                            : "-"
                         }
                       />
                       <InfoItem
-                        label="Período de Espera CP"
-                        value={configurations?.configurations?.waitingPeriodCp}
+                        label="Carência de Antecipação Cartão Presente"
+                        value={
+                          configurations?.configurations?.waitingPeriodCp
+                            ? `${configurations?.configurations?.waitingPeriodCp} dias`
+                            : "-"
+                        }
                       />
                       <InfoItem
-                        label="Período de Espera CNP"
-                        value={configurations?.configurations?.waitingPeriodCnp}
+                        label="Carência de Antecipação Cartão Presente"
+                        value={
+                          configurations?.configurations?.waitingPeriodCnp
+                            ? `${configurations?.configurations?.waitingPeriodCnp} dias`
+                            : "-"
+                        }
                       />
                     </div>
                   </div>

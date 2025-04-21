@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 type TerminalsFilterContentProps = {
   dateFromIn?: Date;
@@ -70,8 +70,35 @@ export function TerminalsFilterContent({
     },
   ];
 
+  const applyFilters = () => {
+    onFilter({
+      dateFrom,
+      dateTo,
+      numeroLogico,
+      numeroSerial,
+      estabelecimento,
+      modelo,
+      status,
+      provedor,
+    });
+    onClose();
+  };
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
+
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-[999] w-[1100px]">
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-[999] w-[1100px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Número Lógico</h3>
@@ -79,6 +106,7 @@ export function TerminalsFilterContent({
             placeholder="Número lógico"
             value={numeroLogico}
             onChange={(e) => setNumeroLogico(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -88,6 +116,7 @@ export function TerminalsFilterContent({
             placeholder="Número serial"
             value={numeroSerial}
             onChange={(e) => setNumeroSerial(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <div className="space-y-2">
@@ -96,6 +125,7 @@ export function TerminalsFilterContent({
             placeholder="Provedor"
             value={provedor}
             onChange={(e) => setProvedor(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -105,6 +135,7 @@ export function TerminalsFilterContent({
             placeholder="Estabelecimento"
             value={estabelecimento}
             onChange={(e) => setEstabelecimento(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -114,6 +145,7 @@ export function TerminalsFilterContent({
             placeholder="Modelo"
             value={modelo}
             onChange={(e) => setModelo(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -146,6 +178,7 @@ export function TerminalsFilterContent({
             onChange={(e) =>
               setDateFrom(e.target.value ? new Date(e.target.value) : undefined)
             }
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -157,27 +190,13 @@ export function TerminalsFilterContent({
             onChange={(e) =>
               setDateTo(e.target.value ? new Date(e.target.value) : undefined)
             }
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button
-          onClick={() => {
-            onFilter({
-              dateFrom,
-              dateTo,
-              numeroLogico,
-              numeroSerial,
-              estabelecimento,
-              modelo,
-              status,
-              provedor,
-            });
-            onClose();
-          }}
-          className="flex items-center gap-2"
-        >
+        <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar
         </Button>

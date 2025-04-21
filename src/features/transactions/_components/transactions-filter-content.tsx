@@ -11,7 +11,7 @@ import {
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 type FilterTransactionsContentProps = {
   statusIn?: string;
@@ -114,8 +114,21 @@ export function FilterTransactionsContent({
     onClose();
   };
 
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmitFilter();
+    }
+  };
+
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1400px]">
+    <div
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1400px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Primeira linha - Status, Bandeira, Tipo de Pagamento, Processamento */}
         <div className="space-y-2">
@@ -185,6 +198,7 @@ export function FilterTransactionsContent({
             placeholder="Nome do estabelecimento"
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -194,6 +208,7 @@ export function FilterTransactionsContent({
             placeholder="Número do terminal"
             value={terminal}
             onChange={(e) => setTerminal(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -203,6 +218,7 @@ export function FilterTransactionsContent({
             placeholder="Número de Sequência Único"
             value={nsu}
             onChange={(e) => setNsu(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -213,6 +229,7 @@ export function FilterTransactionsContent({
             type="datetime-local"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -222,6 +239,7 @@ export function FilterTransactionsContent({
             type="datetime-local"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -233,12 +251,14 @@ export function FilterTransactionsContent({
               type="number"
               value={valueMin}
               onChange={(e) => setValueMin(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
             <Input
               placeholder="Máximo"
               type="number"
               value={valueMax}
               onChange={(e) => setValueMax(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
         </div>

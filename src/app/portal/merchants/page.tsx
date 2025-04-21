@@ -3,7 +3,6 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
-import { MerchantDashboardButton } from "@/features/merchant/_components/merchant-dashboard-button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
@@ -102,7 +101,6 @@ export default async function MerchantsPage({
         breadcrumbItems={[
           { title: "Estabelecimentos", url: "/portal/merchants" },
         ]}
-       
       />
 
       <BaseBody
@@ -111,65 +109,62 @@ export default async function MerchantsPage({
         actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-4">
-          
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <MerchantFilter
-                establishmentIn={searchParams.establishment}
-                statusIn={searchParams.status}
-                stateIn={searchParams.state}
-              />
-              <MerchantDashboardButton>
-                <div className="-ml-28">
-                  <MerchantDashboardContent {...merchantData} />
-                </div>
-              </MerchantDashboardButton>
-            </div>
+          <div className="mb-1">
+            <MerchantFilter
+              establishmentIn={searchParams.establishment}
+              statusIn={searchParams.status}
+              stateIn={searchParams.state}
+            />
+          </div>
 
-            <div className="flex items-center gap-2 justify-end">
-              <ExcelImportButton />
-              <ExcelExport
-                data={merchantsExcel.merchants.map((merchant) => ({
-                  "Nome Fantasia": merchant.name,
-                  "Razão Social": merchant.corporate_name,
-                  "CNPJ/CPF": merchant.cnpj,
-                  Email: merchant.email,
-                  Telefone: "(" + merchant.areaCode + ") " + merchant.number,
-                  "Cadastrado Em": merchant.dtinsert,
-                  "Tabela de Preços": merchant.priceTable,
-                  Captura:
-                    merchant.lockCpAnticipationOrder &&
-                    merchant.lockCnpAnticipationOrder
-                      ? "Ambos"
-                      : merchant.lockCpAnticipationOrder
-                      ? "CP - Cartão Presente"
-                      : merchant.lockCnpAnticipationOrder
-                      ? "CNP - Cartão Não Presente"
-                      : "N/A",
-                  PIX: merchant.hasPix ? "Sim" : "Não",
-                  "Consultor de Vendas": merchant.salesAgentDocument,
-                  "Status KYC": merchant.kic_status,
-                  Ativo: merchant.active ? "Sim" : "Não",
-                  "Data Descredenciamento": merchant.dtdelete,
-                  Cidade: merchant.city,
-                  Estado: merchant.state,
-                  "Natureza Legal": merchant.legalNature,
-                  MCC: merchant.MCC,
-                  CNAE: merchant.CNAE,
-                  "Usuário Cadastro": merchant.Inclusion,
-                  "Data Ativação": merchant.dtupdate,
-                }))}
-                globalStyles={globalStyles}
-                sheetName="Estabelecimentos"
-                fileName={`ESTABELECIMENTOS-${new Date().toLocaleDateString()}`}
-                onClick={undefined}
-              />
-              <Button asChild className="shrink-0">
-                <Link href="/portal/merchants/0">
-                  <Plus className="h-4 w-4" />
-                  Novo Estabelecimento
-                </Link>
-              </Button>
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <MerchantDashboardContent {...merchantData} />
+            <div className="flex items-end self-stretch">
+              <div className="flex items-center gap-2">
+                <ExcelImportButton />
+                <ExcelExport
+                  data={merchantsExcel.merchants.map((merchant) => ({
+                    "Nome Fantasia": merchant.name,
+                    "Razão Social": merchant.corporate_name,
+                    "CNPJ/CPF": merchant.cnpj,
+                    Email: merchant.email,
+                    Telefone: "(" + merchant.areaCode + ") " + merchant.number,
+                    "Cadastrado Em": merchant.dtinsert,
+                    "Tabela de Preços": merchant.priceTable,
+                    Captura:
+                      merchant.lockCpAnticipationOrder &&
+                      merchant.lockCnpAnticipationOrder
+                        ? "Ambos"
+                        : merchant.lockCpAnticipationOrder
+                        ? "CP - Cartão Presente"
+                        : merchant.lockCnpAnticipationOrder
+                        ? "CNP - Cartão Não Presente"
+                        : "N/A",
+                    PIX: merchant.hasPix ? "Sim" : "Não",
+                    "Consultor de Vendas": merchant.salesAgentDocument,
+                    "Status KYC": merchant.kic_status,
+                    Ativo: merchant.active ? "Sim" : "Não",
+                    "Data Descredenciamento": merchant.dtdelete,
+                    Cidade: merchant.city,
+                    Estado: merchant.state,
+                    "Natureza Legal": merchant.legalNature,
+                    MCC: merchant.MCC,
+                    CNAE: merchant.CNAE,
+                    "Usuário Cadastro": merchant.Inclusion,
+                    "Data Ativação": merchant.dtupdate,
+                  }))}
+                  globalStyles={globalStyles}
+                  sheetName="Estabelecimentos"
+                  fileName={`ESTABELECIMENTOS-${new Date().toLocaleDateString()}`}
+                  onClick={undefined}
+                />
+                <Button asChild className="shrink-0">
+                  <Link href="/portal/merchants/0">
+                    <Plus className="h-4 w-4" />
+                    Novo Estabelecimento
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
 

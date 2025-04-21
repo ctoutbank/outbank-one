@@ -2,12 +2,14 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import PaginationRecords from "@/components/pagination-Records";
-import { CategoriesDashboardButton } from "@/features/categories/_components/categories-dashboard-button";
+import { Button } from "@/components/ui/button";
 import { CategoriesDashboardContent } from "@/features/categories/_components/categories-dashboard-content";
 import { CategoriesFilter } from "@/features/categories/_components/categories-filter";
 import { getCategories } from "@/features/categories/server/category";
-import Categorylist from "../../../features/categories/_components/categories-list";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import Categorylist from "../../../features/categories/_components/categories-list";
 
 export const revalidate = 0;
 
@@ -52,56 +54,59 @@ export default async function CategoriesPage({
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Categorias", url: "/portal/categories" }]}
+        breadcrumbItems={[{ title: "CNAE", url: "/portal/categories" }]}
       />
 
-      <BaseBody
-        title="Categorias"
-        subtitle={`visualização de todos os Categorias`}
-      >
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-start gap-4 flex-1">
+      <BaseBody title="CNAE" subtitle={`visualização de todos os CNAE`}>
+        <div className="flex flex-col space-y-4">
+          <div className="mb-1">
             <CategoriesFilter
               nameIn={searchParams.name}
               statusIn={searchParams.status}
               mccIn={searchParams.mcc}
               cnaeIn={searchParams.cnae}
             />
-
-            <CategoriesDashboardButton>
-              <div className="-ml-28">
-                <CategoriesDashboardContent
-                  totalCategories={totalRecords}
-                  activeCategories={categories.activeCount}
-                  inactiveCategories={categories.inactiveCount}
-                  avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
-                  avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
-                  avgAnticipationRiskFactorCp={
-                    categories.avgAnticipationRiskFactorCp
-                  }
-                  avgAnticipationRiskFactorCnp={
-                    categories.avgAnticipationRiskFactorCnp
-                  }
-                />
-              </div>
-            </CategoriesDashboardButton>
           </div>
-        </div>
 
-        <Categorylist
-          Categories={categories}
-          sortField={sortField}
-          sortOrder={sortOrder}
-        />
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <CategoriesDashboardContent
+              totalCategories={totalRecords}
+              activeCategories={categories.activeCount}
+              inactiveCategories={categories.inactiveCount}
+              avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
+              avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
+              avgAnticipationRiskFactorCp={
+                categories.avgAnticipationRiskFactorCp
+              }
+              avgAnticipationRiskFactorCnp={
+                categories.avgAnticipationRiskFactorCnp
+              }
+            />
+            <div className="flex items-end self-stretch">
+              <Button asChild className="shrink-0">
+                <Link href="/portal/categories/0">
+                  <Plus className="h-4 w-4" />
+                  Novo CNAE
+                </Link>
+              </Button>
+            </div>
+          </div>
 
-        {totalRecords > 0 && (
-          <PaginationRecords
-            totalRecords={totalRecords}
-            currentPage={page}
-            pageSize={pageSize}
-            pageName="portal/categories"
+          <Categorylist
+            Categories={categories}
+            sortField={sortField}
+            sortOrder={sortOrder}
           />
-        )}
+
+          {totalRecords > 0 && (
+            <PaginationRecords
+              totalRecords={totalRecords}
+              currentPage={page}
+              pageSize={pageSize}
+              pageName="portal/categories"
+            />
+          )}
+        </div>
       </BaseBody>
     </>
   );

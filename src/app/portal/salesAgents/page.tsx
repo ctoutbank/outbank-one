@@ -54,7 +54,7 @@ export default async function SalesAgentsPage({
         subtitle={`Visualização de todos os Consultores`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="mb-4">
+          <div className="mb-1">
             <SalesAgentsFilter
               dateFromIn={searchParams.dateFrom}
               dateToIn={searchParams.dateTo}

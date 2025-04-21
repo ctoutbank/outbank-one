@@ -1,9 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { CategoryList } from "../server/category";
 
 interface CategorylistProps {
@@ -12,19 +19,21 @@ interface CategorylistProps {
   sortOrder: "asc" | "desc";
 }
 
-export default function Categorylist({ Categories, sortField, sortOrder }: CategorylistProps) {
+export default function Categorylist({
+  Categories,
+  sortField,
+  sortOrder,
+}: CategorylistProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const handleSort = (field: string) => {
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+
     if (field === sortField) {
-      
-      params.set('sortOrder', sortOrder === 'asc' ? 'desc' : 'asc');
+      params.set("sortOrder", sortOrder === "asc" ? "desc" : "asc");
     } else {
-      
-      params.set('sortField', field);
-      params.set('sortOrder', 'asc');
+      params.set("sortField", field);
+      params.set("sortOrder", "asc");
     }
 
     router.push(`/portal/categories?${params.toString()}`);
@@ -32,36 +41,25 @@ export default function Categorylist({ Categories, sortField, sortOrder }: Categ
 
   return (
     <div>
-   
-    
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>
-                <button 
-                  onClick={() => handleSort('name')}
+                <button
+                  onClick={() => handleSort("name")}
                   className="flex items-center gap-1"
                 >
-                  Nome
-                  {sortField === 'name' && (
-                    <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                  CNAE
+                  {sortField === "name" && (
+                    <span>{sortOrder === "asc" ? "↑" : "↓"}</span>
                   )}
                 </button>
               </TableHead>
-              <TableHead>
-               
-                  Mcc
-                  
-              </TableHead>
-              <TableHead>
-                
-                  Cnae
-                  
-              </TableHead>
-              <TableHead>
-               Ativo
-              </TableHead>
+              <TableHead>MCC</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Ativo</TableHead>
+              <TableHead>Valor Cartão Presente antecipável(%) </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,20 +71,21 @@ export default function Categorylist({ Categories, sortField, sortOrder }: Categ
                     href="/portal/caterogies/[id]"
                     as={`/portal/categories/${categories.id}`}
                   >
-                    {categories.name}      
-                  </Link>            
+                    {categories.cnae}
+                  </Link>
                 </TableCell>
-                <TableCell>
-                  {categories.mcc}
-                </TableCell>
-                <TableCell>
-                  {categories.cnae}
-                </TableCell>
+                <TableCell>{categories.mcc}</TableCell>
+                <TableCell>{categories.name}</TableCell>
                 <TableCell>
                   {" "}
-                  <Badge variant={categories.active ? "success" : "destructive"}>
+                  <Badge
+                    variant={categories.active ? "success" : "destructive"}
+                  >
                     {categories.active ? "ATIVO" : "INATIVO"}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  {categories.anticipation_risk_factor_cnp}%
                 </TableCell>
               </TableRow>
             ))}

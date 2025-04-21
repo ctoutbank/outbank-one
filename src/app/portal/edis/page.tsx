@@ -2,13 +2,12 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import { EdisDashboardButton } from "@/features/edis/_components/edis-dashboard-button";
 import { EdisDashboardContent } from "@/features/edis/_components/edis-dashboard-content";
 import { EdisFilter } from "@/features/edis/_components/edis-filter";
+import EdisList from "@/features/edis/_components/edis-list";
 import { getEdis } from "@/features/edis/server/edis";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import EdisList from "@/features/edis/_components/edis-list";
 
 type EdisProps = {
   page?: string;
@@ -60,25 +59,24 @@ export default async function EdisPage({
         subtitle={`Visualização de todos os arquivos EDIS`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <EdisFilter
-                typeIn={searchParams.type}
-                statusIn={searchParams.status}
-                dateIn={searchParams.date}
-              />
-              <EdisDashboardButton>
-                <div className="-ml-28">
-                  <EdisDashboardContent {...edisData} />
-                </div>
-              </EdisDashboardButton>
+          <div className="mb-1">
+            <EdisFilter
+              typeIn={searchParams.type}
+              statusIn={searchParams.status}
+              dateIn={searchParams.date}
+            />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <EdisDashboardContent {...edisData} />
+            <div className="flex items-end self-stretch">
+              <Button asChild className="shrink-0">
+                <Link href="/portal/edis/new">
+                  <Plus className="h-4 w-4" />
+                  Novo Arquivo EDIS
+                </Link>
+              </Button>
             </div>
-            <Button asChild className="shrink-0">
-              <Link href="/portal/edis/new">
-                <Plus className="h-4 w-4" />
-                Novo Arquivo EDIS
-              </Link>
-            </Button>
           </div>
 
           <EdisList list={edis} />
