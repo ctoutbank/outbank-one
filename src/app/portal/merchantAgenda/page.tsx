@@ -1,10 +1,11 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
-import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import PaginationRecords from "@/components/pagination-Records";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdjustmentsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-adjustments-filter";
+import MerchantAgendaAdjustmentList from "@/features/merchantAgenda/_components/merchantAgenda-adjustments-list";
 import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-filter";
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
 import { MerchantAgendaDashboardButton } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-button";
@@ -15,10 +16,10 @@ import {
   getMerchantAgenda,
   getMerchantAgendaExcelData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
+import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
 import { getMerchantAgendaAnticipation } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
-import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -123,6 +124,16 @@ export default async function MerchantAgendaPage({
     dateTo
   );
   const totalRecordsAntecipations = merchantAgendaAnticipation.totalCount;
+
+  const merchantAgendaAdjustment = await getMerchantAgendaAdjustment(
+    search,
+    page,
+    pageSize,
+    dateFrom,
+    dateTo,
+    establishmentIn
+  );
+  const totalRecordsAdjustments = merchantAgendaAdjustment.totalCount;
 
   return (
     <>
@@ -300,11 +311,46 @@ export default async function MerchantAgendaPage({
             </div>
           </TabsContent>
           <TabsContent value="adjustment" className="mt-6">
-            <EmptyState
-              icon={Search}
-              title={"Nenhum resultado encontrado"}
-              description={""}
-            />
+            <div className="flex flex-col space-y-4 mt-2">
+              <div className="flex items-center justify-between gap-4 relative z-50">
+                <div className="flex items-start gap-4 flex-1">
+                  <AdjustmentsListFilter
+                    dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+                    dateToIn={dateTo ? new Date(dateTo) : undefined}
+                    establishmentIn={establishmentIn}
+                  />
+                </div>
+                <ExcelExport
+                  data={merchantAgendaAdjustment.merchantAgendaAdjustments.map(
+                    (data) => ({
+                      Merchant: data.merchantName,
+                      PaymentDate: data.paymentDate,
+                      Amount: data.amount,
+                      Type: data.type,
+                      Title: data.title,
+                      Reason: data.reason,
+                      AdjustmentType: data.adjustmentType,
+                    })
+                  )}
+                  globalStyles={globalStyles}
+                  sheetName="Conciliação de ajustes"
+                  fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}`}
+                />
+              </div>
+              <div className="w-full overflow-x-auto">
+                <MerchantAgendaAdjustmentList
+                  merchantAgendaAdjustmentList={merchantAgendaAdjustment}
+                />
+              </div>
+              {totalRecordsAdjustments > 0 && (
+                <PaginationRecords
+                  totalRecords={totalRecordsAdjustments}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  pageName="portal/merchantAgenda"
+                />
+              )}
+            </div>
           </TabsContent>
         </TabChangeHandler>
       </BaseBody>

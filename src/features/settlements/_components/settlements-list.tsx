@@ -34,6 +34,7 @@ const getCardImage = (cardName: string): string => {
     ELO: "/elo.svg",
     AMERICAN_EXPRESS: "/american-express.svg",
     HIPERCARD: "/hipercard.svg",
+    AMEX: "/american-express.svg",
   };
   return cardMap[cardName] || "";
 };

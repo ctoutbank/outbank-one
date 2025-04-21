@@ -1,6 +1,7 @@
 "use server";
 
 import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { getEndOfDay, getStartOfDay } from "@/lib/datetime-utils";
 import {
   brandList,
   transactionProductTypeList,
@@ -162,22 +163,7 @@ export async function getMerchantAgenda(
     };
   }
 
-  const maxExpectedSettlementDate = await db
-    .select({
-      maxExpectedSettlementDate: max(payout.expectedSettlementDate),
-    })
-    .from(payout);
-
-  const maxDate =
-    maxExpectedSettlementDate[0]?.maxExpectedSettlementDate || new Date(0);
-
-  const conditions = [
-    eq(
-      payout.expectedSettlementDate,
-      typeof maxDate == "string" ? maxDate : maxDate.toISOString()
-    ),
-    or(ilike(merchants.name, `%${search}%`)),
-  ];
+  const conditions = [];
 
   // Add merchant access filter if user doesn't have full access
   if (!userAccess.fullAccess) {
@@ -210,10 +196,14 @@ export async function getMerchantAgenda(
 
   if (settlementDateFrom) {
     conditions.push(gte(payout.settlementDate, settlementDateFrom));
+  } else {
+    conditions.push(eq(payout.settlementDate, getStartOfDay()));
   }
 
   if (settlementDateTo) {
     conditions.push(lte(payout.settlementDate, settlementDateTo));
+  } else {
+    conditions.push(eq(payout.settlementDate, getEndOfDay()));
   }
 
   if (expectedSettlementDateFrom) {
@@ -604,26 +594,38 @@ export async function getGlobalSettlement(
   }, {} as Record<string, string>);
 
   const query = `
-    WITH payout_filtered AS (
-      SELECT *
-      FROM payout
+    WITH merchant_settlement_adjustments AS (
+      SELECT 
+        mso.settlement_unique_number,
+        SUM(COALESCE(s.total_credit_adjustment_amount, 0) - COALESCE(s.total_debit_adjustment_amount, 0)) as adjustment_amount
+      FROM merchant_settlement_orders mso
+      JOIN merchant_settlements ms ON ms.id = mso.id_merchant_settlements
+      JOIN settlements s ON s.id = ms.id_settlement
+      GROUP BY mso.settlement_unique_number
+    ),
+    payout_filtered AS (
+      SELECT 
+        p.*,
+        COALESCE(msa.adjustment_amount, 0) as adjustment_amount
+      FROM payout p
+      LEFT JOIN merchant_settlement_adjustments msa ON p.settlement_unique_number = msa.settlement_unique_number
       WHERE (
-        (settlement_date IS NOT NULL AND DATE(settlement_date) = DATE('${date}'))
+        (p.settlement_date IS NOT NULL AND DATE(p.settlement_date) = DATE('${date}'))
         OR
-        (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
+        (p.settlement_date IS NULL AND DATE(p.expected_settlement_date) = DATE('${date}'))
       ) 
-      AND status not in ('CANCELLED')
+      AND p.status not in ('CANCELLED')
     ),
     global_total AS (
       SELECT 
-        SUM(settlement_amount) AS global_settlement_total,
+        SUM(settlement_amount + COALESCE(adjustment_amount, 0)) AS global_settlement_total,
         SUM(installment_amount) AS global_gross_total
       FROM payout_filtered
     ),
     merchant_totals AS (
       SELECT 
         id_merchant, 
-        SUM(settlement_amount) AS merchant_total,
+        SUM(settlement_amount + COALESCE(adjustment_amount, 0)) AS merchant_total,
         SUM(installment_amount) AS merchant_gross_total,
         CASE 
           WHEN COUNT(*) FILTER (WHERE status LIKE '%SETTLED%') > 0 THEN 'SETTLED'
@@ -636,7 +638,7 @@ export async function getGlobalSettlement(
       SELECT 
         id_merchant, 
         product_type, 
-        SUM(settlement_amount) AS product_settlement_total,
+        SUM(settlement_amount + COALESCE(adjustment_amount, 0)) AS product_settlement_total,
         SUM(installment_amount) AS product_gross_total
       FROM payout_filtered
       GROUP BY id_merchant, product_type
@@ -656,7 +658,7 @@ export async function getGlobalSettlement(
         id_merchant, 
         product_type, 
         installments,
-        SUM(settlement_amount) AS installment_settlement_total,
+        SUM(settlement_amount + COALESCE(adjustment_amount, 0)) AS installment_settlement_total,
         SUM(installment_amount) AS installment_gross_total
       FROM payout_filtered
       GROUP BY id_merchant, product_type, installments
@@ -677,7 +679,7 @@ export async function getGlobalSettlement(
         id_merchant, 
         product_type, 
         brand, 
-        SUM(settlement_amount) AS brand_settlement_total,
+        SUM(settlement_amount + COALESCE(adjustment_amount, 0)) AS brand_settlement_total,
         SUM(installment_amount) AS brand_gross_total
       FROM payout_filtered
       GROUP BY id_merchant, product_type, brand

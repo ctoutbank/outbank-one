@@ -20,14 +20,14 @@ import {
 import { formatCurrency, formatDate } from "@/lib/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Info } from "lucide-react";
-import { AnticipationList } from "../server/anticipation";
+import { EventualAnticipationList } from "../server/anticipation";
 
 const PopoverClose = PopoverPrimitive.Close;
 
-export default function AnticipationListComponent({
+export default function EventualAnticipationListComponent({
   anticipations,
 }: {
-  anticipations: AnticipationList;
+  anticipations: EventualAnticipationList;
 }) {
   const getStatusBadgeVariant = (status: string | null) => {
     if (!status) return "secondary";
@@ -45,6 +45,7 @@ export default function AnticipationListComponent({
     }
     return "secondary";
   };
+
   return (
     <div>
       <div className="border rounded-lg">
@@ -53,17 +54,22 @@ export default function AnticipationListComponent({
             <TableRow>
               <TableHead>Data de Solicitação</TableHead>
               <TableHead>Tipo</TableHead>
+              <TableHead>Previsão de Liquidação</TableHead>
               <TableHead>Estabelecimento</TableHead>
-              <TableHead>Total a Antecipar</TableHead>
+              <TableHead>Total Previsto a Receber</TableHead>
+              <TableHead>Total Bloqueado</TableHead>
+              <TableHead>Total Disponível</TableHead>
+              <TableHead>Valor Solicitado</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {anticipations.anticipations.map((item) => (
-              <TableRow key={item.slug}>
+              <TableRow>
                 <TableCell>{formatDate(item.dtinsert)}</TableCell>
-                <TableCell>{item.productType}</TableCell>
+                <TableCell>{item.type}</TableCell>
+                <TableCell>{formatDate(item.expectedSettlementDate)}</TableCell>
                 <TableCell>
                   <div>
                     <span className="font-medium">{item.merchantName}</span>
@@ -74,8 +80,15 @@ export default function AnticipationListComponent({
                   </div>
                 </TableCell>
                 <TableCell>
+                  {formatCurrency(item.totalExpectedAmount)}
+                </TableCell>
+                <TableCell>{formatCurrency(item.totalBlockedAmount)}</TableCell>
+                <TableCell>
+                  {formatCurrency(item.totalAvailableAmount)}
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-2">
-                    {formatCurrency(item.amount)}
+                    {formatCurrency(item.requestedAmount)}
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button

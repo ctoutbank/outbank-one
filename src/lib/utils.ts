@@ -274,6 +274,12 @@ export function translateCardType(cardType: string): string {
       return "Débito - Pré-pago";
     case "PIX":
       return "Pix";
+    case "ANTICIPATION":
+      return "Antecipação";
+    case "PREPAID_DEBIT":
+      return "Débito - Pré-pago";
+    case "PREPAID_CREDIT":
+      return "Crédito - Pré-pago";
     default:
       return "";
   }
