@@ -73,66 +73,65 @@ export function MerchantDashboardContent({
   typeData,
 }: MerchantDashboardContentProps) {
   return (
-    <div className="space-y-4">
-      {/* Primeira linha: três gráficos lado a lado */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <div className="flex flex-wrap gap-3">
         {/* Gráfico A - Estabelecimentos Cadastrados + Histórico */}
-        <Card className="bg-white border h-[190px]">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
           <CardHeader className="p-1 pb-0">
-            <CardTitle className="text-sm font-medium">
-              Estabelecimentos Cadastrados
+            <CardTitle className="text-sm font-medium mt-1 ml-1">
+              Estabelecimentos
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2">
+          <CardContent className="p-1 px-2">
             <div className="flex flex-col space-y-1">
-              <div className="grid grid-cols-2 gap-x-5 gap-y-1">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <div className="h-2 w-2 bg-blue-500 rounded-full" />
-                    <span className="text-xs text-gray-600">Mês atual</span>
+                    <span className="text-xs text-gray-600">Mês</span>
                   </div>
-                  <div className="ml-4 text-lg font-bold">
+                  <div className="ml-3 text-sm font-bold">
                     {registrationSummary.currentMonth}
                   </div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <div className="h-2 w-2 bg-yellow-300 rounded-full" />
-                    <span className="text-xs text-gray-600">Mês passado</span>
+                    <span className="text-xs text-gray-600">Anterior</span>
                   </div>
-                  <div className="ml-4 text-lg font-bold">
+                  <div className="ml-3 text-sm font-bold">
                     {registrationSummary.previousMonth}
                   </div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <div className="h-2 w-2 bg-green-400 rounded-full" />
-                    <span className="text-xs text-gray-600">Essa semana</span>
+                    <span className="text-xs text-gray-600">Semana</span>
                   </div>
-                  <div className="ml-4 text-lg font-bold">
+                  <div className="ml-3 text-sm font-bold">
                     {registrationSummary.currentWeek}
                   </div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <div className="h-2 w-2 bg-yellow-400 rounded-full" />
                     <span className="text-xs text-gray-600">Hoje</span>
                   </div>
-                  <div className="ml-4 text-lg font-bold">
+                  <div className="ml-3 text-sm font-bold">
                     {registrationSummary.today}
                   </div>
                 </div>
               </div>
 
               {/* Gráfico de histórico em tamanho reduzido */}
-              <div className="h-[80px] mt-1">
+              <div className="h-[65px] mt-1">
                 <ChartContainer
                   config={registrationChartConfig}
                   className="h-full"
                 >
                   <AreaChart
                     data={registrationData}
-                    margin={{ top: 3, right: 3, left: 0, bottom: 3 }}
+                    margin={{ top: 2, right: 2, left: 0, bottom: 2 }}
                   >
                     <defs>
                       <linearGradient
@@ -163,9 +162,9 @@ export function MerchantDashboardContent({
                           day: "2-digit",
                         }).format(date);
                       }}
-                      tick={{ fontSize: 10 }}
+                      tick={{ fontSize: 9 }}
                     />
-                    <YAxis tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 9 }} />
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -194,22 +193,22 @@ export function MerchantDashboardContent({
         </Card>
 
         {/* Gráfico B - Transaciona/Não Transaciona */}
-        <Card className="bg-white border h-[190px]">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
           <CardHeader className="p-1 pb-0">
-            <CardTitle className="text-sm font-medium">
-              Transações de Estabelecimentos
+            <CardTitle className="text-sm font-medium mt-1 ml-1">
+              Transações
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2 flex justify-center items-center h-[165px]">
-            <div className="h-[140px] w-full">
+          <CardContent className="p-1 px-2 flex justify-center items-center h-[135px]">
+            <div className="h-[120px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={transactionData}
                     cx="50%"
-                    cy="50%"
+                    cy="55%"
                     labelLine={false}
-                    outerRadius={50}
+                    outerRadius={35}
                     fill="#8884d8"
                     dataKey="value"
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -230,14 +229,14 @@ export function MerchantDashboardContent({
                     layout="horizontal"
                     verticalAlign="bottom"
                     align="center"
-                    fontSize={10}
-                    iconSize={9}
-                    wrapperStyle={{ paddingTop: "5px" }}
+                    fontSize={9}
+                    iconSize={8}
+                    wrapperStyle={{ paddingTop: "1px" }}
                     formatter={(value) => {
                       return (
                         <span
                           style={{
-                            fontSize: "11px",
+                            fontSize: "10px",
                             color: "#666",
                             paddingLeft: "2px",
                           }}
@@ -254,22 +253,22 @@ export function MerchantDashboardContent({
         </Card>
 
         {/* Gráfico C - Compulsória/Eventual */}
-        <Card className="bg-white border h-[190px]">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
           <CardHeader className="p-1 pb-0">
-            <CardTitle className="text-sm font-medium">
-              Compulsória/Eventual
+            <CardTitle className="text-sm font-medium mt-1 ml-1">
+              Compulsória
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2 flex justify-center items-center h-[165px]">
-            <div className="h-[140px] w-full">
+          <CardContent className="p-1 px-2 flex justify-center items-center h-[125px]">
+            <div className="h-[110px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={typeData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={35}
-                    outerRadius={50}
+                    innerRadius={25}
+                    outerRadius={35}
                     fill="#8884d8"
                     dataKey="value"
                     labelLine={false}
@@ -289,14 +288,14 @@ export function MerchantDashboardContent({
                     layout="horizontal"
                     verticalAlign="bottom"
                     align="center"
-                    fontSize={10}
-                    iconSize={9}
-                    wrapperStyle={{ paddingTop: "5px" }}
+                    fontSize={9}
+                    iconSize={8}
+                    wrapperStyle={{ paddingTop: "1px" }}
                     formatter={(value) => {
                       return (
                         <span
                           style={{
-                            fontSize: "11px",
+                            fontSize: "10px",
                             color: "#666",
                             paddingLeft: "2px",
                           }}
@@ -311,31 +310,28 @@ export function MerchantDashboardContent({
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Segunda linha: cards de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Merchants Card */}
-        <Card className="bg-white border">
-          <CardContent className="p-3">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
+          <CardContent className="p-2">
             <div className="flex items-start">
-              <div className="mr-3">
+              <div className="mr-2">
                 <HomeIcon className="h-5 w-5 text-gray-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-gray-700">
-                  Total de Estabelecimentos
+                <h3 className="font-medium text-xs text-gray-700 mt-1">
+                  Total Estabelecimentos
                 </h3>
                 <div className="flex items-baseline mt-1">
-                  <span className="text-2xl font-bold">{totalMerchants}</span>
+                  <span className="text-xl font-bold">{totalMerchants}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="grid grid-cols-2 gap-1 mt-1">
                   <div>
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
                       <span className="text-xs text-gray-600">Ativos</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
+                    <span className="text-sm font-semibold block mt-1">
                       {activeMerchants}
                     </span>
                   </div>
@@ -344,7 +340,7 @@ export function MerchantDashboardContent({
                       <div className="h-2 w-2 rounded-full bg-red-500"></div>
                       <span className="text-xs text-gray-600">Inativos</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
+                    <span className="text-sm font-semibold block mt-1">
                       {inactiveMerchants}
                     </span>
                   </div>
@@ -355,46 +351,42 @@ export function MerchantDashboardContent({
         </Card>
 
         {/* KYC Status Card */}
-        <Card className="bg-white border">
-          <CardContent className="p-3">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
+          <CardContent className="p-2">
             <div className="flex items-start">
-              <div className="mr-3">
+              <div className="mr-2">
                 <FileCheck className="h-5 w-5 text-gray-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-gray-700">Status KYC</h3>
+                <h3 className="font-medium text-xs text-gray-700 mt-1">
+                  Status KYC
+                </h3>
                 <div className="flex items-baseline mt-1">
-                  <span className="text-2xl font-bold">
+                  <span className="text-xl font-bold">
                     {approvedKyc + pendingKyc + rejectedKyc}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                  <div>
+                <div className="flex flex-col mt-1 space-y-0.5">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
                       <span className="text-xs text-gray-600">Aprovados</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
-                      {approvedKyc}
-                    </span>
+                    <span className="text-xs font-semibold">{approvedKyc}</span>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-amber-500"></div>
                       <span className="text-xs text-gray-600">Pendentes</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
-                      {pendingKyc}
-                    </span>
+                    <span className="text-xs font-semibold">{pendingKyc}</span>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-red-500"></div>
                       <span className="text-xs text-gray-600">Rejeitados</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
-                      {rejectedKyc}
-                    </span>
+                    <span className="text-xs font-semibold">{rejectedKyc}</span>
                   </div>
                 </div>
               </div>
@@ -403,35 +395,37 @@ export function MerchantDashboardContent({
         </Card>
 
         {/* Anticipation Card */}
-        <Card className="bg-white border">
-          <CardContent className="p-3">
+        <Card className="bg-white border min-w-[220px] w-[calc(100%/6-12px)]">
+          <CardContent className="p-2">
             <div className="flex items-start">
-              <div className="mr-3">
+              <div className="mr-2">
                 <Wallet className="h-5 w-5 text-gray-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-gray-700">Antecipações</h3>
+                <h3 className="font-medium text-xs text-gray-700 mt-1">
+                  Antecipações
+                </h3>
                 <div className="flex items-baseline mt-1">
-                  <span className="text-2xl font-bold">
+                  <span className="text-xl font-bold">
                     {totalCpAnticipation + totalCnpAnticipation}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div>
+                <div className="flex flex-col mt-1 space-y-0.5">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
                       <span className="text-xs text-gray-600">CP Ativos</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
+                    <span className="text-xs font-semibold">
                       {totalCpAnticipation}
                     </span>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
                       <span className="text-xs text-gray-600">CNP Ativos</span>
                     </div>
-                    <span className="text-base font-semibold block mt-1">
+                    <span className="text-xs font-semibold">
                       {totalCnpAnticipation}
                     </span>
                   </div>

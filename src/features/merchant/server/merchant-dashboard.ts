@@ -1,14 +1,23 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { and, count, eq, gte, lte, sql } from "drizzle-orm";
-import { merchants } from "../../../../drizzle/schema";
+import { and, count, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
+import {
+  addresses,
+  categories,
+  configurations,
+  legalNatures,
+  merchantPrice,
+  merchants,
+  salesAgents,
+} from "../../../../drizzle/schema";
 
 // Tipo para o gráfico A - Estabelecimentos cadastrados por período
 export type MerchantRegistrationChart = {
   date: string;
   count: number;
-}
+};
 
 // Tipo para sumário de estabelecimentos por período
 export type MerchantRegistrationSummary = {
@@ -16,167 +25,518 @@ export type MerchantRegistrationSummary = {
   previousMonth: number;
   currentWeek: number;
   today: number;
-}
+};
 
 // Tipo para o gráfico B - Transaciona/Não Transaciona
 export type MerchantTransactionChart = {
   name: string;
   value: number;
-}
+};
 
 // Tipo para o gráfico C - Compulsória/Eventual
 export type MerchantTypeChart = {
   name: string;
   value: number;
+};
+
+// Cache para condições de filtro
+let lastFilterKey: string = "";
+let lastFilterConditions: any[] = [];
+
+// Função auxiliar para criar as condições de filtro
+export async function createFilterConditions(
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+) {
+  // Criar uma chave única para esta combinação de filtros
+  const filterKey = JSON.stringify({
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent,
+  });
+
+  // Se já calculamos estas condições, reutilizar
+  if (filterKey === lastFilterKey && lastFilterConditions.length > 0) {
+    return [...lastFilterConditions]; // Retornar uma cópia para evitar mutações
+  }
+
+  const conditions = [];
+
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user doesn't have full access, add merchant ID filter
+  if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    // Se o usuário não tem acesso, retorna uma condição impossível
+    conditions.push(eq(merchants.id, -1));
+  }
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(merchants.name, `%${search}%`),
+        ilike(merchants.corporateName, `%${search}%`)
+      )
+    );
+  }
+
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  if (status) {
+    // Verifica qual status KYC está sendo solicitado e aplica os filtros correspondentes
+    if (status === "all") {
+      // Não aplica nenhum filtro de status
+    } else if (status === "PENDING") {
+      // Status de análise (pendentes)
+      conditions.push(
+        inArray(merchants.riskAnalysisStatus, [
+          "PENDING",
+          "WAITINGDOCUMENTS",
+          "NOTANALYSED",
+        ])
+      );
+    } else if (status === "APPROVED") {
+      // Aprovados
+      conditions.push(eq(merchants.riskAnalysisStatus, "APPROVED"));
+    } else if (status === "DECLINED") {
+      // Recusados/rejeitados
+      conditions.push(
+        inArray(merchants.riskAnalysisStatus, ["DECLINED", "KYCOFFLINE"])
+      );
+    } else {
+      // Caso seja outro status específico, usa o valor diretamente
+      conditions.push(eq(merchants.riskAnalysisStatus, status));
+    }
+  }
+
+  if (state) {
+    conditions.push(eq(addresses.state, state));
+  }
+
+  if (dateFrom) {
+    // Quando um dateFrom é fornecido, vamos interpretar como "cadastrado em"
+    // e criar um filtro para pegar registros daquele dia específico
+    const date = new Date(dateFrom);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    // Início e fim do dia específico
+    const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
+    const endOfDay = new Date(year, month, day, 23, 59, 59, 999).toISOString();
+
+    conditions.push(
+      and(
+        gte(merchants.dtinsert, startOfDay),
+        lte(merchants.dtinsert, endOfDay)
+      )
+    );
+  }
+
+  // Novos filtros
+  if (email) {
+    conditions.push(ilike(merchants.email, `%${email}%`));
+  }
+
+  if (cnpj) {
+    conditions.push(ilike(merchants.idDocument, `%${cnpj}%`));
+  }
+
+  if (active === "true") {
+    conditions.push(eq(merchants.active, true));
+  } else if (active === "false") {
+    conditions.push(eq(merchants.active, false));
+  }
+
+  if (salesAgent) {
+    conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
+  }
+
+  // Salvar as condições para reutilização
+  lastFilterKey = filterKey;
+  lastFilterConditions = [...conditions];
+
+  return conditions;
 }
 
 // Função para obter dados do gráfico A - Postos cadastrados por período
-export async function getMerchantRegistrationsByPeriod(): Promise<MerchantRegistrationChart[]> {
+export async function getMerchantRegistrationsByPeriod(
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+): Promise<MerchantRegistrationChart[]> {
   // Obter data atual e calcular datas do mês atual e mês anterior
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
-  
-  // Primeiro dia do mês atual
- 
-  
+
   // Primeiro dia do mês anterior
   const firstDayPreviousMonth = new Date(currentYear, currentMonth - 1, 1);
-  
   const firstDayPreviousMonthStr = firstDayPreviousMonth.toISOString();
 
-  // Consultar dados dia a dia para os últimos dois meses
-  const results = await db.select({
-    date: sql<string>`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`,
-    count: count(merchants.id),
-  })
-  .from(merchants)
-  .where(gte(merchants.dtinsert, firstDayPreviousMonthStr))
-  .groupBy(sql`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`)
-  .orderBy(sql`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`);
+  // Criar condições de filtro
+  const filterConditions = await createFilterConditions(
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
+  );
 
-  return results.map(item => ({
+  // Garantir que pelo menos mostre dados dos últimos dois meses
+  // se não estiver filtrando por "Cadastrado Em"
+  if (!dateFrom) {
+    const dateCondition = gte(merchants.dtinsert, firstDayPreviousMonthStr);
+    filterConditions.push(dateCondition);
+  }
+
+  // Consulta direta usando db.select em vez da baseQuery para este caso específico
+  const query = db
+    .select({
+      date: sql<string>`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`,
+      count: count(merchants.id),
+    })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id));
+
+  if (filterConditions.length > 0) {
+    query.where(and(...filterConditions));
+  }
+
+  const results = await query
+    .groupBy(sql`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`)
+    .orderBy(sql`TO_CHAR(${merchants.dtinsert}::date, 'YYYY-MM-DD')`);
+
+  return results.map((item: { date: string; count: any }) => ({
     date: item.date,
-    count: Number(item.count)
+    count: Number(item.count),
   }));
 }
 
 // Função para obter sumário de estabelecimentos por períodos (mês atual, mês anterior, semana atual, hoje)
-export async function getMerchantRegistrationSummary(): Promise<MerchantRegistrationSummary> {
+export async function getMerchantRegistrationSummary(
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+): Promise<MerchantRegistrationSummary> {
   const now = new Date();
-  
+
   // Datas para os períodos
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayStr = today.toISOString();
-  
+
   // Primeiro dia da semana atual (considerando que a semana começa no domingo = 0)
   const currentDay = now.getDay(); // 0 (domingo) a 6 (sábado)
   const firstDayOfWeek = new Date(now);
   firstDayOfWeek.setDate(now.getDate() - currentDay);
   const firstDayOfWeekStr = firstDayOfWeek.toISOString();
-  
+
   // Primeiro dia do mês atual
   const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const firstDayCurrentMonthStr = firstDayCurrentMonth.toISOString();
-  
+
   // Primeiro dia do mês anterior
-  const firstDayPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const firstDayPreviousMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1
+  );
   const firstDayPreviousMonthStr = firstDayPreviousMonth.toISOString();
-  
+
   // Último dia do mês anterior
-  const lastDayPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+  const lastDayPreviousMonth = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    0,
+    23,
+    59,
+    59,
+    999
+  );
   const lastDayPreviousMonthStr = lastDayPreviousMonth.toISOString();
-  
-  // Consulta para estabelecimentos cadastrados hoje
-  const todayCount = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(
-    and(
-      gte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${todayStr})`),
-      lte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${todayStr})`)
-    )
+
+  // Criar condições de filtro base
+  const baseFilterConditions = await createFilterConditions(
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
   );
-  
-  // Consulta para estabelecimentos cadastrados na semana atual
-  const currentWeekCount = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(gte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${firstDayOfWeekStr})`));
-  
-  // Consulta para estabelecimentos cadastrados no mês atual
-  const currentMonthCount = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(gte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${firstDayCurrentMonthStr})`));
-  
-  // Consulta para estabelecimentos cadastrados no mês anterior
-  const previousMonthCount = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(
-    and(
-      gte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${firstDayPreviousMonthStr})`),
-      lte(sql`DATE(${merchants.dtinsert})`, sql`DATE(${lastDayPreviousMonthStr})`)
-    )
-  );
-  
+
+  // Criar queries para cada período em paralelo
+  const [
+    currentMonthResult,
+    previousMonthResult,
+    currentWeekResult,
+    todayResult,
+  ] = await Promise.all([
+    // Mês atual
+    getMerchantCountForPeriod(
+      baseFilterConditions,
+      firstDayCurrentMonthStr,
+      now.toISOString()
+    ),
+    // Mês anterior
+    getMerchantCountForPeriod(
+      baseFilterConditions,
+      firstDayPreviousMonthStr,
+      lastDayPreviousMonthStr
+    ),
+    // Semana atual
+    getMerchantCountForPeriod(
+      baseFilterConditions,
+      firstDayOfWeekStr,
+      now.toISOString()
+    ),
+    // Hoje
+    getMerchantCountForPeriod(
+      baseFilterConditions,
+      todayStr,
+      now.toISOString()
+    ),
+  ]);
+
   return {
-    currentMonth: Number(currentMonthCount[0]?.count || 0),
-    previousMonth: Number(previousMonthCount[0]?.count || 0),
-    currentWeek: Number(currentWeekCount[0]?.count || 0),
-    today: Number(todayCount[0]?.count || 0)
+    currentMonth: currentMonthResult,
+    previousMonth: previousMonthResult,
+    currentWeek: currentWeekResult,
+    today: todayResult,
   };
 }
 
+// Função auxiliar para obter contagem de merchants para um período específico
+async function getMerchantCountForPeriod(
+  baseConditions: any[],
+  startDate: string,
+  endDate: string
+): Promise<number> {
+  const conditions = [...baseConditions];
+
+  // Adicionar condições de data
+  conditions.push(
+    and(gte(merchants.dtinsert, startDate), lte(merchants.dtinsert, endDate))
+  );
+
+  // Usar consulta direta em vez da baseQuery
+  const query = db
+    .select({
+      count: count(),
+    })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id));
+
+  if (conditions.length > 0) {
+    query.where(and(...conditions));
+  }
+
+  const result = await query;
+  return Number(result[0]?.count || 0);
+}
+
 // Função para obter dados do gráfico B - Transaciona/Não Transaciona
-export async function getMerchantTransactionData(): Promise<MerchantTransactionChart[]> {
-  // Como não temos hasTransactions, usamos hasPix como proxy para "transaciona"
-  // Consultar quantidade de estabelecimentos que transacionam
-  const transactionMerchants = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(eq(merchants.hasPix, true));
+export async function getMerchantTransactionData(
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+): Promise<MerchantTransactionChart[]> {
+  // Criar condições de filtro
+  const filterConditions = await createFilterConditions(
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
+  );
 
-  // Consultar quantidade de estabelecimentos que não transacionam
-  const nonTransactionMerchants = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(eq(merchants.hasPix, false));
+  // Executar consultas em paralelo
+  const [transacionamResult, naoTransacionamResult] = await Promise.all([
+    // Consulta para estabelecimentos que transacionam (com transações)
+    countMerchantsWithTransactions(filterConditions, true),
 
+    // Consulta para estabelecimentos que não transacionam (sem transações)
+    countMerchantsWithTransactions(filterConditions, false),
+  ]);
+
+  // Montar resultado no formato esperado
   return [
-    { name: "Transaciona", value: Number(transactionMerchants[0]?.count || 0) },
-    { name: "Não Transaciona", value: Number(nonTransactionMerchants[0]?.count || 0) }
+    {
+      name: "Transacionam",
+      value: transacionamResult,
+    },
+    {
+      name: "Não Transacionam",
+      value: naoTransacionamResult,
+    },
   ];
 }
 
+// Função auxiliar para contagem de merchants com/sem transações
+async function countMerchantsWithTransactions(
+  baseConditions: any[],
+  hasTransactions: boolean
+): Promise<number> {
+  // Copiar as condições base
+  const conditions = [...baseConditions];
+
+  // Aplicar a condição que determina se o merchant tem transações (usando hasPix como exemplo)
+  conditions.push(eq(merchants.hasPix, hasTransactions));
+
+  const query = db
+    .select({
+      count: count(),
+    })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id));
+
+  if (conditions.length > 0) {
+    query.where(and(...conditions));
+  }
+
+  const result = await query;
+  return Number(result[0]?.count || 0);
+}
+
 // Função para obter dados do gráfico C - Compulsória/Eventual
-export async function getMerchantTypeData(): Promise<MerchantTypeChart[]> {
-  // Como não temos isCompulsory, usaremos hasTef como proxy para ilustrar a consulta
-  // Na prática, será necessário criar essa coluna ou encontrar uma alternativa adequada
-  
-  // Consultar quantidade de estabelecimentos compulsórios (usando hasTef como exemplo)
-  const compulsoryMerchants = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(eq(merchants.hasTef, true));
+export async function getMerchantTypeData(
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+): Promise<MerchantTypeChart[]> {
+  // Criar condições de filtro
+  const filterConditions = await createFilterConditions(
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
+  );
 
-  // Consultar quantidade de estabelecimentos eventuais
-  const eventualMerchants = await db.select({
-    count: count(),
-  })
-  .from(merchants)
-  .where(eq(merchants.hasTef, false));
+  // Executar consultas em paralelo
+  const [compulsoriaResult, eventualResult] = await Promise.all([
+    // Consulta para estabelecimentos de compra compulsória
+    countMerchantsByType(filterConditions, "compulsória"),
 
+    // Consulta para estabelecimentos de compra eventual
+    countMerchantsByType(filterConditions, "eventual"),
+  ]);
+
+  // Montar resultado no formato esperado
   return [
-    { name: "Compulsória", value: Number(compulsoryMerchants[0]?.count || 0) },
-    { name: "Eventual", value: Number(eventualMerchants[0]?.count || 0) }
+    {
+      name: "Compulsória",
+      value: compulsoriaResult,
+    },
+    {
+      name: "Eventual",
+      value: eventualResult,
+    },
   ];
-} 
+}
+
+// Função auxiliar para contagem de merchants por tipo
+async function countMerchantsByType(
+  baseConditions: any[],
+  type: string
+): Promise<number> {
+  // Copiar as condições base
+  const conditions = [...baseConditions];
+
+  // Aplicar a condição que determina o tipo do merchant (usando hasTef como exemplo)
+  if (type === "compulsória") {
+    conditions.push(eq(merchants.hasTef, true));
+  } else {
+    conditions.push(eq(merchants.hasTef, false));
+  }
+
+  const query = db
+    .select({
+      count: count(),
+    })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id));
+
+  if (conditions.length > 0) {
+    query.where(and(...conditions));
+  }
+
+  const result = await query;
+  return Number(result[0]?.count || 0);
+}

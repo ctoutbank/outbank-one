@@ -125,11 +125,11 @@ const menuData = {
           url: "/portal/users",
         },
         {
-          title: "Categorias",
+          title: "CNAE",
           url: "/portal/categories",
         },
         {
-          title: "Natureza Jurídica",
+          title: "Formato Jurídico",
           url: "/portal/legalNatures",
         },
       ],
