@@ -75,8 +75,8 @@ export function BarChartCustom({
               : isWeeklyView
               ? "Mostrando o total de transações por dia da semana"
               : isMonthlyView
-              ? "Mostrando o total de transações por dia do mês"
-              : "Mostrando o total de transações por dia"}
+              ? "Mostrando o total de transações por  mês"
+              : "Mostrando o total de transações por ano"}
           </CardDescription>
         </div>
         <div className="flex">

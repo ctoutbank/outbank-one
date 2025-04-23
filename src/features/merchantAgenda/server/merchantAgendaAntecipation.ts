@@ -12,6 +12,8 @@ import {
   inArray,
   lte,
   or,
+  sql,
+  sum,
 } from "drizzle-orm";
 import { merchants, payoutAntecipations } from "../../../../drizzle/schema";
 
@@ -202,5 +204,195 @@ export async function getMerchantAgendaAnticipation(
       settlementUniqueNumber: item.settlementUniqueNumber,
     })),
     totalCount,
+  };
+}
+
+export interface AnticipationDashboardStats {
+  totalEstablishments: number;
+  totalAnticipationRequests: number;
+  totalParcels: number;
+  fullyAnticipatedParcels: number;
+  partiallyAnticipatedParcels: number;
+  totalNetAnticipated: number;
+  totalGrossAnticipated: number;
+  totalAnticipationFees: number;
+  firstTransactionDate?: string;
+  lastTransactionDate?: string;
+}
+
+/**
+ * Obtém estatísticas de antecipação da agenda do comerciante
+ *
+ * Esta função recupera estatísticas detalhadas sobre antecipações de pagamentos,
+ * incluindo contagens totais, valores e datas de transações.
+ *
+ * @param dateFrom - Data inicial para filtrar transações
+ * @param dateTo - Data final para filtrar transações
+ * @param establishment - Nome do estabelecimento para filtrar
+ * @param status - Status da antecipação
+ * @param cardBrand - Bandeira do cartão
+ * @param settlementDateFrom - Data inicial de liquidação
+ * @param settlementDateTo - Data final de liquidação
+ * @param saleDateFrom - Data inicial de pagamento efetivo
+ * @param saleDateTo - Data final de pagamento efetivo
+ * @param nsu - Número de referência (RRN)
+ * @param orderId - Código de antecipação
+ * @returns Estatísticas de antecipação do dashboard
+ */
+export async function getMerchantAgendaAnticipationStats(
+  dateFrom?: string,
+  dateTo?: string,
+  establishment?: string,
+  status?: string,
+  cardBrand?: string,
+  settlementDateFrom?: string,
+  settlementDateTo?: string,
+  saleDateFrom?: string,
+  saleDateTo?: string,
+  nsu?: string,
+  orderId?: string
+): Promise<AnticipationDashboardStats> {
+  // Obtém o acesso do usuário aos comerciantes
+  const userAccess = await getUserMerchantsAccess();
+
+  // Se o usuário não tiver acesso e nem acesso total, retorna resultado vazio
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      totalEstablishments: 0,
+      totalAnticipationRequests: 0,
+      totalParcels: 0,
+      fullyAnticipatedParcels: 0,
+      partiallyAnticipatedParcels: 0,
+      totalNetAnticipated: 0,
+      totalGrossAnticipated: 0,
+      totalAnticipationFees: 0,
+      firstTransactionDate: undefined,
+      lastTransactionDate: undefined,
+    };
+  }
+
+  const conditions = [];
+
+  // Adiciona filtro de acesso ao comerciante se o usuário não tiver acesso total
+  if (!userAccess.fullAccess) {
+    conditions.push(
+      inArray(payoutAntecipations.idMerchants, userAccess.idMerchants)
+    );
+  }
+
+  // Filtro por data de transação (início)
+  if (dateFrom) {
+    conditions.push(
+      gte(payoutAntecipations.transactionDate, new Date(dateFrom).toISOString())
+    );
+  }
+
+  // Filtro por data de transação (fim)
+  if (dateTo) {
+    conditions.push(
+      lte(payoutAntecipations.transactionDate, new Date(dateTo).toISOString())
+    );
+  }
+
+  // Filtro por nome do estabelecimento
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  // Filtro por status (exceto "todos")
+  if (status && status !== "all") {
+    conditions.push(eq(payoutAntecipations.status, status));
+  }
+
+  // Filtro por bandeira de cartão (exceto "todas")
+  if (cardBrand && cardBrand !== "all") {
+    conditions.push(eq(payoutAntecipations.brand, cardBrand));
+  }
+
+  // Filtro por data de liquidação (início)
+  if (settlementDateFrom) {
+    conditions.push(
+      gte(payoutAntecipations.settlementDate, settlementDateFrom)
+    );
+  }
+
+  // Filtro por data de liquidação (fim)
+  if (settlementDateTo) {
+    conditions.push(lte(payoutAntecipations.settlementDate, settlementDateTo));
+  }
+
+  // Filtro por data de pagamento efetivo (início)
+  if (saleDateFrom) {
+    conditions.push(
+      gte(payoutAntecipations.effectivePaymentDate, saleDateFrom)
+    );
+  }
+
+  // Filtro por data de pagamento efetivo (fim)
+  if (saleDateTo) {
+    conditions.push(lte(payoutAntecipations.effectivePaymentDate, saleDateTo));
+  }
+
+  // Filtro por número de referência (RRN)
+  if (nsu) {
+    conditions.push(ilike(payoutAntecipations.rrn, `%${nsu}%`));
+  }
+
+  // Filtro por código de antecipação
+  if (orderId) {
+    conditions.push(
+      ilike(payoutAntecipations.anticipationCode, `%${orderId}%`)
+    );
+  }
+
+  // Buscar contagens e valores totais
+  const totalStats = await db
+    .select({
+      totalRequests: count(),
+      totalNetAnticipated: sum(payoutAntecipations.netAmount),
+      totalGrossAnticipated: sum(payoutAntecipations.anticipatedAmount),
+      totalAnticipationFees: sum(payoutAntecipations.anticipationFee),
+      minTransactionDate: sql<string>`MIN(${payoutAntecipations.transactionDate})`,
+      maxTransactionDate: sql<string>`MAX(${payoutAntecipations.transactionDate})`,
+    })
+    .from(payoutAntecipations)
+    .leftJoin(merchants, eq(payoutAntecipations.idMerchants, merchants.id))
+    .where(and(...conditions));
+
+  // Contagem de parcelas
+  const parcelStats = await db
+    .select({
+      totalParcels: count(),
+      // Aqui assumimos que parcelas totalmente antecipadas têm algum valor específico em algum campo
+      // Isso precisará ser ajustado conforme a estrutura real do banco
+      fullyAnticipated: sql<number>`SUM(CASE WHEN ${payoutAntecipations.anticipationDayNumber} > 0 THEN 1 ELSE 0 END)`,
+      partiallyAnticipated: sql<number>`SUM(CASE WHEN ${payoutAntecipations.anticipationDayNumber} = 0 AND ${payoutAntecipations.anticipatedAmount} > 0 THEN 1 ELSE 0 END)`,
+    })
+    .from(payoutAntecipations)
+    .leftJoin(merchants, eq(payoutAntecipations.idMerchants, merchants.id))
+    .where(and(...conditions));
+
+  // Contar estabelecimentos únicos
+  const establishmentCount = await db
+    .select({
+      uniqueCount: sql<number>`COUNT(DISTINCT ${merchants.id})`,
+    })
+    .from(payoutAntecipations)
+    .leftJoin(merchants, eq(payoutAntecipations.idMerchants, merchants.id))
+    .where(and(...conditions));
+
+  return {
+    totalEstablishments: Number(establishmentCount[0]?.uniqueCount || 0),
+    totalAnticipationRequests: Number(totalStats[0]?.totalRequests || 0),
+    totalParcels: Number(parcelStats[0]?.totalParcels || 0),
+    fullyAnticipatedParcels: Number(parcelStats[0]?.fullyAnticipated || 0),
+    partiallyAnticipatedParcels: Number(
+      parcelStats[0]?.partiallyAnticipated || 0
+    ),
+    totalNetAnticipated: Number(totalStats[0]?.totalNetAnticipated || 0),
+    totalGrossAnticipated: Number(totalStats[0]?.totalGrossAnticipated || 0),
+    totalAnticipationFees: Number(totalStats[0]?.totalAnticipationFees || 0),
+    firstTransactionDate: totalStats[0]?.minTransactionDate,
+    lastTransactionDate: totalStats[0]?.maxTransactionDate,
   };
 }
