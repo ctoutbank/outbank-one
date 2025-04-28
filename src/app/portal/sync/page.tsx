@@ -32,7 +32,6 @@ export default function HomePage() {
         <Section title="City">
           <AsyncButtonsCity />
         </Section>
-        <Section title="Terminals">""</Section>
       </div>
     </div>
   );
