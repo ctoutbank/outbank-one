@@ -9,6 +9,7 @@ import {
   DollarSignIcon,
   File,
   FileText,
+  FolderOpen,
   HomeIcon,
   Landmark,
   Link,
@@ -49,6 +50,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   File,
   FileText,
   Calendar,
+  FolderOpen,
 };
 
 interface MenuItem {

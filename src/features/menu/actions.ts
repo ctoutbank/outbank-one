@@ -58,16 +58,6 @@ const menuData = {
       title: "Vendas",
       url: "/portal/transactions",
       icon: "DollarSign",
-      items: [
-        {
-          title: "Transações",
-          url: "/portal/transactions",
-        },
-        {
-          title: "Arquivos EDI",
-          url: "/portal/edis",
-        },
-      ],
     },
     {
       title: "Consultores Comerciais",
@@ -115,6 +105,8 @@ const menuData = {
       url: "/portal/reports",
       icon: "FileText",
     },
+
+    { title: "Arquivos EDI", url: "/portal/edis", icon: "FolderOpen" },
     {
       title: "Configurações",
       url: "/portal/categories",
