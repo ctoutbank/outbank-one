@@ -7,7 +7,6 @@ import AsyncButtonsMerchantPriceGroup from "./asyncButtomMerchantPricegroup";
 import AsyncButtonsPaymentLink from "./asyncButtonPaymentLink";
 import AsyncButtonsPayout from "./asyncButtonPayouts";
 import AsyncButtonsSettlement from "./asyncButtonSettlement";
-
 export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-8">
@@ -33,6 +32,7 @@ export default function HomePage() {
         <Section title="City">
           <AsyncButtonsCity />
         </Section>
+        <Section title="Terminals">""</Section>
       </div>
     </div>
   );
