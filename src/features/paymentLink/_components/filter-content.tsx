@@ -1,66 +1,61 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { validateDateRange } from "@/lib/validations/date";
+import { format } from "date-fns";
+import { CalendarIcon, Search } from "lucide-react";
 import { KeyboardEvent, useState } from "react";
 
 type FilterPaymentLinkContentProps = {
-  identifierIn?: string;
+  dateFromIn?: Date;
+  dateToIn?: Date;
   statusIn?: string;
-  merchantIn?: string;
   onFilter: (filters: {
-    identifier: string;
+    dateFrom?: Date;
+    dateTo?: Date;
     status: string;
-    merchant: string;
   }) => void;
   onClose: () => void;
 };
 
 export function FilterPaymentLinkContent({
-  identifierIn,
+  dateFromIn,
+  dateToIn,
   statusIn,
-  merchantIn,
   onFilter,
   onClose,
 }: FilterPaymentLinkContentProps) {
-  const [identifier, setIdentifier] = useState(identifierIn || "");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
+  const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
   const [status, setStatus] = useState(statusIn || "");
-  const [merchant, setMerchant] = useState(merchantIn || "");
+  const [dateError, setDateError] = useState<string | null>(null);
 
   const statuses = [
-    {
-      value: "PAID",
-      label: "Pago",
-      color: "bg-emerald-500 hover:bg-emerald-600",
-    },
-    {
-      value: "PENDING",
-      label: "Pendente",
-      color: "bg-yellow-500 hover:bg-yellow-600",
-    },
-    {
-      value: "EXPIRED",
-      label: "Expirado",
-      color: "bg-gray-500 hover:bg-gray-600",
-    },
-    {
-      value: "CANCELED",
-      label: "Cancelado",
-      color: "bg-red-500 hover:bg-red-600",
-    },
+    { value: "pending", label: "Pendente" },
+    { value: "paid", label: "Pago" },
+    { value: "expired", label: "Expirado" },
+    { value: "cancelled", label: "Cancelado" },
   ];
 
   const applyFilters = () => {
-    onFilter({ identifier, status, merchant });
+    const validation = validateDateRange(dateFrom, dateTo);
+    if (!validation.isValid) {
+      setDateError(validation.error);
+      return;
+    }
+    setDateError(null);
+    onFilter({ status, dateFrom, dateTo });
     onClose();
   };
 
-  const handleKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
-  ) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       applyFilters();
@@ -69,55 +64,85 @@ export function FilterPaymentLinkContent({
 
   return (
     <div
-      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[600px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-4">
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Identificador do link</h3>
-          <Input
-            placeholder="Identificador do link"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-        </div>
-
-        <div className="space-y-2 ml-8">
-          <h3 className="text-sm font-medium ml-2">Status</h3>
+          <h3 className="text-sm font-medium">Status</h3>
           <div className="flex flex-wrap gap-2">
             {statuses.map((s) => (
-              <Badge
+              <Button
                 key={s.value}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-24 h-7 select-none text-sm",
-                  status === s.value ? s.color : "bg-secondary",
-                  status === s.value
-                    ? "text-white"
-                    : "text-secondary-foreground"
-                )}
+                variant={status === s.value ? "default" : "outline"}
+                size="sm"
                 onClick={() => setStatus(status === s.value ? "" : s.value)}
               >
                 {s.label}
-              </Badge>
+              </Button>
             ))}
           </div>
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Estabelecimento</h3>
-          <Input
-            placeholder="Nome do estabelecimento"
-            value={merchant}
-            onChange={(e) => setMerchant(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-        </div>
-      </div>
+          <h3 className="text-sm font-medium">Intervalo de Datas</h3>
+          {dateError && <p className="text-sm text-red-500">{dateError}</p>}
+          <div className="flex flex-wrap gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !dateFrom && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "PPP") : "Data Inicial"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={(date) => {
+                    setDateFrom(date);
+                    setDateError(null);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
 
-      <div className="flex justify-end pt-4 mt-4 border-t">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !dateTo && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo ? format(dateTo, "PPP") : "Data Final"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={(date) => {
+                    setDateTo(date);
+                    setDateError(null);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
         <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar

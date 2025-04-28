@@ -30,6 +30,7 @@ type MerchantAgendaFilterContentProps = {
   settlementDateToIn?: Date;
   expectedSettlementDateFromIn?: Date;
   expectedSettlementDateToIn?: Date;
+  setLoading: (loading: boolean) => void;
   onFilter: (filters: {
     dateFrom?: Date;
     dateTo?: Date;
@@ -56,6 +57,7 @@ export function MerchantAgendaFilterContent({
   expectedSettlementDateToIn,
   onFilter,
   onClose,
+  setLoading,
 }: MerchantAgendaFilterContentProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
@@ -100,6 +102,7 @@ export function MerchantAgendaFilterContent({
   };
 
   const applyFilters = () => {
+    setLoading(true);
     onFilter({
       dateFrom,
       dateTo,

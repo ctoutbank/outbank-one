@@ -95,7 +95,7 @@ export default async function AntecipationsPage({
             <TabsTrigger value="eventual">EVENTUAL</TabsTrigger>
             <TabsTrigger value="report">RELATÓRIO</TabsTrigger>
           </TabsList>
-          <TabsContent value="compulsory" className="mt-6 overflow-x-hidden">
+          <TabsContent value="compulsory" className="mt-6">
             <AnticipationsListFilter
               merchantDD={merchantDD}
               dateFromIn={startDate ? new Date(startDate) : undefined}
@@ -120,7 +120,7 @@ export default async function AntecipationsPage({
               )}
             </div>
           </TabsContent>
-          <TabsContent value="eventual" className="mt-6 overflow-x-hidden">
+          <TabsContent value="eventual" className="mt-6 ">
             <EventualAnticipationsListFilter
               merchantDD={merchantDD}
               dateFromIn={startDate ? new Date(startDate) : undefined}

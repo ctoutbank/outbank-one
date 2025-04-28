@@ -71,7 +71,7 @@ export async function getAnticipations(
     conditions.push(merchantCondition);
   }
 
-  // Add type filter
+  
   if (type) {
     const typeCNP = eq(configurations.lockCnpAnticipationOrder, false);
     const typeCP = eq(configurations.lockCpAnticipationOrder, false);
@@ -163,7 +163,6 @@ export async function getAnticipations(
     )
     .innerJoin(configurations, eq(configurations.id, merchants.idConfiguration))
     .where(and(...conditions));
-  console.log(totalCountResult);
   const totalCount = totalCountResult[0]?.count || 0;
 
   return {
@@ -324,7 +323,7 @@ export async function getEventualAnticipations(
   const result = await db
     .select({
       slug: settlements.slug,
-      dtinsert: settlements.paymentDate,
+      dtinsert: settlements.dtinsert,
       lockCnp: configurations.lockCnpAnticipationOrder,
       lockCp: configurations.lockCpAnticipationOrder,
       merchantName: merchants.name,
@@ -338,7 +337,7 @@ export async function getEventualAnticipations(
       expectedSettlementDate: settlements.paymentDate,
       totalExpectedAmount: settlements.totalSettlementAmount,
       totalBlockedAmount: settlements.totalAnticipationAmount,
-      totalAvailableAmount: sql`${settlements.totalSettlementAmount} - ${settlements.totalAnticipationAmount}`,
+      totalAvailableAmount: settlements.debitFinancialAdjustmentAmount,
       requestedAmount: settlements.totalAnticipationAmount,
     })
     .from(settlements)
@@ -358,6 +357,7 @@ export async function getEventualAnticipations(
     .orderBy(desc(settlements.paymentDate))
     .groupBy(
       settlements.slug,
+      settlements.dtinsert,
       settlements.paymentDate,
       configurations.lockCnpAnticipationOrder,
       configurations.lockCpAnticipationOrder,
@@ -369,7 +369,8 @@ export async function getEventualAnticipations(
       categories.mcc,
       categories.anticipationRiskFactorCp,
       categories.anticipationRiskFactorCnp,
-      settlements.totalSettlementAmount
+      settlements.totalSettlementAmount,
+      settlements.debitFinancialAdjustmentAmount
     )
     .limit(pageSize)
     .offset(offset);

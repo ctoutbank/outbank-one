@@ -1,10 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import type {
-  DailyAmount,
-  GlobalSettlementResult,
-} from "@/features/merchantAgenda/server/merchantAgenda";
+import type { DailyAmount } from "@/features/merchantAgenda/server/merchantAgenda";
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -15,7 +12,6 @@ import { useEffect, useRef } from "react";
 interface CalendarProps {
   monthlyData: DailyAmount[];
   handleMonthChange: (newDate: Date) => void;
-  dailyData?: GlobalSettlementResult;
   isLoading?: boolean;
   onPrevMonth?: () => void;
   onNextMonth?: () => void;

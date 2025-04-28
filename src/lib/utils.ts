@@ -115,7 +115,7 @@ export function formatDateToAPIFilter(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date, weekDay: boolean): string {
   const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
   const day = date.getDate();
   const month = date.getMonth() + 1;
@@ -123,12 +123,19 @@ export function formatDateTime(date: Date): string {
   const hours = date.getHours();
   const minutes = date.getMinutes();
   const seconds = date.getSeconds();
-
-  return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours
-    .toString()
-    .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
+  if (weekDay) {
+    return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  } else {
+    return `${day}/${month}/${year} - ${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
 }
 
 export function formatDateComplete(date: Date): string {

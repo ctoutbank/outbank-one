@@ -2,9 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { MerchantDD } from "../server/anticipation";
 import { AnticipationsListFilterButton } from "./anticipations-filter-button";
 import { AnticipationsListFilterContent } from "./aticipations-filter-content";
-import { MerchantDD } from "../server/anticipation";
 type AnticipationsListFilterProps = {
   dateFromIn?: Date;
   dateToIn?: Date;
@@ -74,7 +74,7 @@ export function AnticipationsListFilter(props: AnticipationsListFilterProps) {
   const activeFiltersCount =
     (props.dateFromIn ? 1 : 0) +
     (props.dateToIn ? 1 : 0) +
-    (props.merchantSlugIn ? 1 : 0) +
+    (props.merchantSlugIn && props.merchantSlugIn !== "all" ? 1 : 0) +
     (props.typeIn ? 1 : 0) +
     (props.statusIn ? 1 : 0);
 

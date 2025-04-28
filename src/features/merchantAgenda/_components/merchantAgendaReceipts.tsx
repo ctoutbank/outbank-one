@@ -47,6 +47,7 @@ export default function MerchantAgendaReceipts({
         );
 
         setExcelData(data);
+        
       } catch (error) {
         console.error("Error fetching excel data:", error);
       }
@@ -115,7 +116,7 @@ export default function MerchantAgendaReceipts({
         <div className="mb-4">
           <MerchantAgendaReceiptsTotal
             merchantAgendaReceiptsTotalProps={{
-              total: dailyData.globalSettlement,
+              total: dailyData.globalSettlement - dailyData.globalAdjustments,
               view: "day",
             }}
           />
@@ -127,7 +128,6 @@ export default function MerchantAgendaReceipts({
           isLoading={isLoading}
           handleMonthChange={setActualDate}
           total={Number(monthTotal)}
-          dailyData={dailyData}
           setView={setView}
         />
       ) : (

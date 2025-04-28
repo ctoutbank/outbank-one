@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Info } from "lucide-react";
 import { AnticipationList } from "../server/anticipation";
@@ -68,8 +68,8 @@ export default function AnticipationListComponent({
                   <div>
                     <span className="font-medium">{item.merchantName}</span>
                     <br />
-                    <span className="text-sm text-muted-foreground">
-                      {item.merchantCnpj}
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatCNPJ(item.merchantCnpj)}
                     </span>
                   </div>
                 </TableCell>
@@ -101,7 +101,7 @@ export default function AnticipationListComponent({
 
                             <div className="text-slate-500 font-medium"></div>
                             <div className="text-slate-600 text-xs">
-                              {item.merchantCnpj}
+                              {formatCNPJ(item.merchantCnpj)}
                             </div>
 
                             <div className="text-slate-500 font-medium">

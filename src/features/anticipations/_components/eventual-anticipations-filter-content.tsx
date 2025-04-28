@@ -18,6 +18,7 @@ import {
 import { MerchantDD } from "@/features/anticipations/server/anticipation";
 
 import { cn } from "@/lib/utils";
+import { validateDateRange } from "@/lib/validations/date";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
 import { useState } from "react";
@@ -66,6 +67,10 @@ export function EventualAnticipationsListFilterContent({
   const [merchantSlug, setMerchantSlug] = useState(merchantSlugIn || "all");
   const [type, setType] = useState(typeIn || "");
   const [status, setStatus] = useState(statusIn || "");
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [expectedDateError, setExpectedDateError] = useState<string | null>(
+    null
+  );
 
   const statuses = [
     {
@@ -115,6 +120,36 @@ export function EventualAnticipationsListFilterContent({
     },
   ];
 
+  const applyFilters = () => {
+    const dateValidation = validateDateRange(dateFrom, dateTo);
+    const expectedDateValidation = validateDateRange(
+      expectedSettlementDateFrom,
+      expectedSettlementDateTo
+    );
+
+    if (!dateValidation.isValid) {
+      setDateError(dateValidation.error);
+      return;
+    }
+    if (!expectedDateValidation.isValid) {
+      setExpectedDateError(expectedDateValidation.error);
+      return;
+    }
+
+    setDateError(null);
+    setExpectedDateError(null);
+    onFilter({
+      dateFrom,
+      dateTo,
+      expectedSettlementDateFrom,
+      expectedSettlementDateTo,
+      merchantSlug: merchantSlugIn,
+      type: typeIn,
+      status: statusIn || "",
+    });
+    onClose();
+  };
+
   return (
     <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[700px]">
       <div className="space-y-4">
@@ -140,26 +175,30 @@ export function EventualAnticipationsListFilterContent({
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Data de Solicitação</h3>
-            <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-medium">Intervalo de Datas</h3>
+            {dateError && <p className="text-sm text-red-500">{dateError}</p>}
+            <div className="flex flex-wrap gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-[240px] justify-start text-left font-normal",
                       !dateFrom && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, "PPP") : "De"}
+                    {dateFrom ? format(dateFrom, "PPP") : "Data Inicial"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={dateFrom}
-                    onSelect={setDateFrom}
+                    onSelect={(date) => {
+                      setDateFrom(date);
+                      setDateError(null);
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -170,19 +209,22 @@ export function EventualAnticipationsListFilterContent({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-[240px] justify-start text-left font-normal",
                       !dateTo && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, "PPP") : "Até"}
+                    {dateTo ? format(dateTo, "PPP") : "Data Final"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={dateTo}
-                    onSelect={setDateTo}
+                    onSelect={(date) => {
+                      setDateTo(date);
+                      setDateError(null);
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -192,28 +234,34 @@ export function EventualAnticipationsListFilterContent({
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Previsão de Liquidação</h3>
-          <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Data Prevista de Liquidação</h3>
+          {expectedDateError && (
+            <p className="text-sm text-red-500">{expectedDateError}</p>
+          )}
+          <div className="flex flex-wrap gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-[240px] justify-start text-left font-normal",
                     !expectedSettlementDateFrom && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {expectedSettlementDateFrom
                     ? format(expectedSettlementDateFrom, "PPP")
-                    : "De"}
+                    : "Data Inicial"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={expectedSettlementDateFrom}
-                  onSelect={setExpectedSettlementDateFrom}
+                  onSelect={(date) => {
+                    setExpectedSettlementDateFrom(date);
+                    setExpectedDateError(null);
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -224,21 +272,24 @@ export function EventualAnticipationsListFilterContent({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-[240px] justify-start text-left font-normal",
                     !expectedSettlementDateTo && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {expectedSettlementDateTo
                     ? format(expectedSettlementDateTo, "PPP")
-                    : "Até"}
+                    : "Data Final"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={expectedSettlementDateTo}
-                  onSelect={setExpectedSettlementDateTo}
+                  onSelect={(date) => {
+                    setExpectedSettlementDateTo(date);
+                    setExpectedDateError(null);
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -288,21 +339,7 @@ export function EventualAnticipationsListFilterContent({
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button
-          onClick={() => {
-            onFilter({
-              dateFrom,
-              dateTo,
-              expectedSettlementDateFrom,
-              expectedSettlementDateTo,
-              merchantSlug,
-              type,
-              status,
-            });
-            onClose();
-          }}
-          className="flex items-center gap-2"
-        >
+        <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar
         </Button>

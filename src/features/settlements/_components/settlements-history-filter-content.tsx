@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { validateDateRange } from "@/lib/validations/date";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
 import { KeyboardEvent, useState } from "react";
@@ -35,6 +36,7 @@ export function SettlementsHistoryFilterContent({
   const [status, setStatus] = useState(statusIn || "");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   const statuses = [
     {
@@ -66,6 +68,12 @@ export function SettlementsHistoryFilterContent({
   ];
 
   const applyFilters = () => {
+    const validation = validateDateRange(dateFrom, dateTo);
+    if (!validation.isValid) {
+      setDateError(validation.error);
+      return;
+    }
+    setDateError(null);
     onFilter({ status, dateFrom, dateTo });
     onClose();
   };
@@ -108,6 +116,7 @@ export function SettlementsHistoryFilterContent({
 
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Intervalo de Datas</h3>
+          {dateError && <p className="text-sm text-red-500">{dateError}</p>}
           <div className="flex flex-wrap gap-2">
             <Popover>
               <PopoverTrigger asChild>
@@ -126,7 +135,10 @@ export function SettlementsHistoryFilterContent({
                 <Calendar
                   mode="single"
                   selected={dateFrom}
-                  onSelect={setDateFrom}
+                  onSelect={(date) => {
+                    setDateFrom(date);
+                    setDateError(null);
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -149,20 +161,23 @@ export function SettlementsHistoryFilterContent({
                 <Calendar
                   mode="single"
                   selected={dateTo}
-                  onSelect={setDateTo}
+                  onSelect={(date) => {
+                    setDateTo(date);
+                    setDateError(null);
+                  }}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button onClick={applyFilters} className="flex items-center gap-2">
-          <Search className="h-4 w-4" />
-          Filtrar
-        </Button>
+        <div className="flex justify-end pt-4 mt-4 border-t">
+          <Button onClick={applyFilters} className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Filtrar
+          </Button>
+        </div>
       </div>
     </div>
   );

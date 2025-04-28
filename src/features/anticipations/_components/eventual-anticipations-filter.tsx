@@ -1,10 +1,10 @@
 "use client";
 
+import { EventualAnticipationsListFilterContent } from "@/features/anticipations/_components/eventual-anticipations-filter-content";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MerchantDD } from "../server/anticipation";
 import { AnticipationsListFilterButton } from "./anticipations-filter-button";
-import { EventualAnticipationsListFilterContent } from "@/features/anticipations/_components/eventual-anticipations-filter-content";
 
 type EventualAnticipationsListFilterProps = {
   dateFromIn?: Date;
@@ -103,7 +103,7 @@ export function EventualAnticipationsListFilter(
     (props.dateToIn ? 1 : 0) +
     (props.expectedSettlementDateFromIn ? 1 : 0) +
     (props.expectedSettlementDateToIn ? 1 : 0) +
-    (props.merchantSlugIn ? 1 : 0) +
+    (props.merchantSlugIn && props.merchantSlugIn !== "all" ? 1 : 0) +
     (props.typeIn ? 1 : 0) +
     (props.statusIn ? 1 : 0);
 

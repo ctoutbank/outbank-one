@@ -90,7 +90,7 @@ export function AnticipationsListFilterContent({
 
   const types = [
     {
-      value: "CPN",
+      value: "CNP",
       label: "Cartão Não Presente",
     },
     {
@@ -187,7 +187,8 @@ export function AnticipationsListFilterContent({
                 key={t.value}
                 variant="secondary"
                 className={cn(
-                  "cursor-pointer w-48 h-8 select-none bg-secondary text-secondary-foreground"
+                  "cursor-pointer w-48 h-8 select-none bg-secondary text-secondary-foreground",
+                  type === t.value && "border-2 border-primary"
                 )}
                 onClick={() => setType(type === t.value ? "" : t.value)}
               >

@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatDateTime } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
 import {
   ExcelDailyData,
@@ -28,6 +28,7 @@ interface DailyViewProps {
 }
 
 export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
+  console.log(exportExcelDailyData);
   const globalStyles = {
     header: {
       fill: {
@@ -43,6 +44,7 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
   };
 
   const getExcelExport = (slugMerchant: string) => {
+    console.log(slugMerchant);
     const filteredData = exportExcelDailyData.filter(
       (excel) => excel.slugMerchant == slugMerchant
     );
@@ -53,15 +55,16 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
           Estabelecimento: excel.merchant,
           "CNPJ/CPF": excel.cnpj,
           "NSU/ID": excel.nsu,
-          "Data da Venda": formatDate(new Date(excel.saleDate)),
+          "Data da Venda": formatDateTime(new Date(excel.saleDate), false),
           Tipo: excel.type,
           Bandeira: excel.brand,
           Parcela: excel.installmentNumber,
           "Número de Parcelas": excel.installments,
-          "Valor Bruto da Taxa (%)": excel.transactionMdr,
+          "Valor Bruto da Parcela": excel.installmentValue,
+          "Taxa (%)": excel.transactionMdr,
           "Taxa (R$)": excel.transactionMdrFee,
           "Valor Fixo": excel.transactionFee,
-          "Valor Líquido da PJ": excel.settlementAmount,
+          "Valor Líquido da Parcela": excel.settlementAmount,
           "Data Prevista de Liquidação": formatDate(
             new Date(excel.expectedDate)
           ),
@@ -82,10 +85,10 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
 
   return (
     <>
-      {dailyData.merchants && (
+      {dailyData.merchants && dailyData.merchants.length > 0 && (
         <>
           <Accordion type="multiple" className="space-y-4">
-            {dailyData.merchants.map((merchant) => (
+            {dailyData.merchants?.map((merchant) => (
               <AccordionItem
                 key={merchant.merchant}
                 value={merchant.merchant}
@@ -101,7 +104,7 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                           currency: "BRL",
                         }).format(merchant.total)}
                       </span>
-                      {getExcelExport(merchant.slugmerchant)}
+                      {getExcelExport(merchant.slug_merchant)}
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -122,7 +125,7 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {merchant.producttype.map((productType, index) => (
+                        {merchant.product_types?.map((productType, index) => (
                           <tr key={index} className="w-full">
                             <td colSpan={3} className="p-0 border-0">
                               <AccordionItem
@@ -162,14 +165,14 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                                   <div className="pr-4">
                                     <Table>
                                       <TableBody>
-                                        {productType.brand.map(
+                                        {productType.brand?.map(
                                           (brand, brandIndex) => (
                                             <TableRow key={brandIndex}>
                                               <TableCell
                                                 className="text-sm text-muted-foreground"
                                                 style={{ width: "20%" }}
                                               >
-                                                {brand.name }
+                                                {brand.name}
                                               </TableCell>
                                               <TableCell
                                                 className="text-sm text-right text-muted-foreground"

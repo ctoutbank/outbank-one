@@ -1,23 +1,25 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { FilterIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FilterIcon, Loader2 } from "lucide-react";
 
 type MerchantAgendaFilterButtonProps = {
-  activeFiltersCount: number
-  onClearFilters: () => void
-  children: React.ReactNode
-  isFiltersVisible: boolean
-  onVisibilityChange: (visible: boolean) => void
-}
+  activeFiltersCount: number;
+  onClearFilters: () => void;
+  children: React.ReactNode;
+  isFiltersVisible: boolean;
+  onVisibilityChange: (visible: boolean) => void;
+  isLoading: boolean;
+};
 
 export function MerchantAgendaFilterButton({
   activeFiltersCount,
   onClearFilters,
   children,
   isFiltersVisible,
-  onVisibilityChange
+  onVisibilityChange,
+  isLoading,
 }: MerchantAgendaFilterButtonProps) {
   return (
     <div className="relative z-50">
@@ -26,8 +28,13 @@ export function MerchantAgendaFilterButton({
           variant="outline"
           onClick={() => onVisibilityChange(!isFiltersVisible)}
           className="flex items-center gap-2"
+          disabled={isLoading}
         >
-          <FilterIcon className="h-4 w-4" />
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FilterIcon className="h-4 w-4" />
+          )}
           Filtros
           {activeFiltersCount > 0 && (
             <Badge variant="secondary">{activeFiltersCount}</Badge>
@@ -45,5 +52,5 @@ export function MerchantAgendaFilterButton({
       </div>
       {isFiltersVisible && children}
     </div>
-  )
+  );
 }
