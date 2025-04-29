@@ -16,8 +16,7 @@ import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/mer
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import {
-  getMerchantAgenda,
-  getMerchantAgendaExcelData,
+  getMerchantAgenda
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
 import {

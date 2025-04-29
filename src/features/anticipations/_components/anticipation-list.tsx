@@ -18,11 +18,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Info } from "lucide-react";
 import { AnticipationList } from "../server/anticipation";
 
-const PopoverClose = PopoverPrimitive.Close;
+
 
 export default function AnticipationListComponent({
   anticipations,

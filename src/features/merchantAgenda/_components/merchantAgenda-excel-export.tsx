@@ -6,7 +6,7 @@ import { getMerchantAgendaExcelData } from "@/features/merchantAgenda/server/mer
 import { Fill, Font } from "exceljs";
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 
 interface MerchantAgendaExcelExportProps {
   dateFrom?: string;
@@ -62,10 +62,20 @@ export default function MerchantAgendaExcelExport({
       // Trigger the download
       const downloadButton = document.createElement("div");
       document.body.appendChild(downloadButton);
-      ReactDOM.render(tempExcelExport, downloadButton);
-      const button = downloadButton.querySelector("button");
-      button?.click();
-      document.body.removeChild(downloadButton);
+
+      // Usa o createRoot ao invés de ReactDOM.render
+      const root = createRoot(downloadButton);
+      root.render(tempExcelExport);
+
+      // Aguarda o próximo *tick* para garantir que o botão foi renderizado
+      setTimeout(() => {
+        const button = downloadButton.querySelector("button");
+        button?.click();
+
+        // Desmonta o componente e remove o elemento
+        root.unmount();
+        document.body.removeChild(downloadButton);
+      }, 0);
 
       return formattedData;
     } finally {

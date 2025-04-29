@@ -18,11 +18,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Info } from "lucide-react";
 import { EventualAnticipationList } from "../server/anticipation";
 
-const PopoverClose = PopoverPrimitive.Close;
+
 
 export default function EventualAnticipationListComponent({
   anticipations,
@@ -65,8 +64,8 @@ export default function EventualAnticipationListComponent({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {anticipations.anticipations.map((item) => (
-              <TableRow>
+            {anticipations.anticipations.map((item, index) => (
+              <TableRow key={index}>
                 <TableCell>{formatDate(item.dtinsert)}</TableCell>
                 <TableCell>{item.type}</TableCell>
                 <TableCell>{formatDate(item.expectedSettlementDate)}</TableCell>
