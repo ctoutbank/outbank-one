@@ -223,10 +223,10 @@ export async function updateSalesAgent(
         dtupdate: new Date().toISOString(),
         documentId: salesAgent.documentId,
         slugCustomer: salesAgent.slugCustomer,
-        idAddress: salesAgent.idAddress,
         cpf: salesAgent.cpf,
         phone: salesAgent.phone,
         birthDate: salesAgent.birthDate,
+        idUsers: salesAgent.idUsers,
       })
       .where(eq(salesAgents.id, salesAgent.id));
 

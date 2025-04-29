@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordInput } from "@/components/password-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { states } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -34,6 +36,7 @@ import {
   HelpCircle,
   Lock,
   Mail,
+  MapPin,
   User,
   UserCog,
   X,
@@ -43,13 +46,24 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { schemaUser, UserSchema } from "../schema/schema";
 import {
+  AddressSchema,
+  SchemaAddress,
+  schemaUser,
+  UserSchema,
+} from "../schema/schema";
+import {
+  createSalesAgent,
   DD,
+  getAddressById,
   getDDMerchants,
+  getProfileById,
+  insertAddressFormAction,
   InsertUser,
+  updateAddressFormAction,
   updateUser,
   UserDetailForm,
+  UserInsert,
 } from "../server/users";
 
 interface UserFormProps {
@@ -105,10 +119,10 @@ export default function UserForm({
     defaultValues: {
       id: user?.id || 0,
       slug: user?.slug || "",
+      password: "",
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
-      password: "",
       idProfile: user?.idProfile?.toString(),
       idCustomer: user?.idCustomer?.toString(),
       fullAccess: user?.fullAccess || false,
@@ -117,52 +131,264 @@ export default function UserForm({
     },
   });
 
+  const addressForm = useForm<AddressSchema>({
+    resolver: zodResolver(SchemaAddress),
+    defaultValues: {
+      id: undefined,
+      zipCode: "",
+      streetAddress: "",
+      streetNumber: "",
+      complement: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+      country: "Brasil",
+    },
+  });
+
+  useEffect(() => {
+    async function loadAddress() {
+      if (user?.idAddress) {
+        try {
+          const addressData = await getAddressById(user.idAddress);
+          if (addressData) {
+            addressForm.reset({
+              id: addressData.id,
+              zipCode: addressData.zipCode || "",
+              streetAddress: addressData.streetAddress || "",
+              streetNumber: addressData.streetNumber || "",
+              complement: addressData.complement || "",
+              neighborhood: addressData.neighborhood || "",
+              city: addressData.city || "",
+              state: addressData.state || "",
+              country: addressData.country || "Brasil",
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar endereço:", error);
+        }
+      }
+    }
+    loadAddress();
+  }, [user?.idAddress, addressForm]);
+
   const onSubmit = async (data: UserSchema) => {
     const loadingToastId = toast.loading("Salvando usuário...");
     try {
       setIsLoading(true);
 
+      // Verificação mais rigorosa de senha para novos usuários
       if (!user?.id && !data.password) {
         form.setError("password", {
           type: "manual",
-          message: "Senha é obrigatória para novos usuários",
+          message: "A senha é obrigatória para novos usuários",
         });
         toast.dismiss(loadingToastId);
-        toast.error("Senha é obrigatória para novos usuários");
+        toast.error("A senha é obrigatória para novos usuários");
+        setIsLoading(false);
         return;
       }
 
-      const userData: UserDetailForm = {
-        id: data.id || 0,
-        slug: data.slug || "",
-        active: data.active || true,
-        dtinsert: new Date().toISOString(),
-        dtupdate: new Date().toISOString(),
-        idClerk: data.idClerk || "",
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        idProfile: Number(data.idProfile),
-        idCustomer: Number(data.idCustomer),
-        fullAccess: data.fullAccess || false,
-        selectedMerchants: data.fullAccess ? [] : selectedMerchants,
-      };
+      // Validação de senha para novos usuários usando o componente PasswordInput
+      if (!user?.id && !isValid) {
+        form.setError("password", {
+          type: "manual",
+          message: "A senha não atende aos requisitos de segurança",
+        });
+        toast.dismiss(loadingToastId);
+        toast.error("A senha não atende aos requisitos de segurança");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validar formulário de endereço
+      if (!addressForm.formState.isValid) {
+        const valid = await addressForm.trigger();
+        if (!valid) {
+          console.error("Formulário de endereço inválido");
+          toast.dismiss(loadingToastId);
+          toast.error(
+            "Por favor, preencha todos os campos obrigatórios do endereço"
+          );
+          return;
+        }
+      }
+
+      // Salvar endereço
+      const addressData = addressForm.getValues();
+      let addressId = user?.idAddress;
+
+      try {
+        if (addressData.id) {
+          console.log("Atualizando endereço existente com ID:", addressData.id);
+          addressId = await updateAddressFormAction(addressData);
+        } else {
+          console.log("Criando novo endereço");
+          addressId = await insertAddressFormAction(addressData);
+        }
+      } catch (error) {
+        console.error("Erro ao salvar endereço:", error);
+        toast.dismiss(loadingToastId);
+        toast.error("Erro ao salvar endereço. Tente novamente.");
+        return;
+      }
+
+      console.log("Endereço salvo com ID:", addressId);
 
       if (data.id && data.id > 0) {
-        await updateUser(data.id, userData);
-        toast.dismiss(loadingToastId);
-        toast.success("Usuário atualizado com sucesso!");
+        // Atualizar usuário existente
+        try {
+          const userData: UserInsert = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            idProfile: Number(data.idProfile),
+            idCustomer: Number(data.idCustomer),
+            idAddress: addressId,
+            fullAccess: data.fullAccess || false,
+            selectedMerchants: data.fullAccess ? [] : selectedMerchants,
+            active: data.active || true,
+            idClerk: data.idClerk || null,
+
+            dtinsert: new Date().toISOString(),
+            dtupdate: new Date().toISOString(),
+          };
+
+          await updateUser(data.id, userData);
+          toast.dismiss(loadingToastId);
+          toast.success("Usuário atualizado com sucesso!");
+
+          // Verificação de perfil para usuário existente
+          const profileId = Number(data.idProfile);
+          const profileInfo = await getProfileById(profileId);
+
+          if (profileInfo && profileInfo.isSalesAgent) {
+            console.log(
+              "Perfil de Consultor Comercial detectado, criando registro de agente de vendas"
+            );
+
+            try {
+              // Criar registro de agente de vendas associado ao usuário
+              await createSalesAgent(
+                data.id,
+                data.firstName,
+                data.lastName,
+                data.email
+              );
+            } catch (salesAgentError) {
+              console.error(
+                "Erro ao criar consultor comercial:",
+                salesAgentError
+              );
+              toast.error(
+                "Erro ao criar Consultor Comercial. Usuário atualizado, mas operação de consultor falhou."
+              );
+            }
+          }
+        } catch (updateError) {
+          console.error("Erro ao atualizar usuário:", updateError);
+          toast.dismiss(loadingToastId);
+          toast.error("Erro ao atualizar usuário. Tente novamente.");
+        }
       } else {
-        await InsertUser(userData);
-        toast.dismiss(loadingToastId);
-        toast.success("Usuário criado com sucesso!");
-        router.push("/portal/users");
+        // Criar novo usuário
+        try {
+          const newUserData: UserInsert = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            idProfile: Number(data.idProfile),
+            idCustomer: Number(data.idCustomer),
+            idAddress: addressId,
+            fullAccess: data.fullAccess || false,
+            selectedMerchants: data.fullAccess ? [] : selectedMerchants,
+            active: true,
+            idClerk: null,
+
+            dtinsert: new Date().toISOString(),
+            dtupdate: new Date().toISOString(),
+          };
+
+          const newUser = await InsertUser(newUserData);
+          const newUserId = newUser[0].id;
+          toast.dismiss(loadingToastId);
+          toast.success("Usuário criado com sucesso!");
+
+          // Verificação de perfil para novo usuário
+          const profileId = Number(data.idProfile);
+          const profileInfo = await getProfileById(profileId);
+
+          if (profileInfo && profileInfo.isSalesAgent) {
+            console.log(
+              "Perfil de Consultor Comercial detectado, criando registro de agente de vendas"
+            );
+
+            try {
+              // Criar registro de agente de vendas associado ao usuário
+              await createSalesAgent(
+                newUserId,
+                data.firstName,
+                data.lastName,
+                data.email
+              );
+
+              toast.success("Consultor Comercial criado com sucesso!");
+            } catch (salesAgentError) {
+              console.error(
+                "Erro ao criar consultor comercial:",
+                salesAgentError
+              );
+              toast.error(
+                "Erro ao criar Consultor Comercial. Usuário criado, mas operação de consultor falhou."
+              );
+            }
+          }
+
+          router.push("/portal/users");
+        } catch (createError: any) {
+          console.error("Erro ao criar usuário:", createError);
+          toast.dismiss(loadingToastId);
+
+          if (
+            createError.message &&
+            createError.message.includes("Senha comprometida")
+          ) {
+            // Mensagem amigável para senha comprometida
+            toast.error(
+              "A senha escolhida foi encontrada em vazamentos de dados. Por favor, use uma senha mais única."
+            );
+          } else if (
+            createError.errors &&
+            createError.errors.length > 0 &&
+            createError.errors[0].code === "form_password_pwned"
+          ) {
+            // Detector específico para o erro do Clerk de senha comprometida
+            toast.error(
+              "A senha escolhida foi encontrada em vazamentos de dados. Por favor, use uma senha mais única."
+            );
+          } else if (createError.errors && createError.errors.length > 0) {
+            // Outros erros do Clerk
+            toast.error(
+              createError.errors[0].message || "Erro ao criar usuário"
+            );
+          } else {
+            // Mensagem genérica de erro
+            toast.error(
+              "Erro ao criar usuário. Verifique se o email já está em uso ou se a senha atende aos requisitos."
+            );
+          }
+        }
       }
     } catch (error) {
-      console.error("Erro ao salvar usuário:", error);
+      console.error("Erro ao submeter formulário:", error);
       toast.dismiss(loadingToastId);
-      toast.error("Erro ao salvar usuário. Tente novamente.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao salvar usuário. Tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -181,20 +407,25 @@ export default function UserForm({
   const handleCustomerChange = (value: string) => {
     setSelectedCustomer(value);
     form.setValue("idCustomer", value);
-    // Clear selected merchants when customer changes
     setSelectedMerchants([]);
-    // Fetch merchants for the selected customer
     fetchMerchants(value);
   };
 
   const hasFullAccess = form.watch("fullAccess");
 
-  // Add useEffect to load merchants on component mount if there's a selected customer
   useEffect(() => {
     if (selectedCustomer) {
       fetchMerchants(selectedCustomer);
     }
-  }, []); // Run only on mount
+  }, []);
+
+  const [password, setPassword] = useState("");
+  const [isValid, setIsValid] = useState(false);
+
+  const handlePasswordChange = (value: string, isValid: boolean) => {
+    setPassword(value);
+    setIsValid(isValid);
+  };
 
   return (
     <Form {...form}>
@@ -242,85 +473,89 @@ export default function UserForm({
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    <Mail className="h-4 w-4 mr-1" />
-                    E-mail <span className="text-destructive ml-1">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Digite o e-mail" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    <Lock className="h-4 w-4 mr-1" />
-                    Senha{" "}
-                    {!user?.id && (
-                      <span className="text-destructive ml-1">*</span>
-                    )}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder={
-                        user?.id
-                          ? "Digite a nova senha (opcional)"
-                          : "Digite a senha"
-                      }
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="idProfile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    <UserCog className="h-4 w-4 mr-1" />
-                    Perfil <span className="text-destructive ml-1">*</span>
-                  </FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    defaultValue={field.value ? field.value.toString() : ""}
-                  >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <Mail className="h-4 w-4 mr-1" />
+                      E-mail <span className="text-destructive ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o perfil" />
-                      </SelectTrigger>
+                      <Input placeholder="Digite o e-mail" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {profiles.map((profile) => (
-                        <SelectItem
-                          key={profile.id}
-                          value={profile.id.toString()}
-                        >
-                          {profile.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <Lock className="h-4 w-4 mr-1" />
+                      Senha{" "}
+                      {!user?.id && (
+                        <span className="text-destructive ml-1">*</span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        label=""
+                        placeholder="Digite a senha"
+                        value={password}
+                        onChange={(value, isValid) => {
+                          field.onChange(value);
+                          handlePasswordChange(value, isValid);
+                        }}
+                        required={!user?.id}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="idProfile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <UserCog className="h-4 w-4 mr-1" />
+                      Perfil <span className="text-destructive ml-1">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value)}
+                      defaultValue={field.value ? field.value.toString() : ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o perfil" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {profiles.map((profile) => (
+                          <SelectItem
+                            key={profile.id}
+                            value={profile.id.toString()}
+                          >
+                            {profile.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -342,7 +577,7 @@ export default function UserForm({
                   </FormLabel>
                   <Select
                     onValueChange={handleCustomerChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -502,6 +737,166 @@ export default function UserForm({
                 )}
               </>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="w-full mt-4">
+          <CardHeader className="flex flex-row items-center space-x-2">
+            <MapPin className="w-5 h-5" />
+            <CardTitle>Endereço</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={addressForm.control}
+              name="zipCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    CEP <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      maxLength={8}
+                      value={field.value?.toString() || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={addressForm.control}
+              name="streetAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Rua <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value?.toString() || ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={addressForm.control}
+                name="streetNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Número <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value?.toString() || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="complement"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Complemento</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value?.toString() || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={addressForm.control}
+              name="neighborhood"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Bairro <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value?.toString() || ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={addressForm.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Cidade <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value?.toString() || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Estado <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Digite a sigla do estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {states.map((state) => (
+                          <SelectItem key={state.value} value={state.value}>
+                            {state.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={addressForm.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    País <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      defaultValue="Brasil"
+                      value={field.value?.toString() || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
