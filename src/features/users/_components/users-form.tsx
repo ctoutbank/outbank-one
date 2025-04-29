@@ -220,10 +220,8 @@ export default function UserForm({
 
       try {
         if (addressData.id) {
-          console.log("Atualizando endereço existente com ID:", addressData.id);
           addressId = await updateAddressFormAction(addressData);
         } else {
-          console.log("Criando novo endereço");
           addressId = await insertAddressFormAction(addressData);
         }
       } catch (error) {
@@ -333,22 +331,16 @@ export default function UserForm({
                 data.lastName,
                 data.email
               );
-
-              toast.success("Consultor Comercial criado com sucesso!");
             } catch (salesAgentError) {
               console.error(
                 "Erro ao criar consultor comercial:",
                 salesAgentError
-              );
-              toast.error(
-                "Erro ao criar Consultor Comercial. Usuário criado, mas operação de consultor falhou."
               );
             }
           }
 
           router.push("/portal/users");
         } catch (createError: any) {
-          console.error("Erro ao criar usuário:", createError);
           toast.dismiss(loadingToastId);
 
           if (
