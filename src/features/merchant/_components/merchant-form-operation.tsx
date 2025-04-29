@@ -82,6 +82,9 @@ export default function MerchantFormOperations({
 }: MerchantProps) {
   const router = useRouter();
   const [loadedConfiguration] = useState<ConfigurationWithExtras | null>(null);
+  // Estados para controlar a exibição dos campos de Cartão Presente e Cartão Não Presente
+  const [showCardPresent, setShowCardPresent] = useState(true);
+  const [showCardNotPresent, setShowCardNotPresent] = useState(true);
 
   // Verificar explicitamente se o merchant já tem uma configuração associada
   const hasExistingConfiguration = !!idConfiguration;
@@ -107,7 +110,7 @@ export default function MerchantFormOperations({
 
   // Valores iniciais processados para garantir tipos booleanos corretos
   const initialLockCp = configToUse?.lockCpAnticipationOrder === true;
-  const initialLockCnp = configToUse?.lockCnpAnticipationOrder === false;
+  const initialLockCnp = configToUse?.lockCnpAnticipationOrder === true;
 
   console.log("Valores processados para booleanos:");
   console.log("initialLockCp:", initialLockCp);
@@ -273,29 +276,6 @@ export default function MerchantFormOperations({
     }
   };
 
-  // Valores para controlar a exibição dos campos - usando !lockCpAnticipationOrder
-  const lockCpAnticipationValue = form.watch("lockCpAnticipationOrder");
-  const lockCnpAnticipationValue = form.watch("lockCnpAnticipationOrder");
-  // Restaurando a lógica original mas mantendo os inputs desabilitados
-  const showCardPresentFields = !lockCpAnticipationValue;
-  const showCardNotPresentFields = !lockCnpAnticipationValue;
-
-  // Log dos valores que controlam a exibição
-  useEffect(() => {
-    console.log("Valor de lockCpAnticipationOrder:", lockCpAnticipationValue);
-    console.log("Valor de lockCnpAnticipationOrder:", lockCnpAnticipationValue);
-    console.log("Exibir campos do Cartão Presente:", showCardPresentFields);
-    console.log(
-      "Exibir campos do Cartão Não Presente:",
-      showCardNotPresentFields
-    );
-  }, [
-    lockCpAnticipationValue,
-    lockCnpAnticipationValue,
-    showCardPresentFields,
-    showCardNotPresentFields,
-  ]);
-
   return (
     <div className="grid gap-6">
       <Form {...form}>
@@ -311,31 +291,24 @@ export default function MerchantFormOperations({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Coluna 1: Cartão Presente */}
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="lockCpAnticipationOrder"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={!field.value}
-                              onCheckedChange={(checked) => {
-                                // Quando o checkbox é checked, o lock deve ser false
-                                field.onChange(!checked);
-                                console.log(
-                                  `Checkbox Cartão Presente alterado para: ${checked}, lockCpAnticipationOrder: ${!checked}`
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none ml-2">
-                            <FormLabel>Cartão Presente</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={showCardPresent}
+                          onCheckedChange={(checked) => {
+                            setShowCardPresent(!!checked);
+                            console.log(
+                              `Checkbox Cartão Presente alterado para: ${checked}`
+                            );
+                          }}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none ml-2">
+                        <FormLabel>Cartão Presente</FormLabel>
+                      </div>
+                    </FormItem>
 
-                    {showCardPresentFields && (
+                    {showCardPresent && (
                       <>
                         <FormField
                           control={form.control}
@@ -440,31 +413,24 @@ export default function MerchantFormOperations({
 
                   {/* Coluna 2: Cartão Não Presente */}
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="lockCnpAnticipationOrder"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={!field.value}
-                              onCheckedChange={(checked) => {
-                                // Quando o checkbox é checked, o lock deve ser false
-                                field.onChange(!checked);
-                                console.log(
-                                  `Checkbox Cartão Não Presente alterado para: ${checked}, lockCnpAnticipationOrder: ${!checked}`
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none ml-2">
-                            <FormLabel>Cartão Não Presente</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={showCardNotPresent}
+                          onCheckedChange={(checked) => {
+                            setShowCardNotPresent(!!checked);
+                            console.log(
+                              `Checkbox Cartão Não Presente alterado para: ${checked}`
+                            );
+                          }}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none ml-2">
+                        <FormLabel>Cartão Não Presente</FormLabel>
+                      </div>
+                    </FormItem>
 
-                    {showCardNotPresentFields && (
+                    {showCardNotPresent && (
                       <>
                         <FormField
                           control={form.control}
@@ -495,7 +461,7 @@ export default function MerchantFormOperations({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Antecipação Cartão Presente */}
                     <div className="space-y-4">
-                      {showCardPresentFields && (
+                      {showCardPresent && (
                         <>
                           <h3 className="font-medium mb-3">
                             Antecipação Cartão Presente
@@ -556,19 +522,30 @@ export default function MerchantFormOperations({
                             <h3 className="font-medium mb-3">
                               Dados de Antecipação
                             </h3>
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="blockCardPresentForAnalysis"
-                                  // Por enquanto sem binding com o form
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none ml-2">
-                                <Label htmlFor="blockCardPresentForAnalysis">
-                                  Bloquear cartão presente para análise
-                                </Label>
-                              </div>
-                            </FormItem>
+                            <FormField
+                              control={form.control}
+                              name="lockCpAnticipationOrder"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={(checked) => {
+                                        field.onChange(!!checked);
+                                        console.log(
+                                          `Bloquear cartão presente para análise: ${checked}, lockCpAnticipationOrder: ${checked}`
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none ml-2">
+                                    <Label>
+                                      Bloquear cartão presente para análise
+                                    </Label>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
                           </div>
                         </>
                       )}
@@ -576,7 +553,7 @@ export default function MerchantFormOperations({
 
                     {/* Antecipação Cartão Não Presente */}
                     <div className="space-y-4">
-                      {showCardNotPresentFields && (
+                      {showCardNotPresent && (
                         <>
                           <h3 className="font-medium mb-3">
                             Antecipação Cartão Não Presente
@@ -637,19 +614,30 @@ export default function MerchantFormOperations({
                             <h3 className="font-medium mb-3">
                               Dados de Antecipação
                             </h3>
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="blockCardNotPresentForAnalysis"
-                                  // Por enquanto sem binding com o form
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none ml-2">
-                                <Label htmlFor="blockCardNotPresentForAnalysis">
-                                  Bloquear cartão não presente para análise
-                                </Label>
-                              </div>
-                            </FormItem>
+                            <FormField
+                              control={form.control}
+                              name="lockCnpAnticipationOrder"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={(checked) => {
+                                        field.onChange(!!checked);
+                                        console.log(
+                                          `Bloquear cartão não presente para análise: ${checked}, lockCnpAnticipationOrder: ${checked}`
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none ml-2">
+                                    <Label>
+                                      Bloquear cartão não presente para análise
+                                    </Label>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
                           </div>
                         </>
                       )}

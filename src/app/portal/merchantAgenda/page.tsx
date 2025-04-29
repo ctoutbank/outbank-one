@@ -10,6 +10,7 @@ import { AdjustmentsListFilter } from "@/features/merchantAgenda/_components/mer
 import MerchantAgendaAdjustmentList from "@/features/merchantAgenda/_components/merchantAgenda-adjustments-list";
 import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-filter";
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
+import { MerchantAgendaAnticipationsDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dasboardAntecipation-content";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
 import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/merchantAgenda-excel-export";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
@@ -19,7 +20,10 @@ import {
   getMerchantAgendaExcelData,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
-import { getMerchantAgendaAnticipation } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
+import {
+  getMerchantAgendaAnticipation,
+  getMerchantAgendaAnticipationStats,
+} from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 
@@ -124,6 +128,21 @@ export default async function MerchantAgendaPage({
       font: { color: { argb: "000000" } } as Font,
     },
   };
+
+  // Buscar dados para o dashboard
+  const anticipationDashboardStats = await getMerchantAgendaAnticipationStats(
+    dateFrom,
+    dateTo,
+    establishmentIn,
+    statusIn,
+    searchParams.cardBrand,
+    searchParams.settlementDateFrom,
+    searchParams.settlementDateTo,
+    searchParams.saleDateFrom,
+    searchParams.saleDateTo,
+    nsuIn,
+    orderIdIn
+  );
 
   return (
     <>
@@ -242,31 +261,63 @@ export default async function MerchantAgendaPage({
                     orderIdIn={orderIdIn}
                   />
                 </div>
+                <div className="flex items-start justify-between gap-4 mb-2">
+                <MerchantAgendaAnticipationsDashboardContent
+                  totalEstablishments={
+                    anticipationDashboardStats.totalEstablishments
+                  }
+                  totalAnticipationRequests={
+                    anticipationDashboardStats.totalAnticipationRequests
+                  }
+                  totalParcels={anticipationDashboardStats.totalParcels}
+                  fullyAnticipatedParcels={
+                    anticipationDashboardStats.fullyAnticipatedParcels
+                  }
+                  partiallyAnticipatedParcels={
+                    anticipationDashboardStats.partiallyAnticipatedParcels
+                  }
+                  totalNetAnticipated={
+                    anticipationDashboardStats.totalNetAnticipated
+                  }
+                  totalGrossAnticipated={
+                    anticipationDashboardStats.totalGrossAnticipated
+                  }
+                  totalAnticipationFees={
+                    anticipationDashboardStats.totalAnticipationFees
+                  }
+                  firstTransactionDate={
+                    anticipationDashboardStats.firstTransactionDate
+                  }
+                  lastTransactionDate={
+                    anticipationDashboardStats.lastTransactionDate
+                  }
+                />
+                <div className="flex items-end self-stretch">
+                    <ExcelExport
+                      data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
+                        (data) => ({
+                          Merchant: data.merchantName,
+                          NSU: data.rrn,
+                          SaleDate: data.effectivePaymentDate,
+                          Type: data.type,
+                          Brand: data.brand,
+                          InstallmentNumber: data.installmentNumber,
+                          InstallmentValue: data.installmentAmount,
+                          TransactionMdr: data.transactionMdr,
+                          TransactionMdrFee: data.transactionMdrFee,
+                          SettlementAmount: data.settlementAmount,
+                          ExpectedDate: data.expectedSettlementDate,
+                          AnticipationAmount: data.anticipatedAmount,
+                          AnticipationCode: data.anticipationCode,
+                        })
+                      )}
+                      globalStyles={globalStyles}
+                      sheetName="Conciliação de antecipações"
+                      fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
+                    />
+                  </div>
+              </div>
 
-                <div className="flex items-end justify-end mb-2">
-                  <ExcelExport
-                    data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
-                      (data) => ({
-                        Merchant: data.merchantName,
-                        NSU: data.rrn,
-                        SaleDate: data.effectivePaymentDate,
-                        Type: data.type,
-                        Brand: data.brand,
-                        InstallmentNumber: data.installmentNumber,
-                        InstallmentValue: data.installmentAmount,
-                        TransactionMdr: data.transactionMdr,
-                        TransactionMdrFee: data.transactionMdrFee,
-                        SettlementAmount: data.settlementAmount,
-                        ExpectedDate: data.expectedSettlementDate,
-                        AnticipationAmount: data.anticipatedAmount,
-                        AnticipationCode: data.anticipationCode,
-                      })
-                    )}
-                    globalStyles={globalStyles}
-                    sheetName="Conciliação de antecipações"
-                    fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
-                  />
-                </div>
                 <div className="w-full overflow-x-auto">
                   <MerchantAgendaAntecipationList
                     merchantAgendaAnticipationList={merchantAgendaAnticipation}
