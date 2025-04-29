@@ -1,3 +1,4 @@
+import ExcelExport from "@/components/excelExport";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -5,8 +6,12 @@ import PaginationRecords from "@/components/pagination-Records";
 import { TerminalsDashboardContent } from "@/features/terminals/_components/terminals-dashboard-content";
 import { TerminalsFilter } from "@/features/terminals/_components/terminals-filter";
 import TerminalsList from "@/features/terminals/_components/terminals-list";
-import { getTerminals } from "@/features/terminals/serverActions/terminal";
+import {
+  getTerminals,
+  getTerminalsForExport,
+} from "@/features/terminals/serverActions/terminal";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Fill, Font } from "exceljs";
 
 type TerminalsProps = {
   page?: string;
@@ -53,6 +58,18 @@ export default async function TerminalsPage({
     provedor,
   });
 
+  // Buscar dados para exportação Excel usando a nova função
+  const terminalsExcel = await getTerminalsForExport(search, {
+    dateFrom,
+    dateTo,
+    numeroLogico,
+    numeroSerial,
+    estabelecimento,
+    modelo,
+    status,
+    provedor,
+  });
+
   const totalRecords = terminalsList.totalCount;
   const ativosTerminals = terminalsList.activeCount || 0;
   const inativosTerminals = terminalsList.inactiveCount || 0;
@@ -60,6 +77,36 @@ export default async function TerminalsPage({
   const totalModelosAtivos = terminalsList.totalModelosAtivos || 0;
   const modelosAtivos = terminalsList.modelosAtivos || [];
   const modelosAtivosDetalhes = terminalsList.modelosAtivosDetalhes || [];
+
+  const globalStyles = {
+    header: {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "808080" },
+      } as Fill,
+      font: { color: { argb: "FFFFFF" }, bold: true } as Font,
+    },
+    row: {
+      font: { color: { argb: "000000" } } as Font,
+    },
+  };
+
+  // Função para traduzir o status
+  const traduzirStatus = (status: string | null): string => {
+    if (!status) return "";
+
+    switch (status.toUpperCase()) {
+      case "ACTIVE":
+        return "Ativo";
+      case "INACTIVE":
+        return "Inativo";
+      default:
+        return status;
+    }
+  };
+  console.log("esse é o terminalsList", terminalsList);
+  console.log(terminalsExcel);
 
   return (
     <>
@@ -69,7 +116,7 @@ export default async function TerminalsPage({
       <BaseBody title="Terminais" subtitle="Visualização de todos os terminais">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-col items-start gap-4">
-            <div>
+            <div className="flex items-center justify-between w-full">
               <TerminalsFilter
                 dateFromIn={dateFrom}
                 dateToIn={dateTo}
@@ -79,6 +126,38 @@ export default async function TerminalsPage({
                 modeloIn={modelo}
                 statusIn={status}
                 provedorIn={provedor}
+              />
+              <ExcelExport
+                data={terminalsExcel.terminals.map((terminal) => ({
+                  "Data de Inclusão": terminal.dtinsert
+                    ? terminal.dtinsert instanceof Date
+                      ? terminal.dtinsert.toLocaleString()
+                      : terminal.dtinsert
+                    : "",
+                  "Data de Desativação": terminal.inactivationDate
+                    ? terminal.inactivationDate instanceof Date
+                      ? terminal.inactivationDate.toLocaleString()
+                      : terminal.inactivationDate
+                    : "",
+                  "Número Lógico": terminal.logicalNumber || "",
+                  "Número Serial": terminal.serialNumber || "",
+                  Estabelecimento: terminal.merchantName || "",
+                  "CNPJ/CPF": terminal.merchantDocumentId || "",
+                  ISO: terminal.customerName || "",
+                  Modelo: terminal.model || "",
+                  Provedor: terminal.manufacturer || "",
+                  "Data da última Transação": terminal.dtUltimaTransacao
+                    ? terminal.dtUltimaTransacao instanceof Date
+                      ? terminal.dtUltimaTransacao.toLocaleString()
+                      : terminal.dtUltimaTransacao
+                    : "",
+                  Status: traduzirStatus(terminal.status),
+                  Versão: terminal.versao || "",
+                }))}
+                globalStyles={globalStyles}
+                sheetName="Terminais"
+                fileName={`TERMINAIS-${new Date().toLocaleDateString()}`}
+                onClick={undefined}
               />
             </div>
 
