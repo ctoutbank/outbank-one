@@ -31,8 +31,8 @@ import {
   SidebarHeader,
   SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
+import { UserMenu } from "@/components/user-menu";
 import { getAuthorizedMenu } from "@/features/menu/actions";
-import { UserButton } from "@clerk/nextjs";
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -145,19 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={menuData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: {
-              avatarBox: "h-10 w-10",
-              rootBox: "w-full",
-              userPreviewMainIdentifier: "text-foreground",
-              userPreviewSecondaryIdentifier: "text-muted-foreground",
-            },
-          }}
-          userProfileUrl="/portal/myProfile"
-          userProfileMode="navigation"
-        />
+        <UserMenu />
       </SidebarFooter>
     </Sidebar>
   );
