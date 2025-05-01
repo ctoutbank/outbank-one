@@ -11,10 +11,10 @@ import {
   getMerchantSettlements,
   getSettlementBySlug,
 } from "@/features/settlements/server/settlements";
+import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { formatDate } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
-import { SyncButton } from "@/features/sync/syncButton";
 
 export const revalidate = 0;
 
@@ -30,7 +30,7 @@ export default async function SettlementsPage({
 }: {
   searchParams: CategoryProps;
 }) {
- await checkPagePermission("Liquidação");
+  await checkPagePermission("Liquidação");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
@@ -93,6 +93,9 @@ export default async function SettlementsPage({
                 anticipationStatus:
                   settlements.settlement[0].anticipation_status || "",
                 pixStatus: settlements.settlement[0].pix_status || "",
+                totalAdjustmentAmount: Number(
+                  settlements.settlement[0]?.total_adjustment_amount || 0
+                ),
               }}
             />
           </>
@@ -147,7 +150,6 @@ export default async function SettlementsPage({
           <>
             <MerchantSettlementsList
               merchantSettlementList={merchantSettlements}
-        
             />
 
             {totalRecords > 0 && (
