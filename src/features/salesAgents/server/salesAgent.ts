@@ -40,65 +40,70 @@ export async function getSalesAgents(
   dateFrom?: string,
   dateTo?: string,
   email?: string
-): Promise<SalesAgentsList> {
-  const offset = (page - 1) * pageSize;
+): Promise<SalesAgentsList | undefined> {
+  try {
+    const offset = (page - 1) * pageSize;
 
-  const conditions = [
-    or(
-      like(salesAgents.firstName, `%${search}%`),
-      like(salesAgents.lastName, `%${search}%`),
-      like(salesAgents.email, `%${search}%`)
-    ),
-  ];
+    const conditions = [
+      or(
+        like(salesAgents.firstName, `%${search}%`),
+        like(salesAgents.lastName, `%${search}%`),
+        like(salesAgents.email, `%${search}%`)
+      ),
+    ];
 
-  if (email) {
-    conditions.push(like(salesAgents.email, `%${email}%`));
+    if (email) {
+      conditions.push(like(salesAgents.email, `%${email}%`));
+    }
+
+    if (status) {
+      conditions.push(eq(salesAgents.active, status === "ACTIVE"));
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(salesAgents.dtinsert, dateFrom));
+    }
+
+    if (dateTo) {
+      conditions.push(lte(salesAgents.dtinsert, dateTo));
+    }
+
+    const result = await db
+      .select()
+      .from(salesAgents)
+      .where(and(...conditions))
+      .orderBy(desc(salesAgents.id))
+      .limit(pageSize)
+      .offset(offset);
+
+    const totalCountResult = await db
+      .select({ count: count() })
+      .from(salesAgents);
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    return {
+      salesAgents: result.map((salesAgent) => ({
+        id: salesAgent.id,
+        slug: salesAgent.slug || "",
+        firstName: salesAgent.firstName || "",
+        lastName: salesAgent.lastName || "",
+        email: salesAgent.email || "",
+        active: salesAgent.active || null,
+        dtinsert: salesAgent.dtinsert
+          ? new Date(salesAgent.dtinsert)
+          : new Date(),
+        dtupdate: salesAgent.dtupdate
+          ? new Date(salesAgent.dtupdate)
+          : new Date(),
+        documentId: salesAgent.documentId || "",
+        slugCustomer: salesAgent.slugCustomer || "",
+      })),
+      totalCount,
+    };
+  } catch (error) {
+    console.log("error ao buscar sales agent", error);
+    return;
   }
-
-  if (status) {
-    conditions.push(eq(salesAgents.active, status === "ACTIVE"));
-  }
-
-  if (dateFrom) {
-    conditions.push(gte(salesAgents.dtinsert, dateFrom));
-  }
-
-  if (dateTo) {
-    conditions.push(lte(salesAgents.dtinsert, dateTo));
-  }
-
-  const result = await db
-    .select()
-    .from(salesAgents)
-    .where(and(...conditions))
-    .orderBy(desc(salesAgents.id))
-    .limit(pageSize)
-    .offset(offset);
-
-  const totalCountResult = await db
-    .select({ count: count() })
-    .from(salesAgents);
-  const totalCount = totalCountResult[0]?.count || 0;
-
-  return {
-    salesAgents: result.map((salesAgent) => ({
-      id: salesAgent.id,
-      slug: salesAgent.slug || "",
-      firstName: salesAgent.firstName || "",
-      lastName: salesAgent.lastName || "",
-      email: salesAgent.email || "",
-      active: salesAgent.active || null,
-      dtinsert: salesAgent.dtinsert
-        ? new Date(salesAgent.dtinsert)
-        : new Date(),
-      dtupdate: salesAgent.dtupdate
-        ? new Date(salesAgent.dtupdate)
-        : new Date(),
-      documentId: salesAgent.documentId || "",
-      slugCustomer: salesAgent.slugCustomer || "",
-    })),
-    totalCount,
-  };
 }
 
 /**

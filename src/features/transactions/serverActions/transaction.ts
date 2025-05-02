@@ -41,6 +41,10 @@ export type TransactionsList = {
   totalCount: number;
 };
 
+export type MerchantTotal = {
+  total: number;
+};
+
 export async function getTransactions(
   page: number = 1,
   pageSize: number = 100,
@@ -406,6 +410,7 @@ export async function getTotalTransactions(dateFrom: string, dateTo: string) {
   const statusFilter = notInArray(transactions.transactionStatus, [
     "CANCELED",
     "DENIED",
+    "PROCESSING",
   ]);
   conditions.push(statusFilter);
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -446,6 +451,7 @@ export async function getTotalTransactionsByMonth(
   const statusFilter = notInArray(transactions.transactionStatus, [
     "CANCELED",
     "DENIED",
+    "PROCESSING",
   ]);
   conditions.push(statusFilter);
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -559,4 +565,34 @@ export async function getTotalTransactionsByMonth(
   }
   console.log(totals);
   return totals;
+}
+
+export async function getTotalMerchants(dateFrom: string, dateTo: string) {
+  const conditions = [];
+  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
+  if (dateFrom) {
+    console.log(normalizeDate.start);
+    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+    conditions.push(gte(merchants.dtinsert, dateFromUTC!));
+  }
+
+  if (dateTo) {
+    console.log(normalizeDate.end);
+    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(merchants.dtinsert, dateToUTC!));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const result = await db.execute(sql`
+    SELECT 
+      COUNT(1) AS count
+    FROM merchants
+    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+  `);
+  const data = result.rows as MerchantTotal[];
+  console.log(data);
+  return data;
 }

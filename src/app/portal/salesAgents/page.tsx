@@ -41,7 +41,7 @@ export default async function SalesAgentsPage({
     searchParams.dateTo,
     searchParams.email
   );
-  const totalRecords = salesAgents.totalCount;
+  const totalRecords = salesAgents?.totalCount;
 
   return (
     <>
@@ -75,36 +75,44 @@ export default async function SalesAgentsPage({
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-md">
               <SalesAgentDashboardContent
-                totalAgents={salesAgents.totalCount}
+                totalAgents={salesAgents?.totalCount || 0}
                 activeAgents={
-                  salesAgents.salesAgents.filter((a) => a.active).length
+                  salesAgents?.salesAgents.filter((a) => a.active).length || 0
                 }
                 inactiveAgents={
-                  salesAgents.salesAgents.filter((a) => !a.active).length
+                  salesAgents?.salesAgents.filter((a) => !a.active).length || 0
                 }
-                totalMerchants={salesAgents.salesAgents.reduce(
-                  (acc, agent) => acc + (agent.totalMerchants || 0),
-                  0
-                )}
-                pendingMerchants={salesAgents.salesAgents.reduce(
-                  (acc, agent) => acc + (agent.pendingMerchants || 0),
-                  0
-                )}
-                approvedMerchants={salesAgents.salesAgents.reduce(
-                  (acc, agent) => acc + (agent.approvedMerchants || 0),
-                  0
-                )}
-                rejectedMerchants={salesAgents.salesAgents.reduce(
-                  (acc, agent) => acc + (agent.rejectedMerchants || 0),
-                  0
-                )}
+                totalMerchants={
+                  salesAgents?.salesAgents.reduce(
+                    (acc, agent) => acc + (agent.totalMerchants || 0),
+                    0
+                  ) || 0
+                }
+                pendingMerchants={
+                  salesAgents?.salesAgents.reduce(
+                    (acc, agent) => acc + (agent.pendingMerchants || 0),
+                    0
+                  ) || 0
+                }
+                approvedMerchants={
+                  salesAgents?.salesAgents.reduce(
+                    (acc, agent) => acc + (agent.approvedMerchants || 0),
+                    0
+                  ) || 0
+                }
+                rejectedMerchants={
+                  salesAgents?.salesAgents.reduce(
+                    (acc, agent) => acc + (agent.rejectedMerchants || 0),
+                    0
+                  ) || 0
+                }
               />
             </div>
           </div>
 
           <SalesAgentlist SalesAgents={salesAgents} />
 
-          {totalRecords > 0 && (
+          {totalRecords && totalRecords > 0 && (
             <PaginationRecords
               totalRecords={totalRecords}
               currentPage={page}

@@ -99,14 +99,14 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                     <span className="font-medium">{merchant.merchant}</span>
                     <div className="flex items-center gap-4">
                       <span
-                        className={`text-primary font-medium ${
+                        className={`font-medium ${
                           ["SETTLED", "FULLY_ANTICIPATED"].includes(
                             merchant.status
                           )
                             ? "text-[#177a3c]"
                             : merchant.status === "PROVISIONED"
                             ? "text-[#bf8419]"
-                            : ""
+                            : "text-[#177a3c]"
                         }`}
                       >
                         {new Intl.NumberFormat("pt-BR", {

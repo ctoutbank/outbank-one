@@ -21,8 +21,6 @@ import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { EventualAnticipationList } from "../server/anticipation";
 
-
-
 export default function EventualAnticipationListComponent({
   anticipations,
 }: {
@@ -119,7 +117,7 @@ export default function EventualAnticipationListComponent({
                             <div className="text-slate-500 font-medium">
                               ISO
                             </div>
-                            <div>{item.customer}</div>
+                            <div>{"Banco Prisma (Outbank)"}</div>
 
                             <div className="text-slate-500 font-medium">
                               MCC
@@ -129,7 +127,7 @@ export default function EventualAnticipationListComponent({
                             <div className="text-slate-500 font-medium">
                               Ticket Médio
                             </div>
-                            <div>{formatCurrency(0.0)}</div>
+                            <div>{formatCurrency(76.82)}</div>
 
                             <div className="text-slate-500 font-medium">
                               Transações Antecipadas
