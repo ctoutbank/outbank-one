@@ -10,11 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  formatCurrency,
-  formatDate,
-  getStatusColor,
-  translateStatus,
-} from "@/lib/utils";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { formatCurrency, getStatusColor, translateStatus } from "@/lib/utils";
 import { SettlementsList } from "../server/settlements";
 
 export default function SettlementHistorylist({
@@ -22,6 +23,7 @@ export default function SettlementHistorylist({
 }: {
   Settlements: SettlementsList;
 }) {
+  console.log(Settlements);
   return (
     <div>
       <div className="border rounded-lg">
@@ -44,13 +46,34 @@ export default function SettlementHistorylist({
                     href={`/portal/settlements?settlementSlug=${settlements.slug}`}
                     className="underline"
                   >
-                    {formatDate(
-                      new Date(settlements.payment_date) || new Date()
-                    )}
+                    {settlements.payment_date}
                   </a>
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(Number(settlements.batch_amount))}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          {formatCurrency(
+                            Number(settlements.batch_amount) +
+                              Number(settlements.total_adjustment_amount || 0)
+                          )}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Valor Base:{" "}
+                          {formatCurrency(Number(settlements.batch_amount))}
+                        </p>
+                        <p>
+                          Ajustes:{" "}
+                          {formatCurrency(
+                            Number(settlements.total_adjustment_amount || 0)
+                          )}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </TableCell>
                 <TableCell>
                   {formatCurrency(

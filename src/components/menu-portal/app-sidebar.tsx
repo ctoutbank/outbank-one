@@ -4,6 +4,7 @@ import {
   Bolt,
   Calculator,
   Calendar,
+  CalendarDays,
   Check,
   DollarSign,
   DollarSignIcon,
@@ -51,6 +52,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   FileText,
   Calendar,
   FolderOpen,
+  CalendarDays,
 };
 
 interface MenuItem {
