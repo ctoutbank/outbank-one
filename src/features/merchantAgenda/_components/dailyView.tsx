@@ -44,7 +44,6 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
   };
 
   const getExcelExport = (slugMerchant: string) => {
-    console.log(slugMerchant);
     const filteredData = exportExcelDailyData.filter(
       (excel) => excel.slugMerchant == slugMerchant
     );
@@ -98,7 +97,17 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
                   <div className="flex items-center justify-between w-full">
                     <span className="font-medium">{merchant.merchant}</span>
                     <div className="flex items-center gap-4">
-                      <span className="text-primary font-medium">
+                      <span
+                        className={`text-primary font-medium ${
+                          ["SETTLED", "FULLY_ANTICIPATED"].includes(
+                            merchant.status
+                          )
+                            ? "text-[#177a3c]"
+                            : merchant.status === "PROVISIONED"
+                            ? "text-[#bf8419]"
+                            : ""
+                        }`}
+                      >
                         {new Intl.NumberFormat("pt-BR", {
                           style: "currency",
                           currency: "BRL",

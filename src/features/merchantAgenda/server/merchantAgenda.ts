@@ -17,12 +17,14 @@ import {
   sql,
   sum,
 } from "drizzle-orm";
+import { unionAll } from "drizzle-orm/pg-core";
 import {
   merchantPixSettlementOrders,
   merchants,
   merchantSettlementOrders,
   merchantSettlements,
   payout,
+  payoutAntecipations,
   settlements,
 } from "../../../../drizzle/schema";
 
@@ -71,6 +73,7 @@ export type GlobalSettlementResult = {
   globalSettlement: number;
   globalGross: number;
   globalAdjustments: number;
+  status: string;
   merchants: MerchantData[];
 };
 
@@ -100,6 +103,8 @@ export interface MerchantAgendaList {
 export interface DailyAmount {
   date: string;
   amount: number;
+  status: string;
+  is_anticipation: boolean;
 }
 
 export interface MerchantAgendaExcelData {
@@ -411,7 +416,8 @@ export async function getMerchantAgendaReceipts(
       SELECT
         p.settlement_unique_number AS sun,
         p.settlement_amount AS amt,
-        -- data efetiva de liquidação (ou esperada se nulo)
+        p.status AS status,
+        false AS isAnticipation,
         DATE(
           COALESCE(p.settlement_date, p.expected_settlement_date)
         )  AS day
@@ -431,13 +437,47 @@ export async function getMerchantAgendaReceipts(
         AND EXTRACT(
               DOW FROM COALESCE(p.settlement_date, p.expected_settlement_date)
             ) NOT IN (0, 6)
+
+      UNION ALL
+
+      SELECT
+        pa.settlement_unique_number AS sun,
+        pa.settlement_amount AS amt,
+        pa.status AS status,
+        true AS isAnticipation,
+        -- data efetiva de liquidação (ou esperada se nulo)
+        DATE(
+          COALESCE(pa.settlement_date, pa.expected_settlement_date)
+        )  AS day
+      FROM ${payoutAntecipations} pa
+      JOIN ${merchants} m
+        ON m.id = pa.id_merchants
+      WHERE
+        pa.status NOT IN ('CANCELLED')
+        ${search ? sql`AND m.name ILIKE ${"%" + search + "%"}` : sql``}
+        ${
+          date
+            ? sql`AND COALESCE(pa.settlement_date, pa.expected_settlement_date)
+                 BETWEEN ${whereDate.start} AND ${whereDate.end}`
+            : sql``
+        }
+        -- só dias úteis
+        AND EXTRACT(
+              DOW FROM COALESCE(pa.settlement_date, pa.expected_settlement_date)
+            ) NOT IN (0, 6)
     ),
     daily_totals AS (
       SELECT
         day,
-        COALESCE(SUM(amt), 0) AS total_payout
+        COALESCE(SUM(amt), 0) AS total_payout,
+        CASE
+        WHEN COUNT(*) FILTER (WHERE status = 'PROVISIONED') > 0 THEN 'PROVISIONED'
+        WHEN COUNT(*) FILTER (WHERE status NOT LIKE '%SETTLED%') = 0 THEN 'SETTLED'
+        ELSE MIN(CASE WHEN status NOT LIKE '%SETTLED%' THEN status END)
+        END AS status,
+        BOOL_OR(isAnticipation) AS is_anticipation
       FROM filtered_payouts
-      GROUP  BY day
+      GROUP BY day
     ),
     daily_sets AS (
       SELECT DISTINCT
@@ -471,21 +511,33 @@ export async function getMerchantAgendaReceipts(
     )
     SELECT
       dt.day,
-      dt.total_payout - COALESCE(da.total_adj, 0) AS total_amount
+      dt.total_payout - COALESCE(da.total_adj, 0) AS total_amount,
+      dt.status,
+      dt.is_anticipation
     FROM daily_totals dt
     LEFT JOIN daily_adj da
       ON da.day = dt.day
     ORDER BY dt.day
   `;
 
-  const { rows } = await db.execute<{ day: Date; total_amount: string }>(query);
+  const { rows } = await db.execute<{
+    day: Date;
+    total_amount: string;
+    status: string;
+    is_anticipation: boolean;
+  }>(query);
+  console.log(rows);
   return rows.map((r) => ({
     day: r.day,
     totalAmount: Number(r.total_amount),
+    status: r.status,
+    is_anticipation: r.is_anticipation,
   }));
 }
 
-export async function getMerchantAgendaTotal(date: Date) {
+export async function getMerchantAgendaTotal(
+  date: Date
+): Promise<{ total: string; status: string }[] | undefined> {
   const firstDayOfMonth = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), 1)
   );
@@ -496,7 +548,7 @@ export async function getMerchantAgendaTotal(date: Date) {
 
   // Permite visualizar meses passados, mas restringe datas futuras
   if (firstDayOfMonth > today) {
-    return 0;
+    return;
   }
   const start = firstDayOfMonth.toISOString().slice(0, 10);
   const end =
@@ -510,7 +562,8 @@ export async function getMerchantAgendaTotal(date: Date) {
         payout_range AS (
           SELECT
             settlement_unique_number,
-            settlement_amount
+            settlement_amount,
+            status
           FROM ${payout}
           WHERE COALESCE(settlement_date, expected_settlement_date) BETWEEN ${start} AND ${end}
         ),
@@ -536,7 +589,12 @@ export async function getMerchantAgendaTotal(date: Date) {
             ON pr2.settlement_unique_number = mpso.settlement_unique_number
         ),
         total_payout AS (
-          SELECT COALESCE(SUM(settlement_amount), 0) AS total
+          SELECT COALESCE(SUM(settlement_amount), 0) AS total,
+          CASE
+          WHEN COUNT(*) FILTER (WHERE status = 'PROVISIONED') > 0 THEN 'PROVISIONED'
+          WHEN COUNT(*) FILTER (WHERE status NOT LIKE '%SETTLED%') = 0 THEN 'SETTLED'
+          ELSE MIN(CASE WHEN status NOT LIKE '%SETTLED%' THEN status END)
+          END AS payout_status
           FROM payout_range
         ),
         total_adjustment AS (
@@ -546,20 +604,25 @@ export async function getMerchantAgendaTotal(date: Date) {
         )
   
       SELECT
-        tp.total - ta.total AS total
+        tp.total - ta.total AS total,
+        tp.payout_status
       FROM total_payout tp
       CROSS JOIN total_adjustment ta;
     `;
-
-  const result = await db.execute<{ total: string }>(query);
-  return Number(result.rows[0]?.total) || 0;
+  const { rows } = await db.execute<{ total: string; payout_status: string }>(
+    query
+  );
+  return rows.map((r) => ({
+    total: r.total || "0",
+    status: r.payout_status,
+  }));
 }
 
 export async function getMerchantAgendaExcelData(
   dateFrom: string,
   dateTo: string
 ) {
-  const result = await db
+  const payoutData = db
     .select({
       Merchant: merchants.name,
       CNPJ: merchants.idDocument,
@@ -585,6 +648,35 @@ export async function getMerchantAgendaExcelData(
           AND (${payout.settlementDate} <= ${dateTo})
          `
     );
+
+  const payoutAnticipationData = db
+    .select({
+      Merchant: merchants.name,
+      CNPJ: merchants.idDocument,
+      NSU: payoutAntecipations.rrn,
+      SaleDate: payoutAntecipations.effectivePaymentDate,
+      Type: payoutAntecipations.type,
+      Brand: payoutAntecipations.brand,
+      Installments: payoutAntecipations.installments,
+      InstallmentNumber: payoutAntecipations.installmentNumber,
+      InstallmentValue: payoutAntecipations.installmentAmount,
+      TransactionMdr: payoutAntecipations.transactionMdr,
+      TransactionMdrFee: payoutAntecipations.transactionMdrFee,
+      TransactionFee: payoutAntecipations.transactionFee,
+      SettlementAmount: payoutAntecipations.settlementAmount,
+      ExpectedDate: payoutAntecipations.expectedSettlementDate,
+      ReceivableAmount: payoutAntecipations.anticipatedAmount,
+      SettlementDate: payoutAntecipations.settlementDate,
+    })
+    .from(payoutAntecipations)
+    .innerJoin(merchants, eq(merchants.id, payoutAntecipations.idMerchants))
+    .where(
+      sql`(${payoutAntecipations.settlementDate} >= ${dateFrom}) 
+          AND (${payoutAntecipations.settlementDate} <= ${dateTo})
+         `
+    );
+
+  const result = await unionAll(payoutData, payoutAnticipationData);
 
   return result.map((item) => ({
     merchant: item.Merchant,
@@ -620,15 +712,20 @@ export async function getGlobalSettlement(
   const productTypeMapping = transactionProductTypeList.reduce<
     Record<string, string>
   >((acc, { value, label }) => ({ ...acc, [value]: label }), {});
+  productTypeMapping["pedido de antecipação"] = "Pedido de Antecipação";
 
   productTypeMapping["ajustes"] = "Ajustes";
-  productTypeMapping["pedido de antecipação"] = "Pedido de Antecipação";
 
   const query = `
     WITH
     -- 1. Filtra só os payouts do dia
     payout_filtered AS (
-      SELECT *
+      SELECT  id_merchant,
+      product_type,
+      brand,
+      settlement_amount,
+      installment_amount,
+      status
       FROM payout
       WHERE (
         (settlement_date IS NOT NULL AND DATE(settlement_date) = DATE('${date}'))
@@ -636,6 +733,18 @@ export async function getGlobalSettlement(
         (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
       )
       AND status NOT IN ('CANCELLED')
+
+      UNION ALL
+      
+      SELECT
+      pa.id_merchants AS id_merchant,
+      'pedido de antecipação' AS product_type,
+      '' AS brand,
+      pa.settlement_amount,
+      pa.installment_amount,
+      '' as status
+      FROM payout_antecipations pa
+      WHERE DATE(pa.settlement_date) = DATE('${date}')
     ),
 
     -- 2. Soma ajustes por merchant
@@ -666,7 +775,12 @@ export async function getGlobalSettlement(
     global_total AS (
       SELECT
         SUM(pf.settlement_amount) AS global_settlement_total,
-        SUM(pf.installment_amount)  AS global_gross_total
+        SUM(pf.installment_amount)  AS global_gross_total,
+        CASE
+        WHEN COUNT(*) FILTER (WHERE status = 'PROVISIONED') > 0 THEN 'PROVISIONED'
+        WHEN COUNT(*) FILTER (WHERE status NOT LIKE '%SETTLED%') = 0 THEN 'SETTLED'
+        ELSE MIN(CASE WHEN status NOT LIKE '%SETTLED%' THEN status END)
+        END AS status
       FROM payout_filtered pf
     ),
     -- 4. Totais por merchant, já subtraindo ajustes
@@ -675,8 +789,9 @@ export async function getGlobalSettlement(
         pf.id_merchant,
         SUM(pf.settlement_amount) - COALESCE(ma.total_adj, 0) AS merchant_total,
         CASE
-          WHEN COUNT(*) FILTER (WHERE pf.status LIKE '%SETTLED%') > 0 THEN 'SETTLED'
-          ELSE MIN(pf.status)
+        WHEN COUNT(*) FILTER (WHERE status = 'PROVISIONED') > 0 THEN 'PROVISIONED'
+        WHEN COUNT(*) FILTER (WHERE status NOT LIKE '%SETTLED%') = 0 THEN 'SETTLED'
+        ELSE MIN(CASE WHEN status NOT LIKE '%SETTLED%' THEN status END)
         END AS merchant_status
       FROM payout_filtered pf
       LEFT JOIN merchant_adjustments ma
@@ -712,18 +827,6 @@ export async function getGlobalSettlement(
         AND s.status NOT IN ('CANCELLED')
       GROUP BY ms.id_merchant, ms.debit_financial_adjustment_amount
 
-      UNION ALL
-
-      SELECT
-      pa.id_merchants AS id_merchant,
-      'pedido de antecipação' AS product_type,
-      SUM(pa.settlement_amount) AS product_settlement_total,
-      SUM(pa.installment_amount) AS product_gross_total
-      FROM payout_antecipations pa
-      JOIN payout_filtered pf
-        ON pf.id_merchant = pa.id_merchants
-      WHERE DATE(pa.settlement_date) = DATE('${date}')
-      GROUP BY pa.id_merchants
     ),
 
     -- 7. Passa adiante sem mexer
@@ -806,6 +909,7 @@ export async function getGlobalSettlement(
     SELECT jsonb_build_object(
       'globalSettlement', (SELECT global_settlement_total FROM global_total),
       'globalGross',      (SELECT global_gross_total      FROM global_total),
+      'status',           (SELECT status FROM global_total),
       'globalAdjustments', (SELECT SUM(total_adj)     FROM merchant_adjustments),
       'merchants',        (SELECT jsonb_agg(merchant_data ORDER BY merchant_data.merchant DESC)  FROM merchant_data)
     ) AS result;
@@ -825,7 +929,7 @@ export async function getGlobalSettlement(
         name: productTypeMapping[pt.name] || pt.name,
       })),
     }));
-    console.log(data);
+
     return data;
   } catch (err) {
     console.error("Erro ao executar consulta SQL:", err);

@@ -22,20 +22,12 @@ export default async function SalesDashboard({
   const viewMode = searchParams.viewMode || "today";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  console.log("period", period);
-  console.log("previousPeriod", previousPeriod);
+  console.log(previousPeriod, period);
+  const totalTransactions = await getTotalTransactions(period.from!, period.to);
 
-  const totalTransactions = await getTotalTransactions(
-    period.from!,
-    period.to!
-  );
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod?.from ?? new Date(),
-    previousPeriod?.to ?? new Date()
-  );
-  console.log(
-    "totalTransactionsPreviousPeriod",
-    totalTransactionsPreviousPeriod
+    previousPeriod.from,
+    previousPeriod.to
   );
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
@@ -63,40 +55,55 @@ export default async function SalesDashboard({
             <CardValue
               title={`Bruto total `}
               description={`Total bruto das transações`}
-              value={totalTransactions?.sum}
-              percentage={(
-                ((totalTransactions?.sum -
-                  totalTransactionsPreviousPeriod?.sum) /
-                  totalTransactionsPreviousPeriod?.sum) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.sum}
+              value={totalTransactions[0]?.sum || 0}
+              percentage={
+                totalTransactions[0]?.sum &&
+                totalTransactionsPreviousPeriod[0]?.sum
+                  ? (
+                      ((totalTransactions[0]?.sum -
+                        totalTransactionsPreviousPeriod[0]?.sum) /
+                        totalTransactionsPreviousPeriod[0]?.sum) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.sum}
               valueType="currency"
             />
             <CardValue
               title={`Lucro total `}
               description={`Total de lucro realizado`}
-              value={totalTransactions?.revenue}
-              percentage={(
-                ((totalTransactions?.revenue -
-                  totalTransactionsPreviousPeriod?.revenue) /
-                  totalTransactionsPreviousPeriod?.revenue) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.revenue}
+              value={totalTransactions[0]?.revenue || 0}
+              percentage={
+                totalTransactions[0]?.revenue &&
+                totalTransactionsPreviousPeriod[0]?.revenue
+                  ? (
+                      ((totalTransactions[0]?.revenue -
+                        totalTransactionsPreviousPeriod[0]?.revenue) /
+                        totalTransactionsPreviousPeriod[0]?.revenue) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.revenue}
               valueType="currency"
             />
             <CardValue
               title={`Transações realizadas `}
               description={`Total de transações realizadas`}
-              value={totalTransactions?.count}
-              percentage={(
-                ((totalTransactions?.count -
-                  totalTransactionsPreviousPeriod?.count) /
-                  totalTransactionsPreviousPeriod?.count) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.count}
+              value={totalTransactions[0]?.count || 0}
+              percentage={
+                totalTransactionsPreviousPeriod[0]?.count &&
+                totalTransactions[0]?.count
+                  ? (
+                      ((totalTransactions[0]?.count -
+                        totalTransactionsPreviousPeriod[0]?.count) /
+                        totalTransactionsPreviousPeriod[0]?.count) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.count}
               valueType="number"
             />
             <CardValue
