@@ -1,4 +1,3 @@
-import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
@@ -13,7 +12,6 @@ import {
   getMerchantDD,
 } from "@/features/anticipations/server/anticipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -93,7 +91,6 @@ export default async function AntecipationsPage({
           <TabsList>
             <TabsTrigger value="compulsory">COMPULSÓRIA</TabsTrigger>
             <TabsTrigger value="eventual">EVENTUAL</TabsTrigger>
-            <TabsTrigger value="report">RELATÓRIO</TabsTrigger>
           </TabsList>
           <TabsContent value="compulsory" className="mt-6">
             <AnticipationsListFilter
@@ -154,13 +151,6 @@ export default async function AntecipationsPage({
                 />
               )}
             </div>
-          </TabsContent>
-          <TabsContent value="report" className="mt-6">
-            <EmptyState
-              icon={Search}
-              title={"Nenhum resultado encontrado"}
-              description={""}
-            ></EmptyState>
           </TabsContent>
         </Tabs>
       </BaseBody>
