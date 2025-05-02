@@ -59,36 +59,38 @@ export default async function CategoriesPage({
 
       <BaseBody title="CNAE" subtitle={`visualização de todos os CNAE`}>
         <div className="flex flex-col space-y-4">
-          <div className="mb-1">
-            <CategoriesFilter
-              nameIn={searchParams.name}
-              statusIn={searchParams.status}
-              mccIn={searchParams.mcc}
-              cnaeIn={searchParams.cnae}
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <CategoriesFilter
+                nameIn={searchParams.name}
+                statusIn={searchParams.status}
+                mccIn={searchParams.mcc}
+                cnaeIn={searchParams.cnae}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/categories/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo CNAE
+              </Link>
+            </Button>
           </div>
 
           <div className="flex items-start justify-between gap-4 mb-2">
-            <CategoriesDashboardContent
-              totalCategories={totalRecords}
-              activeCategories={categories.activeCount}
-              inactiveCategories={categories.inactiveCount}
-              avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
-              avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
-              avgAnticipationRiskFactorCp={
-                categories.avgAnticipationRiskFactorCp
-              }
-              avgAnticipationRiskFactorCnp={
-                categories.avgAnticipationRiskFactorCnp
-              }
-            />
-            <div className="flex items-end self-stretch">
-              <Button asChild className="shrink-0">
-                <Link href="/portal/categories/0">
-                  <Plus className="h-4 w-4" />
-                  Novo CNAE
-                </Link>
-              </Button>
+            <div className="flex-grow">
+              <CategoriesDashboardContent
+                totalCategories={totalRecords}
+                activeCategories={categories.activeCount}
+                inactiveCategories={categories.inactiveCount}
+                avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
+                avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
+                avgAnticipationRiskFactorCp={
+                  categories.avgAnticipationRiskFactorCp
+                }
+                avgAnticipationRiskFactorCnp={
+                  categories.avgAnticipationRiskFactorCnp
+                }
+              />
             </div>
           </div>
 

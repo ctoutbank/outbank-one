@@ -60,27 +60,29 @@ export default async function LegalNaturesPage({
         subtitle={`visualização de todas Natureza Jurídica`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="mb-1">
-            <LegalNatureFilter
-              nameIn={searchParams.name}
-              codeIn={searchParams.code}
-              activeIn={searchParams.active}
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <LegalNatureFilter
+                nameIn={searchParams.name}
+                codeIn={searchParams.code}
+                activeIn={searchParams.active}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/legalNatures/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Nova Natureza Jurídica
+              </Link>
+            </Button>
           </div>
 
           <div className="flex items-start justify-between gap-4 mb-2">
-            <LegalNatureDashboardContent
-              totalLegalNatures={legalNatures.totalCount}
-              activeLegalNatures={legalNatures.activeCount}
-              inactiveLegalNatures={legalNatures.inactiveCount}
-            />
-            <div className="flex items-end self-stretch">
-              <Button asChild className="shrink-0">
-                <Link href="/portal/legalNatures/0">
-                  <Plus className="h-4 w-4" />
-                  Nova Natureza Jurídica
-                </Link>
-              </Button>
+            <div className="flex-grow">
+              <LegalNatureDashboardContent
+                totalLegalNatures={legalNatures.totalCount}
+                activeLegalNatures={legalNatures.activeCount}
+                inactiveLegalNatures={legalNatures.inactiveCount}
+              />
             </div>
           </div>
 

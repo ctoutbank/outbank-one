@@ -15,9 +15,7 @@ import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_compo
 import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/merchantAgenda-excel-export";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
-import {
-  getMerchantAgenda
-} from "@/features/merchantAgenda/server/merchantAgenda";
+import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
 import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
 import {
   getMerchantAgendaAnticipation,
@@ -165,22 +163,30 @@ export default async function MerchantAgendaPage({
             </TabsList>
             <TabsContent value="receivables" className="overflow-x-visible">
               <div className="flex flex-col space-y-4 mt-2">
-                <div className="mb-1">
-                  <MerchantAgendaFilter
-                    dateFromIn={dateFrom}
-                    dateToIn={dateTo}
-                    establishmentIn={searchParams.establishment}
-                    statusIn={searchParams.status}
-                    cardBrandIn={searchParams.cardBrand}
-                    settlementDateFromIn={searchParams.settlementDateFrom}
-                    settlementDateToIn={searchParams.settlementDateTo}
-                    expectedSettlementDateFromIn={
-                      searchParams.expectedSettlementDateFrom
-                    }
-                    expectedSettlementDateToIn={
-                      searchParams.expectedSettlementDateTo
-                    }
-                  />
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex-1">
+                    <MerchantAgendaFilter
+                      dateFromIn={dateFrom}
+                      dateToIn={dateTo}
+                      establishmentIn={searchParams.establishment}
+                      statusIn={searchParams.status}
+                      cardBrandIn={searchParams.cardBrand}
+                      settlementDateFromIn={searchParams.settlementDateFrom}
+                      settlementDateToIn={searchParams.settlementDateTo}
+                      expectedSettlementDateFromIn={
+                        searchParams.expectedSettlementDateFrom
+                      }
+                      expectedSettlementDateToIn={
+                        searchParams.expectedSettlementDateTo
+                      }
+                    />
+                  </div>
+                  <div className="ml-2">
+                    <MerchantAgendaExcelExport
+                      dateFrom={dateFrom}
+                      dateTo={dateTo}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -226,12 +232,6 @@ export default async function MerchantAgendaPage({
                       .filter((item) => !item.settlementDate)
                       .reduce((acc, item) => acc + item.feeAmount, 0)}
                   />
-                  <div className="flex items-end self-stretch">
-                    <MerchantAgendaExcelExport
-                      dateFrom={dateFrom}
-                      dateTo={dateTo}
-                    />
-                  </div>
                 </div>
                 <div className="w-full overflow-x-auto">
                   <MerchantAgendaList merchantAgendaList={merchantAgenda} />
@@ -248,50 +248,20 @@ export default async function MerchantAgendaPage({
             </TabsContent>
             <TabsContent value="anticipations" className="mt-6">
               <div className="flex flex-col space-y-4 mt-2">
-                <div className="mb-1">
-                  <AnticipationsListFilter
-                    settlementDateFromIn={settlementDateFromIn}
-                    settlementDateToIn={settlementDateToIn}
-                    saleDateFromIn={saleDateFromIn}
-                    saleDateToIn={saleDateToIn}
-                    establishmentIn={establishmentIn}
-                    nsuIn={nsuIn}
-                    statusIn={statusIn}
-                    orderIdIn={orderIdIn}
-                  />
-                </div>
-                <div className="flex items-start justify-between gap-4 mb-2">
-                <MerchantAgendaAnticipationsDashboardContent
-                  totalEstablishments={
-                    anticipationDashboardStats.totalEstablishments
-                  }
-                  totalAnticipationRequests={
-                    anticipationDashboardStats.totalAnticipationRequests
-                  }
-                  totalParcels={anticipationDashboardStats.totalParcels}
-                  fullyAnticipatedParcels={
-                    anticipationDashboardStats.fullyAnticipatedParcels
-                  }
-                  partiallyAnticipatedParcels={
-                    anticipationDashboardStats.partiallyAnticipatedParcels
-                  }
-                  totalNetAnticipated={
-                    anticipationDashboardStats.totalNetAnticipated
-                  }
-                  totalGrossAnticipated={
-                    anticipationDashboardStats.totalGrossAnticipated
-                  }
-                  totalAnticipationFees={
-                    anticipationDashboardStats.totalAnticipationFees
-                  }
-                  firstTransactionDate={
-                    anticipationDashboardStats.firstTransactionDate
-                  }
-                  lastTransactionDate={
-                    anticipationDashboardStats.lastTransactionDate
-                  }
-                />
-                <div className="flex items-end self-stretch">
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex-1">
+                    <AnticipationsListFilter
+                      settlementDateFromIn={settlementDateFromIn}
+                      settlementDateToIn={settlementDateToIn}
+                      saleDateFromIn={saleDateFromIn}
+                      saleDateToIn={saleDateToIn}
+                      establishmentIn={establishmentIn}
+                      nsuIn={nsuIn}
+                      statusIn={statusIn}
+                      orderIdIn={orderIdIn}
+                    />
+                  </div>
+                  <div className="ml-2">
                     <ExcelExport
                       data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
                         (data) => ({
@@ -315,7 +285,39 @@ export default async function MerchantAgendaPage({
                       fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
                     />
                   </div>
-              </div>
+                </div>
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <MerchantAgendaAnticipationsDashboardContent
+                    totalEstablishments={
+                      anticipationDashboardStats.totalEstablishments
+                    }
+                    totalAnticipationRequests={
+                      anticipationDashboardStats.totalAnticipationRequests
+                    }
+                    totalParcels={anticipationDashboardStats.totalParcels}
+                    fullyAnticipatedParcels={
+                      anticipationDashboardStats.fullyAnticipatedParcels
+                    }
+                    partiallyAnticipatedParcels={
+                      anticipationDashboardStats.partiallyAnticipatedParcels
+                    }
+                    totalNetAnticipated={
+                      anticipationDashboardStats.totalNetAnticipated
+                    }
+                    totalGrossAnticipated={
+                      anticipationDashboardStats.totalGrossAnticipated
+                    }
+                    totalAnticipationFees={
+                      anticipationDashboardStats.totalAnticipationFees
+                    }
+                    firstTransactionDate={
+                      anticipationDashboardStats.firstTransactionDate
+                    }
+                    lastTransactionDate={
+                      anticipationDashboardStats.lastTransactionDate
+                    }
+                  />
+                </div>
 
                 <div className="w-full overflow-x-auto">
                   <MerchantAgendaAntecipationList

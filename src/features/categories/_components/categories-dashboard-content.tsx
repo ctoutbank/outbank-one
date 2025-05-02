@@ -22,7 +22,7 @@ export function CategoriesDashboardContent({
   return (
     <div className="space-y-4">
       <div className="w-full mb-2">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Total Categories Card */}
           <Card className="bg-white min-w-[280px]">
             <CardContent className="p-4">

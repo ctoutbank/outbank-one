@@ -54,14 +54,22 @@ export default async function SalesAgentsPage({
         subtitle={`Visualização de todos os Consultores`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="mb-1">
-            <SalesAgentsFilter
-              dateFromIn={searchParams.dateFrom}
-              dateToIn={searchParams.dateTo}
-              nameIn={searchParams.name}
-              statusIn={searchParams.status}
-              emailIn={searchParams.email}
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <SalesAgentsFilter
+                dateFromIn={searchParams.dateFrom}
+                dateToIn={searchParams.dateTo}
+                nameIn={searchParams.name}
+                statusIn={searchParams.status}
+                emailIn={searchParams.email}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/salesAgents/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo Consultor
+              </Link>
+            </Button>
           </div>
 
           <div className="flex items-start justify-between gap-4">
@@ -91,14 +99,6 @@ export default async function SalesAgentsPage({
                   0
                 )}
               />
-            </div>
-            <div className="flex items-end self-stretch">
-              <Button asChild className="shrink-0">
-                <Link href="/portal/salesAgents/0">
-                  <Plus className="h-4 w-4" />
-                  Novo Consultor
-                </Link>
-              </Button>
             </div>
           </div>
 
