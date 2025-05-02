@@ -38,6 +38,8 @@ export default async function ReceiptsPage({
       return {
         date: String(receipt.day),
         amount: Number(receipt.totalAmount) || 0,
+        status: receipt.status,
+        is_anticipation: receipt.is_anticipation,
       };
     })
     .filter((item) => item.amount > 0); // Remove dias sem valores

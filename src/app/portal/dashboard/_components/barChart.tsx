@@ -46,7 +46,7 @@ export function BarChartCustom({
   chartData,
   viewMode,
 }: {
-  chartData: GetTotalTransactionsByMonthResult[];
+  chartData?: GetTotalTransactionsByMonthResult[];
   viewMode?: string;
 }) {
   const [activeChart, setActiveChart] =
@@ -58,8 +58,8 @@ export function BarChartCustom({
 
   const total = React.useMemo(
     () => ({
-      bruto: chartData.reduce((acc, curr) => acc + curr.bruto, 0),
-      lucro: chartData.reduce((acc, curr) => acc + curr.lucro, 0),
+      bruto: chartData?.reduce((acc, curr) => acc + curr.bruto, 0),
+      lucro: chartData?.reduce((acc, curr) => acc + curr.lucro, 0),
     }),
     [chartData]
   );
@@ -93,7 +93,7 @@ export function BarChartCustom({
                   {chartConfig[chart].label + " (R$)"}
                 </span>
                 <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[key as keyof typeof total].toLocaleString("pt-BR", {
+                  {total[key as keyof typeof total]?.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })}

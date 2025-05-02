@@ -12,6 +12,7 @@ import {
   inArray,
   like,
   lte,
+  notInArray,
   sql,
   sum,
 } from "drizzle-orm";
@@ -229,6 +230,24 @@ export type TransactionsGroupedReport = {
   transaction_status: string;
   date: string;
 };
+function normalizeDateRange(
+  start: string,
+  end: string
+): { start: string; end: string } {
+  // Normaliza o início para 'YYYY-MM-DDT00:00:00'
+  const startDate = start.split("T")[0] + "T00:00:00";
+
+  // Extrai a data final e adiciona 1 dia
+  const endDatePart = end.split("T")[0];
+  const date = new Date(endDatePart + "T00:00:00Z");
+  const nextDay = date.toISOString().split("T")[0];
+  console.log(nextDay);
+
+  // Final fica como 'YYYY-MM-DDT23:59:59'
+  const endDate = `${nextDay}T23:59:59`;
+
+  return { start: startDate, end: endDate };
+}
 
 export async function getTransactionsGroupedReport(
   dateFrom: string,
@@ -248,12 +267,17 @@ export async function getTransactionsGroupedReport(
 
   // Adicionar condições de data (sempre presentes)
   if (dateFrom) {
+    console.log(dateFrom);
+
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
+    console.log(dateFromUTC);
     conditions.push(gte(transactions.dtInsert, dateFromUTC!));
   }
 
   if (dateTo) {
+    console.log(dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
+    console.log(dateToUTC);
     conditions.push(lte(transactions.dtInsert, dateToUTC!));
   }
 
@@ -343,14 +367,14 @@ export async function getTransactionsGroupedReport(
     GROUP BY product_type, brand, DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo'), transaction_status
     ORDER BY DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo') DESC
   `);
-
+  console.log(result.rows as TransactionsGroupedReport[]);
   return result.rows as TransactionsGroupedReport[];
 }
 
 export type GetTotalTransactionsResult = {
-  sum: number;
-  count: number;
-  revenue: number;
+  sum?: number;
+  count?: number;
+  revenue?: number;
 };
 
 export type GetTotalTransactionsByMonthResult = {
@@ -363,34 +387,69 @@ export type GetTotalTransactionsByMonthResult = {
   dayOfMonth?: number;
 };
 
-export async function getTotalTransactions(
-  dateFrom: Date | null,
-  dateTo: Date | null
-) {
-  const result = await db
-    .select({ sum: sum(transactions.totalAmount), count: count() })
-    .from(transactions)
-    .where(
-      and(
-        gte(transactions.dtInsert, dateFrom?.toISOString() || ""),
-        lte(transactions.dtInsert, dateTo?.toISOString() || "")
-      )
-    );
+export async function getTotalTransactions(dateFrom: string, dateTo: string) {
+  const conditions = [];
+  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
+  if (dateFrom) {
+    console.log(normalizeDate.start);
+    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
+  }
 
-  const totals: GetTotalTransactionsResult[] = result.map((item) => ({
-    sum: item.sum ? parseFloat(item.sum) : 0,
-    count: item.count,
-    revenue: item.sum ? parseFloat(item.sum) * 0.08 : 0,
-  }));
+  if (dateTo) {
+    console.log(normalizeDate.end);
+    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
+  }
+  const statusFilter = notInArray(transactions.transactionStatus, [
+    "CANCELED",
+    "DENIED",
+  ]);
+  conditions.push(statusFilter);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  return totals[0];
+  const result = await db.execute(sql`
+    SELECT 
+      SUM(total_amount) AS sum,
+      COUNT(1) AS count,
+      SUM(total_amount) * 0.08 AS revenue
+    FROM transactions
+    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+  `);
+  const data = result.rows as GetTotalTransactionsResult[];
+  console.log(data);
+  return data;
 }
 
 export async function getTotalTransactionsByMonth(
-  dateFrom: Date,
-  dateTo: Date,
+  dateFrom: string,
+  dateTo: string,
   viewMode?: string
 ) {
+  const conditions = [];
+  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
+  if (dateFrom) {
+    console.log(normalizeDate.start);
+    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
+  }
+
+  if (dateTo) {
+    console.log(normalizeDate.end);
+    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
+  }
+  const statusFilter = notInArray(transactions.transactionStatus, [
+    "CANCELED",
+    "DENIED",
+  ]);
+  conditions.push(statusFilter);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
   const isHourlyView = viewMode === "today" || viewMode === "yesterday";
   const isWeeklyView = viewMode === "week";
   const isMonthlyView = viewMode === "month";
@@ -400,37 +459,32 @@ export async function getTotalTransactionsByMonth(
       sum: sum(transactions.totalAmount),
       count: count(),
       date: isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP)`
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP)`
+        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP)`
-        : sql`DATE(dt_update::TIMESTAMP)`,
+        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`,
     })
     .from(transactions)
-    .where(
-      and(
-        gte(transactions.dtInsert, dateFrom.toISOString()),
-        lte(transactions.dtInsert, dateTo.toISOString())
-      )
-    )
+    .where(whereClause)
     .groupBy(
       isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP)`
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP)`
+        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP)`
-        : sql`DATE(dt_update::TIMESTAMP)`
+        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     )
     .orderBy(
       isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_update::TIMESTAMP) ASC`
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
         : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_update::TIMESTAMP) ASC`
+        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
         : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_update::TIMESTAMP) ASC`
-        : sql`DATE(dt_update::TIMESTAMP) ASC`
+        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
     );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({
@@ -449,6 +503,7 @@ export async function getTotalTransactionsByMonth(
 
     return hours.map((hour) => {
       const existingData = totals.find((item) => item.hour === hour);
+      console.log(existingData);
       return (
         existingData || {
           bruto: 0,
@@ -481,14 +536,14 @@ export async function getTotalTransactionsByMonth(
 
   // For monthly view, ensure we have all days from 1 to last day of month
   if (isMonthlyView) {
+    const dateF = new Date(dateFrom);
     const lastDayOfMonth = new Date(
-      dateFrom.getFullYear(),
-      dateFrom.getMonth() + 1,
+      dateF.getFullYear(),
+      dateF.getMonth() + 1,
       0
     ).getDate();
     const days = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
-
-
+    const [year, month] = dateFrom.split("T")[0].split("-").map(Number);
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfMonth === day);
       return (
@@ -496,12 +551,12 @@ export async function getTotalTransactionsByMonth(
           bruto: 0,
           count: 0,
           lucro: 0,
-          date: new Date(dateFrom.getFullYear(), dateFrom.getMonth(), day),
+          date: new Date(year, month, day),
           dayOfMonth: day,
         }
       );
     });
   }
-
+  console.log(totals);
   return totals;
 }
