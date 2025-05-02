@@ -78,6 +78,7 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
         }.xlsx`}
         globalStyles={globalStyles}
         onlyIcon={true}
+        hasDateFilter={true}
       />
     );
   };

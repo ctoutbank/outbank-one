@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import ExcelJS, { Alignment, Fill, Font } from "exceljs";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 interface ExcelExportProps<T> {
   data: T[];
@@ -21,6 +22,7 @@ interface ExcelExportProps<T> {
   fileName: string;
   onClick?: () => void;
   onlyIcon?: boolean;
+  hasDateFilter?: boolean;
 }
 
 export default function ExcelExport<T>({
@@ -30,6 +32,7 @@ export default function ExcelExport<T>({
   fileName,
   onClick,
   onlyIcon = false,
+  hasDateFilter = false,
 }: ExcelExportProps<T>) {
   const downloadExcel = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,12 +40,20 @@ export default function ExcelExport<T>({
 
     try {
       console.log("Download Excel started");
+
+      // Verificar se há filtro de data
+      if (!hasDateFilter) {
+        toast.error("Filtre por uma data primeiro para exportar os dados.");
+        return;
+      }
+
       if (onClick !== undefined) {
         onClick();
       }
 
       if (data.length === 0) {
         console.warn("No data provided for Excel export");
+        toast.error("Não há dados para exportar.");
         return;
       }
 
@@ -72,7 +83,7 @@ export default function ExcelExport<T>({
         const rowValues = headers.map(
           (header) => (rowData as any)[header] ?? ""
         );
-        console.log(`Processing row ${index + 1}:`, rowValues); 
+        console.log(`Processing row ${index + 1}:`, rowValues);
         const row = worksheet.addRow(rowValues);
 
         if (globalStyles?.row) {
@@ -133,6 +144,7 @@ export default function ExcelExport<T>({
       console.log("Download initiated");
     } catch (error) {
       console.error("Error generating Excel file:", error);
+      toast.error("Erro ao gerar o arquivo Excel. Tente novamente.");
     }
   };
 

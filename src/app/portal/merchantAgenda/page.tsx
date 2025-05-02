@@ -361,6 +361,9 @@ export default async function MerchantAgendaPage({
                     fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}`}
                   />
                 </div>
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <></>
+                </div>
                 <div className="w-full overflow-x-auto">
                   <MerchantAgendaAdjustmentList
                     merchantAgendaAdjustmentList={merchantAgendaAdjustment}
