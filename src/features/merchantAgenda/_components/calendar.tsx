@@ -60,7 +60,7 @@ export function Calendar({
       },
     })
   );
- 
+  console.log(events);
   return (
     <Card className="p-4 overflow-hidden">
       {isLoading && (
@@ -112,14 +112,15 @@ export function Calendar({
                     </div>
                   )}
                   <div
-                    className={`text-sm font-medium text-primary mb-1 ${
-                      ["SETTLED", "FULLY_ANTICIPATED"].includes(
-                        eventInfo.event.extendedProps.status
+                    className={`text-sm font-medium mb-1 ${
+                      eventInfo.event.extendedProps.status.includes(
+                        "SETTLED",
+                        "FULLY_ANTICIPATED"
                       )
                         ? "text-[#177a3c]"
-                        : eventInfo.event.extendedProps.status === "PROVISIONED"
+                        : eventInfo.event.extendedProps.status == "PROVISIONED"
                         ? "text-[#bf8419]"
-                        : ""
+                        : "text-[#177a3c]"
                     }`}
                   >
                     {new Intl.NumberFormat("pt-BR", {

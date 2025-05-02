@@ -3,6 +3,7 @@ import CardValue from "@/components/dashboard/cardValue";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import {
+  getTotalMerchants,
   getTotalTransactions,
   getTotalTransactionsByMonth,
 } from "@/features/transactions/serverActions/transaction";
@@ -36,6 +37,11 @@ export default async function SalesDashboard({
     viewMode
   );
 
+  const totalMerchants = await getTotalMerchants(period.from!, period.to!);
+  const previousTotalMerchants = await getTotalMerchants(
+    previousPeriod.from,
+    previousPeriod.to
+  );
   return (
     <>
       <BaseHeader
@@ -109,9 +115,18 @@ export default async function SalesDashboard({
             <CardValue
               title={`Estabelecimentos Cadastrados`}
               description={`Total de estabelecimentos cadastrados`}
-              value={65}
-              percentage={"-50"}
-              previousValue={30}
+              value={totalMerchants[0].total || 0}
+              percentage={
+                previousTotalMerchants[0].total && totalMerchants[0].total
+                  ? (
+                      ((totalMerchants[0].total -
+                        previousTotalMerchants[0].total) /
+                        previousTotalMerchants[0].total) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={previousTotalMerchants[0].total || 0}
               valueType="number"
             />
           </div>
