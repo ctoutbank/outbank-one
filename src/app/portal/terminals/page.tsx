@@ -7,6 +7,7 @@ import { TerminalsDashboardContent } from "@/features/terminals/_components/term
 import { TerminalsFilter } from "@/features/terminals/_components/terminals-filter";
 import TerminalsList from "@/features/terminals/_components/terminals-list";
 import {
+  TerminalFull,
   getTerminals,
   getTerminalsForExport,
 } from "@/features/terminals/serverActions/terminal";
@@ -58,17 +59,22 @@ export default async function TerminalsPage({
     provedor,
   });
 
-  // Buscar dados para exportação Excel usando a nova função
-  const terminalsExcel = await getTerminalsForExport(search, {
-    dateFrom,
-    dateTo,
-    numeroLogico,
-    numeroSerial,
-    estabelecimento,
-    modelo,
-    status,
-    provedor,
-  });
+  // Buscar dados para exportação Excel apenas se houver filtro de data
+  const hasDateFilter = !!(dateFrom || dateTo);
+  let terminalsExcel = { terminals: [] as TerminalFull[], totalCount: 0 };
+
+  if (hasDateFilter) {
+    terminalsExcel = await getTerminalsForExport(search, {
+      dateFrom,
+      dateTo,
+      numeroLogico,
+      numeroSerial,
+      estabelecimento,
+      modelo,
+      status,
+      provedor,
+    });
+  }
 
   const totalRecords = terminalsList.totalCount;
   const ativosTerminals = terminalsList.activeCount || 0;
@@ -158,6 +164,7 @@ export default async function TerminalsPage({
                 sheetName="Terminais"
                 fileName={`TERMINAIS-${new Date().toLocaleDateString()}`}
                 onClick={undefined}
+                hasDateFilter={!!(dateFrom || dateTo)}
               />
             </div>
 

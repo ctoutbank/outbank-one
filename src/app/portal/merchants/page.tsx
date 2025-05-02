@@ -168,6 +168,7 @@ export default async function MerchantsPage({
                 sheetName="Estabelecimentos"
                 fileName={`ESTABELECIMENTOS-${new Date().toLocaleDateString()}`}
                 onClick={undefined}
+                hasDateFilter={true}
               />
               <Button asChild className="shrink-0">
                 <Link href="/portal/merchants/0">

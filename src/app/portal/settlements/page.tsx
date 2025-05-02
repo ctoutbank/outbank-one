@@ -137,6 +137,7 @@ export default async function SettlementsPage({
                   `LIQUIDAÇÕES ${settlements.settlement[0]?.payment_date}` || ""
                 }
                 onClick={undefined}
+                hasDateFilter={!!settlementSlug}
               />
             </div>
           </div>

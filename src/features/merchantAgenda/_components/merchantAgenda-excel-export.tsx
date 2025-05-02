@@ -7,6 +7,7 @@ import { Fill, Font } from "exceljs";
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
+import { toast } from "sonner";
 
 interface MerchantAgendaExcelExportProps {
   dateFrom?: string;
@@ -19,16 +20,26 @@ export default function MerchantAgendaExcelExport({
 }: MerchantAgendaExcelExportProps) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const hasDateFilter = !!(dateFrom || dateTo);
+
   const handleExport = async () => {
+    if (!hasDateFilter) {
+      toast.error("Filtre por uma data primeiro para exportar os dados.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const data = await getMerchantAgendaExcelData(
+      const dateFromValue =
         dateFrom ||
-          new Date(new Date().setMonth(new Date().getMonth() - 1))
-            .toISOString()
-            .split("T")[0],
-        dateTo || new Date().toISOString().split("T")[0]
-      );
+        new Date(new Date().setMonth(new Date().getMonth() - 1))
+          .toISOString()
+          .split("T")[0];
+
+      const dateToValue = dateTo || new Date().toISOString().split("T")[0];
+
+      // Buscar dados apenas se houver filtro de data
+      const data = await getMerchantAgendaExcelData(dateFromValue, dateToValue);
 
       const formattedData = data.map((data) => ({
         Merchant: data.merchant,
@@ -56,6 +67,7 @@ export default function MerchantAgendaExcelExport({
           globalStyles={globalStyles}
           sheetName="Conciliação de recebíveis"
           fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
+          hasDateFilter={true}
         />
       );
 
@@ -78,6 +90,9 @@ export default function MerchantAgendaExcelExport({
       }, 0);
 
       return formattedData;
+    } catch (error) {
+      console.error("Erro ao exportar dados:", error);
+      toast.error("Erro ao gerar os dados para exportação.");
     } finally {
       setIsLoading(false);
     }
