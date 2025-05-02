@@ -2,14 +2,18 @@ import CardValue from "@/components/dashboard/cardValue";
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import DashboardFilters from "./_components/dashboard-filters";
 import {
+  getTotalMerchants,
   getTotalTransactions,
   getTotalTransactionsByMonth,
 } from "@/features/transactions/serverActions/transaction";
-import { BarChartCustom } from "./_components/barChart";
 import { gateDateByViewMode } from "@/lib/utils";
 import { Suspense } from "react";
+import { BarChartCustom } from "./_components/barChart";
+import DashboardFilters from "./_components/dashboard-filters";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function SalesDashboard({
   searchParams,
@@ -19,27 +23,25 @@ export default async function SalesDashboard({
   const viewMode = searchParams.viewMode || "today";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  console.log("period", period);
-  console.log("previousPeriod", previousPeriod);
+  console.log(previousPeriod, period);
+  const totalTransactions = await getTotalTransactions(period.from!, period.to);
 
-  const totalTransactions = await getTotalTransactions(
-    period.from!,
-    period.to!
-  );
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod?.from ?? new Date(),
-    previousPeriod?.to ?? new Date()
-  );
-  console.log(
-    "totalTransactionsPreviousPeriod",
-    totalTransactionsPreviousPeriod
+    previousPeriod.from,
+    previousPeriod.to
   );
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
     period.from!,
-    period.to!
+    period.to!,
+    viewMode
   );
 
+  const totalMerchants = await getTotalMerchants(period.from!, period.to!);
+  const previousTotalMerchants = await getTotalMerchants(
+    previousPeriod.from,
+    previousPeriod.to
+  );
   return (
     <>
       <BaseHeader
@@ -59,53 +61,80 @@ export default async function SalesDashboard({
             <CardValue
               title={`Bruto total `}
               description={`Total bruto das transações`}
-              value={totalTransactions?.sum}
-              percentage={(
-                ((totalTransactions?.sum -
-                  totalTransactionsPreviousPeriod?.sum) /
-                  totalTransactionsPreviousPeriod?.sum) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.sum}
+              value={totalTransactions[0]?.sum || 0}
+              percentage={
+                totalTransactions[0]?.sum &&
+                totalTransactionsPreviousPeriod[0]?.sum
+                  ? (
+                      ((totalTransactions[0]?.sum -
+                        totalTransactionsPreviousPeriod[0]?.sum) /
+                        totalTransactionsPreviousPeriod[0]?.sum) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.sum}
               valueType="currency"
             />
             <CardValue
               title={`Lucro total `}
               description={`Total de lucro realizado`}
-              value={totalTransactions?.revenue}
-              percentage={(
-                ((totalTransactions?.revenue -
-                  totalTransactionsPreviousPeriod?.revenue) /
-                  totalTransactionsPreviousPeriod?.revenue) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.revenue}
+              value={totalTransactions[0]?.revenue || 0}
+              percentage={
+                totalTransactions[0]?.revenue &&
+                totalTransactionsPreviousPeriod[0]?.revenue
+                  ? (
+                      ((totalTransactions[0]?.revenue -
+                        totalTransactionsPreviousPeriod[0]?.revenue) /
+                        totalTransactionsPreviousPeriod[0]?.revenue) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.revenue}
               valueType="currency"
             />
             <CardValue
               title={`Transações realizadas `}
               description={`Total de transações realizadas`}
-              value={totalTransactions?.count}
-              percentage={(
-                ((totalTransactions?.count -
-                  totalTransactionsPreviousPeriod?.count) /
-                  totalTransactionsPreviousPeriod?.count) *
-                100
-              ).toFixed(2)}
-              previousValue={totalTransactionsPreviousPeriod?.count}
+              value={totalTransactions[0]?.count || 0}
+              percentage={
+                totalTransactionsPreviousPeriod[0]?.count &&
+                totalTransactions[0]?.count
+                  ? (
+                      ((totalTransactions[0]?.count -
+                        totalTransactionsPreviousPeriod[0]?.count) /
+                        totalTransactionsPreviousPeriod[0]?.count) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={totalTransactionsPreviousPeriod[0]?.count}
               valueType="number"
             />
             <CardValue
               title={`Estabelecimentos Cadastrados`}
               description={`Total de estabelecimentos cadastrados`}
-              value={65}
-              percentage={"-50"}
-              previousValue={30}
+              value={totalMerchants[0].total || 0}
+              percentage={
+                previousTotalMerchants[0].total && totalMerchants[0].total
+                  ? (
+                      ((totalMerchants[0].total -
+                        previousTotalMerchants[0].total) /
+                        previousTotalMerchants[0].total) *
+                      100
+                    ).toFixed(2)
+                  : "0"
+              }
+              previousValue={previousTotalMerchants[0].total || 0}
               valueType="number"
             />
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
-            <BarChartCustom chartData={totalTransactionsByMonth} />
+            <BarChartCustom
+              chartData={totalTransactionsByMonth}
+              viewMode={viewMode}
+            />
           </div>
         </Suspense>
       </BaseBody>

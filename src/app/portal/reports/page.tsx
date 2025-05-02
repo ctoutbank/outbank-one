@@ -58,32 +58,34 @@ export default async function ReportsPage({
         subtitle={`Visualização de todos os Relatórios`}
       >
         <div className="flex flex-col space-y-4">
-          <div className="mb-1">
-            <ReportsFilter
-              searchIn={searchParams.search}
-              typeIn={searchParams.type}
-              formatIn={searchParams.format}
-              recurrenceIn={searchParams.recurrence}
-              periodIn={searchParams.period}
-              emailIn={searchParams.email}
-              creationDateIn={searchParams.creationDate}
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <ReportsFilter
+                searchIn={searchParams.search}
+                typeIn={searchParams.type}
+                formatIn={searchParams.format}
+                recurrenceIn={searchParams.recurrence}
+                periodIn={searchParams.period}
+                emailIn={searchParams.email}
+                creationDateIn={searchParams.creationDate}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/reports/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo Relatório
+              </Link>
+            </Button>
           </div>
 
           <div className="flex items-start justify-between gap-4 mb-2">
-            <ReportsDashboardContent
-              totalReports={reportStats.totalReports}
-              recurrenceStats={reportStats.recurrenceStats}
-              formatStats={reportStats.formatStats}
-              typeStats={reportStats.typeStats}
-            />
-            <div className="flex items-end self-stretch">
-              <Button asChild className="shrink-0">
-                <Link href="/portal/reports/0">
-                  <Plus className="h-4 w-4" />
-                  Novo Relatório
-                </Link>
-              </Button>
+            <div className="flex-grow">
+              <ReportsDashboardContent
+                totalReports={reportStats.totalReports}
+                recurrenceStats={reportStats.recurrenceStats}
+                formatStats={reportStats.formatStats}
+                typeStats={reportStats.typeStats}
+              />
             </div>
           </div>
 

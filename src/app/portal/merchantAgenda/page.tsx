@@ -1,24 +1,28 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { Suspense } from "react";
+import Loading from "./loading";
 
-import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import PaginationRecords from "@/components/pagination-Records";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdjustmentsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-adjustments-filter";
+import MerchantAgendaAdjustmentList from "@/features/merchantAgenda/_components/merchantAgenda-adjustments-list";
 import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-filter";
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
-import { MerchantAgendaDashboardButton } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-button";
+import { MerchantAgendaAnticipationsDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dasboardAntecipation-content";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
+import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/merchantAgenda-excel-export";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
+import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
+import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
 import {
-  getMerchantAgenda,
-  getMerchantAgendaExcelData,
-} from "@/features/merchantAgenda/server/merchantAgenda";
-import { getMerchantAgendaAnticipation } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
+  getMerchantAgendaAnticipation,
+  getMerchantAgendaAnticipationStats,
+} from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
-import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -29,8 +33,6 @@ type MerchantAgendaProps = {
   page?: string;
   pageSize?: string;
   search?: string;
-  sortField?: string;
-  sortOrder?: string;
   dateFrom?: string;
   dateTo?: string;
   establishment?: string;
@@ -79,21 +81,37 @@ export default async function MerchantAgendaPage({
   const statusIn = searchParams.status || undefined;
   const orderIdIn = searchParams.orderId || undefined;
 
-  const merchantAgenda = await getMerchantAgenda(
-    search,
-    page,
-    pageSize,
-    searchParams.dateFrom,
-    searchParams.dateTo,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.cardBrand,
-    searchParams.settlementDateFrom,
-    searchParams.settlementDateTo,
-    searchParams.expectedSettlementDateFrom,
-    searchParams.expectedSettlementDateTo
-  );
+  // Fetch data in parallel for better performance
+  const [merchantAgenda, merchantAgendaAnticipation, merchantAgendaAdjustment] =
+    await Promise.all([
+      getMerchantAgenda(
+        page,
+        pageSize,
+        searchParams.dateFrom,
+        searchParams.dateTo,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.cardBrand,
+        searchParams.settlementDateFrom,
+        searchParams.settlementDateTo,
+        searchParams.expectedSettlementDateFrom,
+        searchParams.expectedSettlementDateTo
+      ),
+      getMerchantAgendaAnticipation(search, page, pageSize, dateFrom, dateTo),
+      getMerchantAgendaAdjustment(
+        search,
+        page,
+        pageSize,
+        dateFrom,
+        dateTo,
+        establishmentIn
+      ),
+    ]);
+
   const totalRecordsReceivables = merchantAgenda.totalCount;
+  const totalRecordsAntecipations = merchantAgendaAnticipation.totalCount;
+  const totalRecordsAdjustments = merchantAgendaAdjustment.totalCount;
+
   const globalStyles = {
     header: {
       fill: {
@@ -107,22 +125,21 @@ export default async function MerchantAgendaPage({
       font: { color: { argb: "000000" } } as Font,
     },
   };
-  const excelDataToExportReceivables = await getMerchantAgendaExcelData(
-    dateFrom == undefined || dateFrom == null || dateFrom == ""
-      ? "2025-01-13"
-      : dateFrom,
-    dateTo == undefined || dateFrom == null || dateFrom == ""
-      ? "2025-02-13"
-      : dateTo
-  );
-  const merchantAgendaAnticipation = await getMerchantAgendaAnticipation(
-    search,
-    page,
-    pageSize,
+
+  // Buscar dados para o dashboard
+  const anticipationDashboardStats = await getMerchantAgendaAnticipationStats(
     dateFrom,
-    dateTo
+    dateTo,
+    establishmentIn,
+    statusIn,
+    searchParams.cardBrand,
+    searchParams.settlementDateFrom,
+    searchParams.settlementDateTo,
+    searchParams.saleDateFrom,
+    searchParams.saleDateTo,
+    nsuIn,
+    orderIdIn
   );
-  const totalRecordsAntecipations = merchantAgendaAnticipation.totalCount;
 
   return (
     <>
@@ -137,176 +154,230 @@ export default async function MerchantAgendaPage({
         subtitle={`Visualização da agenda dos Lojistas`}
         className="overflow-x-visible"
       >
-        <TabChangeHandler>
-          <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
-            <TabsTrigger value="receivables">Recebíveis</TabsTrigger>
-            <TabsTrigger value="anticipations">Antecipações</TabsTrigger>
-            <TabsTrigger value="adjustment">Ajustes</TabsTrigger>
-          </TabsList>
-          <TabsContent value="receivables" className="overflow-x-visible">
-            <div className="flex flex-col space-y-4 mt-2">
-              <div className="flex items-center justify-between gap-4 relative z-50">
-                <div className="flex items-start gap-4 flex-1">
-                  <MerchantAgendaFilter
-                    dateFromIn={dateFrom}
-                    dateToIn={dateTo}
-                    establishmentIn={searchParams.establishment}
-                    statusIn={searchParams.status}
-                    cardBrandIn={searchParams.cardBrand}
-                    settlementDateFromIn={searchParams.settlementDateFrom}
-                    settlementDateToIn={searchParams.settlementDateTo}
-                    expectedSettlementDateFromIn={
-                      searchParams.expectedSettlementDateFrom
-                    }
-                    expectedSettlementDateToIn={
-                      searchParams.expectedSettlementDateTo
-                    }
-                  />
-                  <MerchantAgendaDashboardButton>
-                    <div className="ml-1">
-                      <MerchantAgendaDashboardContent
-                        totalMerchant={merchantAgenda.merchantAgenda.length}
-                        date={new Date()}
-                        totalSales={merchantAgenda.merchantAgenda.length}
-                        grossAmount={merchantAgenda.merchantAgenda.reduce(
-                          (acc, item) => acc + item.grossAmount,
-                          0
-                        )}
-                        taxAmount={merchantAgenda.merchantAgenda.reduce(
-                          (acc, item) => acc + item.feeAmount,
-                          0
-                        )}
-                        settledInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => item.settlementDate
-                          ).length
-                        }
-                        pendingInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => !item.settlementDate
-                          ).length
-                        }
-                        settledGrossAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => item.settlementDate)
-                          .reduce((acc, item) => acc + item.grossAmount, 0)}
-                        settledTaxAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => item.settlementDate)
-                          .reduce((acc, item) => acc + item.feeAmount, 0)}
-                        anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
-                        anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
-                        toSettleInstallments={
-                          merchantAgenda.merchantAgenda.filter(
-                            (item) => !item.settlementDate
-                          ).length
-                        }
-                        toSettleGrossAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => !item.settlementDate)
-                          .reduce((acc, item) => acc + item.grossAmount, 0)}
-                        toSettleTaxAmount={merchantAgenda.merchantAgenda
-                          .filter((item) => !item.settlementDate)
-                          .reduce((acc, item) => acc + item.feeAmount, 0)}
-                      />
-                    </div>
-                  </MerchantAgendaDashboardButton>
+        <Suspense fallback={<Loading />}>
+          <TabChangeHandler>
+            <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+              <TabsTrigger value="receivables">Recebíveis</TabsTrigger>
+              <TabsTrigger value="anticipations">Antecipações</TabsTrigger>
+              <TabsTrigger value="adjustment">Ajustes</TabsTrigger>
+            </TabsList>
+            <TabsContent value="receivables" className="overflow-x-visible">
+              <div className="flex flex-col space-y-4 mt-2">
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex-1">
+                    <MerchantAgendaFilter
+                      dateFromIn={dateFrom}
+                      dateToIn={dateTo}
+                      establishmentIn={searchParams.establishment}
+                      statusIn={searchParams.status}
+                      cardBrandIn={searchParams.cardBrand}
+                      settlementDateFromIn={searchParams.settlementDateFrom}
+                      settlementDateToIn={searchParams.settlementDateTo}
+                      expectedSettlementDateFromIn={
+                        searchParams.expectedSettlementDateFrom
+                      }
+                      expectedSettlementDateToIn={
+                        searchParams.expectedSettlementDateTo
+                      }
+                    />
+                  </div>
+                  <div className="ml-2">
+                    <MerchantAgendaExcelExport
+                      dateFrom={dateFrom}
+                      dateTo={dateTo}
+                    />
+                  </div>
                 </div>
-                <ExcelExport
-                  data={excelDataToExportReceivables.map((data) => ({
-                    Merchant: data.merchant,
-                    CNPJ: data.cnpj,
-                    NSU: data.nsu,
-                    SaleDate: data.saleDate,
-                    Type: data.type,
-                    Brand: data.brand,
-                    Installments: data.installments,
-                    InstallmentNumber: data.installmentNumber,
-                    InstallmentValue: data.installmentValue,
-                    TransactionMdr: data.transactionMdr,
-                    TransactionMdrFee: data.transactionMdrFee,
-                    TransactionFee: data.transactionFee,
-                    SettlementAmount: data.settlementAmount,
-                    ExpectedDate: data.expectedDate,
-                    ReceivableAmount: data.receivableAmount,
-                    SettlementDate: data.settlementDate,
-                  }))}
-                  globalStyles={globalStyles}
-                  sheetName="Conciliação de recebíveis"
-                  fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
-                />
-              </div>
-              <div className="w-full overflow-x-auto">
-                <MerchantAgendaList merchantAgendaList={merchantAgenda} />
-              </div>
-              {totalRecordsReceivables > 0 && (
-                <PaginationRecords
-                  totalRecords={totalRecordsReceivables}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/merchantAgenda"
-                />
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="anticipations" className="mt-6">
-            <div className="flex flex-col space-y-4 mt-2">
-              <div className="flex items-center justify-between gap-4 relative z-50">
-                <div className="flex items-start gap-4 flex-1">
-                  <AnticipationsListFilter
-                    settlementDateFromIn={settlementDateFromIn}
-                    settlementDateToIn={settlementDateToIn}
-                    saleDateFromIn={saleDateFromIn}
-                    saleDateToIn={saleDateToIn}
-                    establishmentIn={establishmentIn}
-                    nsuIn={nsuIn}
-                    statusIn={statusIn}
-                    orderIdIn={orderIdIn}
+
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <MerchantAgendaDashboardContent
+                    totalMerchant={merchantAgenda.merchantAgenda.length}
+                    date={new Date()}
+                    totalSales={merchantAgenda.merchantAgenda.length}
+                    grossAmount={merchantAgenda.merchantAgenda.reduce(
+                      (acc, item) => acc + item.grossAmount,
+                      0
+                    )}
+                    taxAmount={merchantAgenda.merchantAgenda.reduce(
+                      (acc, item) => acc + item.feeAmount,
+                      0
+                    )}
+                    settledInstallments={
+                      merchantAgenda.merchantAgenda.filter(
+                        (item) => item.settlementDate
+                      ).length
+                    }
+                    pendingInstallments={
+                      merchantAgenda.merchantAgenda.filter(
+                        (item) => !item.settlementDate
+                      ).length
+                    }
+                    settledGrossAmount={merchantAgenda.merchantAgenda
+                      .filter((item) => item.settlementDate)
+                      .reduce((acc, item) => acc + item.grossAmount, 0)}
+                    settledTaxAmount={merchantAgenda.merchantAgenda
+                      .filter((item) => item.settlementDate)
+                      .reduce((acc, item) => acc + item.feeAmount, 0)}
+                    anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
+                    anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
+                    toSettleInstallments={
+                      merchantAgenda.merchantAgenda.filter(
+                        (item) => !item.settlementDate
+                      ).length
+                    }
+                    toSettleGrossAmount={merchantAgenda.merchantAgenda
+                      .filter((item) => !item.settlementDate)
+                      .reduce((acc, item) => acc + item.grossAmount, 0)}
+                    toSettleTaxAmount={merchantAgenda.merchantAgenda
+                      .filter((item) => !item.settlementDate)
+                      .reduce((acc, item) => acc + item.feeAmount, 0)}
                   />
                 </div>
-                <ExcelExport
-                  data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
-                    (data) => ({
-                      Merchant: data.merchantName,
-                      NSU: data.rrn,
-                      SaleDate: data.effectivePaymentDate,
-                      Type: data.type,
-                      Brand: data.brand,
-                      InstallmentNumber: data.installmentNumber,
-                      InstallmentValue: data.installmentAmount,
-                      TransactionMdr: data.transactionMdr,
-                      TransactionMdrFee: data.transactionMdrFee,
-                      SettlementAmount: data.settlementAmount,
-                      ExpectedDate: data.expectedSettlementDate,
-                      AnticipationAmount: data.anticipatedAmount,
-                      AnticipationCode: data.anticipationCode,
-                    })
-                  )}
-                  globalStyles={globalStyles}
-                  sheetName="Conciliação de antecipações"
-                  fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
-                />
+                <div className="w-full overflow-x-auto">
+                  <MerchantAgendaList merchantAgendaList={merchantAgenda} />
+                </div>
+                {totalRecordsReceivables > 0 && (
+                  <PaginationRecords
+                    totalRecords={totalRecordsReceivables}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/merchantAgenda"
+                  />
+                )}
               </div>
-              <div className="w-full overflow-x-auto">
-                <MerchantAgendaAntecipationList
-                  merchantAgendaAnticipationList={merchantAgendaAnticipation}
-                />
+            </TabsContent>
+            <TabsContent value="anticipations" className="mt-6">
+              <div className="flex flex-col space-y-4 mt-2">
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex-1">
+                    <AnticipationsListFilter
+                      settlementDateFromIn={settlementDateFromIn}
+                      settlementDateToIn={settlementDateToIn}
+                      saleDateFromIn={saleDateFromIn}
+                      saleDateToIn={saleDateToIn}
+                      establishmentIn={establishmentIn}
+                      nsuIn={nsuIn}
+                      statusIn={statusIn}
+                      orderIdIn={orderIdIn}
+                    />
+                  </div>
+                  <div className="ml-2">
+                    <ExcelExport
+                      data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
+                        (data) => ({
+                          Merchant: data.merchantName,
+                          NSU: data.rrn,
+                          SaleDate: data.effectivePaymentDate,
+                          Type: data.type,
+                          Brand: data.brand,
+                          InstallmentNumber: data.installmentNumber,
+                          InstallmentValue: data.installmentAmount,
+                          TransactionMdr: data.transactionMdr,
+                          TransactionMdrFee: data.transactionMdrFee,
+                          SettlementAmount: data.settlementAmount,
+                          ExpectedDate: data.expectedSettlementDate,
+                          AnticipationAmount: data.anticipatedAmount,
+                          AnticipationCode: data.anticipationCode,
+                        })
+                      )}
+                      globalStyles={globalStyles}
+                      sheetName="Conciliação de antecipações"
+                      fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <MerchantAgendaAnticipationsDashboardContent
+                    totalEstablishments={
+                      anticipationDashboardStats.totalEstablishments
+                    }
+                    totalAnticipationRequests={
+                      anticipationDashboardStats.totalAnticipationRequests
+                    }
+                    totalParcels={anticipationDashboardStats.totalParcels}
+                    fullyAnticipatedParcels={
+                      anticipationDashboardStats.fullyAnticipatedParcels
+                    }
+                    partiallyAnticipatedParcels={
+                      anticipationDashboardStats.partiallyAnticipatedParcels
+                    }
+                    totalNetAnticipated={
+                      anticipationDashboardStats.totalNetAnticipated
+                    }
+                    totalGrossAnticipated={
+                      anticipationDashboardStats.totalGrossAnticipated
+                    }
+                    totalAnticipationFees={
+                      anticipationDashboardStats.totalAnticipationFees
+                    }
+                    firstTransactionDate={
+                      anticipationDashboardStats.firstTransactionDate
+                    }
+                    lastTransactionDate={
+                      anticipationDashboardStats.lastTransactionDate
+                    }
+                  />
+                </div>
+
+                <div className="w-full overflow-x-auto">
+                  <MerchantAgendaAntecipationList
+                    merchantAgendaAnticipationList={merchantAgendaAnticipation}
+                  />
+                </div>
+                {totalRecordsAntecipations > 0 && (
+                  <PaginationRecords
+                    totalRecords={totalRecordsAntecipations}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/merchantAgenda"
+                  />
+                )}
               </div>
-              {totalRecordsAntecipations > 0 && (
-                <PaginationRecords
-                  totalRecords={totalRecordsAntecipations}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/merchantAgenda"
-                />
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="adjustment" className="mt-6">
-            <EmptyState
-              icon={Search}
-              title={"Nenhum resultado encontrado"}
-              description={""}
-            />
-          </TabsContent>
-        </TabChangeHandler>
+            </TabsContent>
+            <TabsContent value="adjustment" className="mt-6">
+              <div className="flex flex-col space-y-4 mt-2">
+                <div className="flex items-center justify-between gap-4 relative z-50">
+                  <div className="flex items-start gap-4 flex-1">
+                    <AdjustmentsListFilter
+                      dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+                      dateToIn={dateTo ? new Date(dateTo) : undefined}
+                      establishmentIn={establishmentIn}
+                    />
+                  </div>
+                  <ExcelExport
+                    data={merchantAgendaAdjustment.merchantAgendaAdjustments.map(
+                      (data) => ({
+                        Merchant: data.merchantName,
+                        PaymentDate: data.paymentDate,
+                        Amount: data.amount,
+                        Type: data.type,
+                        Title: data.title,
+                        Reason: data.reason,
+                        AdjustmentType: data.adjustmentType,
+                      })
+                    )}
+                    globalStyles={globalStyles}
+                    sheetName="Conciliação de ajustes"
+                    fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}`}
+                  />
+                </div>
+                <div className="w-full overflow-x-auto">
+                  <MerchantAgendaAdjustmentList
+                    merchantAgendaAdjustmentList={merchantAgendaAdjustment}
+                  />
+                </div>
+                {totalRecordsAdjustments > 0 && (
+                  <PaginationRecords
+                    totalRecords={totalRecordsAdjustments}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/merchantAgenda"
+                  />
+                )}
+              </div>
+            </TabsContent>
+          </TabChangeHandler>
+        </Suspense>
       </BaseBody>
     </>
   );

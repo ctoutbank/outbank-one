@@ -22,30 +22,24 @@ import { formatDate } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type {
-  DailyAmount,
-  GlobalSettlementResult
-} from "../server/merchantAgenda";
+import type { DailyAmount } from "../server/merchantAgenda";
 
 interface TableViewProps {
   monthlyData: DailyAmount[];
   isLoading: boolean;
   total: number;
   handleMonthChange: (newDate: Date) => void;
-  dailyData: GlobalSettlementResult;
   setView: (view: "month" | "day") => void;
+  status: string;
 }
-
-
-
 
 export function TableView({
   monthlyData,
   isLoading,
   handleMonthChange,
   total,
-  dailyData,
   setView,
+  status,
 }: TableViewProps) {
   const router = useRouter();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -85,7 +79,7 @@ export function TableView({
   const sortedData = [...monthlyData].sort((a, b) => {
     return Number.parseInt(a.date) - Number.parseInt(b.date);
   });
-
+  console.log(status);
   return (
     <Card>
       <CardContent className="p-6">
@@ -109,6 +103,7 @@ export function TableView({
             merchantAgendaReceiptsTotalProps={{
               total: total,
               view: "month",
+              status: status,
             }}
           />
         </div>
@@ -188,7 +183,6 @@ export function TableView({
             monthlyData={monthlyData}
             handleMonthChange={handleMonthChange}
             isLoading={isLoading}
-            dailyData={dailyData}
             onPrevMonth={goToPreviousMonth}
             onNextMonth={goToNextMonth}
             currentMonth={currentMonth}

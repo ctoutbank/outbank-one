@@ -72,7 +72,7 @@ export default function ExcelExport<T>({
         const rowValues = headers.map(
           (header) => (rowData as any)[header] ?? ""
         );
-        console.log(`Processing row ${index + 1}:`, rowValues);
+        console.log(`Processing row ${index + 1}:`, rowValues); 
         const row = worksheet.addRow(rowValues);
 
         if (globalStyles?.row) {

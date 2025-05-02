@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { FileCheck, FileText, AlertTriangle } from "lucide-react";
+import { AlertTriangle, FileCheck, FileText } from "lucide-react";
 
 type EdisDashboardContentProps = {
   totalEdis: number;
@@ -22,8 +22,8 @@ export function EdisDashboardContent({
   errorEdis,
 }: EdisDashboardContentProps) {
   return (
-    <div className="w-full mt-4 mb-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-4">
+      <div className="flex items-center flex-wrap gap-4 mb-2">
         {/* Total EDIS Card */}
         <Card className="bg-white min-w-[280px]">
           <CardContent className="p-4">
@@ -34,12 +34,12 @@ export function EdisDashboardContent({
                   Total de Arquivos
                 </span>
               </div>
-              <span className="text-2xl font-semibold text-zinc-900">
+              <span className="text-2xl font-semibold text-zinc-900 ml-4">
                 {totalEdis}
               </span>
             </div>
             <Separator className="mb-3" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -76,12 +76,12 @@ export function EdisDashboardContent({
                   Status Processamento
                 </span>
               </div>
-              <span className="text-2xl font-semibold text-zinc-900">
+              <span className="text-2xl font-semibold text-zinc-900 ml-4">
                 {processedEdis + pendingEdis + errorEdis}
               </span>
             </div>
             <Separator className="mb-3" />
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -129,12 +129,12 @@ export function EdisDashboardContent({
                   Tipos de Arquivo
                 </span>
               </div>
-              <span className="text-2xl font-semibold text-zinc-900">
+              <span className="text-2xl font-semibold text-zinc-900 ml-4">
                 {totalEdis}
               </span>
             </div>
             <Separator className="mb-3" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />

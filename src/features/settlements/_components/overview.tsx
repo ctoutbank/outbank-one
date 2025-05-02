@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Circle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   formatCurrency,
   formatDateComplete,
   getStatusColor,
 } from "@/lib/utils";
+import { Circle } from "lucide-react";
 
 export type FinancialOverviewProps = {
   date: Date;
@@ -17,6 +17,7 @@ export type FinancialOverviewProps = {
   debitStatus: string;
   anticipationStatus: string;
   pixStatus: string;
+  totalAdjustmentAmount: number;
 };
 
 export default function FinancialOverview({
@@ -24,6 +25,20 @@ export default function FinancialOverview({
 }: {
   financialOverviewProps: FinancialOverviewProps;
 }) {
+  // Verificação para garantir que os valores são numéricos
+  const grossSales = Number(financialOverviewProps.grossSalesAmount);
+  const adjustments = Number(financialOverviewProps.totalAdjustmentAmount);
+  const totalAmount = grossSales + adjustments;
+
+  // Log para verificar os valores
+  console.log("FinancialOverview - Valores:", {
+    grossSales,
+    adjustments,
+    totalAmount,
+    rawGrossSales: financialOverviewProps.grossSalesAmount,
+    rawAdjustments: financialOverviewProps.totalAdjustmentAmount,
+  });
+
   return (
     <Card className="w-full border-l-8 border-black bg-sidebar">
       <div className="flex items-center justify-between">
@@ -34,7 +49,10 @@ export default function FinancialOverview({
           </p>
         </CardHeader>
         <div className="flex gap-4 mt-4 mr-10">
-          <Badge variant="outline" className="flex items-center gap-2 w-auto bg-white border">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-2 w-auto bg-white border"
+          >
             <Circle
               className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.creditStatus
@@ -42,7 +60,10 @@ export default function FinancialOverview({
             />
             Crédito
           </Badge>
-          <Badge variant="outline" className="flex items-center gap-2 w-auto bg-white border">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-2 w-auto bg-white border"
+          >
             <Circle
               className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.debitStatus
@@ -50,7 +71,10 @@ export default function FinancialOverview({
             />
             Débito
           </Badge>
-          <Badge variant="outline" className="flex items-center gap-2 w-auto bg-white border">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-2 w-auto bg-white border"
+          >
             <Circle
               className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.anticipationStatus
@@ -58,7 +82,10 @@ export default function FinancialOverview({
             />
             Antecipação
           </Badge>
-          <Badge variant="outline" className="flex items-center gap-2 w-auto bg-white border border-[#a7a7a7]">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-2 w-auto bg-white border border-[#a7a7a7]"
+          >
             <Circle
               className={`w-3 h-3 stroke-none rounded-full ${getStatusColor(
                 financialOverviewProps.pixStatus
@@ -77,7 +104,7 @@ export default function FinancialOverview({
                   Valor Líquido Recebíveis
                 </p>
                 <p className="text-xl font-semibold">
-                  {formatCurrency(financialOverviewProps.grossSalesAmount)}
+                  {formatCurrency(totalAmount)}
                 </p>
               </div>
             </Card>
@@ -87,7 +114,9 @@ export default function FinancialOverview({
                   Valor Líquido Antecipação
                 </p>
                 <p className="text-xl font-semibold">
-                  {formatCurrency(financialOverviewProps.netAnticipationsAmount)}
+                  {formatCurrency(
+                    financialOverviewProps.netAnticipationsAmount
+                  )}
                 </p>
               </div>
             </Card>

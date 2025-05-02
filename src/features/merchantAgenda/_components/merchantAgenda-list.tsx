@@ -20,7 +20,7 @@ import { useState } from "react";
 import type { MerchantAgendaList } from "../server/merchantAgenda";
 
 interface MerchantAgendaListProps {
-  merchantAgendaList: MerchantAgendaList;
+  merchantAgendaList?: MerchantAgendaList;
 }
 
 export default function MerchantAgendaList({

@@ -1,8 +1,14 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Info } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -11,121 +17,148 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
+import { Info } from "lucide-react";
+import { AnticipationList } from "../server/anticipation";
 
 
 
-export default function AnticipationList() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export default function AnticipationListComponent({
+  anticipations,
+}: {
+  anticipations: AnticipationList;
+}) {
+  const getStatusBadgeVariant = (status: string | null) => {
+    if (!status) return "secondary";
 
-  const handleSort = (field: string) => {
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
-    const currentSortField = params.get("sortField") ?? "";
-    const currentSortOrder = params.get("sortOrder") ?? "asc";
-
-    if (field === currentSortField) {
-      params.set("sortOrder", currentSortOrder === "asc" ? "desc" : "asc");
-    } else {
-      params.set("sortField", field);
-      params.set("sortOrder", "asc");
+    if (status.includes("Liquidado")) {
+      return "success";
+    } else if (status.includes("Parcialmente Liquidadas")) {
+      return "pending";
+    } else if (status.includes("Parcialmente Antecipadas")) {
+      return "destructive";
+    } else if (status.includes("Canceladas")) {
+      return "outline";
+    } else if (status.includes("Previstas")) {
+      return "default";
     }
-
-    router.push(`/anticipations?${params.toString()}`);
+    return "secondary";
   };
-
-  // Mock data - replace with actual data
-  const anticipations = [
-    {
-      id: 1,
-      requestDate: "23/12/2024",
-      type: "Cartão Presente",
-      establishment: "POSTO JOIA",
-      establishmentCode: "572.085.330-00",
-      amount: "R$ 8.419,15",
-      status: "Aprovado",
-      action: "Liquidado",
-    },
-    // Add more items as needed
-  ];
-
   return (
     <div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <button
-                  onClick={() => handleSort("requestDate")}
-                  className="flex items-center gap-1"
-                >
-                  Data de Solicitação
-                  <span>↑↓</span>
-                </button>
-              </TableHead>
-              <TableHead>
-                <button
-                  onClick={() => handleSort("type")}
-                  className="flex items-center gap-1"
-                >
-                  Tipo
-                  <span>↑↓</span>
-                </button>
-              </TableHead>
+              <TableHead>Data de Solicitação</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Estabelecimento</TableHead>
-              <TableHead>
-                <button
-                  onClick={() => handleSort("amount")}
-                  className="flex items-center gap-1"
-                >
-                  Total a Antecipar
-                  <span>↑↓</span>
-                </button>
-              </TableHead>
+              <TableHead>Total a Antecipar</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {anticipations.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.requestDate}</TableCell>
-                <TableCell>{item.type}</TableCell>
+            {anticipations.anticipations.map((item) => (
+              <TableRow key={item.slug}>
+                <TableCell>{formatDate(item.dtinsert)}</TableCell>
+                <TableCell>{item.productType}</TableCell>
                 <TableCell>
                   <div>
-                    <span className="font-medium">{item.establishment}</span>
+                    <span className="font-medium">{item.merchantName}</span>
                     <br />
-                    <span className="text-sm text-muted-foreground">
-                      {item.establishmentCode}
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatCNPJ(item.merchantCnpj)}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="flex items-center gap-2">
-                  {item.amount}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Informações adicionais sobre o valor</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {formatCurrency(item.amount)}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full h-10 w-10 hover:bg-slate-100 transition-colors"
+                          aria-label="Ver detalhes da transação"
+                        >
+                          <Info className="h-5 w-5 text-slate-700" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-lg">
+                        <DialogHeader className="bg-slate-50 p-4 border-b">
+                          <DialogTitle className="text-lg font-medium">
+                            Detalhe do valor solicitado
+                          </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="p-5">
+                          <div className="grid grid-cols-2 gap-y-4 text-sm">
+                            <div className="text-slate-500 font-medium">EC</div>
+                            <div>{item.merchantName}</div>
+
+                            <div className="text-slate-500 font-medium"></div>
+                            <div className="text-slate-600 text-xs">
+                              {formatCNPJ(item.merchantCnpj)}
+                            </div>
+
+                            <div className="text-slate-500 font-medium">
+                              ISO
+                            </div>
+                            <div>{item.customer}</div>
+
+                            <div className="text-slate-500 font-medium">
+                              MCC
+                            </div>
+                            <div>{item.mcc}</div>
+
+                            <div className="text-slate-500 font-medium">
+                              Ticket Médio
+                            </div>
+                            <div>{formatCurrency(0.0)}</div>
+
+                            <div className="text-slate-500 font-medium">
+                              Transações Antecipadas
+                            </div>
+                            <div>
+                              {item.anticipationRiskFactorCp +
+                                item.anticipationRiskFactorCnp}
+                            </div>
+
+                            <div className="text-slate-500 font-medium pl-5">
+                              Cartão presente
+                            </div>
+                            <div>{item.anticipationRiskFactorCp}</div>
+
+                            <div className="text-slate-500 font-medium pl-5">
+                              Cartão não presente
+                            </div>
+                            <div>{item.anticipationRiskFactorCnp}</div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 flex justify-end border-t bg-slate-50">
+                          <DialogClose asChild>
+                            <Button
+                              variant="default"
+                              className="bg-slate-900 hover:bg-slate-800"
+                            >
+                              Fechar
+                            </Button>
+                          </DialogClose>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="success" className="bg-emerald-500">
+                  <Badge variant={getStatusBadgeVariant(item.status)}>
                     {item.status}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className="text-muted-foreground">{item.action}</span>
+                  <span className="text-muted-foreground">Liquidado</span>
                 </TableCell>
               </TableRow>
             ))}

@@ -1,14 +1,16 @@
 "use client";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Button } from "@/components/ui/button";
-import { FilterIcon, CalendarIcon, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { CalendarIcon, FilterIcon, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { DateRange } from "react-day-picker";
 import { useState } from "react";
 
 interface DashboardFiltersProps {
-  dateRange: DateRange;
+  dateRange: {
+    from: string | undefined;
+    to?: string | undefined;
+  };
 }
 
 export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
@@ -54,7 +56,10 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
           <FilterIcon className="h-4 w-4 text-neutral-600" />
           <span className="font-medium">Filtros</span>
           {viewMode !== "today" && (
-            <Badge variant="secondary" className="ml-1 bg-primary/10 text-primary hover:bg-primary/20">
+            <Badge
+              variant="secondary"
+              className="ml-1 bg-primary/10 text-primary hover:bg-primary/20"
+            >
               1
             </Badge>
           )}
@@ -101,18 +106,26 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
               <CalendarIcon className="w-5 h-5 text-neutral-600" />
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-neutral-500">De:</span>
-                  <span className="text-sm font-medium text-neutral-800">{formatDate(dateRange.from)}</span>
+                  <span className="text-xs font-medium text-neutral-500">
+                    De:
+                  </span>
+                  <span className="text-sm font-medium text-neutral-800">
+                    {formatDate(new Date(dateRange.from || ""))}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-neutral-500">Até:</span>
-                  <span className="text-sm font-medium text-neutral-800">{formatDate(dateRange.to)}</span>
+                  <span className="text-xs font-medium text-neutral-500">
+                    Até:
+                  </span>
+                  <span className="text-sm font-medium text-neutral-800">
+                    {formatDate(new Date(dateRange.to || ""))}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="flex justify-end pt-4 mt-4 border-t">
-              <Button 
+              <Button
                 onClick={handleApplyFilter}
                 className="flex items-center gap-2"
               >

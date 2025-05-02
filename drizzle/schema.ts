@@ -1,4 +1,4 @@
-import { pgTable, unique, serial, varchar, boolean, timestamp, char, integer, foreignKey, bigint, date, numeric, text, uuid, time, jsonb } from "drizzle-orm/pg-core"
+import { pgTable, unique, serial, varchar, boolean, timestamp, char, integer, foreignKey, bigint, numeric, date, text, uuid, time, jsonb } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -61,33 +61,6 @@ export const bank = pgTable("bank", {
 	dtupdate: timestamp({ mode: 'string' }),
 	name: varchar({ length: 255 }),
 	number: varchar({ length: 10 }),
-});
-
-export const salesAgents = pgTable("sales_agents", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	active: boolean(),
-	dtinsert: timestamp({ mode: 'string' }),
-	dtupdate: timestamp({ mode: 'string' }),
-	firstName: varchar("first_name", { length: 255 }),
-	lastName: varchar("last_name", { length: 255 }),
-	documentId: varchar("document_id", { length: 50 }),
-	email: varchar({ length: 255 }),
-	slugCustomer: varchar("slug_customer", { length: 50 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idAddress: bigint("id_address", { mode: "number" }),
-	birthDate: date("birth_date"),
-	phone: varchar({ length: 20 }),
-	cpf: varchar({ length: 20 }),
-}, (table) => {
-	return {
-		salesAgentsIdAddressFkey: foreignKey({
-			columns: [table.idAddress],
-			foreignColumns: [addresses.id],
-			name: "sales_agents_id_address_fkey"
-		}),
-	}
 });
 
 export const customers = pgTable("customers", {
@@ -165,6 +138,33 @@ export const settlements = pgTable("settlements", {
 			columns: [table.idCustomer],
 			foreignColumns: [customers.id],
 			name: "settlements_id_customer_fkey"
+		}),
+	}
+});
+
+export const salesAgents = pgTable("sales_agents", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "sales_agents_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	active: boolean(),
+	dtinsert: timestamp({ mode: 'string' }),
+	dtupdate: timestamp({ mode: 'string' }),
+	firstName: varchar("first_name", { length: 255 }),
+	lastName: varchar("last_name", { length: 255 }),
+	documentId: varchar("document_id", { length: 50 }),
+	email: varchar({ length: 255 }),
+	slugCustomer: varchar("slug_customer", { length: 50 }),
+	birthDate: date("birth_date"),
+	phone: varchar({ length: 20 }),
+	cpf: varchar({ length: 20 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idUsers: bigint("id_users", { mode: "number" }),
+}, (table) => {
+	return {
+		fkSalesAgentsIdUsers: foreignKey({
+			columns: [table.idUsers],
+			foreignColumns: [users.id],
+			name: "fk_sales_agents_id_users"
 		}),
 	}
 });
@@ -720,34 +720,6 @@ export const fileFormats = pgTable("file_formats", {
 	name: varchar({ length: 50 }).notNull(),
 });
 
-export const users = pgTable("users", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "users_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	slug: varchar({ length: 50 }),
-	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	dtupdate: timestamp({ mode: 'string' }),
-	active: boolean().default(true),
-	idClerk: varchar("id_clerk", { length: 100 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idCustomer: bigint("id_customer", { mode: "number" }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idProfile: bigint("id_profile", { mode: "number" }),
-	fullAccess: boolean("full_access"),
-}, (table) => {
-	return {
-		usersIdCustomerFkey: foreignKey({
-			columns: [table.idCustomer],
-			foreignColumns: [customers.id],
-			name: "users_id_customer_fkey"
-		}),
-		usersIdProfileFkey: foreignKey({
-			columns: [table.idProfile],
-			foreignColumns: [profiles.id],
-			name: "users_id_profile_fkey"
-		}),
-	}
-});
-
 export const merchantpixaccount = pgTable("merchantpixaccount", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "merchantpixaccount_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -837,6 +809,41 @@ export const reports = pgTable("reports", {
 	dayMonth: varchar("day_month", { length: 20 }),
 	endTime: time("end_time"),
 	referenceDateType: varchar("reference_date_type", { length: 50 }),
+});
+
+export const users = pgTable("users", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "users_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	slug: varchar({ length: 50 }),
+	dtinsert: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	dtupdate: timestamp({ mode: 'string' }),
+	active: boolean().default(true),
+	idClerk: varchar("id_clerk", { length: 100 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idCustomer: bigint("id_customer", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idProfile: bigint("id_profile", { mode: "number" }),
+	fullAccess: boolean("full_access"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	idAddress: bigint("id_address", { mode: "number" }),
+}, (table) => {
+	return {
+		usersIdCustomerFkey: foreignKey({
+			columns: [table.idCustomer],
+			foreignColumns: [customers.id],
+			name: "users_id_customer_fkey"
+		}),
+		usersIdProfileFkey: foreignKey({
+			columns: [table.idProfile],
+			foreignColumns: [profiles.id],
+			name: "users_id_profile_fkey"
+		}),
+		fkUsersIdAddress: foreignKey({
+			columns: [table.idAddress],
+			foreignColumns: [addresses.id],
+			name: "fk_users_id_address"
+		}),
+	}
 });
 
 export const cronJobMonitoring = pgTable("cron_job_monitoring", {
@@ -962,6 +969,55 @@ export const userMerchants = pgTable("user_merchants", {
 			columns: [table.idUser],
 			foreignColumns: [users.id],
 			name: "user_merchants_id_user_fkey"
+		}),
+	}
+});
+
+export const reportExecution = pgTable("report_execution", {
+	id: serial().primaryKey().notNull(),
+	idReport: integer("id_report"),
+	idUser: integer("id_user"),
+	totalRows: integer("total_rows"),
+	totalProcessedRows: integer("total_processed_rows"),
+	idFile: integer("id_file"),
+	status: varchar({ length: 20 }).notNull(),
+	createdOn: timestamp("created_on", { mode: 'string' }),
+	scheduleDate: timestamp("schedule_date", { mode: 'string' }).notNull(),
+	executionStart: timestamp("execution_start", { mode: 'string' }),
+	executionEnd: timestamp("execution_end", { mode: 'string' }),
+	emailsSent: text("emails_sent"),
+	filters: jsonb(),
+	errorMessage: text("error_message"),
+	reportFilterStartDate: varchar("report_filter_start_date", { length: 255 }),
+	reportFilterEndDateTime: varchar("report_filter_end_date_time", { length: 255 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	fileId: bigint("file_id", { mode: "number" }),
+}, (table) => {
+	return {
+		reportExecutionIdReportFkey: foreignKey({
+			columns: [table.idReport],
+			foreignColumns: [reports.id],
+			name: "report_execution_id_report_fkey"
+		}),
+		reportExecutionIdUserFkey: foreignKey({
+			columns: [table.idUser],
+			foreignColumns: [users.id],
+			name: "report_execution_id_user_fkey"
+		}),
+		reportExecutionIdFileFkey: foreignKey({
+			columns: [table.idFile],
+			foreignColumns: [file.id],
+			name: "report_execution_id_file_fkey"
+		}),
+		reportExecutionStatusFkey: foreignKey({
+			columns: [table.status],
+			foreignColumns: [reportExecutionStatus.code],
+			name: "report_execution_status_fkey"
+		}),
+		fkReportExecutionFile: foreignKey({
+			columns: [table.fileId],
+			foreignColumns: [file.id],
+			name: "fk_report_execution_file"
 		}),
 	}
 });
@@ -1115,55 +1171,6 @@ export const payoutAntecipations = pgTable("payout_antecipations", {
 			columns: [table.idCustomer],
 			foreignColumns: [customers.id],
 			name: "payout_antecipations_id_customer_fkey"
-		}),
-	}
-});
-
-export const reportExecution = pgTable("report_execution", {
-	id: serial().primaryKey().notNull(),
-	idReport: integer("id_report"),
-	idUser: integer("id_user"),
-	totalRows: integer("total_rows"),
-	totalProcessedRows: integer("total_processed_rows"),
-	idFile: integer("id_file"),
-	status: varchar({ length: 20 }).notNull(),
-	createdOn: timestamp("created_on", { mode: 'string' }),
-	scheduleDate: timestamp("schedule_date", { mode: 'string' }).notNull(),
-	executionStart: timestamp("execution_start", { mode: 'string' }),
-	executionEnd: timestamp("execution_end", { mode: 'string' }),
-	emailsSent: text("emails_sent"),
-	filters: jsonb(),
-	errorMessage: text("error_message"),
-	reportFilterStartDate: varchar("report_filter_start_date", { length: 255 }),
-	reportFilterEndDateTime: varchar("report_filter_end_date_time", { length: 255 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	fileId: bigint("file_id", { mode: "number" }),
-}, (table) => {
-	return {
-		reportExecutionIdReportFkey: foreignKey({
-			columns: [table.idReport],
-			foreignColumns: [reports.id],
-			name: "report_execution_id_report_fkey"
-		}),
-		reportExecutionIdUserFkey: foreignKey({
-			columns: [table.idUser],
-			foreignColumns: [users.id],
-			name: "report_execution_id_user_fkey"
-		}),
-		reportExecutionIdFileFkey: foreignKey({
-			columns: [table.idFile],
-			foreignColumns: [file.id],
-			name: "report_execution_id_file_fkey"
-		}),
-		reportExecutionStatusFkey: foreignKey({
-			columns: [table.status],
-			foreignColumns: [reportExecutionStatus.code],
-			name: "report_execution_status_fkey"
-		}),
-		fkReportExecutionFile: foreignKey({
-			columns: [table.fileId],
-			foreignColumns: [file.id],
-			name: "fk_report_execution_file"
 		}),
 	}
 });

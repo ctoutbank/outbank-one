@@ -3,14 +3,13 @@ import BaseHeader from "@/components/layout/base-header";
 
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import { LegalNatureDashboardButton } from "@/features/legalNature/_components/legalNature-dashboard-button";
 import { LegalNatureDashboardContent } from "@/features/legalNature/_components/legalNature-dashboard-content";
 import { LegalNatureFilter } from "@/features/legalNature/_components/legalNature-filter";
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
-import { Plus } from "lucide-react";
 import { getLegalNatures } from "@/features/legalNature/server/legalNature-db";
-import Link from "next/link";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export const revalidate = 0;
 
@@ -28,7 +27,7 @@ export default async function LegalNaturesPage({
 }: {
   searchParams: LegalNatureProps;
 }) {
-  await checkPagePermission("Naturezas Jurídicas");
+  await checkPagePermission("Natureza Juridica");
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "5");
@@ -60,33 +59,35 @@ export default async function LegalNaturesPage({
         title="Natureza Jurídica"
         subtitle={`visualização de todas Natureza Jurídica`}
       >
-        <div className="flex flex-col space-y-4 ">
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <div className="flex items-start gap-4 flex-1">
+        <div className="flex flex-col space-y-4">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
               <LegalNatureFilter
                 nameIn={searchParams.name}
                 codeIn={searchParams.code}
                 activeIn={searchParams.active}
               />
-              <LegalNatureDashboardButton>
-                <div>
-                  <LegalNatureDashboardContent
-                    totalLegalNatures={legalNatures.totalCount}
-                    activeLegalNatures={legalNatures.activeCount}
-                    inactiveLegalNatures={legalNatures.inactiveCount}
-                  />
-                </div>
-              </LegalNatureDashboardButton>
             </div>
-            <Button asChild className="shrink-0">
+            <Button asChild className="ml-2">
               <Link href="/portal/legalNatures/0">
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-1" />
                 Nova Natureza Jurídica
               </Link>
             </Button>
           </div>
 
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex-grow">
+              <LegalNatureDashboardContent
+                totalLegalNatures={legalNatures.totalCount}
+                activeLegalNatures={legalNatures.activeCount}
+                inactiveLegalNatures={legalNatures.inactiveCount}
+              />
+            </div>
+          </div>
+
           <LegalNaturelist LegalNatures={legalNatures} />
+
           {totalRecords > 0 && (
             <PaginationRecords
               totalRecords={totalRecords}

@@ -34,6 +34,7 @@ const getCardImage = (cardName: string): string => {
     ELO: "/elo.svg",
     AMERICAN_EXPRESS: "/american-express.svg",
     HIPERCARD: "/hipercard.svg",
+    AMEX: "/american-express.svg",
   };
   return cardMap[cardName] || "";
 };
@@ -109,7 +110,8 @@ export default function MerchantSettlementsList({
                               <TableCell className="w-[12%] min-w-[120px] text-center text-muted-foreground">
                                 {formatCurrency(
                                   Number(
-                                    settlement.pendingfinancialadjustmentamount
+                                    "-" +
+                                      settlement.pendingfinancialadjustmentamount
                                   )
                                 )}
                               </TableCell>

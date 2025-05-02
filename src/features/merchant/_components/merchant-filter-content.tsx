@@ -1,76 +1,139 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Search } from "lucide-react"
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { StatusKyc } from "@/lib/lookuptables/lookuptables";
+import { Search } from "lucide-react";
+import { KeyboardEvent, useState } from "react";
 
 type FilterMerchantsContentProps = {
-  dateFromIn?: Date
-  dateToIn?: Date
-  establishmentIn?: string
-  statusIn?: string
-  stateIn?: string
+  dateFromIn?: Date;
+  establishmentIn?: string;
+  statusIn?: string;
+  stateIn?: string;
+  emailIn?: string;
+  cnpjIn?: string;
+  activeIn?: string;
+  salesAgentIn?: string;
   onFilter: (filters: {
-    dateFrom?: Date
-    dateTo?: Date
-    establishment: string
-    status: string
-    state: string
-  }) => void
-  onClose: () => void
-}
+    dateFrom?: Date;
+    establishment: string;
+    status: string;
+    state: string;
+    email: string;
+    cnpj: string;
+    active: string;
+    salesAgent: string;
+  }) => void;
+  onClose: () => void;
+};
 
 export function FilterMerchantsContent({
+  dateFromIn,
   establishmentIn,
   statusIn,
   stateIn,
+  emailIn,
+  cnpjIn,
+  activeIn,
+  salesAgentIn,
   onFilter,
   onClose,
 }: FilterMerchantsContentProps) {
-  const [establishment, setEstablishment] = useState(establishmentIn || "")
-  const [status, setStatus] = useState(statusIn || "")
-  const [state, setState] = useState(stateIn || "")
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
+  const [establishment, setEstablishment] = useState(establishmentIn || "");
+  const [status, setStatus] = useState(statusIn || "all");
+  const [state, setState] = useState(stateIn || "");
+  const [email, setEmail] = useState(emailIn || "");
+  const [cnpj, setCnpj] = useState(cnpjIn || "");
+  const [active, setActive] = useState(activeIn || "");
+  const [salesAgent, setSalesAgent] = useState(salesAgentIn || "");
 
-  const statuses = [
-    { value: "APPROVED", label: "Aprovado", color: "bg-emerald-500 hover:bg-emerald-600" },
-    { value: "PENDING", label: "Pendente", color: "bg-yellow-500 hover:bg-yellow-600" },
-    { value: "REJECTED", label: "Rejeitado", color: "bg-red-500 hover:bg-red-600" },
-  ]
+  const activeOptions = [
+    { value: "true", label: "Sim" },
+    { value: "false", label: "Não" },
+  ];
+
+  const applyFilters = () => {
+    onFilter({
+      dateFrom,
+      establishment,
+      status,
+      state,
+      email,
+      cnpj,
+      active,
+      salesAgent,
+    });
+    onClose();
+  };
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyFilters();
+    }
+  };
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Your existing filter inputs */}
+    <div
+      className="mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Primeira linha */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Estabelecimento</h3>
+          <h3 className="text-sm font-medium">Nome Fantasia</h3>
           <Input
             placeholder="Nome do estabelecimento"
             value={establishment}
             onChange={(e) => setEstablishment(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
-        <div className="space-y-2 ml-8">
-          <h3 className="text-sm font-medium ml-2">Status KYC</h3>
-          <div className="flex flex-wrap gap-2">
-            {statuses.map((s) => (
-              <Badge
-                key={s.value}
-                variant="secondary"
-                className={cn(
-                  "cursor-pointer w-24 h-7 select-none text-sm",
-                  status === s.value ? s.color : "bg-secondary",
-                  status === s.value ? "text-white" : "text-secondary-foreground"
-                )}
-                onClick={() => setStatus(status === s.value ? "" : s.value)}
-              >
-                {s.label}
-              </Badge>
-            ))}
-          </div>
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">CNPJ/CPF</h3>
+          <Input
+            placeholder="CNPJ ou CPF"
+            value={cnpj}
+            onChange={(e) => setCnpj(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Email</h3>
+          <Input
+            placeholder="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
+
+        {/* Segunda linha */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Consultor Comercial</h3>
+          <Input
+            placeholder="Nome do consultor"
+            value={salesAgent}
+            onChange={(e) => setSalesAgent(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
         </div>
 
         <div className="space-y-2">
@@ -79,26 +142,72 @@ export function FilterMerchantsContent({
             placeholder="UF"
             value={state}
             onChange={(e) => setState(e.target.value)}
+            onKeyDown={handleKeyDown}
             maxLength={2}
             className="uppercase"
           />
         </div>
 
-        {/* Rest of your filter inputs */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Ativo</h3>
+          <div className="flex items-center gap-4 mt-2">
+            {activeOptions.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`active-${option.value}`}
+                  checked={active === option.value}
+                  onCheckedChange={() =>
+                    setActive(active === option.value ? "" : option.value)
+                  }
+                />
+                <Label htmlFor={`active-${option.value}`}>{option.label}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Terceira linha */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Cadastrado Em</h3>
+          <Input
+            type="date"
+            value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
+            onChange={(e) =>
+              setDateFrom(e.target.value ? new Date(e.target.value) : undefined)
+            }
+            onKeyDown={handleKeyDown}
+            className="w-full"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Status KYC</h3>
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione um status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {StatusKyc &&
+                StatusKyc.map((statusOption) => (
+                  <SelectItem
+                    key={statusOption.value}
+                    value={statusOption.value}
+                  >
+                    {statusOption.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="flex justify-end pt-4 mt-4 border-t">
-        <Button 
-          onClick={() => {
-            onFilter({ establishment, status, state })
-            onClose()
-          }} 
-          className="flex items-center gap-2"
-        >
+        <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />
           Filtrar
         </Button>
       </div>
     </div>
-  )
+  );
 }

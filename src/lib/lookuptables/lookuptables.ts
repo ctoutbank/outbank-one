@@ -118,4 +118,13 @@ const UF: SelectItem[] = [
   { value: "TO", label: "TO" },
 ];
 
+export const StatusKyc: SelectItem[] = [
+  { value: "APPROVED", label: "Aprovado" },
+  { value: "PENDING", label: "Em Análise" },
+  { value: "DECLINED", label: "Recusado" },
+  { value: "NOTANALYSED", label: "Cadastrado" },
+  { value: "WAITINGDOCUMENTS", label: "Incompleto" },
+  { value: "KYCOFFLINE", label: "KYC Desligado" },
+];
+
 export { legalPersonTypes, states, timezones, UF, week };

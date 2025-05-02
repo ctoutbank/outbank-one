@@ -48,7 +48,7 @@ export async function getSalesAgents(
       like(salesAgents.firstName, `%${search}%`),
       like(salesAgents.lastName, `%${search}%`),
       like(salesAgents.email, `%${search}%`)
-    )
+    ),
   ];
 
   if (email) {
@@ -56,7 +56,7 @@ export async function getSalesAgents(
   }
 
   if (status) {
-    conditions.push(eq(salesAgents.active, status === 'ACTIVE'));
+    conditions.push(eq(salesAgents.active, status === "ACTIVE"));
   }
 
   if (dateFrom) {
@@ -109,16 +109,14 @@ export async function generateNextDocumentId(): Promise<string> {
     // Buscar o maior documentId atual
     const result = await db
       .select({
-        maxDocumentId: max(salesAgents.documentId)
+        maxDocumentId: max(salesAgents.documentId),
       })
       .from(salesAgents)
-      .where(
-        like(salesAgents.documentId, 'c%')
-      );
-    
+      .where(like(salesAgents.documentId, "c%"));
+
     const maxDocumentId = result[0]?.maxDocumentId;
     let nextNumber = 1;
-    
+
     if (maxDocumentId) {
       // Extrair o número do último documentId (c0001 -> 1)
       const match = maxDocumentId.match(/c(\d+)/);
@@ -126,33 +124,35 @@ export async function generateNextDocumentId(): Promise<string> {
         nextNumber = parseInt(match[1], 10) + 1;
       }
     }
-    
-    let documentId = '';
+
+    let documentId = "";
     let isUnique = false;
-    
+
     // Loop até encontrar um documentId único
     while (!isUnique) {
       // Formatar com zeros à esquerda (1 -> 0001)
-      const formattedNumber = nextNumber.toString().padStart(4, '0');
+      const formattedNumber = nextNumber.toString().padStart(4, "0");
       documentId = `c${formattedNumber}`;
-      
+
       // Verificar se este documentId já existe
       const existingAgent = await db
         .select()
         .from(salesAgents)
         .where(eq(salesAgents.documentId, documentId))
         .limit(1);
-      
+
       if (existingAgent.length === 0) {
         // Não encontrou, então é único
         isUnique = true;
       } else {
         // Já existe, incrementar e tentar novamente
-        console.log(`DocumentId ${documentId} já existe, tentando o próximo...`);
+        console.log(
+          `DocumentId ${documentId} já existe, tentando o próximo...`
+        );
         nextNumber++;
       }
     }
-    
+
     return documentId;
   } catch (error) {
     console.error("Erro ao gerar próximo documentId:", error);
@@ -163,7 +163,7 @@ export async function generateNextDocumentId(): Promise<string> {
 
 export async function insertSalesAgent(salesAgent: SalesAgentesInsert) {
   console.log("Inserindo salesAgent:", salesAgent);
-  
+
   // Se não tiver documentId, gerar um novo documentId sequencial
   if (!salesAgent.documentId || salesAgent.documentId === "") {
     salesAgent.documentId = await generateNextDocumentId();
@@ -175,14 +175,16 @@ export async function insertSalesAgent(salesAgent: SalesAgentesInsert) {
       .from(salesAgents)
       .where(eq(salesAgents.documentId, salesAgent.documentId))
       .limit(1);
-    
+
     if (existingAgent.length > 0) {
-      console.log(`DocumentId ${salesAgent.documentId} já existe, gerando um novo...`);
+      console.log(
+        `DocumentId ${salesAgent.documentId} já existe, gerando um novo...`
+      );
       salesAgent.documentId = await generateNextDocumentId();
       console.log("Novo documentId gerado:", salesAgent.documentId);
     }
   }
-  
+
   const result = await db.insert(salesAgents).values(salesAgent).returning({
     id: salesAgents.id,
   });
@@ -209,7 +211,7 @@ export async function updateSalesAgent(
   console.log("CPF a ser atualizado:", salesAgent.cpf);
   console.log("Telefone a ser atualizado:", salesAgent.phone);
   console.log("Data de nascimento a ser atualizada:", salesAgent.birthDate);
-  
+
   try {
     await db
       .update(salesAgents)
@@ -221,21 +223,23 @@ export async function updateSalesAgent(
         dtupdate: new Date().toISOString(),
         documentId: salesAgent.documentId,
         slugCustomer: salesAgent.slugCustomer,
-        idAddress: salesAgent.idAddress,
         cpf: salesAgent.cpf,
         phone: salesAgent.phone,
-        birthDate: salesAgent.birthDate
+        birthDate: salesAgent.birthDate,
+        idUsers: salesAgent.idUsers,
       })
       .where(eq(salesAgents.id, salesAgent.id));
-    
+
     // Verificar se a atualização funcionou, consultando os dados atualizados
     const updated = await getSalesAgentById(salesAgent.id);
     console.log("Dados após atualização:", JSON.stringify(updated, null, 2));
     console.log("CPF após atualização:", updated?.cpf);
     console.log("Telefone após atualização:", updated?.phone);
     console.log("Data de nascimento após atualização:", updated?.birthDate);
-    
-    console.log("SalesAgent atualizado com sucesso, incluindo cpf, phone e birthDate");
+
+    console.log(
+      "SalesAgent atualizado com sucesso, incluindo cpf, phone e birthDate"
+    );
   } catch (error) {
     console.error("Erro ao atualizar salesAgent:", error);
     throw error;

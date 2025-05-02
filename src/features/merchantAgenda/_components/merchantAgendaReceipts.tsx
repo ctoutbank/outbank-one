@@ -33,6 +33,7 @@ export default function MerchantAgendaReceipts({
     useState<DailyAmount[]>(initialMonthlyData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [excelData, setExcelData] = useState<ExcelDailyData[]>();
+  const [monthStatus, setMonthStatus] = useState<string>();
 
   useEffect(() => {
     const fetchExcelData = async () => {
@@ -59,10 +60,9 @@ export default function MerchantAgendaReceipts({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const totalAmountByMonth = (await getMerchantAgendaTotal(
-          actualDate
-        )) as number;
-        setMonthTotal(totalAmountByMonth || 0);
+        const monthData = await getMerchantAgendaTotal(actualDate);
+        setMonthTotal((monthData && Number(monthData[0].total)) || 0);
+        setMonthStatus((monthData && monthData[0].status) || "SETTLED");
 
         const receipts = await getMerchantAgendaReceipts(null, actualDate);
 
@@ -70,6 +70,8 @@ export default function MerchantAgendaReceipts({
           .map((receipt) => ({
             date: String(receipt.day),
             amount: Number(receipt.totalAmount) || 0,
+            status: String(receipt.status),
+            is_anticipation: receipt.is_anticipation,
           }))
           .filter((item) => item.amount > 0);
 
@@ -115,8 +117,9 @@ export default function MerchantAgendaReceipts({
         <div className="mb-4">
           <MerchantAgendaReceiptsTotal
             merchantAgendaReceiptsTotalProps={{
-              total: dailyData.globalSettlement,
+              total: dailyData.globalSettlement - dailyData.globalAdjustments,
               view: "day",
+              status: dailyData.status,
             }}
           />
         </div>
@@ -127,8 +130,8 @@ export default function MerchantAgendaReceipts({
           isLoading={isLoading}
           handleMonthChange={setActualDate}
           total={Number(monthTotal)}
-          dailyData={dailyData}
           setView={setView}
+          status={monthStatus || ""}
         />
       ) : (
         <DailyView

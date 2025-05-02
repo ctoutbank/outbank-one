@@ -24,6 +24,7 @@ const getGroupFromUrl = (url: string): string => {
     legalNatures: "Natureza Juridica",
     history: "Liquidação",
     reports: "Relatório",
+    financialReleases: "Lançamentos Financeiros",
   };
 
   return groupMappings[lastSegment] || lastSegment;
@@ -58,16 +59,6 @@ const menuData = {
       title: "Vendas",
       url: "/portal/transactions",
       icon: "DollarSign",
-      items: [
-        {
-          title: "Transações",
-          url: "/portal/transactions",
-        },
-        {
-          title: "Arquivos EDI",
-          url: "/portal/edis",
-        },
-      ],
     },
     {
       title: "Consultores Comerciais",
@@ -116,6 +107,13 @@ const menuData = {
       icon: "FileText",
     },
     {
+      title: "Lançamentos Financeiros",
+      url: "/portal/financialReleases",
+      icon: "CalendarDays",
+    },
+
+    { title: "Arquivos EDI", url: "/portal/edis", icon: "FolderOpen" },
+    {
       title: "Configurações",
       url: "/portal/categories",
       icon: "Settings",
@@ -125,11 +123,11 @@ const menuData = {
           url: "/portal/users",
         },
         {
-          title: "Categorias",
+          title: "CNAE",
           url: "/portal/categories",
         },
         {
-          title: "Natureza Jurídica",
+          title: "Formato Jurídico",
           url: "/portal/legalNatures",
         },
       ],

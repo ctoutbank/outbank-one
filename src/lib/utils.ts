@@ -1,102 +1,95 @@
 import { type ClassValue, clsx } from "clsx";
 import crypto from "crypto";
-import { DateRange } from "react-day-picker";
+import { DateTime } from "luxon";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type Period = {
+export interface Period {
   viewMode: string;
-  period: DateRange;
-  previousPeriod?: DateRange;
-};
+  period: { from: string; to: string };
+  previousPeriod: { from: string; to: string };
+}
 
 export function gateDateByViewMode(viewMode: string): Period {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to midnight
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1); // Yesterday
-  const lastWeek = new Date(today);
-  lastWeek.setDate(today.getDate() - 86400000 * 6); // Last week
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // First day of the month
-  const firstDayOfYear = new Date(today.getFullYear(), 0, 1); // First day of the year
+  const now = DateTime.utc();
+
+  // Helpers Luxon
+  const startOfUTCDay = (dt: DateTime) => dt.startOf("day");
+  const endOfUTCDay = (dt: DateTime) => dt.endOf("day");
+  const shiftDays = (dt: DateTime, days: number) => dt.plus({ days });
+
+  // Formatação sem segundos e milissegundos
+  const fmt = (dt: DateTime) =>
+    dt.toISO({ suppressSeconds: true, suppressMilliseconds: true });
+
+  // Referências
+  const todayStart = startOfUTCDay(now);
+  const todayEnd = endOfUTCDay(now);
+
+  const yesterdayStart = startOfUTCDay(shiftDays(now, -1));
+  const yesterdayEnd = endOfUTCDay(shiftDays(now, -1));
+
+  let periodFrom: DateTime;
+  let periodTo: DateTime;
+  let prevFrom: DateTime;
+  let prevTo: DateTime;
 
   switch (viewMode) {
     case "today":
-      return {
-        viewMode: "today",
-        period: {
-          from: new Date(today.setHours(0, 0, 0, 0)),
-          to: new Date(today.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(yesterday.setHours(0, 0, 0, 0)),
-          to: new Date(yesterday.setHours(23, 59, 0, 0)),
-        },
-      };
-    case "week":
-      return {
-        viewMode: "week",
-        period: {
-          from: new Date(today.getTime() - 6 * 86400000), // 7 days ago
-          to: new Date(today.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(today.getTime() - 12 * 86400000), // 14 days ago
-          to: new Date(today.getTime() - 6 * 86400000), // 7 days ago
-        },
-      };
-    case "month":
-      return {
-        viewMode: "month",
-        period: {
-          from: new Date(firstDayOfMonth.setHours(0, 0, 0, 0)),
-          to: new Date(today.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(today.getFullYear(), today.getMonth() - 1, 1),
-          to: new Date(firstDayOfMonth.setHours(23, 59, 0, 0) - 86400000),
-        },
-      };
-    case "year":
-      return {
-        viewMode: "year",
-        period: {
-          from: new Date(firstDayOfYear.setHours(0, 0, 0, 0)),
-          to: new Date(today.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(today.getFullYear() - 1, 0, 1),
-          to: new Date(firstDayOfYear.setHours(23, 59, 0, 0) - 86400000),
-        },
-      };
+      periodFrom = todayStart;
+      periodTo = todayEnd;
+      prevFrom = yesterdayStart;
+      prevTo = yesterdayEnd;
+      break;
+
     case "yesterday":
-      return {
-        viewMode: "yesterday",
-        period: {
-          from: new Date(yesterday.setHours(0, 0, 0, 0)),
-          to: new Date(yesterday.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(yesterday.setHours(0, 0, 0, 0) - 86400000),
-          to: new Date(yesterday.setHours(23, 59, 0, 0) - 86400000),
-        },
-      };
+      periodFrom = yesterdayStart;
+      periodTo = yesterdayEnd;
+      prevFrom = startOfUTCDay(shiftDays(now, -2));
+      prevTo = endOfUTCDay(shiftDays(now, -2));
+      break;
+
+    case "week":
+      periodFrom = startOfUTCDay(shiftDays(now, -5));
+      console.log(periodFrom);
+      periodTo = todayEnd;
+      prevFrom = startOfUTCDay(shiftDays(now, -12));
+      console.log(prevFrom);
+      prevTo = endOfUTCDay(shiftDays(now, -6));
+      console.log(prevTo);
+      break;
+
+    case "month":
+      periodFrom = startOfUTCDay(now.set({ day: 1 }));
+      periodTo = todayEnd;
+      prevFrom = startOfUTCDay(now.minus({ months: 1 }).set({ day: 1 }));
+      prevTo = endOfUTCDay(now.set({ day: 1 }).minus({ days: 1 }));
+      break;
+
+    case "year":
+      periodFrom = startOfUTCDay(now.set({ month: 1, day: 1 }));
+      periodTo = todayEnd;
+      prevFrom = startOfUTCDay(
+        now.minus({ years: 1 }).set({ month: 1, day: 1 })
+      );
+      prevTo = endOfUTCDay(now.set({ month: 1, day: 1 }).minus({ days: 1 }));
+      break;
+
     default:
-      return {
-        viewMode: "today",
-        period: {
-          from: new Date(today.setHours(0, 0, 0, 0)),
-          to: new Date(today.setHours(23, 59, 0, 0)),
-        },
-        previousPeriod: {
-          from: new Date(yesterday.setHours(0, 0, 0, 0)),
-          to: new Date(yesterday.setHours(23, 59, 0, 0)),
-        },
-      };
+      periodFrom = todayStart;
+      periodTo = todayEnd;
+      prevFrom = yesterdayStart;
+      prevTo = yesterdayEnd;
   }
+
+  return {
+    viewMode,
+    period: { from: fmt(periodFrom)!, to: fmt(periodTo)! },
+    previousPeriod: { from: fmt(prevFrom)!, to: fmt(prevTo)! },
+  };
 }
 
 export function formatDate(date: Date): string {
@@ -115,7 +108,7 @@ export function formatDateToAPIFilter(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date, weekDay: boolean): string {
   const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
   const day = date.getDate();
   const month = date.getMonth() + 1;
@@ -123,12 +116,19 @@ export function formatDateTime(date: Date): string {
   const hours = date.getHours();
   const minutes = date.getMinutes();
   const seconds = date.getSeconds();
-
-  return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours
-    .toString()
-    .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
+  if (weekDay) {
+    return `${days[date.getDay()]} ${day}/${month}/${year} - ${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  } else {
+    return `${day}/${month}/${year} - ${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
 }
 
 export function formatDateComplete(date: Date): string {
@@ -274,6 +274,12 @@ export function translateCardType(cardType: string): string {
       return "Débito - Pré-pago";
     case "PIX":
       return "Pix";
+    case "ANTICIPATION":
+      return "Antecipação";
+    case "PREPAID_DEBIT":
+      return "Débito - Pré-pago";
+    case "PREPAID_CREDIT":
+      return "Crédito - Pré-pago";
     default:
       return "";
   }

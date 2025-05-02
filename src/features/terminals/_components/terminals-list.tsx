@@ -28,6 +28,10 @@ export default function TerminalsList({
           <TableHeader>
             <TableRow>
               <TableHead>
+                Data de Inclusão
+                <ChevronDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead>
                 Numero Logico
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
@@ -37,10 +41,6 @@ export default function TerminalsList({
               </TableHead>
               <TableHead>
                 Estabelecimento
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Data de Inclusão
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
@@ -59,10 +59,15 @@ export default function TerminalsList({
                     className="text-primary underline"
                     href={`/portal/terminals/${terminal.slug}`}
                   >
-                    {terminal.logicalNumber}
+                    {terminal.dtinsert
+                      ? formatDate(terminal.dtinsert.toString())
+                      : null}
                   </Link>
                 </TableCell>
+                <TableCell>{terminal.logicalNumber}</TableCell>
+
                 <TableCell>{terminal.serialNumber}</TableCell>
+
                 <TableCell>
                   {terminal.merchantName}
                   <div className="text-xs text-gray-500">
@@ -70,11 +75,6 @@ export default function TerminalsList({
                       ? formatCNPJ(terminal.merchantDocumentId)
                       : terminal.merchantDocumentId}
                   </div>
-                </TableCell>
-                <TableCell>
-                  {terminal.dtinsert
-                    ? formatDate(terminal.dtinsert.toString())
-                    : null}
                 </TableCell>
                 <TableCell>{terminal.model}</TableCell>
                 <TableCell>

@@ -3,17 +3,13 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
-import { MerchantDashboardButton } from "@/features/merchant/_components/merchant-dashboard-button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
-import { getMerchants } from "@/features/merchant/server/merchant";
 import {
-  getMerchantRegistrationsByPeriod,
-  getMerchantRegistrationSummary,
-  getMerchantTransactionData,
-  getMerchantTypeData,
-} from "@/features/merchant/server/merchant-dashboard";
+  getMerchants,
+  getMerchantsWithDashboardData,
+} from "@/features/merchant/server/merchant";
 import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
@@ -30,6 +26,11 @@ type MerchantProps = {
   status?: string;
   state?: string;
   establishment?: string;
+  dateFrom?: string;
+  email?: string;
+  cnpj?: string;
+  active?: string;
+  salesAgent?: string;
 };
 
 export default async function MerchantsPage({
@@ -43,30 +44,37 @@ export default async function MerchantsPage({
   const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
 
-  // Buscar dados dos merchants
-  const merchants = await getMerchants(
+  // Buscar todos os dados em uma única requisição
+  const { merchants, dashboardData } = await getMerchantsWithDashboardData(
     search,
     page,
     pageSize,
     searchParams.establishment,
     searchParams.status,
-    searchParams.state
+    searchParams.state,
+    searchParams.dateFrom,
+    searchParams.email,
+    searchParams.cnpj,
+    searchParams.active,
+    searchParams.salesAgent
   );
+
+  // Buscar dados para exportação Excel
   const merchantsExcel = await getMerchants(
     search,
-    page,
+    1,
     50,
     searchParams.establishment,
     searchParams.status,
-    searchParams.state
+    searchParams.state,
+    searchParams.dateFrom,
+    searchParams.email,
+    searchParams.cnpj,
+    searchParams.active,
+    searchParams.salesAgent
   );
-  const totalRecords = merchants.totalCount;
 
-  // Buscar dados dos gráficos
-  const registrationData = await getMerchantRegistrationsByPeriod();
-  const registrationSummary = await getMerchantRegistrationSummary();
-  const transactionData = await getMerchantTransactionData();
-  const typeData = await getMerchantTypeData();
+  const totalRecords = merchants.totalCount;
 
   const merchantData = {
     totalMerchants: merchants.totalCount,
@@ -78,11 +86,12 @@ export default async function MerchantsPage({
     totalCpAnticipation: merchants.cp_anticipation_count || 0,
     totalCnpAnticipation: merchants.cnp_anticipation_count || 0,
     // Dados para os gráficos
-    registrationData,
-    registrationSummary,
-    transactionData,
-    typeData,
+    registrationData: dashboardData.registrationData,
+    registrationSummary: dashboardData.registrationSummary,
+    transactionData: dashboardData.transactionData,
+    typeData: dashboardData.typeData,
   };
+
   const globalStyles = {
     header: {
       fill: {
@@ -96,13 +105,13 @@ export default async function MerchantsPage({
       font: { color: { argb: "000000" } } as Font,
     },
   };
+
   return (
     <>
       <BaseHeader
         breadcrumbItems={[
           { title: "Estabelecimentos", url: "/portal/merchants" },
         ]}
-       
       />
 
       <BaseBody
@@ -110,23 +119,19 @@ export default async function MerchantsPage({
         subtitle={`Visualização de todos os estabelecimentos`}
         actions={<SyncButton syncType="merchants" />}
       >
-        <div className="flex flex-col space-y-4">
-          
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <MerchantFilter
-                establishmentIn={searchParams.establishment}
-                statusIn={searchParams.status}
-                stateIn={searchParams.state}
-              />
-              <MerchantDashboardButton>
-                <div className="-ml-28">
-                  <MerchantDashboardContent {...merchantData} />
-                </div>
-              </MerchantDashboardButton>
-            </div>
-
-            <div className="flex items-center gap-2 justify-end">
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <MerchantFilter
+              establishmentIn={searchParams.establishment}
+              statusIn={searchParams.status}
+              stateIn={searchParams.state}
+              dateFromIn={searchParams.dateFrom}
+              emailIn={searchParams.email}
+              cnpjIn={searchParams.cnpj}
+              activeIn={searchParams.active}
+              salesAgentIn={searchParams.salesAgent}
+            />
+            <div className="flex items-center gap-2">
               <ExcelImportButton />
               <ExcelExport
                 data={merchantsExcel.merchants.map((merchant) => ({
@@ -173,15 +178,21 @@ export default async function MerchantsPage({
             </div>
           </div>
 
-          <MerchantList list={merchants} />
-          {totalRecords > 0 && (
-            <PaginationWithSizeSelector
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/merchants"
-            />
-          )}
+          <MerchantDashboardContent {...merchantData} />
+
+          <div className="mt-2">
+            <MerchantList list={merchants} />
+            {totalRecords > 0 && (
+              <div className="mt-2">
+                <PaginationWithSizeSelector
+                  totalRecords={totalRecords}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  pageName="portal/merchants"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </BaseBody>
     </>

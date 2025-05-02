@@ -1,10 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import type {
-  DailyAmount,
-  GlobalSettlementResult,
-} from "@/features/merchantAgenda/server/merchantAgenda";
+import type { DailyAmount } from "@/features/merchantAgenda/server/merchantAgenda";
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -15,7 +12,6 @@ import { useEffect, useRef } from "react";
 interface CalendarProps {
   monthlyData: DailyAmount[];
   handleMonthChange: (newDate: Date) => void;
-  dailyData?: GlobalSettlementResult;
   isLoading?: boolean;
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
@@ -50,17 +46,21 @@ export function Calendar({
     }
   };
 
-  const events = monthlyData.map(({ date, amount }) => ({
-    title: new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(amount),
-    date,
-    extendedProps: {
-      amount,
-    },
-  }));
-
+  const events = monthlyData.map(
+    ({ date, amount, status, is_anticipation }) => ({
+      title: new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(amount),
+      date,
+      extendedProps: {
+        amount,
+        status,
+        is_anticipation,
+      },
+    })
+  );
+  console.log(events);
   return (
     <Card className="p-4 overflow-hidden">
       {isLoading && (
@@ -96,10 +96,33 @@ export function Calendar({
               </div>
               {hasData && (
                 <>
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Recebíveis
-                  </div>
-                  <div className="text-sm font-medium text-primary mb-1">
+                  {eventInfo.event.extendedProps.is_anticipation ? (
+                    <div className="text-xs font-medium text-muted-foreground flex items-center ">
+                      Recebíveis
+                      <img
+                        src="/eventual-anticipation.png"
+                        alt="icon"
+                        width={18}
+                        height={18}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Recebíveis
+                    </div>
+                  )}
+                  <div
+                    className={`text-sm font-medium mb-1 ${
+                      eventInfo.event.extendedProps.status.includes(
+                        "SETTLED",
+                        "FULLY_ANTICIPATED"
+                      )
+                        ? "text-[#177a3c]"
+                        : eventInfo.event.extendedProps.status == "PROVISIONED"
+                        ? "text-[#bf8419]"
+                        : "text-[#177a3c]"
+                    }`}
+                  >
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",

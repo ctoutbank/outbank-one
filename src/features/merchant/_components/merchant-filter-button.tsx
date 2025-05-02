@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { FilterIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FilterIcon } from "lucide-react";
 
 type FilterMerchantsButtonProps = {
-  activeFiltersCount: number
-  onClearFilters: () => void
-  children: React.ReactNode
-  isFiltersVisible: boolean
-  onVisibilityChange: (visible: boolean) => void
-}
+  activeFiltersCount: number;
+  onClearFilters: () => void;
+  children: React.ReactNode;
+  isFiltersVisible: boolean;
+  onVisibilityChange: (visible: boolean) => void;
+};
 
 export function FilterMerchantsButton({
   activeFiltersCount,
   onClearFilters,
   children,
   isFiltersVisible,
-  onVisibilityChange
+  onVisibilityChange,
 }: FilterMerchantsButtonProps) {
   return (
     <div className="relative z-50">
@@ -43,7 +43,9 @@ export function FilterMerchantsButton({
           </Button>
         )}
       </div>
-      {isFiltersVisible && children}
+      <div className="absolute left-0 top-full">
+        {isFiltersVisible && children}
+      </div>
     </div>
-  )
+  );
 }

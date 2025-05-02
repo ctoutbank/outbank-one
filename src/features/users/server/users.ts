@@ -6,12 +6,15 @@ import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import {
+  addresses,
   customers,
   merchants,
   profiles,
+  salesAgents,
   userMerchants,
   users,
 } from "../../../../drizzle/schema";
+import { AddressSchema } from "../schema/schema";
 
 export type UserInsert = {
   firstName: string;
@@ -20,8 +23,14 @@ export type UserInsert = {
   password: string;
   idCustomer: number | null;
   idProfile: number | null;
+  idAddress: number | null;
   selectedMerchants?: string[];
   fullAccess: boolean;
+  active: boolean | null;
+  idClerk: string | null;
+  slug?: string;
+  dtinsert?: string;
+  dtupdate?: string;
 };
 
 export interface UserList {
@@ -208,6 +217,7 @@ export async function InsertUser(data: UserInsert) {
         idClerk: clerkUser.id,
         idCustomer: data.idCustomer,
         idProfile: data.idProfile,
+        idAddress: data.idAddress,
         fullAccess: data.fullAccess,
       })
       .returning({ id: users.id });
@@ -228,8 +238,21 @@ export async function InsertUser(data: UserInsert) {
 
     revalidatePath("/portal/users");
     return newUser;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao criar usuário:", error);
+
+    // Verificar se é um erro de segurança de senha
+    if (error.status === 422 && error.errors && error.errors.length > 0) {
+      const passwordError = error.errors.find(
+        (e: any) => e.code === "form_password_pwned"
+      );
+      if (passwordError) {
+        throw new Error(
+          "Senha comprometida: Essa senha foi encontrada em vazamentos de dados. Por favor, escolha uma senha mais segura."
+        );
+      }
+    }
+
     throw error;
   }
 }
@@ -278,6 +301,7 @@ export async function updateUser(id: number, data: UserInsert) {
       .set({
         idProfile: data.idProfile,
         idCustomer: data.idCustomer,
+        idAddress: data.idAddress,
         dtupdate: new Date().toISOString(),
         fullAccess: data.fullAccess,
       })
@@ -343,6 +367,7 @@ export async function getUserById(
       lastName: clerkUser.lastName || "",
       password: "",
       slug: userDb[0].slug,
+      idAddress: userDb[0].idAddress,
       fullAccess: userDb[0].fullAccess || false,
       selectedMerchants: userMerchantsList.map(
         (um) => um.idMerchant?.toString() || ""
@@ -573,4 +598,109 @@ export async function getUserMerchantSlugs(): Promise<UserMerchantSlugs> {
       .map((merchant) => merchant.slugMerchant)
       .filter((slug): slug is string => slug !== null),
   };
+}
+
+export async function getAddressById(id: number) {
+  const result = await db.select().from(addresses).where(eq(addresses.id, id));
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return {
+    id: result[0].id,
+    zipCode: result[0].zipCode,
+    streetAddress: result[0].streetAddress,
+    streetNumber: result[0].streetNumber,
+    complement: result[0].complement,
+    neighborhood: result[0].neighborhood,
+    city: result[0].city,
+    state: result[0].state,
+    country: result[0].country,
+  };
+}
+
+export async function insertAddressFormAction(data: AddressSchema) {
+  const result = await db
+    .insert(addresses)
+    .values({
+      zipCode: data.zipCode,
+      streetAddress: data.streetAddress,
+      streetNumber: data.streetNumber,
+      complement: data.complement,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      state: data.state,
+      country: data.country,
+    })
+    .returning({ id: addresses.id });
+
+  return result[0].id;
+}
+
+export async function updateAddressFormAction(data: AddressSchema) {
+  if (!data.id) {
+    throw new Error("ID do endereço é obrigatório para atualização");
+  }
+
+  await db
+    .update(addresses)
+    .set({
+      zipCode: data.zipCode,
+      streetAddress: data.streetAddress,
+      streetNumber: data.streetNumber,
+      complement: data.complement,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      state: data.state,
+      country: data.country,
+    })
+    .where(eq(addresses.id, data.id));
+
+  return data.id;
+}
+
+export async function getProfileById(id: number) {
+  const result = await db
+    .select({
+      id: profiles.id,
+      name: profiles.name,
+      isSalesAgent: profiles.isSalesAgent,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, id));
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return result[0];
+}
+
+export async function createSalesAgent(
+  userId: number,
+  firstName: string,
+  lastName: string,
+  email: string
+) {
+  try {
+    const result = await db
+      .insert(salesAgents)
+      .values({
+        slug: generateSlug(),
+        firstName,
+        lastName,
+        email,
+        active: true,
+        dtinsert: new Date().toISOString(),
+        dtupdate: new Date().toISOString(),
+        idUsers: userId,
+      })
+      .returning({ id: salesAgents.id });
+
+    return result[0].id;
+  } catch (error) {
+    console.error("Erro ao criar agente de vendas:", error);
+    throw error;
+  }
 }

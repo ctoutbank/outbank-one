@@ -4,7 +4,6 @@ import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import SettlementHistoryList from "../../../../features/settlements/_components/settlements-history-list";
 
-import { SettlementsHistoryDashboardButton } from "@/features/settlements/_components/settlements-history-dashboard-button";
 import { SettlementsHistoryDashboardContent } from "@/features/settlements/_components/settlements-history-dashboard-content";
 import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
 import { getSettlements } from "@/features/settlements/server/settlements";
@@ -55,48 +54,43 @@ export default async function SettlementsPage({
         subtitle={`Visualização do Histórico de Liquidações`}
         actions={<SyncButton syncType="settlement" />}
       >
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-start gap-4 flex-1">
+        <div className="flex flex-col gap-4 mb-4">
+          <div className="mb-2">
             <SettlementsHistoryFilter
               statusIn={status}
               dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
               dateToIn={dateTo ? new Date(dateTo) : undefined}
             />
+          </div>
 
-            <SettlementsHistoryDashboardButton>
-              <div className="-ml-28">
-                <SettlementsHistoryDashboardContent
-                  totalSettlements={settlements.totalCount}
-                  totalGrossAmount={settlements.settlements.reduce(
-                    (acc, curr) => acc + Number(curr.batch_amount),
-                    0
-                  )}
-                  totalNetAmount={settlements.settlements.reduce(
-                    (acc, curr) => acc + Number(curr.total_settlement_amount),
-                    0
-                  )}
-                  totalRestitutionAmount={settlements.settlements.reduce(
-                    (acc, curr) => acc + Number(curr.total_restitution_amount),
-                    0
-                  )}
-                  pendingSettlements={
-                    settlements.settlements.filter(
-                      (s) => s.status === "pending"
-                    ).length
-                  }
-                  approvedSettlements={
-                    settlements.settlements.filter(
-                      (s) => s.status === "approved"
-                    ).length
-                  }
-                  processedSettlements={
-                    settlements.settlements.filter(
-                      (s) => s.status === "settled"
-                    ).length
-                  }
-                />
-              </div>
-            </SettlementsHistoryDashboardButton>
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <SettlementsHistoryDashboardContent
+              totalSettlements={settlements.totalCount}
+              totalGrossAmount={settlements.settlements.reduce(
+                (acc, curr) => acc + Number(curr.batch_amount),
+                0
+              )}
+              totalNetAmount={settlements.settlements.reduce(
+                (acc, curr) => acc + Number(curr.total_settlement_amount),
+                0
+              )}
+              totalRestitutionAmount={settlements.settlements.reduce(
+                (acc, curr) => acc + Number(curr.total_restitution_amount),
+                0
+              )}
+              pendingSettlements={
+                settlements.settlements.filter((s) => s.status === "pending")
+                  .length
+              }
+              approvedSettlements={
+                settlements.settlements.filter((s) => s.status === "approved")
+                  .length
+              }
+              processedSettlements={
+                settlements.settlements.filter((s) => s.status === "settled")
+                  .length
+              }
+            />
           </div>
         </div>
 

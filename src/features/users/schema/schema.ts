@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+export const SchemaAddress = z.object({
+  id: z.number().optional(),
+  zipCode: z.string().min(1, "CEP é obrigatório"),
+  streetAddress: z.string().min(1, "Rua é obrigatória"),
+  streetNumber: z.string().min(1, "Número é obrigatório"),
+  complement: z.string().optional(),
+  neighborhood: z.string().min(1, "Bairro é obrigatório"),
+  city: z.string().min(1, "Cidade é obrigatória"),
+  state: z.string().min(1, "Estado é obrigatório"),
+  country: z.string().min(1, "País é obrigatório").default("Brasil"),
+});
+
+export type AddressSchema = z.infer<typeof SchemaAddress>;
+
 export const schemaUser = z.object({
   id: z.number().optional(),
   slug: z.string().optional(),
@@ -14,9 +28,35 @@ export const schemaUser = z.object({
           code: z.ZodIssueCode.custom,
           message: "A senha é obrigatória",
         });
+      } else if (val.length < 8) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha deve ter pelo menos 8 caracteres",
+        });
+      } else if (!/[A-Z]/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha deve conter pelo menos uma letra maiúscula",
+        });
+      } else if (!/[a-z]/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha deve conter pelo menos uma letra minúscula",
+        });
+      } else if (!/[0-9]/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha deve conter pelo menos um número",
+        });
+      } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A senha deve conter pelo menos um caractere especial",
+        });
       }
     }
   }),
+  idAddress: z.number().optional(),
   idProfile: z.string().min(1, "o perfil é obrigatório"),
   idCustomer: z.string().optional(),
   isEstablishment: z.boolean().optional(),

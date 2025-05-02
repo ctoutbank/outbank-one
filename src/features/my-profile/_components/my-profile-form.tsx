@@ -1,13 +1,8 @@
 "use client";
 
+import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -24,7 +19,6 @@ import {
   validateCurrentPassword,
 } from "@/features/users/server/users";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -38,9 +32,6 @@ interface ProfileFormProps {
 export default function ProfileForm({ profile }: ProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -64,6 +55,27 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
         ["currentPassword", "newPassword", "confirmPassword"].includes(name)
       ) {
         form.clearErrors(name);
+      }
+
+      // Verificar se as senhas correspondem quando alteradas
+      const values = form.getValues();
+      if (
+        (name === "newPassword" || name === "confirmPassword") &&
+        values.newPassword &&
+        values.confirmPassword &&
+        values.newPassword !== values.confirmPassword
+      ) {
+        form.setError("confirmPassword", {
+          type: "manual",
+          message: "As senhas não correspondem",
+        });
+      } else if (
+        (name === "newPassword" || name === "confirmPassword") &&
+        values.newPassword &&
+        values.confirmPassword &&
+        values.newPassword === values.confirmPassword
+      ) {
+        form.clearErrors("confirmPassword");
       }
     });
     return () => subscription.unsubscribe();
@@ -141,12 +153,9 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meu Perfil</CardTitle>
-          </CardHeader>
+        <Card className="w-full mb-4">
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -212,26 +221,14 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                   <FormItem>
                     <FormLabel>Senha Atual</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showCurrentPassword ? "text" : "password"}
-                          placeholder="Digite sua senha atual"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowCurrentPassword(!showCurrentPassword)
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showCurrentPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
+                      <PasswordInput
+                        id="currentPassword"
+                        name="currentPassword"
+                        label=""
+                        placeholder="Digite sua senha atual"
+                        value={field.value}
+                        onChange={(value) => field.onChange(value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -246,24 +243,26 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                     <FormItem>
                       <FormLabel>Nova Senha</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showNewPassword ? "text" : "password"}
-                            placeholder="Digite a nova senha"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          >
-                            {showNewPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
+                        <PasswordInput
+                          id="newPassword"
+                          name="newPassword"
+                          label=""
+                          placeholder="Digite a nova senha"
+                          value={field.value}
+                          onChange={(value, isValid) => {
+                            field.onChange(value);
+                            // Se a senha não for válida e tiver conteúdo, definir um erro customizado
+                            if (value && !isValid) {
+                              form.setError("newPassword", {
+                                type: "manual",
+                                message:
+                                  "A senha não atende aos requisitos de segurança",
+                              });
+                            } else {
+                              form.clearErrors("newPassword");
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -277,26 +276,14 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                     <FormItem>
                       <FormLabel>Confirmar Nova Senha</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirme a nova senha"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
+                        <PasswordInput
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          label=""
+                          placeholder="Confirme a nova senha"
+                          value={field.value}
+                          onChange={(value) => field.onChange(value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
