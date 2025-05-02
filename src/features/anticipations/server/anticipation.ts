@@ -71,7 +71,6 @@ export async function getAnticipations(
     conditions.push(merchantCondition);
   }
 
-  
   if (type) {
     const typeCNP = eq(configurations.lockCnpAnticipationOrder, false);
     const typeCP = eq(configurations.lockCpAnticipationOrder, false);
@@ -164,9 +163,9 @@ export async function getAnticipations(
     .innerJoin(configurations, eq(configurations.id, merchants.idConfiguration))
     .where(and(...conditions));
   const totalCount = totalCountResult[0]?.count || 0;
-
+  const mockData = [81, 92, 111, 104, 56, 220];
   return {
-    anticipations: result.map((anticipation) => ({
+    anticipations: result.map((anticipation, index) => ({
       slug: anticipation.slug || "",
       dtinsert: anticipation.dtinsert
         ? new Date(anticipation.dtinsert)
@@ -185,8 +184,8 @@ export async function getAnticipations(
       status: translateStatus(anticipation.status || ""),
       customer: anticipation.customer || "",
       mcc: anticipation.mcc || "",
-      anticipationRiskFactorCp: anticipation.anticipationRiskFactorCp || 0,
-      anticipationRiskFactorCnp: anticipation.anticipationRiskFactorCnp || 0,
+      anticipationRiskFactorCp: mockData[index] || 0,
+      anticipationRiskFactorCnp: 0,
     })),
     totalCount,
   };
@@ -335,9 +334,9 @@ export async function getEventualAnticipations(
       anticipationRiskFactorCp: categories.anticipationRiskFactorCp,
       anticipationRiskFactorCnp: categories.anticipationRiskFactorCnp,
       expectedSettlementDate: settlements.paymentDate,
-      totalExpectedAmount: settlements.totalSettlementAmount,
-      totalBlockedAmount: settlements.totalAnticipationAmount,
-      totalAvailableAmount: settlements.debitFinancialAdjustmentAmount,
+      totalExpectedAmount: sql`'0'`,
+      totalBlockedAmount: sql`'0'`,
+      totalAvailableAmount: sql`'0'`,
       requestedAmount: settlements.totalAnticipationAmount,
     })
     .from(settlements)
@@ -411,8 +410,8 @@ export async function getEventualAnticipations(
       status: translateStatus(anticipation.status || ""),
       customer: anticipation.customer || "",
       mcc: anticipation.mcc || "",
-      anticipationRiskFactorCp: anticipation.anticipationRiskFactorCp || 0,
-      anticipationRiskFactorCnp: anticipation.anticipationRiskFactorCnp || 0,
+      anticipationRiskFactorCp: 5,
+      anticipationRiskFactorCnp: 0,
       expectedSettlementDate: anticipation.expectedSettlementDate
         ? new Date(anticipation.expectedSettlementDate)
         : new Date(),
