@@ -8,7 +8,7 @@ export default function Loading() {
       <BaseHeader
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
-      <BaseBody title="Sales Dashboard" subtitle="Visão geral das vendas">
+      <BaseBody title="Dashboard" subtitle="Visão geral das vendas">
         
         <div className="mb-6 flex items-center justify-between">
           <Skeleton className="h-10 w-[200px]" />
