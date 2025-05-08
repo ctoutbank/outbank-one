@@ -5,7 +5,6 @@ import { useState } from "react";
 import ExcelImport from "@/components/excelImport";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +22,8 @@ import {
   Store,
   Upload,
 } from "lucide-react";
+import { toast } from "sonner";
+import { processMerchantImportDirect } from "../server/merchant-import-direct-action";
 
 export interface MerchantData {
   name: string;
@@ -39,6 +40,7 @@ export interface MerchantData {
   businessDays: string;
   businessHours: string;
   revenue: string;
+  address1: MerchantAddress;
 }
 
 export interface MerchantContact {
@@ -49,6 +51,17 @@ export interface MerchantContact {
 }
 
 export interface MerchantAddress {
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  postalCode: string;
+  city: string;
+  state: string;
+  country: string;
+}
+
+export interface MerchantResponsibleAddress {
   street: string;
   number: string;
   complement?: string;
@@ -73,7 +86,7 @@ export interface MerchantResponsible {
   idIssueDate?: string;
   issuingAuthority?: string;
   idState?: string;
-  address: MerchantAddress;
+  address: MerchantResponsibleAddress;
 }
 
 export interface BankData {
@@ -114,7 +127,7 @@ export interface OperationInfo {
 export interface ImportData {
   establishment: MerchantData;
   contact: MerchantContact;
-  establishmentAddress: MerchantAddress;
+
   responsible: MerchantResponsible;
   bankData: BankData;
   tax: TaxData;
@@ -150,24 +163,38 @@ const headerMapping: Record<string, NestedKeyOf<ImportData>> = {
   "Número do Telefone": "contact.phoneNumber",
   "Tipo de telefone": "contact.phoneType",
   "Phone Type": "contact.phoneType",
-  "Rua/Av.": "establishmentAddress.street",
-  Número: "establishmentAddress.number",
-  Complemento: "establishmentAddress.complement",
-  Bairro: "establishmentAddress.neighborhood",
-  CEP: "establishmentAddress.postalCode",
-  Cidade: "establishmentAddress.city",
-  Estado: "establishmentAddress.state",
-  País: "establishmentAddress.country",
+  "Rua/Av. estabelecimento": "establishment.address1.street",
+  "Número estabelecimento": "establishment.address1.number",
+  "Complemento estabelecimento": "establishment.address1.complement",
+  "Bairro estabelecimento": "establishment.address1.neighborhood",
+  "CEP Estabelecimento": "establishment.address1.postalCode",
+  "Cidade Estabelecimento": "establishment.address1.city",
+  "Estado Estabelecimento": "establishment.address1.state",
+  "País Estabelecimento": "establishment.address1.country",
   "Nome Completo": "responsible.fullName",
-  CPF: "responsible.cpf",
+  "CPF Responsável": "responsible.cpf",
   "Data de Nascimento": "responsible.birthDate",
   PEP: "responsible.pep",
-  Telefone: "responsible.phoneNumber",
+  "Telefone Responsável": "responsible.phoneNumber",
+  "Telefone do Responsável": "responsible.phoneNumber",
+  "DDD Responsável": "responsible.areaCode",
+  "Email Responsável": "responsible.email",
+  "Email do Responsável": "responsible.email",
   "Nome da Mãe": "responsible.motherName",
   "Número do RG": "responsible.idNumber",
   "Data de emissão": "responsible.idIssueDate",
   "Órgão expedidor": "responsible.issuingAuthority",
   UF: "responsible.idState",
+  "UF do RG": "responsible.idState",
+  "Endereço Responsável": "responsible.address.street",
+  "Rua/Av. Responsável": "responsible.address.street",
+  "Número Responsável": "responsible.address.number",
+  "Complemento Responsável": "responsible.address.complement",
+  "Bairro Responsável": "responsible.address.neighborhood",
+  "CEP Responsável": "responsible.address.postalCode",
+  "Cidade Responsável": "responsible.address.city",
+  "Estado Responsável": "responsible.address.state",
+  "País Responsável": "responsible.address.country",
   "Tipo PF/PJ": "bankData.personType",
   Banco: "bankData.bank",
   Código: "bankData.bankCode",
@@ -197,20 +224,20 @@ const expectedHeaders = Object.keys(headerMapping);
 
 export default function ExcelImportButton() {
   const [open, setOpen] = useState(false);
-  const [authorizers, setAuthorizers] = useState<string[]>(["POSTILION"]);
+
   const [importResult, setImportResult] = useState<{
     status: string;
     message: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [importedData, setImportedData] = useState<ImportData[]>([]);
-
-  const authorizerOptions = [
-    { id: "POSTILION", label: "POSTILION" },
-    { id: "GLOBAL", label: "GLOBAL" },
-    { id: "GLOBAL-ECOMMERCE", label: "GLOBAL-ECOMMERCE" },
-    { id: "CARADHRAS", label: "CARADHRAS" },
-  ];
+  const [processResult, setProcessResult] = useState<{
+    errors: {
+      merchantName: string;
+      taxId: string;
+      error: string;
+    }[];
+  } | null>(null);
 
   // Função para validar cada linha do Excel
   const validateRow = (row: Partial<ImportData>): ImportData | null => {
@@ -222,7 +249,6 @@ export default function ExcelImportButton() {
       !row.establishment?.establishmentType ||
       !row.establishment?.legalNatureCode
     ) {
-      console.log("Invalid row, missing required fields:", row);
       return null;
     }
 
@@ -243,6 +269,16 @@ export default function ExcelImportButton() {
         businessDays: row.establishment?.businessDays || "",
         businessHours: row.establishment?.businessHours || "",
         revenue: row.establishment?.revenue || "",
+        address1: {
+          street: row.establishment.address1.street || "",
+          number: row.establishment.address1.number || "",
+          complement: row.establishment.address1.complement || "",
+          neighborhood: row.establishment.address1.neighborhood || "",
+          postalCode: row.establishment.address1.postalCode || "",
+          city: row.establishment.address1.city || "",
+          state: row.establishment.address1.state || "",
+          country: row.establishment.address1.country || "",
+        },
       },
       contact: {
         email: row.contact?.email || "",
@@ -250,25 +286,17 @@ export default function ExcelImportButton() {
         phoneNumber: row.contact?.phoneNumber || "",
         phoneType: row.contact?.phoneType || "",
       },
-      establishmentAddress: {
-        street: row.establishmentAddress?.street || "",
-        number: row.establishmentAddress?.number || "",
-        complement: row.establishmentAddress?.complement || "",
-        neighborhood: row.establishmentAddress?.neighborhood || "",
-        postalCode: row.establishmentAddress?.postalCode || "",
-        city: row.establishmentAddress?.city || "",
-        state: row.establishmentAddress?.state || "",
-        country: row.establishmentAddress?.country || "",
-      },
+
       responsible: {
         fullName: row.responsible?.fullName || "",
         cpf: row.responsible?.cpf || "",
         birthDate: row.responsible?.birthDate || "",
-        email: row.responsible?.email || "",
+        email: row.responsible?.email || row.contact?.email || "", // Usar email do contato como fallback
         pep: row.responsible?.pep || false,
-        areaCode: row.responsible?.areaCode || "",
-        phoneNumber: row.responsible?.phoneNumber || "",
-        phoneType: row.responsible?.phoneType || "",
+        areaCode: row.responsible?.areaCode || row.contact?.areaCode || "", // Usar área do contato como fallback
+        phoneNumber:
+          row.responsible?.phoneNumber || row.contact?.phoneNumber || "", // Usar telefone do contato como fallback
+        phoneType: row.responsible?.phoneType || row.contact?.phoneType || "",
         motherName: row.responsible?.motherName || "",
         idNumber: row.responsible?.idNumber,
         idIssueDate: row.responsible?.idIssueDate,
@@ -282,7 +310,7 @@ export default function ExcelImportButton() {
           postalCode: row.responsible?.address?.postalCode || "",
           city: row.responsible?.address?.city || "",
           state: row.responsible?.address?.state || "",
-          country: row.responsible?.address?.country || "",
+          country: row.responsible?.address?.country || "Brasil",
         },
       },
       bankData: {
@@ -321,6 +349,7 @@ export default function ExcelImportButton() {
 
   // Processar os dados importados
   const handleDataImported = (data: ImportData[]) => {
+    console.log("data", data);
     setImportedData(data);
 
     if (data.length === 0) {
@@ -335,8 +364,6 @@ export default function ExcelImportButton() {
       status: "success",
       message: `${data.length} records successfully imported!`,
     });
-
-    console.log("Imported data:", data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -345,26 +372,89 @@ export default function ExcelImportButton() {
     if (importedData.length === 0) {
       setImportResult({
         status: "error",
-        message: "Please import a file before submitting.",
+        message: "Por favor, importe um arquivo antes de enviar.",
       });
       return;
     }
 
+    // Autorizadores são opcionais, então não fazemos verificação aqui
+
     setIsLoading(true);
 
     try {
-      // Simulação de envio/processamento
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Chamar a server action para processar os dados
+      const result = await processMerchantImportDirect(importedData);
+
+      // Armazenar o resultado para mostrar os erros se necessário
+      setProcessResult(result);
+
+      if (result.created > 0) {
+        // Mostrar mensagem de sucesso
+        toast.success(
+          `${result.created} estabelecimento(s) criado(s) com sucesso!`
+        );
+
+        setImportResult({
+          status: "success",
+          message: `${
+            result.created
+          } estabelecimento(s) criado(s) com sucesso! ${
+            result.skipped.total > 0
+              ? `(${result.skipped.total} ignorados)`
+              : ""
+          }`,
+        });
+
+        // Se tudo foi processado com sucesso, fechar o modal após 2 segundos
+        if (result.skipped.total === 0) {
+          setTimeout(() => {
+            setOpen(false);
+          }, 2000);
+        }
+      } else {
+        // Se nenhum foi criado, mostrar aviso
+        setImportResult({
+          status: "warning",
+          message:
+            "Nenhum estabelecimento foi criado. Verifique os erros abaixo.",
+        });
+      }
+
+      // Se houve registros ignorados, mostrar detalhes
+      if (result.skipped.total > 0) {
+        const alreadyExists = result.skipped.reasons.alreadyExists;
+        const validationError = result.skipped.reasons.validationError;
+        const systemError = result.skipped.reasons.systemError;
+
+        let warningMessage = `${result.skipped.total} estabelecimento(s) ignorado(s)`;
+        if (alreadyExists > 0) {
+          warningMessage += `, ${alreadyExists} já existente(s)`;
+        }
+        if (validationError > 0) {
+          warningMessage += `, ${validationError} com erro(s) de validação`;
+        }
+        if (systemError > 0) {
+          warningMessage += `, ${systemError} com erro(s) do sistema`;
+        }
+
+        toast.warning(warningMessage);
+      }
+
+      // Se houve erros específicos, exibir
+      if (result.errors.length > 0) {
+        console.log("Erros durante o processamento:", result.errors);
+      }
+    } catch (error) {
+      console.error("Erro ao processar os dados:", error);
+
+      toast.error("Falha ao processar os estabelecimentos");
 
       setImportResult({
-        status: "success",
-        message: `${importedData.length} records successfully processed!`,
-      });
-    } catch (error) {
-      console.error("Error processing the data:", error);
-      setImportResult({
         status: "error",
-        message: "Error processing the data. Please try again.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro ao processar os dados. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -425,35 +515,8 @@ export default function ExcelImportButton() {
 
               <div>
                 <h2 className="text-lg font-semibold mb-4 uppercase text-gray-700">
-                  Configuração de Importação
+                  Importação
                 </h2>
-
-                <div className="mb-6">
-                  <Label className="block mb-2">
-                    Autorizadores: <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="space-y-2">
-                    {authorizerOptions.map((option) => (
-                      <div
-                        key={option.id}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={option.id}
-                          checked={authorizers.includes(option.id)}
-                          onCheckedChange={(checked) => {
-                            setAuthorizers(
-                              checked
-                                ? [...authorizers, option.id]
-                                : authorizers.filter((a) => a !== option.id)
-                            );
-                          }}
-                        />
-                        <Label htmlFor={option.id}>{option.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
                 <div className="mb-6">
                   <Label className="block mb-2">
@@ -486,6 +549,36 @@ export default function ExcelImportButton() {
                     <AlertDescription>{importResult.message}</AlertDescription>
                   </Alert>
                 )}
+
+                {importResult &&
+                  importResult.status !== "success" &&
+                  processResult?.errors &&
+                  processResult.errors.length > 0 && (
+                    <div className="mt-4 mb-4">
+                      <h4 className="font-semibold mb-2">
+                        Detalhes dos erros:
+                      </h4>
+                      <div className="max-h-40 overflow-y-auto border rounded p-2 bg-red-50">
+                        <ul className="text-sm text-red-700 list-disc pl-5">
+                          {processResult?.errors.map(
+                            (
+                              error: {
+                                merchantName: string;
+                                taxId: string;
+                                error: string;
+                              },
+                              index: number
+                            ) => (
+                              <li key={index}>
+                                <strong>{error.merchantName}</strong> (
+                                {error.taxId}): {error.error}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
 
                 <div className="flex justify-between mt-8">
                   <Button
