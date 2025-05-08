@@ -16,7 +16,10 @@ import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/mer
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
-import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
+import {
+  getMerchantAgendaAdjustment,
+  getMerchantAgendaAdjustmentStats,
+} from "@/features/merchantAgenda/server/merchantAgendaAdjustment";
 import {
   getMerchantAgendaAnticipation,
   getMerchantAgendaAnticipationStats,
@@ -27,6 +30,7 @@ import { Fill, Font } from "exceljs";
 export const revalidate = 0;
 
 // Create TabChangeHandler in a separate file
+import { MerchantAdjustmentsDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenta-adjustments-dashboard-content";
 import { TabChangeHandler } from "@/features/merchantAgenda/_components/tab-change-handler";
 
 type MerchantAgendaProps = {
@@ -139,6 +143,13 @@ export default async function MerchantAgendaPage({
     searchParams.saleDateTo,
     nsuIn,
     orderIdIn
+  );
+
+  // Buscar dados para o dashboard de ajustes
+  const adjustmentDashboardStats = await getMerchantAgendaAdjustmentStats(
+    dateFrom,
+    dateTo,
+    establishmentIn
   );
 
   return (
@@ -362,7 +373,69 @@ export default async function MerchantAgendaPage({
                   />
                 </div>
                 <div className="flex items-start justify-between gap-4 mb-2">
-                  <></>
+                  <MerchantAdjustmentsDashboardContent
+                    totalAdjustments={adjustmentDashboardStats.totalAdjustments}
+                    totalSettledAdjustments={
+                      adjustmentDashboardStats.totalSettledAdjustments
+                    }
+                    totalSettledAdjustmentsValue={
+                      adjustmentDashboardStats.totalSettledAdjustmentsValue
+                    }
+                    settledCreditAdjustments={
+                      adjustmentDashboardStats.settledCreditAdjustments
+                    }
+                    settledCreditAdjustmentsValue={
+                      adjustmentDashboardStats.settledCreditAdjustmentsValue
+                    }
+                    settledDebitAdjustments={
+                      adjustmentDashboardStats.settledDebitAdjustments
+                    }
+                    settledDebitAdjustmentsValue={
+                      adjustmentDashboardStats.settledDebitAdjustmentsValue
+                    }
+                    totalPartiallySettledAdjustments={
+                      adjustmentDashboardStats.totalPartiallySettledAdjustments
+                    }
+                    totalPartiallySettledAdjustmentsValue={
+                      adjustmentDashboardStats.totalPartiallySettledAdjustmentsValue
+                    }
+                    partiallySettledCreditAdjustments={
+                      adjustmentDashboardStats.partiallySettledCreditAdjustments
+                    }
+                    partiallySettledCreditAdjustmentsValue={
+                      adjustmentDashboardStats.partiallySettledCreditAdjustmentsValue
+                    }
+                    partiallySettledDebitAdjustments={
+                      adjustmentDashboardStats.partiallySettledDebitAdjustments
+                    }
+                    partiallySettledDebitAdjustmentsValue={
+                      adjustmentDashboardStats.partiallySettledDebitAdjustmentsValue
+                    }
+                    totalPendingAdjustments={
+                      adjustmentDashboardStats.totalPendingAdjustments
+                    }
+                    totalPendingAdjustmentsValue={
+                      adjustmentDashboardStats.totalPendingAdjustmentsValue
+                    }
+                    pendingCreditAdjustments={
+                      adjustmentDashboardStats.pendingCreditAdjustments
+                    }
+                    pendingCreditAdjustmentsValue={
+                      adjustmentDashboardStats.pendingCreditAdjustmentsValue
+                    }
+                    pendingDebitAdjustments={
+                      adjustmentDashboardStats.pendingDebitAdjustments
+                    }
+                    pendingDebitAdjustmentsValue={
+                      adjustmentDashboardStats.pendingDebitAdjustmentsValue
+                    }
+                    firstTransactionDate={
+                      adjustmentDashboardStats.firstTransactionDate
+                    }
+                    lastTransactionDate={
+                      adjustmentDashboardStats.lastTransactionDate
+                    }
+                  />
                 </div>
                 <div className="w-full overflow-x-auto">
                   <MerchantAgendaAdjustmentList
