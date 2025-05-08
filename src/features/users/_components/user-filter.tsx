@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { FilterUserButton } from "./filter-user-button";
 import { FilterUserContent } from "./filter-user-content";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,25 @@ export function UserFilter({
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
+
 
   const handleFilter = (filters: {
     merchant: string;
@@ -122,7 +141,7 @@ export function UserFilter({
     (profile != "0" ? 1 : 0);
 
   return (
-    <div className="flex items-center justify-between">
+    <div ref={filterRef} className="flex items-center justify-between">
       <FilterUserButton
         activeFiltersCount={activeFiltersCount}
         onClearFilters={handleClearFilters}

@@ -470,7 +470,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`,
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     })
     .from(transactions)
     .where(whereClause)
@@ -481,7 +481,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     )
     .orderBy(
       isHourlyView
@@ -490,7 +490,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
     );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({

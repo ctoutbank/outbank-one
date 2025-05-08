@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AdjustmentsListFilterButton } from "./merchantAgenda-adjustments-filter-button";
 import { AdjustmentsListFilterContent } from "./merchantAgenda-adjustments-filter-content";
 
@@ -16,6 +16,25 @@ export function AdjustmentsListFilter(props: AdjustmentsListFilterProps) {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
 
   const handleFilter = (filters: {
     dateFrom?: Date;
@@ -58,6 +77,7 @@ export function AdjustmentsListFilter(props: AdjustmentsListFilterProps) {
     (props.establishmentIn ? 1 : 0);
 
   return (
+      <div ref={filterRef}>
     <AdjustmentsListFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -72,5 +92,6 @@ export function AdjustmentsListFilter(props: AdjustmentsListFilterProps) {
         onClose={() => setIsFiltersVisible(false)}
       />
     </AdjustmentsListFilterButton>
+      </div>
   );
 }

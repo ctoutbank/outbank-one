@@ -3,7 +3,7 @@
 import { MerchantAgendaReceiptsFilterButton } from "@/features/merchantAgenda/_components/merchantAgenda-receipts-filter-button";
 import { MerchantAgendaReceiptsFilterContent } from "@/features/merchantAgenda/_components/merchantAgenda-receipts-filter-content";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type MerchantAgendaReceiptsFilterProps = {
   merchant?: string;
@@ -18,6 +18,25 @@ export function MerchantAgendaReceiptsFilter(
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
 
   const handleFilter = (filters: { merchant: string; date: string }) => {
     if (filters.merchant) {
@@ -46,6 +65,7 @@ export function MerchantAgendaReceiptsFilter(
   const activeFiltersCount = (props.merchant ? 1 : 0) + (props.date ? 1 : 0);
 
   return (
+      <div ref={filterRef}>
     <MerchantAgendaReceiptsFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -60,5 +80,6 @@ export function MerchantAgendaReceiptsFilter(
         view={props.view}
       />
     </MerchantAgendaReceiptsFilterButton>
+      </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { CategoriesFilterButton } from "./categories-filter-button"
 import { CategoriesFilterContent } from "./categories-filter-content"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type CategoriesFilterProps = {
   nameIn?: string
@@ -17,6 +17,25 @@ export function CategoriesFilter(props: CategoriesFilterProps) {
   const searchParams = useSearchParams()
   const params = new URLSearchParams(searchParams?.toString() || "")
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
 
   const handleFilter = (filters: {
     name: string
@@ -64,6 +83,7 @@ export function CategoriesFilter(props: CategoriesFilterProps) {
     (props.cnaeIn ? 1 : 0)
 
   return (
+      <div ref={filterRef}>
     <CategoriesFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -79,5 +99,6 @@ export function CategoriesFilter(props: CategoriesFilterProps) {
         onClose={() => setIsFiltersVisible(false)}
       />
     </CategoriesFilterButton>
+      </div>
   )
 }

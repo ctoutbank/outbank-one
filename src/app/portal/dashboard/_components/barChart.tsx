@@ -144,7 +144,7 @@ export function BarChartCustom({
                 const date = new Date(value);
                 return date.toLocaleDateString("pt-BR", {
                   month: "short",
-                  day: "numeric",
+                  year: "numeric",
                 });
               }}
             />
@@ -165,7 +165,6 @@ export function BarChartCustom({
                     }
                     return new Date(value).toLocaleDateString("pt-BR", {
                       month: "short",
-                      day: "numeric",
                       year: "numeric",
                     });
                   }}

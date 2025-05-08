@@ -13,6 +13,10 @@ type SettlementsHistoryDashboardContentProps = {
   pendingSettlements: number;
   approvedSettlements: number;
   processedSettlements: number;
+  processingSettlements: number;
+  errorSettlements: number;
+  preApprovedSettlements: number;
+
 };
 
 export function SettlementsHistoryDashboardContent({
@@ -23,12 +27,14 @@ export function SettlementsHistoryDashboardContent({
   pendingSettlements,
   approvedSettlements,
   processedSettlements,
+  processingSettlements,
+  errorSettlements,
 }: SettlementsHistoryDashboardContentProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center flex-wrap gap-4 ">
         {/* Total Settlements Card */}
-        <Card className="bg-white min-w-[280px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -70,62 +76,111 @@ export function SettlementsHistoryDashboardContent({
         </Card>
 
         {/* Status Card */}
-        <Card className="bg-white min-w-[280px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <FileCheck className="h-4 w-4 text-zinc-500" />
                 <span className="text-sm font-medium text-zinc-600">
-                  Status
-                </span>
+          Status
+        </span>
               </div>
               <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                {pendingSettlements +
-                  approvedSettlements +
-                  processedSettlements}
-              </span>
+        {processingSettlements +
+            errorSettlements +
+            processedSettlements +
+            pendingSettlements +
+            approvedSettlements}
+      </span>
             </div>
+
             <Separator className="mb-3" />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Processando */}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
                   <span className="text-xs font-medium text-zinc-600">
-                    Pendentes
-                  </span>
+            Processando
+          </span>
                 </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {pendingSettlements}
-                </span>
+                <span className="text-sm font-semibold text-zinc-900">
+          {processingSettlements}
+        </span>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-700" />
+
+              {/* Pendente */}
+              <div className=" pl-4 grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-orange-700" />
                   <span className="text-xs font-medium text-zinc-600">
-                    Aprovadas
-                  </span>
+            Pendente
+          </span>
                 </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {approvedSettlements}
-                </span>
+                <span className="text-sm font-semibold text-zinc-900">
+          {pendingSettlements}
+        </span>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
+
+              {/* Pré-aprovado */}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                  <span className="text-xs font-medium text-zinc-600">
+            Pré-aprovado
+          </span>
+                </div>
+                <span className="text-sm font-semibold text-zinc-900">
+          {approvedSettlements}
+        </span>
+              </div>
+
+              {/* Aprovado */}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="pl-4 flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  <span className="text-xs font-medium text-zinc-600">
+            Aprovado
+          </span>
+                </div>
+                <span className="text-sm font-semibold text-zinc-900">
+          {approvedSettlements}
+        </span>
+              </div>
+
+              {/* Erro */}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                  <span className="text-xs font-medium text-zinc-600">
+            Erro
+          </span>
+                </div>
+                <span className="text-sm font-semibold text-zinc-900">
+          {errorSettlements}
+        </span>
+              </div>
+
+              {/* Liquidadas */}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-2">
+                <div className="pl-4 flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   <span className="text-xs font-medium text-zinc-600">
-                    Processadas
-                  </span>
+            Liquidadas
+          </span>
                 </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {processedSettlements}
-                </span>
+                <span className="text-sm font-semibold text-zinc-900">
+          {processedSettlements}
+        </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
+
         {/* Restitution Card */}
-        <Card className="bg-white min-w-[280px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

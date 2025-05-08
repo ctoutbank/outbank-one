@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { LegalNatureFilterButton } from "./legalNature-filter-button"
 import { LegalNatureFilterContent } from "./legalNature-filter-content"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type LegalNatureFilterProps = {
   nameIn?: string
@@ -16,6 +16,26 @@ export function LegalNatureFilter(props: LegalNatureFilterProps) {
   const searchParams = useSearchParams()
   const params = new URLSearchParams(searchParams?.toString() || "")
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
+
+
 
   const handleFilter = (filters: {
     name: string
@@ -55,6 +75,7 @@ export function LegalNatureFilter(props: LegalNatureFilterProps) {
     (props.activeIn ? 1 : 0)
 
   return (
+      <div ref={filterRef}>
     <LegalNatureFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -69,5 +90,6 @@ export function LegalNatureFilter(props: LegalNatureFilterProps) {
         onClose={() => setIsFiltersVisible(false)}
       />
     </LegalNatureFilterButton>
+      </div>
   )
 }
