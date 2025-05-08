@@ -91,7 +91,7 @@ export function LegalNatureFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione o status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {statuses.map((s) => (
                 <SelectItem key={s.value} value={s.value}>

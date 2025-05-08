@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
 import { useState } from "react";
+import * as React from "react";
 
 type AdjustmentsListFilterContentProps = {
   dateFromIn?: Date;
@@ -41,6 +42,11 @@ export function AdjustmentsListFilterContent({
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);
   const [establishment, setEstablishment] = useState(establishmentIn || "");
+
+
+  const handlePopoverContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Impede que o evento de clique se propague para o trigger
+  };
 
   // Mock data for establishments
   const establishments = [
@@ -71,7 +77,7 @@ export function AdjustmentsListFilterContent({
                     {dateFrom ? format(dateFrom, "PPP") : "De"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={dateFrom}
@@ -94,7 +100,7 @@ export function AdjustmentsListFilterContent({
                     {dateTo ? format(dateTo, "PPP") : "Até"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onClick={handlePopoverContentClick} onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={dateTo}
@@ -112,7 +118,7 @@ export function AdjustmentsListFilterContent({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um estabelecimento" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent onMouseDown={(e) => e.stopPropagation()}>
                 <SelectItem value="all">Todos</SelectItem>
                 {establishments.map((est) => (
                   <SelectItem key={est.id} value={est.id}>

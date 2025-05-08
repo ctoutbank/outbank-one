@@ -150,7 +150,7 @@ export function MerchantAgendaFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione o status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {statuses.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
@@ -170,7 +170,7 @@ export function MerchantAgendaFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione a bandeira" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todas</SelectItem>
               {cardBrands.map((brand) => (
                 <SelectItem key={brand.value} value={brand.value}>
@@ -198,7 +198,7 @@ export function MerchantAgendaFilterContent({
                   {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Inicial"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={dateFrom}
@@ -222,7 +222,7 @@ export function MerchantAgendaFilterContent({
                   {dateTo ? format(dateTo, "dd/MM/yyyy") : "Final"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={dateTo}
@@ -253,7 +253,7 @@ export function MerchantAgendaFilterContent({
                     : "Inicial"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={settlementDateFrom}
@@ -279,7 +279,7 @@ export function MerchantAgendaFilterContent({
                     : "Final"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={settlementDateTo}
@@ -312,7 +312,7 @@ export function MerchantAgendaFilterContent({
                     : "Inicial"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={expectedSettlementDateFrom}
@@ -338,7 +338,7 @@ export function MerchantAgendaFilterContent({
                     : "Final"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={expectedSettlementDateTo}

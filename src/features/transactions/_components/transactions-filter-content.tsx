@@ -147,6 +147,7 @@ export function FilterTransactionsContent({
           <h3 className="text-sm font-medium">Bandeira</h3>
           <MultiSelect
             options={brandList}
+            onClick={(e) => e.stopPropagation()}
             onValueChange={setBrandValues}
             defaultValue={initialBrandValues}
             placeholder="Selecione a bandeira"
