@@ -24,11 +24,11 @@ export default async function SalesDashboard({
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
   console.log(previousPeriod, period);
-  const totalTransactions = await getTotalTransactions(period.from!, period.to);
+  const totalTransactions = await getTotalTransactions(period.from!, period.to!);
 
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod.from,
-    previousPeriod.to
+      previousPeriod.from!,
+      previousPeriod.to!
   );
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
@@ -37,17 +37,14 @@ export default async function SalesDashboard({
     viewMode
   );
 
-  const totalMerchants = await getTotalMerchants(period.from!, period.to!);
-  const previousTotalMerchants = await getTotalMerchants(
-    previousPeriod.from,
-    previousPeriod.to
-  );
+  const totalMerchants = await getTotalMerchants();
+  const previousTotalMerchants = await getTotalMerchants();
   return (
     <>
       <BaseHeader
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
-      <BaseBody title="Painel de Vendas" subtitle={`Visão geral das vendas`}>
+      <BaseBody title="Dashboard" subtitle={`Visão geral das vendas`}>
         <div className="mb-4 ml-1">
           <DashboardFilters
             dateRange={{
