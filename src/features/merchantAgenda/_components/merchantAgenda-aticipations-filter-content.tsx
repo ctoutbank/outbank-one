@@ -136,7 +136,7 @@ export function AnticipationsListFilterContent({
                       : "De"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={settlementDateFrom}
@@ -159,7 +159,7 @@ export function AnticipationsListFilterContent({
                     {settlementDateTo ? format(settlementDateTo, "PPP") : "Até"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={settlementDateTo}
@@ -187,7 +187,7 @@ export function AnticipationsListFilterContent({
                     {saleDateFrom ? format(saleDateFrom, "PPP") : "De"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={saleDateFrom}
@@ -210,7 +210,7 @@ export function AnticipationsListFilterContent({
                     {saleDateTo ? format(saleDateTo, "PPP") : "Até"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={saleDateTo}

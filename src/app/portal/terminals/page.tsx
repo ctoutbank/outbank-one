@@ -34,6 +34,7 @@ export default async function TerminalsPage({
   searchParams: TerminalsProps;
 }) {
   await checkPagePermission("Terminais");
+  console.log(searchParams)
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");

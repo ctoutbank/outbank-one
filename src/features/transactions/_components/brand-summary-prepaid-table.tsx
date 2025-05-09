@@ -1,18 +1,18 @@
 import { getBrandLabel } from "@/lib/lookuptables/lookuptables-transactions";
 import { TransactionsGroupedReport } from "../serverActions/transaction";
 import {
-  SummaryTableItem,
-  TransactionSummaryTable,
+    SummaryTableItem,
+    TransactionSummaryTable,
 } from "./transaction-summary-table";
 
 interface BrandSummaryTableProps {
-  transactions: TransactionsGroupedReport[];
+    transactions: TransactionsGroupedReport[];
 }
 
-export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
+export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProps) {
     const productTypes = [
-        { label: "Débito por Bandeira", value: "DEBIT" },
-        { label: "Crédito por Bandeira", value: "CREDIT" },
+        { label: "Crédito Pré-pago por Bandeira", value: "PREPAID_CREDIT" },
+        { label: "Débito Pré-pago por Bandeira", value: "PREPAID_DEBIT" },
     ];
 
     return (
@@ -36,7 +36,7 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                         if (
                             curr.transaction_status === "AUTHORIZED" ||
                             curr.transaction_status === "PENDING"
-                        ) {
+                            ) {
                             acc[curr.brand].count += Number(curr.count);
                             acc[curr.brand].totalAmount += Number(curr.total_amount);
                         }

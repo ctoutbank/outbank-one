@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useRef, useState } from "react";
 import { MerchantAgendaFilterButton } from "./merchantAgenda-filter-button";
 import { MerchantAgendaFilterContent } from "./merchantAgenda-filter-content";
 
@@ -23,6 +23,27 @@ export function MerchantAgendaFilter(props: MerchantAgendaFilterProps) {
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
 
   const handleFilter = async (filters: {
     dateFrom?: Date;
@@ -133,6 +154,7 @@ export function MerchantAgendaFilter(props: MerchantAgendaFilterProps) {
     (props.expectedSettlementDateToIn ? 1 : 0);
 
   return (
+      <div ref={filterRef}>
     <MerchantAgendaFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -171,5 +193,6 @@ export function MerchantAgendaFilter(props: MerchantAgendaFilterProps) {
         setLoading={setIsLoading}
       />
     </MerchantAgendaFilterButton>
+      </div>
   );
 }

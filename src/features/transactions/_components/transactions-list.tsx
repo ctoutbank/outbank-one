@@ -56,7 +56,7 @@ export default function TransactionsList({
       AUTHORIZED: "Autorizada",
       APPROVED: "Aprovada",
       REJECTED: "Rejeitada",
-      FAILED: "Falhou",
+      ERROR: "Falhou",
     };
 
     for (const [key, value] of Object.entries(statusMap)) {

@@ -32,6 +32,8 @@ export default function FiltersHistory({statusIn, dateFromIn, dateToIn} : { stat
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
 
+
+
   const statuses = [
     {
       value: "pending",
@@ -158,7 +160,7 @@ export default function FiltersHistory({statusIn, dateFromIn, dateToIn} : { stat
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Intervalo de Datas</h3>
+            <h3 className="text-sm font-medium">Data de liquidação</h3>
             <div className="flex flex-wrap gap-2">
               <Popover>
                 <PopoverTrigger asChild>

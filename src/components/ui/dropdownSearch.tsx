@@ -61,7 +61,7 @@ export default function ComboboxDemo({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 pointer-events-auto">
+        <PopoverContent className="w-full p-0 pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
           <Command>
             <Input
               className="w-full"

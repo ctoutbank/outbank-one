@@ -189,6 +189,10 @@ export const MultiSelect = React.forwardRef<
         onValueChange(allValues);
       }
     };
+   
+    const handlePopoverContentClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Impede que o evento de clique se propague para o trigger
+    };
 
     return (
       <Popover
@@ -284,6 +288,8 @@ export const MultiSelect = React.forwardRef<
           className="w-auto p-0"
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
+          onClick={handlePopoverContentClick}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <Command>
             <CommandInput

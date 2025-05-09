@@ -82,28 +82,40 @@ export type MerchantSettlementsInsert = typeof merchantSettlements.$inferInsert;
 export type MerchantSettlementsDetail = typeof merchantSettlements.$inferSelect;
 
 export async function getSettlements(
-  status: string,
-  dateFrom: string,
-  dateTo: string,
-  page: number,
-  pageSize: number
-): Promise<SettlementsList> {
+    status: string,
+    dateFrom: string,
+    dateTo: string,
+    page: number,
+    pageSize: number
+): Promise<{
+  settlements: SettlementObject[];
+  totalCount: any;
+  statusCounts: {
+    processing: number;
+    error: number;
+    settled: number;
+    pending: number;
+    approved: number;
+    preApproved: number
+  };
+  globalTotals: { totalGrossAmount: number; totalNetAmount: number; totalRestitutionAmount: number }
+}> {
   const offset = (page - 1) * pageSize;
 
   status =
-    status == undefined || status == "" || status == null
-      ? "0"
-      : status.toUpperCase();
+      status == undefined || status == "" || status == null
+          ? "0"
+          : status.toUpperCase();
   const dateF: string =
-    dateFrom == undefined || dateFrom == "" || dateFrom == null
-      ? "2024-02-23"
-      : dateFrom;
+      dateFrom == undefined || dateFrom == "" || dateFrom == null
+          ? "2024-02-23"
+          : dateFrom;
   const dateT: string =
-    dateTo == undefined || dateTo == "" || dateTo == null
-      ? new Date(new Date().setDate(new Date().getDate() + 1))
-          .toISOString()
-          .split("T")[0]
-      : dateTo;
+      dateTo == undefined || dateTo == "" || dateTo == null
+          ? new Date(new Date().setDate(new Date().getDate() + 1))
+              .toISOString()
+              .split("T")[0]
+          : dateTo;
 
   console.log("Consultando settlements com filtros:", {
     status,
@@ -114,69 +126,49 @@ export async function getSettlements(
     offset,
   });
 
-  // Consulta principal que retorna os valores como no portal original
   const result = await db.execute(
-    sql`SELECT 
-        s.id,
-        s.slug,
-        (s.batch_amount + s.pix_net_amount) AS batch_amount_original,
-        s.net_settlement_amount AS net_settlement_amount,
-        s.total_anticipation_amount,
-        s.total_restitution_amount,
-        s.total_settlement_amount,
-        s.total_credit_adjustment_amount,
-        s.total_debit_adjustment_amount,
-        (COALESCE(s.total_credit_adjustment_amount, 0) + COALESCE(s.total_debit_adjustment_amount, 0)) AS total_adjustment_amount,
-        s.status,
-        TO_CHAR(s.payment_date, 'DD/MM/YYYY') AS payment_date
-      FROM settlements s
-      WHERE ((${status} = '0') OR s.status = ANY(string_to_array(${status}, ',')))
-        AND (s.payment_date >= ${dateF}) 
-        AND (s.payment_date <= ${dateT})
-      ORDER BY s.payment_date DESC
-      LIMIT ${pageSize} OFFSET ${offset};`
+      sql`SELECT
+            s.id,
+            s.slug,
+            (s.batch_amount + s.pix_net_amount) AS batch_amount_original,
+            s.net_settlement_amount AS net_settlement_amount,
+            s.total_anticipation_amount,
+            s.total_restitution_amount,
+            s.total_settlement_amount,
+            s.total_credit_adjustment_amount,
+            s.total_debit_adjustment_amount,
+            (COALESCE(s.total_credit_adjustment_amount, 0) + COALESCE(s.total_debit_adjustment_amount, 0)) AS total_adjustment_amount,
+            s.status,
+            TO_CHAR(s.payment_date, 'DD/MM/YYYY') AS payment_date
+          FROM settlements s
+          WHERE ((${status} = '0') OR s.status = ANY(string_to_array(${status}, ',')))
+            AND (s.payment_date >= ${dateF})
+            AND (s.payment_date <= ${dateT})
+          ORDER BY s.payment_date DESC
+            LIMIT ${pageSize} OFFSET ${offset};`
   );
 
-  // Array para armazenar os resultados finais
   const rows: SettlementObject[] = [];
 
-  // Para cada settlement, buscar os ajustes dos merchants
   for (const row of result.rows) {
     const settlementId = row.id;
 
-    // Consulta para calcular a soma de todos os ajustes nos merchant_settlements para este settlement
     const adjustmentsResult = await db.execute(
-      sql`SELECT 
-          SUM(COALESCE(ms.credit_financial_adjustment_amount, 0)) as total_credit,
-          SUM(COALESCE(ms.debit_financial_adjustment_amount, 0)) as total_debit
-        FROM merchant_settlements ms
-        WHERE ms.id_settlement = ${settlementId}`
+        sql`SELECT
+              SUM(COALESCE(ms.credit_financial_adjustment_amount, 0)) as total_credit,
+              SUM(COALESCE(ms.debit_financial_adjustment_amount, 0)) as total_debit
+            FROM merchant_settlements ms
+            WHERE ms.id_settlement = ${settlementId}`
     );
 
-    // Calculando o novo total de ajustes
-    const totalCreditFromMerchants = Number(
-      adjustmentsResult.rows[0]?.total_credit || 0
-    );
-    const totalDebitFromMerchants = Number(
-      adjustmentsResult.rows[0]?.total_debit || 0
-    );
-    const totalAdjustmentsFromMerchants =
-      totalCreditFromMerchants + totalDebitFromMerchants;
+    const totalCreditFromMerchants = Number(adjustmentsResult.rows[0]?.total_credit || 0);
+    const totalDebitFromMerchants = Number(adjustmentsResult.rows[0]?.total_debit || 0);
+    const totalAdjustmentsFromMerchants = totalCreditFromMerchants + totalDebitFromMerchants;
 
-    // Log para ajudar a depurar
-    console.log(`Ajustes para settlement ${row.slug} (${row.payment_date}):`, {
-      creditAdjustment: totalCreditFromMerchants,
-      debitAdjustment: totalDebitFromMerchants,
-      totalAdjustment: totalAdjustmentsFromMerchants,
-    });
-
-    // Adicionar ao array de resultados
     rows.push({
       slug: row.slug?.toString() || "",
-      // Aqui usamos o valor do total_settlement_amount para o batch_amount para os valores baterem
       batch_amount: row.total_settlement_amount?.toString() || "0",
-      total_anticipation_amount:
-        row.total_anticipation_amount?.toString() || "0",
+      total_anticipation_amount: row.total_anticipation_amount?.toString() || "0",
       total_restitution_amount: row.total_restitution_amount?.toString() || "0",
       total_settlement_amount: row.total_settlement_amount?.toString() || "0",
       status: row.status?.toString() || "",
@@ -185,22 +177,78 @@ export async function getSettlements(
     });
   }
 
-  console.log("Dados ajustados para exibição:", JSON.stringify(rows, null, 2));
-
   const totalCountResult = await db
-    .select({ count: count() })
-    .from(settlements)
-    .where(
-      sql`((${status} = '0') OR ${settlements.status} = ANY(string_to_array(${status}, ',')))
-      AND (${settlements.paymentDate} >= ${dateF}) 
-      AND (${settlements.paymentDate}<= ${dateT})`
-    );
+      .select({ count: count() })
+      .from(settlements)
+      .where(
+          sql`((${status} = '0') OR ${settlements.status} = ANY(string_to_array(${status}, ',')))
+              AND (${settlements.paymentDate} >= ${dateF})
+              AND (${settlements.paymentDate}<= ${dateT})`
+      );
 
   const totalCount = totalCountResult[0]?.count || 0;
+
+  //  Consulta para contagem de status
+  const statusCountsResult = await db.execute(
+      sql`
+        SELECT status, COUNT(*) AS count
+        FROM settlements
+        WHERE
+            ((${status} = '0') OR status = ANY(string_to_array(${status}, ',')))
+          AND (payment_date >= ${dateF})
+          AND (payment_date <= ${dateT})
+        GROUP BY status;
+      `
+  );
+
+  const statusCounts = {
+    processing: 0,
+    error: 0,
+    settled: 0,
+    pending: 0,
+    approved: 0,
+    preApproved: 0,
+  };
+
+  for (const row of statusCountsResult.rows) {
+    if (row.status === "PROCESSING") statusCounts.processing = Number(row.count);
+    if (row.status === "FAILED") statusCounts.error = Number(row.count);
+    if (row.status === "SETTLED") statusCounts.settled = Number(row.count);
+  }
+
+
+  // Consulta para valores totais - Bruto, Líquido e Restituições
+  const globalTotalsResult = await db.execute(
+      sql`
+  SELECT
+    SUM(
+      COALESCE(s.total_settlement_amount, 0) +
+      COALESCE(s.credit_financial_adjustment_amount, 0) +
+      COALESCE(s.debit_financial_adjustment_amount, 0) 
+    ) AS total_gross,
+    SUM(COALESCE(s.total_settlement_amount, 0)) AS total_net,
+    SUM(COALESCE(s.total_restitution_amount, 0)) AS total_restitution
+  FROM settlements s
+  WHERE ((${status} = '0') OR s.status = ANY(string_to_array(${status}, ',')))
+    AND (s.payment_date >= ${dateF})
+    AND (s.payment_date <= ${dateT})
+`
+  );
+
+
+  const globalTotals = {
+    totalGrossAmount: Number(globalTotalsResult.rows[0]?.total_gross || 0),
+    totalNetAmount: Number(globalTotalsResult.rows[0]?.total_net || 0),
+    totalRestitutionAmount: Number(globalTotalsResult.rows[0]?.total_restitution || 0),
+  };
+
+  console.log(globalTotals)
 
   return {
     settlements: rows,
     totalCount,
+    statusCounts,
+    globalTotals
   };
 }
 
@@ -430,3 +478,4 @@ export async function getMerchantSettlements(
     totalCount,
   };
 }
+

@@ -192,7 +192,7 @@ export function translateStatus(status: string): string {
     case "REQUESTED":
       return "Pedido";
     case "FAILED":
-      return "Falhou";
+      return "Erro";
     case "SETTLED":
       return "Liquidado";
     case "PAID":

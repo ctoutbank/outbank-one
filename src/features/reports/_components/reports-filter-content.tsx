@@ -174,7 +174,7 @@ export function ReportsFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t.code} value={t.code}>
@@ -191,7 +191,7 @@ export function ReportsFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione o formato" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {formats.map((f) => (
                 <SelectItem key={f.code} value={f.code}>
@@ -211,7 +211,7 @@ export function ReportsFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione a recorrência" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todas</SelectItem>
               {recorrences.map((r) => (
                 <SelectItem key={r.code} value={r.code}>
@@ -228,7 +228,7 @@ export function ReportsFilterContent({
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione o período" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {periods.map((p) => (
                 <SelectItem key={p.code} value={p.code}>

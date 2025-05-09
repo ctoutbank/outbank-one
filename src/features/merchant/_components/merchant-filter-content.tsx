@@ -186,7 +186,7 @@ export function FilterMerchantsContent({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
               {StatusKyc &&
                 StatusKyc.map((statusOption) => (

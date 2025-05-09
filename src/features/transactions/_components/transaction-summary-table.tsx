@@ -21,7 +21,7 @@ interface TransactionSummaryTableProps {
     quantidade: number;
     valorTotal: number;
   };
-  labelHeader?: string;
+  labelHeader: string;
   headerbg?: string;
   headersViews?: HeaderView[];
   onHeaderViewChange?: (value: string) => void;
@@ -33,7 +33,7 @@ export function TransactionSummaryTable({
   headerbg,
   headersViews,
   onHeaderViewChange,
-}: TransactionSummaryTableProps) {
+  labelHeader }: TransactionSummaryTableProps) {
   // Ordenar itens por valor total em ordem decrescente
   const sortedItems = [...items].sort((a, b) => b.totalAmount - a.totalAmount);
 
@@ -50,7 +50,7 @@ export function TransactionSummaryTable({
   };
 
   return (
-    <div className=" overflow-x-auto border rounded-md shadow-sm">
+    <div className=" overflow-x-auto border rounded-md shadow-sm min-h-[180px] max-h-[180px]">
       <table className="w-full text-[12px]">
         <tbody className="">
           {/* Total Geral como primeira linha */}
@@ -60,7 +60,7 @@ export function TransactionSummaryTable({
             <td className="px-2 py-1 flex items-center gap-2">
               {!headersViews || headersViews.length <= 1 ? (
                 // Se houver apenas um item, mostrar apenas o label sem os ícones
-                <span>{currentHeaderView.label}</span>
+                <span>{labelHeader}</span>
               ) : (
                 // Se houver mais de um item, mostrar os ícones de navegação
                 <>

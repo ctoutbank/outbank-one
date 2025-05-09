@@ -131,7 +131,7 @@ export function SettlementsHistoryFilterContent({
                   {dateFrom ? format(dateFrom, "PPP") : "Data Inicial"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={dateFrom}
@@ -157,7 +157,7 @@ export function SettlementsHistoryFilterContent({
                   {dateTo ? format(dateTo, "PPP") : "Data Final"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                 <Calendar
                   mode="single"
                   selected={dateTo}

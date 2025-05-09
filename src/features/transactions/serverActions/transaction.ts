@@ -470,7 +470,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`,
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     })
     .from(transactions)
     .where(whereClause)
@@ -481,7 +481,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     )
     .orderBy(
       isHourlyView
@@ -490,7 +490,7 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
         : isMonthlyView
         ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-        : sql`DATE(dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
     );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({
@@ -567,31 +567,13 @@ export async function getTotalTransactionsByMonth(
   return totals;
 }
 
-export async function getTotalMerchants(dateFrom: string, dateTo: string) {
-  const conditions = [];
-  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
-  if (dateFrom) {
-    console.log(normalizeDate.start);
-    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
-    console.log(dateFromUTC);
-    conditions.push(gte(merchants.dtinsert, dateFromUTC!));
-  }
-
-  if (dateTo) {
-    console.log(normalizeDate.end);
-    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo");
-    console.log(dateToUTC);
-    conditions.push(lte(merchants.dtinsert, dateToUTC!));
-  }
-
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
+export async function getTotalMerchants() {
   const result = await db.execute(sql`
     SELECT 
-      COUNT(1) AS count
+      COUNT(1) AS total
     FROM merchants
-    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
   `);
+
   const data = result.rows as MerchantTotal[];
   console.log(data);
   return data;

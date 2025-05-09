@@ -113,7 +113,7 @@ export function AnticipationsListFilterContent({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um estabelecimento" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent onMouseDown={(e) => e.stopPropagation()}>
                 <SelectItem value="all">Todos</SelectItem>
                 {merchantDD?.map((merchant) => (
                   <SelectItem
@@ -143,7 +143,7 @@ export function AnticipationsListFilterContent({
                     {dateFrom ? format(dateFrom, "PPP") : "De"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={dateFrom}
@@ -166,7 +166,7 @@ export function AnticipationsListFilterContent({
                     {dateTo ? format(dateTo, "PPP") : "Até"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
                   <Calendar
                     mode="single"
                     selected={dateTo}

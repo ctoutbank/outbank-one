@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import {useEffect, useRef, useState, useTransition} from "react";
 import { FilterTransactionsButton } from "./transactions-filter-button";
 import { FilterTransactionsContent } from "./transactions-filter-content";
 
@@ -26,6 +26,25 @@ export function TransactionsFilter(props: TransactionsFilterWrapperProps) {
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
+
 
   const handleFilter = (filters: {
     status: string;
@@ -148,6 +167,7 @@ export function TransactionsFilter(props: TransactionsFilterWrapperProps) {
     (props.valueMaxIn ? 1 : 0);
 
   return (
+      <div ref={filterRef}>
     <FilterTransactionsButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -172,5 +192,6 @@ export function TransactionsFilter(props: TransactionsFilterWrapperProps) {
         onFilter={handleFilter}
       />
     </FilterTransactionsButton>
+      </div>
   );
 }

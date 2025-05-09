@@ -20,8 +20,8 @@ type HistoryProps = {
 };
 
 export default async function SettlementsPage({
-  searchParams,
-}: {
+                                                searchParams,
+                                              }: {
   searchParams: HistoryProps;
 }) {
   const page = parseInt(searchParams.page || "1");
@@ -29,81 +29,76 @@ export default async function SettlementsPage({
   const status = searchParams.status;
   const dateFrom = searchParams.dateFrom;
   const dateTo = searchParams.dateTo;
+
+  // Buscar liquidações e totais de status
   const settlements = await getSettlements(
-    status,
-    dateFrom,
-    dateTo,
-    page,
-    pageSize
+      status,
+      dateFrom,
+      dateTo,
+      page,
+      pageSize
   );
+
   const totalRecords = settlements.totalCount;
 
+    const processingSettlements = settlements.statusCounts?.processing ?? 0;
+    const errorSettlements = settlements.statusCounts?.error ?? 0;
+    const processedSettlements = settlements.statusCounts?.settled ?? 0;
+    const pendingSettlements = settlements.statusCounts?.pending ?? 0;
+    const approvedSettlements = settlements.statusCounts?.approved ?? 0;
+    const preApprovedSettlements = settlements.statusCounts?.preApproved ?? 0;
+
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[
-          {
-            title: "Histórico de Liquidações",
-            url: "/portal/settlements/history",
-          },
-        ]}
-      />
+      <>
+        <BaseHeader
+            breadcrumbItems={[
+              {
+                title: "Histórico de Liquidações",
+                url: "/portal/settlements/history",
+              },
+            ]}
+        />
 
-      <BaseBody
-        title="Histórico de Liquidações"
-        subtitle={`Visualização do Histórico de Liquidações`}
-        actions={<SyncButton syncType="settlement" />}
-      >
-        <div className="flex flex-col gap-4 mb-4">
-          <div className="mb-2">
-            <SettlementsHistoryFilter
-              statusIn={status}
-              dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
-              dateToIn={dateTo ? new Date(dateTo) : undefined}
-            />
+        <BaseBody
+            title="Histórico de Liquidações"
+            subtitle={`Visualização do Histórico de Liquidações`}
+            actions={<SyncButton syncType="settlement" />}
+        >
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="mb-2">
+              <SettlementsHistoryFilter
+                  statusIn={status}
+                  dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+                  dateToIn={dateTo ? new Date(dateTo) : undefined}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <SettlementsHistoryDashboardContent
+                  totalSettlements={settlements.totalCount}
+                  totalGrossAmount={settlements.globalTotals.totalGrossAmount}
+                  totalRestitutionAmount={settlements.globalTotals.totalRestitutionAmount}
+                  totalNetAmount={settlements.globalTotals.totalNetAmount}
+                  pendingSettlements={pendingSettlements}
+                  approvedSettlements={approvedSettlements}
+                  processedSettlements={processedSettlements}
+                  processingSettlements={processingSettlements}
+                  errorSettlements={errorSettlements}
+                  preApprovedSettlements={preApprovedSettlements}
+              />
+            </div>
           </div>
 
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <SettlementsHistoryDashboardContent
-              totalSettlements={settlements.totalCount}
-              totalGrossAmount={settlements.settlements.reduce(
-                (acc, curr) => acc + Number(curr.batch_amount),
-                0
-              )}
-              totalNetAmount={settlements.settlements.reduce(
-                (acc, curr) => acc + Number(curr.total_settlement_amount),
-                0
-              )}
-              totalRestitutionAmount={settlements.settlements.reduce(
-                (acc, curr) => acc + Number(curr.total_restitution_amount),
-                0
-              )}
-              pendingSettlements={
-                settlements.settlements.filter((s) => s.status === "pending")
-                  .length
-              }
-              approvedSettlements={
-                settlements.settlements.filter((s) => s.status === "approved")
-                  .length
-              }
-              processedSettlements={
-                settlements.settlements.filter((s) => s.status === "settled")
-                  .length
-              }
-            />
-          </div>
-        </div>
-
-        <SettlementHistoryList Settlements={settlements} />
-        {totalRecords > 0 && (
-          <PaginationRecords
-            totalRecords={totalRecords}
-            currentPage={page}
-            pageSize={pageSize}
-            pageName="portal/settlements/history"
-          ></PaginationRecords>
-        )}
-      </BaseBody>
-    </>
+          <SettlementHistoryList Settlements={settlements} />
+          {totalRecords > 0 && (
+              <PaginationRecords
+                  totalRecords={totalRecords}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  pageName="portal/settlements/history"
+              ></PaginationRecords>
+          )}
+        </BaseBody>
+      </>
   );
 }

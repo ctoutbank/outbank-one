@@ -3,23 +3,17 @@
 import { db } from "@/server/db";
 import { merchantSettlements } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
-import { getOrCreateMerchants } from "./merchant";
 import { InsertSettlementObject, SettlementObject } from "./types";
 
 export async function insertMerchantSettlementAndRelations(
-  merchantSettlementList: SettlementObject[]
+  merchantSettlementList: SettlementObject[],
+  merchant: { id: number; slug: string }[]
 ) {
   try {
     const customerids = await getIdBySlugs(
       "customers",
       merchantSettlementList.map(
         (merchantSettlement) => merchantSettlement.slugCustomer
-      )
-    );
-
-    const merchantids = await getOrCreateMerchants(
-      merchantSettlementList.map(
-        (merchantSettlement) => merchantSettlement.merchant
       )
     );
 
@@ -72,7 +66,7 @@ export async function insertMerchantSettlementAndRelations(
             (customer) => customer.slug === merchantSettlement.slugCustomer
           )[0]?.id || 0,
         idMerchant:
-          merchantids?.filter(
+          merchant?.filter(
             (merchant) => merchant.slug === merchantSettlement.slugMerchant
           )[0]?.id || 0,
         idSettlement:

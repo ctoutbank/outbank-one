@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CalendarIcon, FilterIcon, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
 interface DashboardFiltersProps {
   dateRange: {
@@ -19,6 +19,25 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   const viewMode = searchParams?.get("viewMode") || "today";
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [selectedViewMode, setSelectedViewMode] = useState(viewMode);
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFiltersVisible(false);
+      }
+    }
+
+    if (isFiltersVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFiltersVisible]);
 
   const formatDate = (date: Date | undefined) => {
     if (!date) return "-";
@@ -44,6 +63,7 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   };
 
   return (
+      <div ref={filterRef}>
     <div className="relative z-50">
       <div className="flex items-center gap-3">
         <Button
@@ -137,5 +157,6 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
         </div>
       )}
     </div>
+      </div>
   );
 }
