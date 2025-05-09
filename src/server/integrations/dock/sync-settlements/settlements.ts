@@ -1,22 +1,27 @@
 "use server";
 
 import { db } from "@/server/db";
-import { merchantSettlementOrders, merchantSettlements, settlements } from "../../../../../drizzle/schema";
+import {
+  merchantSettlementOrders,
+  merchantSettlements,
+  settlements,
+} from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "./customer";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { InsertSettlement, Settlement } from "./types";
 
 export async function insertSettlementAndRelations(settlement: Settlement[]) {
   try {
-
     await db.delete(settlements).execute();
     await db.delete(merchantSettlements).execute();
     await db.delete(merchantSettlementOrders).execute();
-    
 
-    const customerids = await getOrCreateCustomer(
-      settlement.map((settlement) => settlement.customer)
+    const uniqueCustomerPayout = Array.from(
+      new Map(
+        settlement.map((item) => [item.customer.slug, item.customer])
+      ).values()
     );
+    const customerids = await getOrCreateCustomer(uniqueCustomerPayout);
 
     const insertSettlement: InsertSettlement[] = settlement.map(
       (settlement) => ({

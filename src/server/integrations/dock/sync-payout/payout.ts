@@ -26,10 +26,12 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
       .returning({ id: cronJobMonitoring.id });
 
     monitoringId = monitoring?.id;
-
-    const customerids = await getOrCreateCustomer(
-      payoutList.map((payouts) => payouts.customer)
+    const uniqueCustomerPayout = Array.from(
+      new Map(
+        payoutList.map((item) => [item.customer.slug, item.customer])
+      ).values()
     );
+    const customerids = await getOrCreateCustomer(uniqueCustomerPayout);
     const uniqueMerchantsPayout = Array.from(
       new Map(
         payoutList.map((item) => [item.merchant.slug, item.merchant])

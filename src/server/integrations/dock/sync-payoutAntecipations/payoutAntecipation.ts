@@ -9,9 +9,12 @@ export async function insertAntecipationAndRelations(
   antecipations: Antecipation[]
 ) {
   try {
-    const customerids = await getOrCreateCustomer(
-      antecipations.map((antecipation) => antecipation.customer)
+    const uniqueCustomersPayout = Array.from(
+      new Map(
+        antecipations.map((item) => [item.customer.slug, item.customer])
+      ).values()
     );
+    const customerids = await getOrCreateCustomer(uniqueCustomersPayout);
     const uniqueMerchantsPayout = Array.from(
       new Map(
         antecipations.map((item) => [item.merchant.slug, item.merchant])
