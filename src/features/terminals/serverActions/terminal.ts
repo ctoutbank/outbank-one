@@ -516,16 +516,20 @@ export async function getTerminalsForExport(
 
     // Filtro de data
     if (filters?.dateFrom && filters.dateFrom.trim() !== "") {
+      console.log(filters?.dateFrom);
       const dateFromUTC = getDateUTC(filters.dateFrom, "America/Sao_Paulo");
+      console.log(dateFromUTC);
       if (dateFromUTC) {
         conditions.push(sql`${terminals.dtinsert} >= ${dateFromUTC}`);
       }
     }
 
     if (filters?.dateTo && filters.dateTo.trim() !== "") {
+      console.log(filters?.dateTo);
       const dateTo = new Date(filters.dateTo);
       dateTo.setHours(23, 59, 59, 999);
       const dateToUTC = getDateUTC(dateTo.toISOString(), "America/Sao_Paulo");
+      console.log(dateToUTC);
       if (dateToUTC) {
         conditions.push(sql`${terminals.dtinsert} <= ${dateToUTC}`);
       }

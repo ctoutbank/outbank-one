@@ -71,6 +71,7 @@ export function TerminalsFilterContent({
   ];
 
   const applyFilters = () => {
+    console.log(dateFrom, dateTo)
     onFilter({
       dateFrom,
       dateTo,

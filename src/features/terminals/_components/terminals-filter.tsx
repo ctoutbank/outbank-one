@@ -56,6 +56,7 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
     status: string;
     provedor: string;
   }) => {
+    console.log(filters.dateFrom, filters.dateTo)
     if (filters.dateFrom) {
       params.set("dateFrom", filters.dateFrom.toISOString());
     } else {
@@ -96,6 +97,7 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
     } else {
       params.delete("provedor");
     }
+    console.log(params.toString())
     params.set("page", "1");
     router.push(`?${params.toString()}`);
   };
