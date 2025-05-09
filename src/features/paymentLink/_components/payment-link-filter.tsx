@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import {useEffect, useRef, useState} from "react";
+import { useState } from "react";
 import { FilterPaymentLinkButton } from "./filter-button";
 import { FilterPaymentLinkContent } from "./filter-content";
 import { Button } from "@/components/ui/button";
@@ -22,23 +22,6 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFiltersVisible(false);
-      }
-    }
-
-    if (isFiltersVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isFiltersVisible]);
 
 
   const handleFilter = (filters: {
@@ -79,7 +62,6 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
     (props.merchant ? 1 : 0);
 
   return (
-      <div ref={filterRef}>
     <div className="flex items-center justify-between">
       <FilterPaymentLinkButton
         activeFiltersCount={activeFiltersCount}
@@ -104,6 +86,5 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
         </Button>
       )}
     </div>
-      </div>
   );
 }

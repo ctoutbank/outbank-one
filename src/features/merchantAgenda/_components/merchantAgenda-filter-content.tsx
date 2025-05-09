@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type MerchantAgendaFilterContentProps = {
   dateFromIn?: Date;
@@ -93,6 +93,21 @@ export function MerchantAgendaFilterContent({
     { value: "NÃO IDENTIFICADA", label: "Não Identificada" },
   ];
 
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleStatusChange = (value: string) => {
     setStatus(value === "all" ? "" : value);
   };
@@ -128,6 +143,7 @@ export function MerchantAgendaFilterContent({
 
   return (
     <div
+      ref={filterRef}
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md w-[900px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}

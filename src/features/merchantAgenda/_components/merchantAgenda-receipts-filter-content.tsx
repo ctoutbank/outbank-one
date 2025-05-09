@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search } from "lucide-react";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
 type MerchantAgendaFilterContentProps = {
   merchant?: string;
@@ -23,8 +23,23 @@ export function MerchantAgendaReceiptsFilterContent({
   const [merchantInput, setMerchantInput] = useState(merchant || "");
   const [dateInput, setDateInput] = useState(date || "");
 
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div ref={filterRef} className="relative mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Estabelecimento</h3>

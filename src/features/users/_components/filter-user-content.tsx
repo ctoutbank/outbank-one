@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import ComboboxDemo from "@/components/ui/dropdownSearch";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { DD } from "../server/users";
 
 type FilterUserContentProps = {
@@ -53,8 +53,24 @@ export function FilterUserContent({
   const [lastName, setLastName] = useState(lastNameIn);
   const [profile, setProfile] = useState(profileIn);
 
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* First Name - Input */}
         <div className="space-y-2">

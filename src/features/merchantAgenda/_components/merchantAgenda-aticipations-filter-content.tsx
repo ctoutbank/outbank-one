@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
 type AnticipationsListFilterContentProps = {
   settlementDateFromIn?: Date;
@@ -70,6 +70,22 @@ export function AnticipationsListFilterContent({
   const [status, setStatus] = useState(statusIn || "");
   const [orderId, setOrderId] = useState(orderIdIn || "");
 
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const statuses = [
     {
       value: "fully-anticipated",
@@ -93,7 +109,7 @@ export function AnticipationsListFilterContent({
   ];
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[700px]">
+    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[700px]">
       <div className="space-y-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Status</h3>
@@ -230,7 +246,7 @@ export function AnticipationsListFilterContent({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um estabelecimento" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent onMouseDown={(e) => e.stopPropagation()}>
                 <SelectItem value="all">Todos</SelectItem>
                 {establishments.map((est) => (
                   <SelectItem key={est.id} value={est.id}>

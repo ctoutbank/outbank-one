@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type LegalNatureFilterContentProps = {
   nameIn?: string;
@@ -30,6 +30,21 @@ export function LegalNatureFilterContent({
   const [name, setName] = useState(nameIn || "");
   const [code, setCode] = useState(codeIn || "");
   const [active, setActive] = useState(activeIn || "");
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const statuses = [
     { value: "true", label: "Ativo" },
@@ -56,6 +71,7 @@ export function LegalNatureFilterContent({
 
   return (
     <div
+      ref={filterRef}
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md w-[600px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}

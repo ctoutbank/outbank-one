@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { SalesAgentsFilterButton } from "./salesAgents-filter-button"
 import { SalesAgentsFilterContent } from "./salesAgents-filter-content"
-import {useEffect, useRef, useState} from "react"
+import { useState } from "react"
 
 type SalesAgentsFilterProps = {
   dateFromIn?: string
@@ -19,23 +19,6 @@ export function SalesAgentsFilter(props: SalesAgentsFilterProps) {
   const params = new URLSearchParams(searchParams?.toString() || "")
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
 
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFiltersVisible(false);
-      }
-    }
-
-    if (isFiltersVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isFiltersVisible]);
 
   const handleFilter = (filters: {
     dateFrom?: Date
@@ -92,7 +75,6 @@ export function SalesAgentsFilter(props: SalesAgentsFilterProps) {
     (props.emailIn ? 1 : 0)
 
   return (
-      <div ref={filterRef}>
     <SalesAgentsFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -109,6 +91,5 @@ export function SalesAgentsFilter(props: SalesAgentsFilterProps) {
         onClose={() => setIsFiltersVisible(false)}
       />
     </SalesAgentsFilterButton>
-      </div>
-  )
+)
 }
