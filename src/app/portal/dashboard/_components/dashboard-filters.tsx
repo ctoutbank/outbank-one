@@ -63,8 +63,7 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   };
 
   return (
-      <div ref={filterRef}>
-    <div className="relative z-50">
+    <div className="relative z-10">
       <div className="flex items-center gap-3">
         <Button
           variant="outline"
@@ -96,6 +95,7 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
       </div>
 
       {isFiltersVisible && (
+          <div ref={filterRef}>
         <div className="absolute left-0 mt-2 bg-white border rounded-lg shadow-lg min-w-[600px] animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95">
           <div className="p-5 space-y-5">
             <ToggleGroup
@@ -155,8 +155,10 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
             </div>
           </div>
         </div>
+          </div>
       )}
     </div>
-      </div>
+
+
   );
 }

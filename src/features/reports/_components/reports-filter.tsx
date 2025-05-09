@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { ReportsFilterButton } from "./reports-filter-button"
 import { ReportsFilterContent } from "./reports-filter-content"
-import {useEffect, useRef, useState} from "react"
+import { useState } from "react"
 
 type ReportsFilterProps = {
   searchIn?: string
@@ -20,25 +20,6 @@ export function ReportsFilter(props: ReportsFilterProps) {
   const searchParams = useSearchParams()
   const params = new URLSearchParams(searchParams?.toString() || "")
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
-
-
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFiltersVisible(false);
-      }
-    }
-
-    if (isFiltersVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isFiltersVisible]);
 
 
 
@@ -112,7 +93,6 @@ export function ReportsFilter(props: ReportsFilterProps) {
     (props.creationDateIn ? 1 : 0)
 
   return (
-      <div ref={filterRef}>
     <ReportsFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -131,6 +111,5 @@ export function ReportsFilter(props: ReportsFilterProps) {
         onClose={() => setIsFiltersVisible(false)}
       />
     </ReportsFilterButton>
-      </div>
   )
 }

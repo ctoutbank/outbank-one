@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type FilterSalesAgentsContentProps = {
   dateFromIn?: Date;
@@ -38,6 +38,22 @@ export function SalesAgentsFilterContent({
   const [status, setStatus] = useState(statusIn || "");
   const [email, setEmail] = useState(emailIn || "");
 
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const statuses = [
     {
       value: "ACTIVE",
@@ -66,8 +82,8 @@ export function SalesAgentsFilterContent({
   };
 
   return (
-    <div
-      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+    <div ref={filterRef}
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-60"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >

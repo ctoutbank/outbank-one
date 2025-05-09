@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type FilterPaymentLinkContentProps = {
   identifierIn?: string;
@@ -29,6 +29,23 @@ export function FilterPaymentLinkContent({
   const [identifier, setIdentifier] = useState(identifierIn || "");
   const [status, setStatus] = useState(statusIn || "");
   const [merchant, setMerchant] = useState(merchantIn || "");
+
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const statuses = [
     {
@@ -69,6 +86,7 @@ export function FilterPaymentLinkContent({
 
   return (
     <div
+      ref={filterRef}
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}

@@ -91,7 +91,7 @@ const PaginationCustom: React.FC<PaginationProps> = ({
           )}
         </PaginationContent>
       </Pagination>
-      <div className="text-sm">Total records: {totalRecords}</div>
+      <div className="text-sm">Total de Registros: {totalRecords}</div>
     </>
   );
 };

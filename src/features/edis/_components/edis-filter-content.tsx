@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
 type FilterEdisContentProps = {
   typeIn?: string;
@@ -25,6 +25,22 @@ export function FilterEdisContent({
   const [type, setType] = useState(typeIn || "");
   const [status, setStatus] = useState(statusIn || "");
   const [date, setDate] = useState(dateIn || "");
+
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const statuses = [
     {
@@ -54,7 +70,7 @@ export function FilterEdisContent({
   ];
 
   return (
-    <div className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium ml-2">Tipo de Arquivo</h3>

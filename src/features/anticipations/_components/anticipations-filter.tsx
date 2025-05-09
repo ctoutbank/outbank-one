@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { MerchantDD } from "../server/anticipation";
 import { AnticipationsListFilterButton } from "./anticipations-filter-button";
 import { AnticipationsListFilterContent } from "./aticipations-filter-content";
@@ -19,24 +19,6 @@ export function AnticipationsListFilter(props: AnticipationsListFilterProps) {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFiltersVisible(false);
-      }
-    }
-
-    if (isFiltersVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isFiltersVisible]);
 
 
   const handleFilter = (filters: {
@@ -98,7 +80,6 @@ export function AnticipationsListFilter(props: AnticipationsListFilterProps) {
     (props.statusIn ? 1 : 0);
 
   return (
-      <div ref={filterRef}>
     <AnticipationsListFilterButton
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
@@ -116,6 +97,5 @@ export function AnticipationsListFilter(props: AnticipationsListFilterProps) {
         merchantDD={props.merchantDD}
       />
     </AnticipationsListFilterButton>
-      </div>
   );
 }

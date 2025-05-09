@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type ReportsFilterContentProps = {
   searchIn?: string;
@@ -52,6 +52,21 @@ export function ReportsFilterContent({
   const [creationDate, setCreationDate] = useState<Date | undefined>(
     creationDateIn
   );
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Dados estáticos para os filtros
   const types = [
@@ -125,6 +140,7 @@ export function ReportsFilterContent({
 
   return (
     <div
+      ref={filterRef}
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md w-[900px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}

@@ -11,7 +11,7 @@ import {
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useState } from "react";
+import {KeyboardEvent, useEffect, useRef, useState} from "react";
 
 type FilterTransactionsContentProps = {
   statusIn?: string;
@@ -89,6 +89,22 @@ export function FilterTransactionsContent({
   const [valueMin, setValueMin] = useState(valueMinIn || "");
   const [valueMax, setValueMax] = useState(valueMaxIn || "");
 
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se o clique for fora do conteúdo
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleSubmitFilter = () => {
     // Converter os arrays de valores para strings separadas por vírgulas
     const statusString = statusValues.join(",");
@@ -125,6 +141,7 @@ export function FilterTransactionsContent({
 
   return (
     <div
+      ref={filterRef}
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1400px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}
