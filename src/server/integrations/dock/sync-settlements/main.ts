@@ -1,4 +1,5 @@
 "use server";
+import { getOrCreateMerchants } from "@/server/integrations/dock/sync-settlements/merchant";
 import { truncateSettlementTables } from "@/server/integrations/dock/sync-settlements/truncate-table";
 import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
 import { insertMerchantSettlementOrdersAndRelations } from "./merchantSettlementOrders";
@@ -178,8 +179,24 @@ export async function syncSettlements() {
     const merchantSettlements: SettlementObject[] =
       reponseMerchantSettlement || [];
     const chunkedMerchantSettlement = chunkArray(merchantSettlements, 1000);
+    const uniqueMerchantsMerchantSettlement = Array.from(
+      new Map(
+        merchantSettlements.map((item) => [item.merchant.slug, item.merchant])
+      ).values()
+    );
+    console.log(
+      "unique merchant settlements",
+      uniqueMerchantsMerchantSettlement
+    );
+    const merchantsSettlements = await getOrCreateMerchants(
+      uniqueMerchantsMerchantSettlement
+    );
+    console.log("criados e obtidos aqui settlement", merchantSettlements);
     for (const chunk of chunkedMerchantSettlement) {
-      await insertMerchantSettlementAndRelations(chunk);
+      await insertMerchantSettlementAndRelations(
+        chunk,
+        merchantsSettlements || []
+      );
     }
 
     //merchant settlements orders
@@ -198,8 +215,32 @@ export async function syncSettlements() {
     const pixMerchantSettlementOrders: PixMerchantSettlementOrders[] =
       responsePixMerchantSettlementsOrders || [];
     const chunkedPixOrders = chunkArray(pixMerchantSettlementOrders, 1000);
+    const uniqueMerchantPixAux = Array.from(
+      new Set(pixMerchantSettlementOrders.map((item) => item.merchant))
+    );
+    console.log("unique pix merchant", uniqueMerchantPixAux);
+    const uniqueMerchantPix = uniqueMerchantPixAux.filter(
+      (pix) =>
+        !uniqueMerchantsMerchantSettlement.some(
+          (merchantSettlement) => merchantSettlement.slug == pix.slug
+        )
+    );
+    const merchantsPix = await getOrCreateMerchants(uniqueMerchantPix);
+    console.log("criados e obtidos aqui pix", merchantsPix);
+    const merchantsUnion =
+      merchantsPix && merchantsSettlements
+        ? [...merchantsPix, ...merchantsSettlements]
+        : merchantsPix
+        ? merchantsPix
+        : merchantsSettlements
+        ? merchantsSettlements
+        : undefined;
+    console.log("unido ficou assim", merchantsUnion);
     for (const chunk of chunkedPixOrders) {
-      await insertPixMerchantSettlementOrdersAndRelations(chunk);
+      await insertPixMerchantSettlementOrdersAndRelations(
+        chunk,
+        merchantsUnion || []
+      );
     }
   } catch (error) {
     console.error("Erro ao processar Settlements:", error);

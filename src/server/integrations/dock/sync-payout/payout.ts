@@ -30,9 +30,12 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
     const customerids = await getOrCreateCustomer(
       payoutList.map((payouts) => payouts.customer)
     );
-    const merchantids = await getOrCreateMerchants(
-      payoutList.map((payouts) => payouts.merchant)
+    const uniqueMerchantsPayout = Array.from(
+      new Map(
+        payoutList.map((item) => [item.merchant.slug, item.merchant])
+      ).values()
     );
+    const merchantids = await getOrCreateMerchants(uniqueMerchantsPayout);
 
     const insertPayoutVar: InsertPayout[] = payoutList.map((payouts) => ({
       slug: payouts.slug,

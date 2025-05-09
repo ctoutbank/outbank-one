@@ -3,15 +3,14 @@
 import { db } from "@/server/db";
 import { merchantPixSettlementOrders } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
-import { getOrCreateMerchants } from "./merchant";
-import { insertMerchantSettlementAndRelations } from "./merchantSettlement";
 import {
   InsertPixMerchantSettlementOrders,
   PixMerchantSettlementOrders,
 } from "./types";
 
 export async function insertPixMerchantSettlementOrdersAndRelations(
-  pixMerchantSettlementOrderList: PixMerchantSettlementOrders[]
+  pixMerchantSettlementOrderList: PixMerchantSettlementOrders[],
+  merchant: { id: number; slug: string }[]
 ) {
   try {
     // Remove duplicatas e retorna um array com os slugs unicos
@@ -24,17 +23,6 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
       )
     );
     const customerids = await getIdBySlugs("customers", customer);
-
-    const merchantIds = await getOrCreateMerchants(
-      pixMerchantSettlementOrderList.map((settlement) => settlement.merchant)
-    );
-
-    await insertMerchantSettlementAndRelations(
-      pixMerchantSettlementOrderList.map(
-        (pixMerchantSettlementOrderList) =>
-          pixMerchantSettlementOrderList.merchantSettlement
-      )
-    );
 
     const merchantSettlementIds = await getIdBySlugs(
       "merchant_settlements",
@@ -58,7 +46,7 @@ export async function insertPixMerchantSettlementOrdersAndRelations(
           )[0]?.id || 0,
         slugMerchant: pixMerchantSettlementOrder.slugMerchant,
         idMerchant:
-          merchantIds?.filter(
+          merchant?.filter(
             (merchant) =>
               merchant.slug === pixMerchantSettlementOrder.slugMerchant
           )[0]?.id || 0,
