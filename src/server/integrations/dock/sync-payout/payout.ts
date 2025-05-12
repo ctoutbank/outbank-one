@@ -26,16 +26,24 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
       .returning({ id: cronJobMonitoring.id });
 
     monitoringId = monitoring?.id;
-
+    const uniqueCustomerPayout = Array.from(
+      new Map(
+        payoutList.map((item) => [item.customer.slug, item.customer])
+      ).values()
+    );
     const customerids = await getOrCreateCustomer(
-      payoutList.map((payouts) => payouts.customer)
+      uniqueCustomerPayout,
+      "payout"
     );
     const uniqueMerchantsPayout = Array.from(
       new Map(
         payoutList.map((item) => [item.merchant.slug, item.merchant])
       ).values()
     );
-    const merchantids = await getOrCreateMerchants(uniqueMerchantsPayout);
+    const merchantids = await getOrCreateMerchants(
+      uniqueMerchantsPayout,
+      "payout"
+    );
 
     const insertPayoutVar: InsertPayout[] = payoutList.map((payouts) => ({
       slug: payouts.slug,
