@@ -90,10 +90,10 @@ export type PaymentLink = {
   slugFinancialTransaction: string;
 };
 
-/*async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
+async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
   console.log("json", JSON.stringify(data));
   const response = await fetch(
-    `https://serviceorder.acquiring.dock.tech/v1/external_payment_links`,
+    `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links`,
     {
       method: "POST",
       headers: {
@@ -114,7 +114,7 @@ export type PaymentLink = {
   const responseData: PaymentLink = await response.json();
 
   return responseData;
-}*/
+}
 
 export async function getPaymentLinks(
   merchant: string,
@@ -236,7 +236,7 @@ export async function getPaymentLinkById(
 
 export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
   try {
-    /*const merchant = await db
+    const merchant = await db
       .select({ idDocument: merchants.idDocument })
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
@@ -244,7 +244,7 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
     const insertAPI: InsertPaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
       totalAmount: paymentLinks.totalAmount || "0",
-      documentId: merchant[0].idDocument || "",
+      documentId: "0MerchantDock1",
       dtExpiration: paymentLinks.dtExpiration || "",
       installments: paymentLinks.installments || 0,
       productType: paymentLinks.productType || "",
@@ -254,12 +254,16 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
           : undefined,
     };
 
-    await InsertAPIPaymentLink(insertAPI);*/
+    console.log("insertAPI", insertAPI);
+
+    const response = await InsertAPIPaymentLink(insertAPI);
+
+    console.log("response", response);
 
     const paymentLinkIn: PaymentLinkInsert = {
-      slug: null,
+      slug: response.slug,
       linkName: paymentLinks.linkName,
-      paymentLinkStatus: null,
+      paymentLinkStatus: response.paymentLinkStatus,
       idMerchant: paymentLinks.idMerchant,
       dtinsert: new Date().toISOString(),
       dtupdate: new Date().toISOString(),
@@ -267,10 +271,11 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       dtExpiration: paymentLinks.dtExpiration,
       installments: paymentLinks.installments,
       active: true,
-      linkUrl: null,
+      linkUrl: response.linkUrl,
       pixEnabled: null,
       productType: paymentLinks.productType,
-      transactionSlug: null,
+      transactionSlug: response.slugFinancialTransaction,
+      isFromServer: false,
     };
 
     const resultPaymentLink = await db
