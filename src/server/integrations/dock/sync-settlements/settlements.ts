@@ -21,7 +21,10 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
         settlement.map((item) => [item.customer.slug, item.customer])
       ).values()
     );
-    const customerids = await getOrCreateCustomer(uniqueCustomerPayout);
+    const customerids = await getOrCreateCustomer(
+      uniqueCustomerPayout,
+      "settlements"
+    );
 
     const insertSettlement: InsertSettlement[] = settlement.map(
       (settlement) => ({

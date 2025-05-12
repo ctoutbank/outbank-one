@@ -55,7 +55,10 @@ async function insertMerchant(
   }
 }
 
-export async function getOrCreateMerchants(merchants: Merchant[]) {
+export async function getOrCreateMerchants(
+  merchants: Merchant[],
+  tableName: string
+) {
   try {
     const slugs = merchants.map((merchant) => merchant.slug);
     const merchantIds = await getIdBySlugs("merchants", slugs);
@@ -68,7 +71,7 @@ export async function getOrCreateMerchants(merchants: Merchant[]) {
     );
 
     if (filteredList.length > 0) {
-      const insertedIds = await insertMerchant(filteredList, "merchants");
+      const insertedIds = await insertMerchant(filteredList, tableName);
       const nonNullInsertedIds =
         insertedIds
           ?.filter((id) => id.slug !== null)

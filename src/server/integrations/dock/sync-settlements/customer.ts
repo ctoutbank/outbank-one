@@ -1,26 +1,68 @@
 "use server";
 
 import { db } from "@/server/db";
-import { Customer } from "./types";
-import { customers } from "../../../../../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { cronJobMonitoring, customers } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
+import { Customer } from "./types";
 
 async function insertCustomer(
-  customer: Customer[]
+  customer: Customer[],
+  tableName: string
 ): Promise<{ id: number; slug: string | null }[] | null> {
   try {
-    const inserted = await db
-      .insert(customers)
-      .values(customer)
-      .returning({ id: customers.id, slug: customers.slug });
-    return inserted;
+    const uniqueCustomers = Array.from(
+      new Map(customer.map((item) => [item.slug, item])).values()
+    );
+    let countChecked = 0;
+    let countCreated = 0;
+    const results: { id: number; slug: string | null }[] = [];
+
+    for (const customerItem of uniqueCustomers) {
+      const checkDB = await db
+        .select({ id: customers.id, slug: customers.slug })
+        .from(customers)
+        .where(eq(customers.slug, customerItem.slug));
+
+      if (checkDB && checkDB.length > 0) {
+        countChecked = countChecked + 1;
+        results.push(checkDB[0]);
+      } else {
+        countCreated = countCreated + 1;
+        const inserted = await db
+          .insert(customers)
+          .values(customerItem)
+          .returning({ id: customers.id, slug: customers.slug });
+        if (inserted && inserted[0]) results.push(inserted[0]);
+      }
+    }
+
+    await db.insert(cronJobMonitoring).values({
+      jobName: "Insert customers to table " + tableName,
+      status: "finalizado",
+      startTime: new Date().toISOString(),
+      logMessage:
+        "Insert customers to table " +
+        tableName +
+        " quantity created: " +
+        countCreated +
+        " quantity checked: " +
+        countChecked +
+        " date time: " +
+        new Date().toISOString(),
+    });
+
+    return results;
   } catch (error) {
     console.error("Error inserting customer:", error);
     return null;
   }
 }
 
-export async function getOrCreateCustomer(customer: Customer[]) {
+export async function getOrCreateCustomer(
+  customer: Customer[],
+  tableName: string
+) {
   try {
     const slugs = customer.map((customer) => customer.slug);
 
@@ -32,7 +74,7 @@ export async function getOrCreateCustomer(customer: Customer[]) {
         )
     );
     if (filteredList.length > 0) {
-      const insertedIds = await insertCustomer(filteredList);
+      const insertedIds = await insertCustomer(filteredList, tableName);
       const nonNullInsertedIds =
         insertedIds
           ?.filter((id) => id.slug !== null)
