@@ -1,26 +1,64 @@
 "use server";
 
 import { db } from "@/server/db";
-import { merchants } from "../../../../../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { cronJobMonitoring, merchants } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { Merchant } from "./types";
 
 async function insertMerchant(
-  merchant: Merchant[]
+  merchantList: Merchant[],
+  tableName: string
 ): Promise<{ id: number; slug: string | null }[] | null> {
   try {
-    const inserted = await db
-      .insert(merchants)
-      .values(merchant)
-      .returning({ id: merchants.id, slug: merchants.slug });
-    return inserted;
+    const uniqueMerchants = Array.from(
+      new Map(merchantList.map((item) => [item.slug, item])).values()
+    );
+    let countChecked = 0;
+    let countCreated = 0;
+    const results: { id: number; slug: string | null }[] = [];
+    for (const merchant of uniqueMerchants) {
+      const checkDB = await db
+        .select({ id: merchants.id, slug: merchants.slug })
+        .from(merchants)
+        .where(eq(merchants.slug, merchant.slug));
+      if (checkDB) {
+        countChecked = countChecked + 1;
+        results.push(checkDB[0]);
+      } else {
+        countCreated = countCreated + 1;
+        const inserted = await db
+          .insert(merchants)
+          .values(merchant)
+          .returning({ id: merchants.id, slug: merchants.slug });
+        if (inserted && inserted[0]) results.push(inserted[0]);
+      }
+    }
+    await db.insert(cronJobMonitoring).values({
+      jobName: "Insert merchants to table " + tableName,
+      status: "finalizado",
+      startTime: new Date().toISOString(),
+      logMessage:
+        "Insert merchants to table " +
+        tableName +
+        " quantity created: " +
+        countCreated +
+        " quantity checked: " +
+        countChecked +
+        " date time: " +
+        new Date().toISOString(),
+    });
+    return results;
   } catch (error) {
     console.error("Error inserting merchant:", error);
     return null;
   }
 }
 
-export async function getOrCreateMerchants(merchants: Merchant[]) {
+export async function getOrCreateMerchants(
+  merchants: Merchant[],
+  tableName: string
+) {
   try {
     const slugs = merchants.map((merchant) => merchant.slug);
     const merchantIds = await getIdBySlugs("merchants", slugs);
@@ -33,7 +71,7 @@ export async function getOrCreateMerchants(merchants: Merchant[]) {
     );
 
     if (filteredList.length > 0) {
-      const insertedIds = await insertMerchant(filteredList);
+      const insertedIds = await insertMerchant(filteredList, tableName);
       const nonNullInsertedIds =
         insertedIds
           ?.filter((id) => id.slug !== null)
