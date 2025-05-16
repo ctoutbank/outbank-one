@@ -34,6 +34,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { legalPersonTypes, states } from "@/lib/lookuptables/lookuptables";
+import { formatCNPJ } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addresses, merchants } from "../../../../drizzle/schema";
@@ -59,6 +60,7 @@ interface MerchantProps {
   activeTab: string;
   DDEstablishmentFormat: EstablishmentFormatDropdown[];
   permissions: string[];
+
   setActiveTab: (tab: string) => void;
 }
 
@@ -105,7 +107,7 @@ export default function MerchantFormCompany({
         ? Number(merchant.idLegalNature)
         : undefined,
       slugLegalNature: merchant?.slugLegalNature || "",
-
+      idMerchantBankAccount: merchant?.idMerchantBankAccount || null,
       // campos do endereço virão de outra tabela
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
@@ -199,6 +201,7 @@ export default function MerchantFormCompany({
 
         try {
           await updateMerchantFormAction(merchantData);
+
           alert("Dados Atualizados com sucesso!");
 
           // Apenas recarregar a página atual, sem alterar a aba
@@ -209,6 +212,7 @@ export default function MerchantFormCompany({
       } else {
         try {
           idMerchant = await insertMerchantFormAction(merchantData);
+
           // Navegar para a próxima aba apenas quando estiver criando um novo merchant
           refreshPage(idMerchant || 0);
         } catch (error) {
@@ -251,7 +255,20 @@ export default function MerchantFormCompany({
                               CNPJ <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} maxLength={14} />
+                              <Input
+                                {...field}
+                                value={
+                                  field.value ? formatCNPJ(field.value) : ""
+                                }
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(
+                                    /\D/g,
+                                    ""
+                                  );
+                                  field.onChange(value);
+                                }}
+                                maxLength={18}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

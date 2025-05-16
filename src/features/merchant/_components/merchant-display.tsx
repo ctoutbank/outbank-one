@@ -1,12 +1,26 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MerchantFormBank from "@/features/merchant/_components/merchant-form-bank";
+import MerchantFormBankAccount from "@/features/merchant/_components/merchant-form-bank-account";
 import { MerchantTabsProps } from "@/features/merchant/server/types";
-import { Edit, ExternalLink, FileText } from "lucide-react";
+import { Edit, ExternalLink, FileText, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
-import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormCompany from "./merchant-form-company";
 import MerchantFormcontact from "./merchant-form-contact";
 import MerchantFormDocuments from "./merchant-form-documents";
@@ -31,7 +45,7 @@ export default function MerchantDisplay({
   address,
   Contacts,
   configurations,
-  pixaccounts,
+  merchantBankAccount,
   cnaeMccList,
   legalNatures,
   establishmentFormatList,
@@ -39,11 +53,14 @@ export default function MerchantDisplay({
   DDBank,
   merchantPriceGroupProps,
   permissions,
+  merchantPixAccount,
   merchantFiles = [],
 }: MerchantTabsProps) {
+  const router = useRouter();
   const [activeEditSection, setActiveEditSection] = useState<string | null>(
     null
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEditClick = (section: string) => {
     setActiveEditSection(section === activeEditSection ? null : section);
@@ -55,8 +72,72 @@ export default function MerchantDisplay({
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleSoftDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await fetch(
+        `/api/merchants/soft-delete/${merchant.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(result.message || "Merchant desativado com sucesso");
+        // Redirecionar para a lista de merchants após desativar
+        router.push("/portal/merchants");
+      } else {
+        toast.error(result.error || "Erro ao desativar merchant");
+      }
+    } catch (error) {
+      console.error("Erro ao desativar merchant:", error);
+      toast.error("Ocorreu um erro ao desativar o merchant");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Cabeçalho com botão de desativar */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">{merchant.name}</h2>
+        {merchant.active && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Desativar Merchant
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Desativar Merchant</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja desativar o merchant {merchant.name}?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleSoftDelete}
+                  disabled={isDeleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? "Desativando..." : "Desativar"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
+
       {activeEditSection == null ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Company Card */}
@@ -84,6 +165,7 @@ export default function MerchantDisplay({
                     establishmentFormat: merchant.establishmentFormat || "",
                     idCustomer: merchant.idCustomer || null,
                     dtdelete: "",
+                    idMerchantBankAccount: null,
                   }}
                   address={address}
                   Cnae={merchant.cnae}
@@ -468,53 +550,69 @@ export default function MerchantDisplay({
               </CardHeader>
               <CardContent className="p-3">
                 {activeEditSection === "bank" ? (
-                  <MerchantFormBank
-                    merchantpixaccount={{
-                      id: pixaccounts?.pixaccounts?.id || 0,
-                      slug: pixaccounts?.pixaccounts?.slug || null,
-                      active: pixaccounts?.pixaccounts?.active || null,
-                      dtinsert: pixaccounts?.pixaccounts?.dtinsert || null,
-                      idAccount: pixaccounts?.pixaccounts?.idAccount || null,
-                      bankAccountType:
-                        pixaccounts?.pixaccounts?.bankAccountType || null,
-                      bankAccountStatus:
-                        pixaccounts?.pixaccounts?.bankAccountStatus || null,
-                      onboardingPixStatus:
-                        pixaccounts?.pixaccounts?.onboardingPixStatus || null,
-                      message: pixaccounts?.pixaccounts?.message || null,
-                      dtupdate: pixaccounts?.pixaccounts?.dtupdate || null,
-                      idMerchant: pixaccounts?.pixaccounts?.idMerchant || null,
-                      slugMerchant:
-                        pixaccounts?.pixaccounts?.slugMerchant || null,
-                      idRegistration:
-                        pixaccounts?.pixaccounts?.idRegistration || null,
-                      bankNumber: pixaccounts?.pixaccounts?.bankNumber || null,
+                  <MerchantFormBankAccount
+                    merchantBankAccount={{
+                      id: merchantBankAccount?.merchantBankAccount?.id || 0,
+                      documentId:
+                        merchantBankAccount?.merchantBankAccount?.documentId ||
+                        "",
+                      corporateName:
+                        merchantBankAccount?.merchantBankAccount
+                          ?.corporateName || "",
+                      legalPerson:
+                        merchantBankAccount?.merchantBankAccount?.legalPerson ||
+                        "JURIDICAL",
                       bankBranchNumber:
-                        pixaccounts?.pixaccounts?.bankBranchNumber || null,
-                      bankBranchDigit:
-                        pixaccounts?.pixaccounts?.bankBranchDigit || null,
-                      bankAccountNumber:
-                        pixaccounts?.pixaccounts?.bankAccountNumber || null,
-                      bankAccountDigit:
-                        pixaccounts?.pixaccounts?.bankAccountDigit || null,
-                      bankName: pixaccounts?.pixaccounts?.bankName || null,
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchNumber || "",
+                      bankBranchCheckDigit:
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchCheckDigit || "",
+                      accountNumber:
+                        merchantBankAccount?.merchantBankAccount
+                          ?.accountNumber || "",
+                      accountNumberCheckDigit:
+                        merchantBankAccount?.merchantBankAccount
+                          ?.accountNumberCheckDigit || "",
+                      accountType:
+                        merchantBankAccount?.merchantBankAccount?.accountType ||
+                        "",
+                      compeCode:
+                        merchantBankAccount?.merchantBankAccount?.compeCode ||
+                        "",
+                      dtinsert:
+                        merchantBankAccount?.merchantBankAccount?.dtinsert ||
+                        "",
+                      dtupdate:
+                        merchantBankAccount?.merchantBankAccount?.dtupdate ||
+                        "",
+                      active:
+                        merchantBankAccount?.merchantBankAccount?.active ||
+                        null,
+                      slug:
+                        merchantBankAccount?.merchantBankAccount?.slug || null,
                     }}
+                    DDBank={DDBank}
+                    idMerchant={merchant.id}
+                    accountTypeDD={DDAccountType}
+                    permissions={permissions}
                     merchantcorporateName={merchant.corporateName || ""}
                     merchantdocumentId={merchant.idDocument || ""}
-                    legalPerson={merchant.legalPerson || ""}
-                    activeTab="bank"
-                    idMerchant={merchant.id}
+                    activeTab={""}
                     setActiveTab={() => {}}
-                    DDAccountType={DDAccountType}
-                    DDBank={DDBank}
-                    permissions={permissions}
+                    hasPix={merchant.hasPix || false}
+                    merchantpixaccount={merchantPixAccount?.pixaccounts}
                   />
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <InfoItem
                       label="Banco"
-                      value={`${pixaccounts?.pixaccounts?.bankNumber || ""} - ${
-                        pixaccounts?.pixaccounts?.bankName || ""
+                      value={`${
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchNumber || ""
+                      } - ${
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchCheckDigit || ""
                       }`}
                     />
                     <InfoItem
@@ -523,44 +621,221 @@ export default function MerchantDisplay({
                         DDAccountType.find(
                           (t) =>
                             t.value ===
-                            pixaccounts?.pixaccounts?.bankAccountType
-                        )?.label || pixaccounts?.pixaccounts?.bankAccountType
+                            merchantBankAccount?.merchantBankAccount
+                              ?.accountType
+                        )?.label ||
+                        merchantBankAccount?.merchantBankAccount?.accountType
                       }
                     />
                     <InfoItem
                       label="Agência"
                       value={`${
-                        pixaccounts?.pixaccounts?.bankBranchNumber || ""
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchNumber || ""
                       }${
-                        pixaccounts?.pixaccounts?.bankBranchDigit
-                          ? `-${pixaccounts?.pixaccounts?.bankBranchDigit}`
+                        merchantBankAccount?.merchantBankAccount
+                          ?.bankBranchCheckDigit
+                          ? `-${merchantBankAccount?.merchantBankAccount?.bankBranchCheckDigit}`
                           : ""
                       }`}
                     />
                     <InfoItem
                       label="Conta"
                       value={`${
-                        pixaccounts?.pixaccounts?.bankAccountNumber || ""
+                        merchantBankAccount?.merchantBankAccount
+                          ?.accountNumber || ""
                       }${
-                        pixaccounts?.pixaccounts?.bankAccountDigit
-                          ? `-${pixaccounts?.pixaccounts?.bankAccountDigit}`
+                        merchantBankAccount?.merchantBankAccount
+                          ?.accountNumberCheckDigit
+                          ? `-${merchantBankAccount?.merchantBankAccount?.accountNumberCheckDigit}`
                           : ""
                       }`}
                     />
                     <InfoItem
                       label="Status da Conta"
-                      value={pixaccounts?.pixaccounts?.bankAccountStatus}
+                      value={
+                        merchantBankAccount?.merchantBankAccount?.active
+                          ? "Ativo"
+                          : "Inativo"
+                      }
                     />
                     <InfoItem
-                      label="Status Onboarding PIX"
-                      value={pixaccounts?.pixaccounts?.onboardingPixStatus}
+                      label="Código do Banco"
+                      value={
+                        merchantBankAccount?.merchantBankAccount?.compeCode ||
+                        ""
+                      }
+                    />
+                    <InfoItem
+                      label="Tipo de Pessoa"
+                      value={
+                        merchantBankAccount?.merchantBankAccount
+                          ?.legalPerson === "JURIDICAL"
+                          ? "Pessoa Jurídica"
+                          : "Pessoa Física"
+                      }
+                    />
+                    <InfoItem
+                      label="Cnpj"
+                      value={
+                        merchantBankAccount?.merchantBankAccount?.documentId ||
+                        ""
+                      }
+                    />
+                    <InfoItem
+                      label="Nome Corporativo"
+                      value={
+                        merchantBankAccount?.merchantBankAccount
+                          ?.corporateName || ""
+                      }
+                    />
+                    <InfoItem
+                      label="Data de Inserção"
+                      value={formatDate(
+                        merchantBankAccount?.merchantBankAccount?.dtinsert
+                      )}
+                    />
+                    <InfoItem
+                      label="Última Atualização"
+                      value={formatDate(
+                        merchantBankAccount?.merchantBankAccount?.dtupdate
+                      )}
                     />
                   </div>
                 )}
+
+                <CardContent className="mt-2 p-0">
+                  {merchant.hasPix && (
+                    <>
+                      <div className="col-span-2 mt-2 border-t pt-2"> </div>
+                      <p className="font-medium mb-1 text-sm">Dados PIX</p>
+                      {activeEditSection === "bank" ? (
+                        <MerchantFormBank
+                          merchantpixaccount={{
+                            id: merchantPixAccount?.pixaccounts?.id || 0,
+                            slug: merchantPixAccount?.pixaccounts?.slug || null,
+                            active:
+                              merchantPixAccount?.pixaccounts?.active || null,
+                            dtinsert:
+                              merchantPixAccount?.pixaccounts?.dtinsert || null,
+                            idAccount:
+                              merchantPixAccount?.pixaccounts?.idAccount ||
+                              null,
+                            bankAccountType:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankAccountType || null,
+                            bankAccountStatus:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankAccountStatus || null,
+                            onboardingPixStatus:
+                              merchantPixAccount?.pixaccounts
+                                ?.onboardingPixStatus || null,
+                            message:
+                              merchantPixAccount?.pixaccounts?.message || null,
+                            dtupdate:
+                              merchantPixAccount?.pixaccounts?.dtupdate || null,
+                            idMerchant:
+                              merchantPixAccount?.pixaccounts?.idMerchant ||
+                              null,
+                            slugMerchant:
+                              merchantPixAccount?.pixaccounts?.slugMerchant ||
+                              null,
+                            idRegistration:
+                              merchantPixAccount?.pixaccounts?.idRegistration ||
+                              null,
+                            bankNumber:
+                              merchantPixAccount?.pixaccounts?.bankNumber ||
+                              null,
+                            bankBranchNumber:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankBranchNumber || null,
+                            bankBranchDigit:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankBranchDigit || null,
+                            bankAccountNumber:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankAccountNumber || null,
+                            bankAccountDigit:
+                              merchantPixAccount?.pixaccounts
+                                ?.bankAccountDigit || null,
+                            bankName:
+                              merchantPixAccount?.pixaccounts?.bankName || null,
+                          }}
+                          merchantcorporateName={merchant.corporateName || ""}
+                          merchantdocumentId={merchant.idDocument || ""}
+                          legalPerson={merchant.legalPerson || ""}
+                          activeTab="bank"
+                          idMerchant={merchant.id}
+                          setActiveTab={() => {}}
+                          DDAccountType={DDAccountType}
+                          DDBank={DDBank}
+                          permissions={permissions}
+                        />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <InfoItem
+                            label="Banco"
+                            value={`${
+                              merchantPixAccount?.pixaccounts?.bankNumber || ""
+                            } - ${
+                              merchantPixAccount?.pixaccounts?.bankName || ""
+                            }`}
+                          />
+                          <InfoItem
+                            label="Tipo de Conta"
+                            value={
+                              DDAccountType.find(
+                                (t) =>
+                                  t.value ===
+                                  merchantPixAccount?.pixaccounts
+                                    ?.bankAccountType
+                              )?.label ||
+                              merchantPixAccount?.pixaccounts?.bankAccountType
+                            }
+                          />
+                          <InfoItem
+                            label="Agência"
+                            value={`${
+                              merchantPixAccount?.pixaccounts
+                                ?.bankBranchNumber || ""
+                            }${
+                              merchantPixAccount?.pixaccounts?.bankBranchDigit
+                                ? `-${merchantPixAccount?.pixaccounts?.bankBranchDigit}`
+                                : ""
+                            }`}
+                          />
+                          <InfoItem
+                            label="Conta"
+                            value={`${
+                              merchantPixAccount?.pixaccounts
+                                ?.bankAccountNumber || ""
+                            }${
+                              merchantPixAccount?.pixaccounts?.bankAccountDigit
+                                ? `-${merchantPixAccount?.pixaccounts?.bankAccountDigit}`
+                                : ""
+                            }`}
+                          />
+                          <InfoItem
+                            label="Status da Conta"
+                            value={
+                              merchantPixAccount?.pixaccounts?.bankAccountStatus
+                            }
+                          />
+                          <InfoItem
+                            label="Status Onboarding PIX"
+                            value={
+                              merchantPixAccount?.pixaccounts
+                                ?.onboardingPixStatus
+                            }
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
               </CardContent>
             </Card>
           )}
-
           {/* Taxes Card */}
           {permissions?.includes("Configurar Taxas do EC") && (
             <Card className="shadow-sm col-span-1 md:col-span-2">
@@ -807,6 +1082,7 @@ export default function MerchantDisplay({
                 establishmentFormat: merchant.establishmentFormat || "",
                 idCustomer: merchant.idCustomer || null,
                 dtdelete: "",
+                idMerchantBankAccount: null,
               }}
               address={address}
               Cnae={merchant.cnae}
@@ -880,45 +1156,18 @@ export default function MerchantDisplay({
           )}
 
           {activeEditSection === "bank" && (
-            <MerchantFormBank
-              merchantpixaccount={{
-                id: pixaccounts?.pixaccounts?.id || 0,
-                slug: pixaccounts?.pixaccounts?.slug || null,
-                active: pixaccounts?.pixaccounts?.active || null,
-                dtinsert: pixaccounts?.pixaccounts?.dtinsert || null,
-                idAccount: pixaccounts?.pixaccounts?.idAccount || null,
-                bankAccountType:
-                  pixaccounts?.pixaccounts?.bankAccountType || null,
-                bankAccountStatus:
-                  pixaccounts?.pixaccounts?.bankAccountStatus || null,
-                onboardingPixStatus:
-                  pixaccounts?.pixaccounts?.onboardingPixStatus || null,
-                message: pixaccounts?.pixaccounts?.message || null,
-                dtupdate: pixaccounts?.pixaccounts?.dtupdate || null,
-                idMerchant: pixaccounts?.pixaccounts?.idMerchant || null,
-                slugMerchant: pixaccounts?.pixaccounts?.slugMerchant || null,
-                idRegistration:
-                  pixaccounts?.pixaccounts?.idRegistration || null,
-                bankNumber: pixaccounts?.pixaccounts?.bankNumber || null,
-                bankBranchNumber:
-                  pixaccounts?.pixaccounts?.bankBranchNumber || null,
-                bankBranchDigit:
-                  pixaccounts?.pixaccounts?.bankBranchDigit || null,
-                bankAccountNumber:
-                  pixaccounts?.pixaccounts?.bankAccountNumber || null,
-                bankAccountDigit:
-                  pixaccounts?.pixaccounts?.bankAccountDigit || null,
-                bankName: pixaccounts?.pixaccounts?.bankName || null,
-              }}
+            <MerchantFormBankAccount
+              merchantBankAccount={merchantBankAccount?.merchantBankAccount}
               merchantcorporateName={merchant.corporateName || ""}
               merchantdocumentId={merchant.idDocument || ""}
-              legalPerson={merchant.legalPerson || ""}
-              activeTab="bank"
+              activeTab={"bank"}
               idMerchant={merchant.id}
-              setActiveTab={() => {}}
-              DDAccountType={DDAccountType}
               DDBank={DDBank}
+              setActiveTab={() => {}}
               permissions={permissions}
+              accountTypeDD={DDAccountType}
+              hasPix={merchant.hasPix || false}
+              merchantpixaccount={merchantPixAccount?.pixaccounts}
             />
           )}
 

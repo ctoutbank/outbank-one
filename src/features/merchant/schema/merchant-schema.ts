@@ -60,6 +60,7 @@ export const schemaMerchant = z.object({
   city_address: z.string().max(255).optional(),
   state_address: z.string().max(2).optional(),
   country_address: z.string().max(2).optional(),
+  idMerchantBankAccount: z.number().optional().nullable(),
 });
 
 export type MerchantSchema = z.infer<typeof schemaMerchant>;
