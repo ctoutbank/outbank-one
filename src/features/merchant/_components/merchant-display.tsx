@@ -84,6 +84,7 @@ export default function MerchantDisplay({
                     establishmentFormat: merchant.establishmentFormat || "",
                     idCustomer: merchant.idCustomer || null,
                     dtdelete: "",
+                    idMerchantBankAccount: null,
                   }}
                   address={address}
                   Cnae={merchant.cnae}
@@ -807,6 +808,7 @@ export default function MerchantDisplay({
                 establishmentFormat: merchant.establishmentFormat || "",
                 idCustomer: merchant.idCustomer || null,
                 dtdelete: "",
+                idMerchantBankAccount: null,
               }}
               address={address}
               Cnae={merchant.cnae}
