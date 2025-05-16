@@ -12,7 +12,6 @@ import { AnticipationsListFilter } from "@/features/merchantAgenda/_components/m
 import MerchantAgendaAntecipationList from "@/features/merchantAgenda/_components/merchantAgenda-anticipations-list";
 import { MerchantAgendaAnticipationsDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dasboardAntecipation-content";
 import { MerchantAgendaDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenda-dashboard-content";
-import MerchantAgendaExcelExport from "@/features/merchantAgenda/_components/merchantAgenda-excel-export";
 import { MerchantAgendaFilter } from "@/features/merchantAgenda/_components/merchantAgenda-filter";
 import MerchantAgendaList from "@/features/merchantAgenda/_components/merchantAgenda-list";
 import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
@@ -193,42 +192,52 @@ export default async function MerchantAgendaPage({
                     />
                   </div>
                   <div className="ml-2">
-                    <MerchantAgendaExcelExport
-                      dateFrom={dateFrom}
-                      dateTo={dateTo}
+                    <ExcelExport
+                        data={merchantAgenda.merchantAgenda.map(
+                            (data) => ({
+                              Merchant: data.merchant,
+                              NSU: data.rnn,
+                              SaleDate: data.effectivePaymentDate,
+                              Type: data.type,
+                              Brand: data.brand,
+                              InstallmentNumber: data.installmentNumber,
+                              Installments: data.installments,
+                              GrossAmount: data.grossAmount,
+                              FeePercentage: data.feePercentage,
+                              FeeAmount: data.feeAmount,
+                              NetAmount: data.netAmount,
+                              ExpectedSettlementDate: data.expectedSettlementDate,
+                              SettledAmount: data.settledAmount,
+                              SettlementDate: data.settlementDate,
+                              EffectivePaymentDate: data.effectivePaymentDate,
+                              PaymentNumber: data.paymentNumber,
+                            })
+                        )}
+                        hasDateFilter={(!!searchParams.dateFrom && !!searchParams.dateTo) ||
+                            (!!searchParams.settlementDateFrom && !!searchParams.settlementDateTo) ||
+                            (!!searchParams.expectedSettlementDateFrom && !!searchParams.expectedSettlementDateTo)}
+                        globalStyles={globalStyles}
+                        sheetName="Conciliação de recebíveis"
+                        fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
                     />
                   </div>
                 </div>
 
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <MerchantAgendaDashboardContent
-                    totalMerchant={merchantAgenda.merchantAgenda.length}
+                    totalMerchant={merchantAgenda.aggregates.total_merchants}
                     date={new Date()}
-                    totalSales={merchantAgenda.merchantAgenda.length}
-                    grossAmount={merchantAgenda.merchantAgenda.reduce(
-                      (acc, item) => acc + item.grossAmount,
-                      0
-                    )}
-                    taxAmount={merchantAgenda.merchantAgenda.reduce(
-                      (acc, item) => acc + item.feeAmount,
-                      0
-                    )}
-                    settledInstallments={
-                      merchantAgenda.merchantAgenda.filter(
-                        (item) => item.settlementDate
-                      ).length
-                    }
+                    totalSales={merchantAgenda.aggregates.total_sales}
+                    grossAmount={merchantAgenda.aggregates.gross_amount}
+                    taxAmount={merchantAgenda.aggregates.fee_amount}
+                    settledInstallments={merchantAgenda.aggregates.total_installments}
                     pendingInstallments={
                       merchantAgenda.merchantAgenda.filter(
                         (item) => !item.settlementDate
                       ).length
                     }
-                    settledGrossAmount={merchantAgenda.merchantAgenda
-                      .filter((item) => item.settlementDate)
-                      .reduce((acc, item) => acc + item.grossAmount, 0)}
-                    settledTaxAmount={merchantAgenda.merchantAgenda
-                      .filter((item) => item.settlementDate)
-                      .reduce((acc, item) => acc + item.feeAmount, 0)}
+                    settledGrossAmount={merchantAgenda.aggregates.net_amount}
+                    settledTaxAmount={merchantAgenda.aggregates.fee_amount}
                     anticipatedGrossAmount={0} // Add logic for anticipated amounts if available
                     anticipatedTaxAmount={0} // Add logic for anticipated amounts if available
                     toSettleInstallments={
@@ -291,6 +300,9 @@ export default async function MerchantAgendaPage({
                           AnticipationCode: data.anticipationCode,
                         })
                       )}
+                      hasDateFilter={(!!searchParams.dateFrom && !!searchParams.dateTo) ||
+                          (!!searchParams.settlementDateFrom && !!searchParams.settlementDateTo) ||
+                          (!!searchParams.expectedSettlementDateFrom && !!searchParams.expectedSettlementDateTo)}
                       globalStyles={globalStyles}
                       sheetName="Conciliação de antecipações"
                       fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
@@ -367,6 +379,9 @@ export default async function MerchantAgendaPage({
                         AdjustmentType: data.adjustmentType,
                       })
                     )}
+                    hasDateFilter={(!!searchParams.dateFrom && !!searchParams.dateTo) ||
+                        (!!searchParams.settlementDateFrom && !!searchParams.settlementDateTo) ||
+                        (!!searchParams.expectedSettlementDateFrom && !!searchParams.expectedSettlementDateTo)}
                     globalStyles={globalStyles}
                     sheetName="Conciliação de ajustes"
                     fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}`}

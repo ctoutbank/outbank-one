@@ -150,7 +150,7 @@ export function MerchantAgendaFilterContent({
     >
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <div className="text-xs font-medium mb-1.5">Estabelecimento</div>
+          <div className="text-xs font-medium mb-1.5">qqecimento</div>
           <Input
             placeholder="Nome do estabelecimento"
             value={establishment}

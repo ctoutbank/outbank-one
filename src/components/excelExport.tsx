@@ -41,6 +41,7 @@ export default function ExcelExport<T>({
     try {
       console.log("Download Excel started");
 
+
       // Verificar se há filtro de data
       if (!hasDateFilter) {
         toast.error("Filtre por uma data primeiro para exportar os dados.");

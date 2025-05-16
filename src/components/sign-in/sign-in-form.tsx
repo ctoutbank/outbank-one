@@ -46,18 +46,62 @@ export function SignInForm() {
     try {
       setError("");
       setIsLoading(true);
-      const result = await signIn.create({
-        identifier: email,
-        password,
+
+      // Passo 1: Verificar se é o primeiro login
+      const checkResponse = await fetch("/api/check-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
 
-      if (result.status === "complete") {
-        window.location.href = "/portal/dashboard";
+      const checkData = await checkResponse.json();
+
+      if (!checkResponse.ok) {
+        setError(checkData.error || "Erro ao verificar usuário");
+        return;
+      }
+
+      if (checkData.firstLogin) {
+        // Primeiro login: autenticar via banco
+        const bancoLoginResponse = await fetch("/api/login-db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const bancoLogin = await bancoLoginResponse.json();
+
+        if (!bancoLoginResponse.ok) {
+          setError(bancoLogin.error || "Erro ao logar via banco");
+          return;
+        }
+
+        // Sucesso! Atualiza metadado no Clerk para first_login = false
+        await fetch("/api/disable-first-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: checkData.userId }),
+        });
+
+
+        localStorage.setItem("id_clerk", checkData.userId);
+        // Redireciona para a tela de criar senha no Clerk
+        window.location.href = "/password-create";
       } else {
-        setError("Algo deu errado durante o login");
+        // Login normal via Clerk
+        const result = await signIn.create({
+          identifier: email,
+          password,
+        });
+
+        if (result.status === "complete") {
+          window.location.href = "/portal/dashboard";
+        } else {
+          setError("Algo deu errado durante o login");
+        }
       }
     } catch (err: any) {
-      console.error("Error signing in:", err);
+      console.error("Erro no login:", err);
       const portugueseError = getPortugueseErrorMessage(err);
       setError(portugueseError);
     } finally {
