@@ -236,10 +236,7 @@ export async function getPaymentLinkById(
 
 export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
   try {
-    const merchant = await db
-      .select({ idDocument: merchants.idDocument })
-      .from(merchants)
-      .where(eq(merchants.id, paymentLinks.idMerchant || 0));
+    
 
     const insertAPI: InsertPaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
