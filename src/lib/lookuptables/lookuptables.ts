@@ -127,4 +127,11 @@ export const StatusKyc: SelectItem[] = [
   { value: "KYCOFFLINE", label: "KYC Desligado" },
 ];
 
+export const AccountTypee: SelectItem[] = [
+  { value: "CHECKING", label: "Conta Corrente" },
+  { value: "SAVINGS", label: "Conta Poupança" },
+  { value: "DEPOSIT", label: "Conta Depósito" },
+  { value: "PAYMENT", label: "Conta Pagamento" },
+];
+
 export { legalPersonTypes, states, timezones, UF, week };

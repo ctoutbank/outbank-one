@@ -3,25 +3,26 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import MerchantFormAuthorizers from "./merchant-form-authorizers";
-import MerchantFormBank from "./merchant-form-bank";
 import MerchantFormCompany from "./merchant-form-company";
 import MerchantFormcontact from "./merchant-form-contact";
 import MerchantFormOperations from "./merchant-form-operation";
 
 import { useSearchParams } from "next/navigation";
 
+import MerchantFormBankAccount from "@/features/merchant/_components/merchant-form-bank-account";
+import { MerchantTabsProps } from "@/features/merchant/server/types";
 import MerchantFormDocuments from "./merchant-form-documents";
 import MerchantFormTax2 from "./merchant-form-tax2";
-import { MerchantTabsProps } from "@/features/merchant/server/types";
-
 
 export default function MerchantTabs({
   merchant,
   address,
   Contacts,
   configurations,
-  pixaccounts,
   cnaeMccList,
+  merchantBankAccount,
+  merchantPixAccount,
+
   legalNatures,
   establishmentFormatList,
   DDAccountType,
@@ -79,6 +80,7 @@ export default function MerchantTabs({
             number: String(merchant.number),
             revenue: String(merchant.revenue),
             idMerchantPrice: merchant.idMerchantPrice || null,
+            idMerchantBankAccount: merchant.idMerchantBankAccount || null,
             establishmentFormat: merchant.establishmentFormat || "",
             idCustomer: merchant.idCustomer || null,
             dtdelete: "",
@@ -189,46 +191,50 @@ export default function MerchantTabs({
       </TabsContent>
       {permissions?.includes("Configurar dados Bancários") && (
         <TabsContent value="bank">
-          <MerchantFormBank
-            merchantpixaccount={{
-              id: pixaccounts?.pixaccounts?.id || 0,
-              slug: pixaccounts?.pixaccounts?.slug || null,
-              active: pixaccounts?.pixaccounts?.active || null,
-              dtinsert: pixaccounts?.pixaccounts?.dtinsert || null,
-              idAccount: pixaccounts?.pixaccounts?.idAccount || null,
-              bankAccountType:
-                pixaccounts?.pixaccounts?.bankAccountType || null,
-              bankAccountStatus:
-                pixaccounts?.pixaccounts?.bankAccountStatus || null,
-              onboardingPixStatus:
-                pixaccounts?.pixaccounts?.onboardingPixStatus || null,
-              message: pixaccounts?.pixaccounts?.message || null,
-              dtupdate: pixaccounts?.pixaccounts?.dtupdate || null,
-              idMerchant: pixaccounts?.pixaccounts?.idMerchant || null,
-              slugMerchant: pixaccounts?.pixaccounts?.slugMerchant || null,
-              idRegistration: pixaccounts?.pixaccounts?.idRegistration || null,
-              bankNumber: pixaccounts?.pixaccounts?.bankNumber || null,
+          <MerchantFormBankAccount
+            merchantBankAccount={{
+              id: merchantBankAccount?.merchantBankAccount?.id || 0,
+              documentId:
+                merchantBankAccount?.merchantBankAccount?.documentId || "",
+              corporateName:
+                merchantBankAccount?.merchantBankAccount?.corporateName || "",
+              legalPerson:
+                merchantBankAccount?.merchantBankAccount?.legalPerson ||
+                "JURIDICAL",
               bankBranchNumber:
-                pixaccounts?.pixaccounts?.bankBranchNumber || null,
-              bankBranchDigit:
-                pixaccounts?.pixaccounts?.bankBranchDigit || null,
-              bankAccountNumber:
-                pixaccounts?.pixaccounts?.bankAccountNumber || null,
-              bankAccountDigit:
-                pixaccounts?.pixaccounts?.bankAccountDigit || null,
-              bankName: pixaccounts?.pixaccounts?.bankName || null,
+                merchantBankAccount?.merchantBankAccount?.bankBranchNumber ||
+                "",
+              bankBranchCheckDigit:
+                merchantBankAccount?.merchantBankAccount
+                  ?.bankBranchCheckDigit || "",
+              accountNumber:
+                merchantBankAccount?.merchantBankAccount?.accountNumber || "",
+              accountNumberCheckDigit:
+                merchantBankAccount?.merchantBankAccount
+                  ?.accountNumberCheckDigit || "",
+              accountType:
+                merchantBankAccount?.merchantBankAccount?.accountType || "",
+              compeCode:
+                merchantBankAccount?.merchantBankAccount?.compeCode || "",
+              dtinsert:
+                merchantBankAccount?.merchantBankAccount?.dtinsert || "",
+              dtupdate:
+                merchantBankAccount?.merchantBankAccount?.dtupdate || "",
+              active: merchantBankAccount?.merchantBankAccount?.active || null,
+              slug: merchantBankAccount?.merchantBankAccount?.slug || null,
             }}
-            merchantcorporateName={merchant.corporateName || ""}
-            merchantdocumentId={merchant.idDocument || ""}
-            legalPerson={merchant.legalPerson || ""}
+            DDBank={DDBank}
+            idMerchant={merchant.id}
+            setActiveTab={setActiveTab}
             activeTab={
               listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
             }
-            idMerchant={merchant.id}
-            setActiveTab={setActiveTab}
-            DDAccountType={DDAccountType}
-            DDBank={DDBank}
+            accountTypeDD={DDAccountType}
             permissions={permissions}
+            merchantcorporateName={merchant.corporateName || ""}
+            merchantdocumentId={merchant.idDocument || ""}
+            hasPix={merchant.hasPix || false}
+            merchantpixaccount={merchantPixAccount?.pixaccounts}
           />
         </TabsContent>
       )}

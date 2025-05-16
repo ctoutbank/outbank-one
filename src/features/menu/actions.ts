@@ -25,6 +25,7 @@ const getGroupFromUrl = (url: string): string => {
     history: "Liquidação",
     reports: "Relatório",
     financialReleases: "Lançamentos Financeiros",
+    taxes: "Taxas",
   };
 
   return groupMappings[lastSegment] || lastSegment;
@@ -113,6 +114,7 @@ const menuData = {
     },
 
     { title: "Arquivos EDI", url: "/portal/edis", icon: "FolderOpen" },
+
     {
       title: "Configurações",
       url: "/portal/categories",
@@ -131,6 +133,11 @@ const menuData = {
           url: "/portal/legalNatures",
         },
       ],
+    },
+    {
+      title: "Taxas",
+      url: "/portal/taxes",
+      icon: "Settings",
     },
   ],
 };

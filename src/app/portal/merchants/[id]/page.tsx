@@ -10,6 +10,7 @@ import {
   getLegalNaturesForDropdown,
   getMerchantById,
 } from "@/features/merchant/server/merchant";
+import { getMerchantBankAccountById } from "@/features/merchant/server/merchant-bank";
 import {
   getAccountTypeForDropdown,
   getBankForDropdown,
@@ -36,6 +37,11 @@ export default async function MerchantDetail({
   const merchant = await getMerchantById(merchantId);
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
+  const merchantBankAccount = await getMerchantBankAccountById(
+    merchant?.merchants.idMerchantBankAccount || 0
+  );
+
+  console.log("merchantBankAccount:", merchantBankAccount);
 
   // Buscar arquivos do merchant
   const merchantFiles =
@@ -47,6 +53,7 @@ export default async function MerchantDetail({
   const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(
     merchant?.merchants.idMerchantPrice || 0
   );
+  console.log("merchantPriceGroups:", merchantPriceGroups);
   console.log(
     "merchantPriceGroups:",
     JSON.stringify(merchantPriceGroups, null, 2)
@@ -68,6 +75,7 @@ export default async function MerchantDetail({
   const pixaccount = await getMerchantPixAccountByMerchantId(
     merchant?.merchants.id || 0
   );
+  console.log("pixaccount:", pixaccount);
 
   const formattedMerchantPriceGroups = {
     merchantPrice: {
@@ -143,6 +151,8 @@ export default async function MerchantDetail({
               name: merchant?.merchants?.name || "",
               slug: merchant?.merchants?.slug || "",
               active: merchant?.merchants?.active || false,
+              idMerchantBankAccount:
+                merchant?.merchants?.idMerchantBankAccount || 0,
               idMerchantPrice: merchant?.merchants?.idMerchantPrice || 0,
               establishmentFormat:
                 merchant?.merchants?.establishmentFormat || "",
@@ -255,31 +265,45 @@ export default async function MerchantDetail({
                 waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
               },
             }}
-            pixaccounts={{
-              pixaccounts: {
-                id: pixaccount?.id || 0,
-                slug: pixaccount?.slug || "",
-                active: pixaccount?.active || false,
-                dtinsert: pixaccount?.dtinsert || "",
-                dtupdate: pixaccount?.dtupdate || "",
-                idRegistration: pixaccount?.idRegistration || "",
-                idAccount: pixaccount?.idAccount || "",
-                bankNumber: pixaccount?.bankNumber || "",
-                bankBranchNumber: pixaccount?.bankBranchNumber || "",
-                bankBranchDigit: pixaccount?.bankBranchDigit || "",
-                bankAccountNumber: pixaccount?.bankAccountNumber || "",
-                bankAccountDigit: pixaccount?.bankAccountDigit || "",
-                bankAccountType: pixaccount?.bankAccountType || "",
-                bankAccountStatus: pixaccount?.bankAccountStatus || "",
-                onboardingPixStatus: pixaccount?.onboardingPixStatus || "",
-                message: pixaccount?.message || "",
-                bankName: pixaccount?.bankName || "",
-                idMerchant: pixaccount?.idMerchant || 0,
-                slugMerchant: pixaccount?.slugMerchant || null,
+            merchantBankAccount={{
+              merchantBankAccount: {
+                id: merchantBankAccount?.merchantBankAccount?.id || 0,
+                documentId:
+                  merchantBankAccount?.merchantBankAccount?.documentId || "",
+                corporateName:
+                  merchantBankAccount?.merchantBankAccount?.corporateName || "",
+                legalPerson:
+                  merchantBankAccount?.merchantBankAccount?.legalPerson ||
+                  "JURIDICAL",
+                bankBranchNumber:
+                  merchantBankAccount?.merchantBankAccount?.bankBranchNumber ||
+                  "",
+                bankBranchCheckDigit:
+                  merchantBankAccount?.merchantBankAccount
+                    ?.bankBranchCheckDigit || "",
+                accountNumber:
+                  merchantBankAccount?.merchantBankAccount?.accountNumber || "",
+                accountNumberCheckDigit:
+                  merchantBankAccount?.merchantBankAccount
+                    ?.accountNumberCheckDigit || "",
+                accountType:
+                  merchantBankAccount?.merchantBankAccount?.accountType || "",
+                compeCode:
+                  merchantBankAccount?.merchantBankAccount?.compeCode || "",
+                dtinsert:
+                  merchantBankAccount?.merchantBankAccount?.dtinsert || "",
+                dtupdate:
+                  merchantBankAccount?.merchantBankAccount?.dtupdate || "",
+                slug: merchantBankAccount?.merchantBankAccount?.slug || "",
+                active:
+                  merchantBankAccount?.merchantBankAccount?.active || false,
               },
-              merchantcorporateName: merchant?.merchants?.corporateName || "",
-              merchantdocumentId: merchant?.merchants?.idDocument || "",
-              legalPerson: merchant?.merchants?.legalPerson || "",
+            }}
+            merchantPixAccount={{
+              pixaccounts: pixaccount || null,
+              merchantcorporateName: merchant?.merchants.corporateName || "",
+              merchantdocumentId: merchant?.merchants.idDocument || "",
+              legalPerson: merchant?.merchants.legalPerson || "",
             }}
             merchantPriceGroupProps={{
               merchantPrice: {
@@ -332,7 +356,9 @@ export default async function MerchantDetail({
               id: merchant?.merchants?.id || 0,
               name: merchant?.merchants?.name || "",
               slug: merchant?.merchants?.slug || "",
-              active: merchant?.merchants?.active || false,
+              active: merchant?.merchants?.active || true,
+              idMerchantBankAccount:
+                merchant?.merchants?.idMerchantBankAccount || 0,
               idMerchantPrice: merchant?.merchants?.idMerchantPrice || 0,
               establishmentFormat:
                 merchant?.merchants?.establishmentFormat || "",
@@ -445,31 +471,45 @@ export default async function MerchantDetail({
                 waitingPeriodCnp: configurations?.waitingPeriodCnp || "",
               },
             }}
-            pixaccounts={{
-              pixaccounts: {
-                id: pixaccount?.id || 0,
-                slug: pixaccount?.slug || "",
-                active: pixaccount?.active || false,
-                dtinsert: pixaccount?.dtinsert || "",
-                dtupdate: pixaccount?.dtupdate || "",
-                idRegistration: pixaccount?.idRegistration || "",
-                idAccount: pixaccount?.idAccount || "",
-                bankNumber: pixaccount?.bankNumber || "",
-                bankBranchNumber: pixaccount?.bankBranchNumber || "",
-                bankBranchDigit: pixaccount?.bankBranchDigit || "",
-                bankAccountNumber: pixaccount?.bankAccountNumber || "",
-                bankAccountDigit: pixaccount?.bankAccountDigit || "",
-                bankAccountType: pixaccount?.bankAccountType || "",
-                bankAccountStatus: pixaccount?.bankAccountStatus || "",
-                onboardingPixStatus: pixaccount?.onboardingPixStatus || "",
-                message: pixaccount?.message || "",
-                bankName: pixaccount?.bankName || "",
-                idMerchant: pixaccount?.idMerchant || 0,
-                slugMerchant: pixaccount?.slugMerchant || null,
+            merchantBankAccount={{
+              merchantBankAccount: {
+                id: merchantBankAccount?.merchantBankAccount?.id || 0,
+                documentId:
+                  merchantBankAccount?.merchantBankAccount?.documentId || "",
+                corporateName:
+                  merchantBankAccount?.merchantBankAccount?.corporateName || "",
+                legalPerson:
+                  merchantBankAccount?.merchantBankAccount?.legalPerson ||
+                  "JURIDICAL",
+                bankBranchNumber:
+                  merchantBankAccount?.merchantBankAccount?.bankBranchNumber ||
+                  "",
+                bankBranchCheckDigit:
+                  merchantBankAccount?.merchantBankAccount
+                    ?.bankBranchCheckDigit || "",
+                accountNumber:
+                  merchantBankAccount?.merchantBankAccount?.accountNumber || "",
+                accountNumberCheckDigit:
+                  merchantBankAccount?.merchantBankAccount
+                    ?.accountNumberCheckDigit || "",
+                accountType:
+                  merchantBankAccount?.merchantBankAccount?.accountType || "",
+                compeCode:
+                  merchantBankAccount?.merchantBankAccount?.compeCode || "",
+                dtinsert:
+                  merchantBankAccount?.merchantBankAccount?.dtinsert || "",
+                dtupdate:
+                  merchantBankAccount?.merchantBankAccount?.dtupdate || "",
+                slug: merchantBankAccount?.merchantBankAccount?.slug || "",
+                active:
+                  merchantBankAccount?.merchantBankAccount?.active || false,
               },
-              merchantcorporateName: merchant?.merchants?.corporateName || "",
-              merchantdocumentId: merchant?.merchants?.idDocument || "",
-              legalPerson: merchant?.merchants?.legalPerson || "",
+            }}
+            merchantPixAccount={{
+              pixaccounts: pixaccount || null,
+              merchantcorporateName: merchant?.merchants.corporateName || "",
+              merchantdocumentId: merchant?.merchants.idDocument || "",
+              legalPerson: merchant?.merchants.legalPerson || "",
             }}
             merchantPriceGroupProps={{
               merchantPrice: {
