@@ -189,9 +189,6 @@ export default function MerchantFormOperations({
     //add new objects in searchParams
     router.push(`/portal/merchants/${id}?${params.toString()}`);
   };
-
-  // Buscar a configuração completa do banco quando temos idConfiguration
-
   const onSubmit = async (data: ConfigurationOperationsSchema) => {
     try {
       console.log("Dados enviados:", data);

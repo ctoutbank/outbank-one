@@ -64,6 +64,8 @@ export interface UserDetailForm extends UserDetail {
   email: string;
   selectedMerchants?: string[];
   fullAccess: boolean;
+  temporaryPassword: string | null;
+  firstLogin: boolean | null;
 }
 
 export async function getUsers(
@@ -372,6 +374,8 @@ export async function getUserById(
       selectedMerchants: userMerchantsList.map(
         (um) => um.idMerchant?.toString() || ""
       ),
+      temporaryPassword: "false",
+      firstLogin: null,
     };
   }
 }
