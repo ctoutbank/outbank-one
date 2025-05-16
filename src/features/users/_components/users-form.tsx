@@ -1,6 +1,5 @@
 "use client";
 
-import { PasswordInput } from "@/components/password-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +33,6 @@ import {
   ArrowLeft,
   Building,
   HelpCircle,
-  Lock,
   Mail,
   MapPin,
   User,
@@ -119,7 +117,6 @@ export default function UserForm({
     defaultValues: {
       id: user?.id || 0,
       slug: user?.slug || "",
-      password: "",
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
@@ -173,33 +170,10 @@ export default function UserForm({
   }, [user?.idAddress, addressForm]);
 
   const onSubmit = async (data: UserSchema) => {
+    console.log("Enviado", data);
     const loadingToastId = toast.loading("Salvando usuário...");
     try {
-      setIsLoading(true);
 
-      // Verificação mais rigorosa de senha para novos usuários
-      if (!user?.id && !data.password) {
-        form.setError("password", {
-          type: "manual",
-          message: "A senha é obrigatória para novos usuários",
-        });
-        toast.dismiss(loadingToastId);
-        toast.error("A senha é obrigatória para novos usuários");
-        setIsLoading(false);
-        return;
-      }
-
-      // Validação de senha para novos usuários usando o componente PasswordInput
-      if (!user?.id && !isValid) {
-        form.setError("password", {
-          type: "manual",
-          message: "A senha não atende aos requisitos de segurança",
-        });
-        toast.dismiss(loadingToastId);
-        toast.error("A senha não atende aos requisitos de segurança");
-        setIsLoading(false);
-        return;
-      }
 
       // Validar formulário de endereço
       if (!addressForm.formState.isValid) {
@@ -240,7 +214,6 @@ export default function UserForm({
             firstName: data.firstName,
             lastName: data.lastName,
             email: data.email,
-            password: data.password,
             idProfile: Number(data.idProfile),
             idCustomer: Number(data.idCustomer),
             idAddress: addressId,
@@ -296,7 +269,6 @@ export default function UserForm({
             firstName: data.firstName,
             lastName: data.lastName,
             email: data.email,
-            password: data.password,
             idProfile: Number(data.idProfile),
             idCustomer: Number(data.idCustomer),
             idAddress: addressId,
@@ -338,29 +310,11 @@ export default function UserForm({
               );
             }
           }
-
           router.push("/portal/users");
         } catch (createError: any) {
           toast.dismiss(loadingToastId);
 
-          if (
-            createError.message &&
-            createError.message.includes("Senha comprometida")
-          ) {
-            // Mensagem amigável para senha comprometida
-            toast.error(
-              "A senha escolhida foi encontrada em vazamentos de dados. Por favor, use uma senha mais única."
-            );
-          } else if (
-            createError.errors &&
-            createError.errors.length > 0 &&
-            createError.errors[0].code === "form_password_pwned"
-          ) {
-            // Detector específico para o erro do Clerk de senha comprometida
-            toast.error(
-              "A senha escolhida foi encontrada em vazamentos de dados. Por favor, use uma senha mais única."
-            );
-          } else if (createError.errors && createError.errors.length > 0) {
+          if (createError.errors && createError.errors.length > 0) {
             // Outros erros do Clerk
             toast.error(
               createError.errors[0].message || "Erro ao criar usuário"
@@ -411,17 +365,20 @@ export default function UserForm({
     }
   }, []);
 
-  const [password, setPassword] = useState("");
-  const [isValid, setIsValid] = useState(false);
 
-  const handlePasswordChange = (value: string, isValid: boolean) => {
-    setPassword(value);
-    setIsValid(isValid);
-  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(
+          (data) => {
+            console.log("✅ Submit OK", data);
+            onSubmit(data);
+          },
+          (errors) => {
+            console.error("Erros de validação", errors);
+            toast.error("Preencha todos os campos obrigatórios.");
+          }
+      )} className="space-y-6">
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl flex items-center">
@@ -477,36 +434,6 @@ export default function UserForm({
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Digite o e-mail" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      <Lock className="h-4 w-4 mr-1" />
-                      Senha{" "}
-                      {!user?.id && (
-                        <span className="text-destructive ml-1">*</span>
-                      )}
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        label=""
-                        placeholder="Digite a senha"
-                        value={password}
-                        onChange={(value, isValid) => {
-                          field.onChange(value);
-                          handlePasswordChange(value, isValid);
-                        }}
-                        required={!user?.id}
-                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

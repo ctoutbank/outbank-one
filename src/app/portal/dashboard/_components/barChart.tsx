@@ -32,6 +32,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+
+
 const DAYS_OF_WEEK = [
   "Domingo",
   "Segunda",
@@ -55,6 +57,33 @@ export function BarChartCustom({
   const isHourlyView = viewMode === "today" || viewMode === "yesterday";
   const isWeeklyView = viewMode === "week";
   const isMonthlyView = viewMode === "month";
+
+  //Serve para mostrar todos os anos mesmo que estejam vazios.
+  const normalizedData = React.useMemo(() => {
+    if (viewMode !== "year" || !chartData) return chartData;
+
+    const months = [
+      "jan", "fev", "mar", "abr", "mai", "jun",
+      "jul", "ago", "set", "out", "nov", "dez"
+    ];
+
+    const monthMap = new Map(
+        chartData.map((item) => {
+          if (!item.date) return [0, item];
+          const monthIndex = new Date(item.date).getMonth();
+          return [monthIndex, item];
+        })
+    );
+
+    return months.map((_, index) =>
+            monthMap.get(index) ?? {
+              date: new Date(2025, index, 1).toISOString(), // ou só o índice se preferir
+              bruto: 0,
+              lucro: 0,
+              count: 0,
+            }
+    );
+  }, [chartData, viewMode]);
 
   const total = React.useMemo(
     () => ({
@@ -110,7 +139,7 @@ export function BarChartCustom({
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={normalizedData}
             margin={{
               left: 12,
               right: 12,

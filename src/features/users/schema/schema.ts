@@ -20,42 +20,6 @@ export const schemaUser = z.object({
   firstName: z.string().min(1, "O nome é obrigatório"),
   lastName: z.string().min(1, "O sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
-  password: z.string().superRefine((val, ctx) => {
-    const url = typeof window !== "undefined" ? window.location.pathname : "";
-    if (url.endsWith("/0")) {
-      if (!val || val.length < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha é obrigatória",
-        });
-      } else if (val.length < 8) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha deve ter pelo menos 8 caracteres",
-        });
-      } else if (!/[A-Z]/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha deve conter pelo menos uma letra maiúscula",
-        });
-      } else if (!/[a-z]/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha deve conter pelo menos uma letra minúscula",
-        });
-      } else if (!/[0-9]/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha deve conter pelo menos um número",
-        });
-      } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "A senha deve conter pelo menos um caractere especial",
-        });
-      }
-    }
-  }),
   idAddress: z.number().optional(),
   idProfile: z.string().min(1, "o perfil é obrigatório"),
   idCustomer: z.string().optional(),
@@ -65,6 +29,7 @@ export const schemaUser = z.object({
   selectedMerchants: z.array(z.string()).optional(),
   fullAccess: z.boolean().optional(),
 });
+
 
 export const schemaGroup = z.object({
   id: z.string().optional(),
