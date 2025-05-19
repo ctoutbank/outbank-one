@@ -96,8 +96,8 @@ export default function FilterForm({
     filter.typeName === "Agenda dos logistas"
       ? "AL"
       : filter.typeName === "Vendas"
-      ? "VN"
-      : ""
+        ? "VN"
+        : ""
   );
   const [filteredParams, setFilteredParams] = useState<
     ReportFilterParamDetail[]
@@ -529,8 +529,8 @@ export default function FilterForm({
               return filter.typeName === "Agenda dos logistas"
                 ? type.code === "AL"
                 : filter.typeName === "Vendas"
-                ? type.code === "VN"
-                : false;
+                  ? type.code === "VN"
+                  : false;
             }
             // Caso contrário, por padrão selecionar o tipo "Vendas" se disponível
             return type.name === "Vendas";
@@ -1035,8 +1035,8 @@ export default function FilterForm({
                         filter.id && filter.idReportFilterParam
                           ? String(filter.idReportFilterParam)
                           : field.value
-                          ? String(field.value)
-                          : undefined
+                            ? String(field.value)
+                            : undefined
                       }
                       disabled={filteredParams.length === 0}
                     >

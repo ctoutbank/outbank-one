@@ -26,6 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useCallback } from "react";
 import {
   insertReportFormAction,
   updateReportFormAction,
@@ -82,7 +83,22 @@ export default function ReportForm({
     },
   });
 
-  const onSubmit = async (data: ReportSchema) => {
+  // Use useCallback to create a stable function reference
+  const handleDeleteEmail = useCallback(
+    async (email: string) => {
+      try {
+        await deleteEmailFromReport(report.id as number, email);
+        toast.success(`Email ${email} removido com sucesso`);
+      } catch (error) {
+        console.error("Erro ao remover email:", error);
+        toast.error("Erro ao remover email. Tente novamente.");
+        throw error;
+      }
+    },
+    [report.id]
+  );
+
+  const onSubmit = useCallback(async (data: ReportSchema) => {
     // Log para depuração
     console.log("Dados do formulário:", data);
 
@@ -114,7 +130,7 @@ export default function ReportForm({
         router.push(`/portal/reports/${newId}`);
       }
     }
-  };
+  }, [router, onReportCreated]);
 
   return (
     <Form {...form}>
@@ -144,7 +160,7 @@ export default function ReportForm({
                     <FormLabel>Tipo de Relatório</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value || ""}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -172,7 +188,7 @@ export default function ReportForm({
                     <FormLabel>Formato</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value || ""}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -220,7 +236,7 @@ export default function ReportForm({
                         // Forçar a atualização do formulário para refletir a mudança
                         form.trigger("recurrenceCode");
                       }}
-                      defaultValue={field.value || ""}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -393,7 +409,7 @@ export default function ReportForm({
                       <FormLabel>Tipo de Data de Referência</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value || ""}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -449,45 +465,26 @@ export default function ReportForm({
               <FormField
                 control={form.control}
                 name="emails"
-                render={({ field }) => (
-                  <FormItem className="col-start-1 pl-0 ml-0">
-                    <FormControl className="pl-0 ml-0">
-                      <EmailList
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        label="Emails para envio do relatório"
-                        description="Adicione os emails que receberão este relatório"
-                        className="shadow-none border-0 p-0"
-                        reportExists={!!report.id}
-                        onDeleteEmail={
-                          report.id
-                            ? async (email) => {
-                                try {
-                                  await deleteEmailFromReport(
-                                    report.id as number,
-                                    email
-                                  );
-                                  toast.success(
-                                    `Email ${email} removido com sucesso`
-                                  );
-                                } catch (error) {
-                                  console.error(
-                                    "Erro ao remover email:",
-                                    error
-                                  );
-                                  toast.error(
-                                    "Erro ao remover email. Tente novamente."
-                                  );
-                                  throw error;
-                                }
-                              }
-                            : undefined
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Memoize field value to prevent unnecessary rerenders
+                  const emailFieldValue = field.value || "";
+                  return (
+                    <FormItem className="col-start-1 pl-0 ml-0">
+                      <FormControl className="pl-0 ml-0">
+                        <EmailList
+                          value={emailFieldValue}
+                          onChange={field.onChange}
+                          label="Emails para envio do relatório"
+                          description="Adicione os emails que receberão este relatório"
+                          className="shadow-none border-0 p-0"
+                          reportExists={!!report.id}
+                          onDeleteEmail={report.id ? handleDeleteEmail : undefined}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
             <div className="flex justify-end ">

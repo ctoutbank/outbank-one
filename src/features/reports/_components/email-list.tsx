@@ -40,50 +40,27 @@ export default function EmailList({
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Inicializa a lista de emails a partir da string separada por vírgulas
   useEffect(() => {
-    if (value) {
-      const emailList = value
-        .split(",")
-        .map((email) => email.trim())
-        .filter((email) => email !== "");
-      setEmails(emailList);
-    } else {
-      setEmails([]);
-    }
+    const emailList = value
+      .split(",")
+      .map((email: string) => email.trim())
+      .filter((email: string) => email !== "");
+    setEmails(emailList);
   }, [value]);
-
-  // Atualiza a string de emails sempre que a lista mudar
-  useEffect(() => {
-    if (onChange && !isDeleting) {
-      onChange(emails.join(", "));
-    }
-  }, [emails, onChange, isDeleting]);
-
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-  const handleAddButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Previne o submit do formulário
-    addEmail();
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault(); // Previne o submit do formulário quando pressionar Enter
+      e.preventDefault();
       addEmail();
     }
   };
 
-  const addEmail = () => {
-    if (!newEmail.trim()) {
-      setError("Por favor, insira um email");
-      return;
-    }
+  const handleAddButtonClick = () => {
+    addEmail();
+  };
 
-    if (!validateEmail(newEmail)) {
+  const addEmail = () => {
+    if (!newEmail || !isValidEmail(newEmail)) {
       setError("Por favor, insira um email válido");
       return;
     }
@@ -98,7 +75,7 @@ export default function EmailList({
     setNewEmail("");
     setError("");
 
-    if (onChange) {
+    if (onChange && !isDeleting) {
       onChange(updatedEmails.join(", "));
     }
 
@@ -110,6 +87,11 @@ export default function EmailList({
     });
   };
 
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const removeEmail = async (emailToRemove: string) => {
     try {
       setIsDeleting(true);
@@ -119,7 +101,9 @@ export default function EmailList({
         await onDeleteEmail(emailToRemove);
       }
 
-      const updatedEmails = emails.filter((email) => email !== emailToRemove);
+      const updatedEmails = emails.filter(
+        (email: string) => email !== emailToRemove
+      );
       setEmails(updatedEmails);
 
       if (onChange) {
