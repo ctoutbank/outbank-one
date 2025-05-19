@@ -3,6 +3,7 @@ import {
   addresses,
   configurations,
   contacts,
+  merchantBankAccounts,
   merchantpixaccount,
 } from "../../../../drizzle/schema";
 import {
@@ -62,6 +63,7 @@ interface MerchantData {
   registration: string | null;
   idMerchantPrice: number | null;
   idCustomer: number | null;
+  idMerchantBankAccount: number | null;
 }
 
 interface AddressData {
@@ -85,8 +87,12 @@ interface ConfigurationData {
   configurations: typeof configurations.$inferSelect;
 }
 
+interface MerchantBankAccountData {
+  merchantBankAccount: typeof merchantBankAccounts.$inferSelect;
+}
+
 interface PixAccountData {
-  pixaccounts: typeof merchantpixaccount.$inferSelect;
+  pixaccounts: typeof merchantpixaccount.$inferSelect | null;
   merchantcorporateName: string;
   merchantdocumentId: string;
   legalPerson: string;
@@ -148,8 +154,8 @@ export interface MerchantTabsProps {
   address: AddressData;
   Contacts: ContactData;
   addresses: AddressData;
+  merchantPixAccount: PixAccountData;
 
-  pixaccounts: PixAccountData;
   configurations: ConfigurationData;
 
   cnaeMccList: CnaeMccDropdown[];
@@ -157,7 +163,7 @@ export interface MerchantTabsProps {
   establishmentFormatList: EstablishmentFormatDropdown[];
   DDAccountType: accountTypeDropdown[];
   DDBank: banckDropdown[];
-
+  merchantBankAccount: MerchantBankAccountData;
   merchantPriceGroupProps: MerchantPriceGroupProps;
   permissions: string[];
   merchantFiles?: FileItem[];

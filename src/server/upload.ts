@@ -5,10 +5,19 @@ import { s3Client } from "@/server/integrations/s3client";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { file, merchantfile } from "../../drizzle/schema";
+import {
+  file,
+  merchantfile,
+  solicitationFeeDocument,
+} from "../../drizzle/schema";
 
 // Tipos para gerenciamento de arquivos
-export type FileEntityType = "merchant" | "terminal" | "customer" | "payment";
+export type FileEntityType =
+  | "merchant"
+  | "terminal"
+  | "customer"
+  | "payment"
+  | "pricingSolicitation";
 
 export interface FileItem {
   id: number;
@@ -216,6 +225,24 @@ export async function createFileRelation(params: CreateFileRelationParams) {
         .returning();
 
       revalidatePath(`/merchants/${entityId}`);
+      return result[0];
+    }
+
+    // Implementação para pricing solicitation
+    if (entityType === "pricingSolicitation") {
+      const result = await db
+        .insert(solicitationFeeDocument)
+        .values({
+          solicitationFeeId: entityId,
+          idFile: fileId,
+          type: extension,
+          slug: null,
+          dtinsert: new Date().toISOString(),
+          dtupdate: new Date().toISOString(),
+        })
+        .returning();
+
+      revalidatePath(`/pricing-solicitation/${entityId}`);
       return result[0];
     }
 
@@ -502,9 +529,99 @@ export async function getFilesByFileType(
         }));
     }
 
+    if (entityType === "pricingSolicitation") {
+      const files = await db
+        .select({
+          id: file.id,
+          fileName: file.fileName,
+          fileUrl: file.fileUrl,
+          extension: file.extension,
+          active: file.active,
+        })
+        .from(solicitationFeeDocument)
+        .innerJoin(file, eq(solicitationFeeDocument.idFile, file.id))
+        .where(
+          and(
+            eq(solicitationFeeDocument.solicitationFeeId, entityId),
+            eq(file.active, true),
+            eq(file.fileType, fileType)
+          )
+        );
+
+      return files
+        .filter(
+          (f) =>
+            f.fileName !== null && f.fileUrl !== null && f.extension !== null
+        )
+        .map((f) => ({
+          id: f.id,
+          fileName: f.fileName as string,
+          fileUrl: f.fileUrl as string,
+          extension: f.extension as string,
+          active: f.active === true,
+        }));
+    }
+
     return [];
   } catch (error) {
-    console.error(`Erro ao buscar arquivos do tipo ${fileType}:`, error);
+    console.error(`Erro ao buscar arquivos para ${entityType}:`, error);
     return [];
+  }
+}
+
+/**
+ * Helper function for creating a file with pricing solicitation relation
+ */
+export async function createFileWithPricingSolicitation(
+  formData: FormData,
+  solicitationId: number,
+  fileType: string
+): Promise<UploadFileResponse> {
+  try {
+    // Configure path for pricing solicitation files
+    const path = `pricing-solicitations/${solicitationId}`;
+
+    // Get file from FormData
+    const file = formData.get("File") as File;
+    if (!file) {
+      throw new Error("No file found in FormData");
+    }
+
+    console.log("Creating file for pricing solicitation:", {
+      solicitationId,
+      fileType,
+      fileName: file.name,
+    });
+
+    // Upload file and create standard file record
+    const uploadResult = await uploadFile({
+      formData,
+      path,
+      fileName: `${fileType}-${Date.now()}`,
+      fileType,
+    });
+
+    if (!uploadResult) {
+      throw new Error("Failed to upload file");
+    }
+
+    // Create relation in solicitationFeeDocument
+    await db.insert(solicitationFeeDocument).values({
+      solicitationFeeId: solicitationId,
+      idFile: uploadResult.fileId,
+      type: fileType,
+      slug: null,
+      dtinsert: new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+    });
+
+    revalidatePath(`/pricing-solicitation/${solicitationId}`);
+    return uploadResult;
+  } catch (error) {
+    console.error(
+      "Error creating file with pricing solicitation relation:",
+      error
+    );
+    throw error;
   }
 }

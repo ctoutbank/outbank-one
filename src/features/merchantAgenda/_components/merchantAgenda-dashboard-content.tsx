@@ -56,7 +56,7 @@ export function MerchantAgendaDashboardContent({
     <div className="space-y-4">
       <div className="flex items-center flex-wrap gap-4 ">
         {/* Estabelecimentos Card */}
-        <Card className="bg-white min-w-[280px] w-4 h-[135px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] h-[150px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function MerchantAgendaDashboardContent({
         </Card>
 
         {/* Vendas Card */}
-        <Card className="bg-white min-w-[280px] w-4 h-[135px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] h-[150px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export function MerchantAgendaDashboardContent({
         </Card>
 
         {/* Parcelas Card */}
-        <Card className="bg-white min-w-[280px] w-4 h-[135px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] h-[150px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -177,7 +177,7 @@ export function MerchantAgendaDashboardContent({
         </Card>
 
         {/* Parcelas a Liquidar Card */}
-        <Card className="bg-white min-w-[280px] w-4 h-[135px]">
+        <Card className="bg-white min-w-[320px] max-w-[320px] h-[150px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

@@ -15,12 +15,15 @@ import {
   users,
 } from "../../../../drizzle/schema";
 import { AddressSchema } from "../schema/schema";
+import { hashPassword } from "@/app/utils/password";
+import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
+
 
 export type UserInsert = {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password?: string;
   idCustomer: number | null;
   idProfile: number | null;
   idAddress: number | null;
@@ -64,6 +67,8 @@ export interface UserDetailForm extends UserDetail {
   email: string;
   selectedMerchants?: string[];
   fullAccess: boolean;
+  temporaryPassword: string | null;
+  firstLogin: boolean | null;
 }
 
 export async function getUsers(
@@ -176,6 +181,20 @@ export async function getUsers(
   };
 }
 
+
+
+function generateRandomPassword(length = 6) {
+  const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let randomPassword = "";
+  for (let i = 0; i < length; i++) {
+    randomPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return randomPassword;
+}
+
+
+
 export async function InsertUser(data: UserInsert) {
   const fieldsToValidate: (keyof UserInsert)[] = [
     "firstName",
@@ -197,6 +216,7 @@ export async function InsertUser(data: UserInsert) {
     throw new Error("Campos obrigatórios não foram preenchidos");
   }
 
+
   try {
     const clerkUser = await (
       await clerkClient()
@@ -204,8 +224,18 @@ export async function InsertUser(data: UserInsert) {
       firstName: data.firstName,
       lastName: data.lastName,
       emailAddress: [data.email],
-      password: data.password,
+      skipPasswordRequirement: true,
+      publicMetadata: {
+        isFirstLogin: true,
+      },
     });
+
+    const password = generateRandomPassword()
+
+    const hashedPassword = hashPassword(password);
+    console.log(password)
+
+
 
     const newUser = await db
       .insert(users)
@@ -219,8 +249,14 @@ export async function InsertUser(data: UserInsert) {
         idProfile: data.idProfile,
         idAddress: data.idAddress,
         fullAccess: data.fullAccess,
+        hashedPassword: hashedPassword,
+        email: data.email,
       })
-      .returning({ id: users.id });
+
+    .returning({ id: users.id });
+
+      await sendWelcomePasswordEmail(data.email, password);
+
 
     // Insert user-merchant relationships if any merchants are selected
     if (data.selectedMerchants && data.selectedMerchants.length > 0) {
@@ -365,6 +401,7 @@ export async function getUserById(
       idCustomer: userDb[0].idCustomer,
       idProfile: userDb[0].idProfile,
       lastName: clerkUser.lastName || "",
+      hashedPassword: userDb[0].hashedPassword,
       password: "",
       slug: userDb[0].slug,
       idAddress: userDb[0].idAddress,
@@ -372,6 +409,8 @@ export async function getUserById(
       selectedMerchants: userMerchantsList.map(
         (um) => um.idMerchant?.toString() || ""
       ),
+      temporaryPassword: "false",
+      firstLogin: null,
     };
   }
 }

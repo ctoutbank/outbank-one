@@ -41,4 +41,5 @@ export interface InsertPaymentLink {
   pixEnabled: boolean;
   idMerchant: number;
   transactionSlug: string;
+  isFromServer: boolean;
 }

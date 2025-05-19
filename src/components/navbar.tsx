@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { SignedIn, SignedOut } from "@clerk/nextjs"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Menu, X, ChevronRight, Phone, Mail } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight, Mail, Menu, Phone, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { href: "/", label: "Outbank" },
   { href: "/banking", label: "Banking" },
   { href: "/acquiring", label: "Acquiring" },
   { href: "/cards", label: "Cards & Credit" },
-]
+];
 
 export function Navbar() {
-  const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
+      setScrolled(window.scrollY > 20);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = "unset";
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   return (
     <div className="relative z-[100]">
@@ -45,17 +45,17 @@ export function Navbar() {
         className={cn(
           "fixed left-0 right-0 z-50 w-full bg-gray-200/10 backdrop-blur-sm border border-gray-400/20 md:rounded-sm transition-all duration-300 pointer-events-auto max-w-7xl mx-auto",
           !isOpen && "md:mt-6",
-          scrolled && "bg-gray-200/10 backdrop-blur-md",
+          scrolled && "bg-gray-200/10 backdrop-blur-md"
         )}
       >
         <div className="max-w-[1440px] mx-auto h-16 flex items-center justify-between px-4 md:px-8">
           {/* Logo */}
           <div className="w-[150px]">
             <Link className="flex items-center justify-center" href="/">
-              <Image 
-                src="/box-logo.svg" 
-                alt="Logo Outbank" 
-                width={160} 
+              <Image
+                src="/box-logo.svg"
+                alt="Logo Outbank"
+                width={160}
                 height={44}
                 className="w-auto h-11"
                 priority
@@ -72,7 +72,9 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   "text-sm font-semibold hover:underline underline-offset-4 transition-colors hover:scale-105 duration-300",
-                  pathname === link.href ? "text-white underline scale-105" : "text-gray-300 hover:text-white",
+                  pathname === link.href
+                    ? "text-white underline scale-105"
+                    : "text-gray-300 hover:text-white"
                 )}
               >
                 {link.label}
@@ -94,7 +96,9 @@ export function Navbar() {
             </SignedIn>
             <SignedOut>
               <Link href="/auth/sign-in">
-                <Button className=" text-black rounded-none bg-gray-100 hover:bg-gray-300  hover:scale-105 transition-all duration-300">Entrar</Button>
+                <Button className=" text-black rounded-none bg-gray-100 hover:bg-gray-300  hover:scale-105 transition-all duration-300">
+                  Entrar
+                </Button>
               </Link>
             </SignedOut>
           </div>
@@ -113,7 +117,11 @@ export function Navbar() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
               </motion.div>
             </AnimatePresence>
           </button>
@@ -136,11 +144,11 @@ export function Navbar() {
                   transition={{ delay: 0.1, duration: 0.5 }}
                   className="mb-8"
                 >
-                  <Image 
-                    src="/box-logo.svg" 
-                    alt="Logo Outbank" 
-                    width={120} 
-                    height={27} 
+                  <Image
+                    src="/box-logo.svg"
+                    alt="Logo Outbank"
+                    width={120}
+                    height={27}
                     className="h-8 w-auto"
                     priority
                     quality={100}
@@ -162,7 +170,9 @@ export function Navbar() {
                         className={cn(
                           "flex items-center justify-between w-full py-4 text-xl font-medium tracking-tight transition-all duration-200",
                           "hover:text-white group",
-                          pathname === link.href ? "text-white" : "text-gray-400",
+                          pathname === link.href
+                            ? "text-white"
+                            : "text-gray-400"
                         )}
                       >
                         <span>{link.label}</span>
@@ -187,7 +197,9 @@ export function Navbar() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <h3 className="text-white text-lg font-semibold mb-4">Support</h3>
+                  <h3 className="text-white text-lg font-semibold mb-4">
+                    Support
+                  </h3>
                   <div className="space-y-4">
                     <div className="flex items-center text-gray-400">
                       <Phone className="h-5 w-5 mr-3" />
@@ -208,7 +220,11 @@ export function Navbar() {
                   transition={{ delay: 0.5 }}
                 >
                   <SignedIn>
-                    <Link href="/portal/dashboard" onClick={() => setIsOpen(false)} className="block w-full">
+                    <Link
+                      href="/portal/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="block w-full"
+                    >
                       <Button
                         className="w-full bg-white text-black hover:bg-white/90 
                                  text-lg py-6 rounded-lg font-medium
@@ -219,7 +235,11 @@ export function Navbar() {
                     </Link>
                   </SignedIn>
                   <SignedOut>
-                    <Link href="/auth/sign-in" onClick={() => setIsOpen(false)} className="block w-full">
+                    <Link
+                      href="/auth/sign-in"
+                      onClick={() => setIsOpen(false)}
+                      className="block w-full"
+                    >
                       <Button
                         className="w-full bg-white text-black hover:bg-white/90 
                                  text-lg py-6 rounded-lg font-medium
@@ -236,6 +256,5 @@ export function Navbar() {
         </AnimatePresence>
       </header>
     </div>
-  )
+  );
 }
-

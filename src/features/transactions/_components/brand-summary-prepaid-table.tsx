@@ -11,8 +11,9 @@ interface BrandSummaryTableProps {
 
 export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProps) {
     const productTypes = [
-        { label: "Crédito Pré-pago por Bandeira", value: "PREPAID_CREDIT" },
         { label: "Débito Pré-pago por Bandeira", value: "PREPAID_DEBIT" },
+        { label: "Crédito Pré-pago por Bandeira", value: "PREPAID_CREDIT" },
+
     ];
 
     return (

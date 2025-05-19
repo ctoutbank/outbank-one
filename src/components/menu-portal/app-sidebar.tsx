@@ -5,10 +5,12 @@ import {
   Calculator,
   Calendar,
   CalendarDays,
+  ChartBar,
   Check,
   DollarSign,
   DollarSignIcon,
   File,
+  FilePlus2,
   FileText,
   FolderOpen,
   HomeIcon,
@@ -16,6 +18,7 @@ import {
   Link,
   LucideIcon,
   PieChart,
+  Receipt,
   Settings,
   User,
 } from "lucide-react";
@@ -53,6 +56,8 @@ const iconMap: { [key: string]: LucideIcon } = {
   Calendar,
   FolderOpen,
   CalendarDays,
+  FilePlus2,
+  Receipt,
 };
 
 interface MenuItem {
@@ -145,6 +150,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menuData.navMain} />
+        <a
+          href="https://outbank-chart-ia.vercel.app/"
+          target="_blank"
+          className="flex items-center gap-2 p-4"
+        >
+          <ChartBar className="h-4 w-4" />
+          <p>Acessar IA de Gráficos</p>
+        </a>
       </SidebarContent>
       <SidebarFooter>
         <UserMenu />

@@ -40,6 +40,8 @@ export async function insertPaymentLinkAndRelations(
           paymentLink.slugFinancialTransaction == null
             ? ""
             : paymentLink.slugFinancialTransaction,
+
+        isFromServer: true,
       })
     );
 
