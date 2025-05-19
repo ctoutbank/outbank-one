@@ -5,29 +5,9 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
-import * as React from "react";
 
 export default function CustomerCarousel() {
-  const [api, setApi] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    if (!api) return;
-
-    // Add plugin after carousel initialization
-    const autoplayPlugin = Autoplay({
-      delay: 2000,
-      stopOnInteraction: false,
-      stopOnMouseEnter: true,
-    });
-    api.plugins.add(autoplayPlugin);
-
-    return () => {
-      api.plugins.remove(autoplayPlugin);
-    };
-  }, [api]);
-
   return (
     <div className="w-full bg-[#080808] py-16">
       <div className="max-w-7xl mx-auto px-8">
@@ -42,7 +22,6 @@ export default function CustomerCarousel() {
               align: "start",
               loop: true,
             }}
-            setApi={setApi}
             className="w-full max-w-5xl"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
