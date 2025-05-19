@@ -310,7 +310,7 @@ export default function FeeForm({
       );
 
       // Redirecionar para a lista
-      router.push("/portal/newTax");
+      router.push("/portal/pricing");
       router.refresh();
     } catch (error) {
       console.error("Erro ao salvar taxa:", error);
@@ -706,7 +706,7 @@ export default function FeeForm({
           )}
 
           <div className="flex justify-between">
-            <Link href="/portal/newTax">
+            <Link href="/portal/pricing">
               <Button type="button" variant="outline">
                 Voltar
               </Button>

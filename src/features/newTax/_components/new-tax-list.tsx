@@ -41,11 +41,11 @@ export default function FeeList() {
   }, []);
 
   const handleEdit = (feeId: string) => {
-    router.push(`/portal/newTax/${feeId}`);
+    router.push(`/portal/pricing/${feeId}`);
   };
 
   const handleAddNew = () => {
-    router.push("/portal/newTax/0");
+    router.push("/portal/pricing/0");
   };
 
   if (!isMounted) {

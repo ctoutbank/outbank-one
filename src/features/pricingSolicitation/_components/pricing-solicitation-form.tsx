@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { Upload as UploadIcon } from "lucide-react";
 
 import {
   PricingSolicitationSchema,
@@ -260,21 +259,6 @@ export default function PricingSolicitationForm({
                   control={form.control}
                   isNewSolicitation={solicitationId === null}
                 />
-
-                <div className="flex justify-end items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleOpenDocumentUpload}
-                    className="flex items-center gap-2"
-                  >
-                    <UploadIcon className="h-4 w-4" />
-                    Importar
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Enviando..." : "Enviar"}
-                  </Button>
-                </div>
               </form>
             </Form>
           </CardContent>

@@ -9,7 +9,7 @@ export default async function NewTaxPage() {
     <>
       <BaseHeader
         breadcrumbItems={[
-          { title: "Cadastro de Taxas de Cobrança", url: "/portal/newTax" },
+          { title: "Cadastro de Taxas de Cobrança", url: "/portal/pricing" },
         ]}
       />
       <BaseBody
