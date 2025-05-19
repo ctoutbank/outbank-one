@@ -25,7 +25,8 @@ const getGroupFromUrl = (url: string): string => {
     history: "Liquidação",
     reports: "Relatório",
     financialReleases: "Lançamentos Financeiros",
-    taxes: "Taxas",
+    pricingSolicitation: "Solicitação de Taxas",
+    pricing: "Taxas",
   };
 
   return groupMappings[lastSegment] || lastSegment;
@@ -135,9 +136,14 @@ const menuData = {
       ],
     },
     {
+      title: "Solicitação de Taxas",
+      url: "/portal/pricingSolicitation",
+      icon: "FilePlus2",
+    },
+    {
       title: "Taxas",
-      url: "/portal/taxes",
-      icon: "Settings",
+      url: "/portal/pricing",
+      icon: "Receipt",
     },
   ],
 };

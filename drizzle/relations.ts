@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, users, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, addresses, merchantBankAccounts, customerFunctions, merchantpixaccount, reportExecution, file, reportExecutionStatus, contacts, payout, merchantfile, userMerchants, payoutAntecipations, merchantSettlementOrders } from "./schema";
+import { customers, paymentInstitution, users, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, addresses, merchantBankAccounts, customerFunctions, merchantpixaccount, reportExecution, file, reportExecutionStatus, contacts, payout, merchantfile, userMerchants, payoutAntecipations, merchantSettlementOrders, solicitationFee, solicitationFeeBrand, solicitationBrandProductType, solicitationFeeDocument } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -27,6 +27,7 @@ export const customersRelations = relations(customers, ({one, many}) => ({
 	payouts: many(payout),
 	merchantSettlements: many(merchantSettlements),
 	payoutAntecipations: many(payoutAntecipations),
+	solicitationFees: many(solicitationFee),
 }));
 
 export const salesAgentsRelations = relations(salesAgents, ({one, many}) => ({
@@ -304,6 +305,7 @@ export const fileRelations = relations(file, ({many}) => ({
 		relationName: "reportExecution_fileId_file_id"
 	}),
 	merchantfiles: many(merchantfile),
+	solicitationFeeDocuments: many(solicitationFeeDocument),
 }));
 
 export const reportExecutionStatusRelations = relations(reportExecutionStatus, ({many}) => ({
@@ -373,5 +375,40 @@ export const merchantSettlementOrdersRelations = relations(merchantSettlementOrd
 	merchantSettlement: one(merchantSettlements, {
 		fields: [merchantSettlementOrders.idMerchantSettlements],
 		references: [merchantSettlements.id]
+	}),
+}));
+
+export const solicitationFeeRelations = relations(solicitationFee, ({one, many}) => ({
+	customer: one(customers, {
+		fields: [solicitationFee.idCustomers],
+		references: [customers.id]
+	}),
+	solicitationFeeBrands: many(solicitationFeeBrand),
+	solicitationFeeDocuments: many(solicitationFeeDocument),
+}));
+
+export const solicitationFeeBrandRelations = relations(solicitationFeeBrand, ({one, many}) => ({
+	solicitationFee: one(solicitationFee, {
+		fields: [solicitationFeeBrand.solicitationFeeId],
+		references: [solicitationFee.id]
+	}),
+	solicitationBrandProductTypes: many(solicitationBrandProductType),
+}));
+
+export const solicitationBrandProductTypeRelations = relations(solicitationBrandProductType, ({one}) => ({
+	solicitationFeeBrand: one(solicitationFeeBrand, {
+		fields: [solicitationBrandProductType.solicitationFeeBrandId],
+		references: [solicitationFeeBrand.id]
+	}),
+}));
+
+export const solicitationFeeDocumentRelations = relations(solicitationFeeDocument, ({one}) => ({
+	file: one(file, {
+		fields: [solicitationFeeDocument.idFile],
+		references: [file.id]
+	}),
+	solicitationFee: one(solicitationFee, {
+		fields: [solicitationFeeDocument.solicitationFeeId],
+		references: [solicitationFee.id]
 	}),
 }));

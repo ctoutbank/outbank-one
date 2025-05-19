@@ -1,28 +1,48 @@
-"use client"
+"use client";
 
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
-import Autoplay from "embla-carousel-autoplay"
-import Image from "next/image"
-import * as React from "react"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import Image from "next/image";
+import * as React from "react";
 
 export default function CustomerCarousel() {
-  const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: false, stopOnMouseEnter: true })
-  )
+  const [api, setApi] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    // Add plugin after carousel initialization
+    const autoplayPlugin = Autoplay({
+      delay: 2000,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    });
+    api.plugins.add(autoplayPlugin);
+
+    return () => {
+      api.plugins.remove(autoplayPlugin);
+    };
+  }, [api]);
 
   return (
     <div className="w-full bg-[#080808] py-16">
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8">
           <p className="text-gray-300 text-md font-medium whitespace-nowrap self-center">
-            /Our main customers<br />around the world/
+            /Our main customers
+            <br />
+            around the world/
           </p>
           <Carousel
             opts={{
               align: "start",
               loop: true,
             }}
-            plugins={[plugin.current]}
+            setApi={setApi}
             className="w-full max-w-5xl"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
@@ -41,8 +61,6 @@ export default function CustomerCarousel() {
                 { name: "Natural", src: "natural.svg" },
                 { name: "Realtor", src: "realtor.svg" },
 
-
-
                 // Duplicate items to ensure smooth infinite loop
                 { name: "Cloudly", src: "cloudly.svg" },
                 { name: "Camera", src: "camera.svg" },
@@ -56,7 +74,10 @@ export default function CustomerCarousel() {
                 { name: "Apply", src: "apply.svg" },
                 { name: "Natural", src: "natural.svg" },
               ].map((logo, index) => (
-                <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 lg:basis-1/4">
+                <CarouselItem
+                  key={index}
+                  className="pl-2 md:pl-4 basis-1/2 lg:basis-1/4"
+                >
                   <div className="p-4">
                     <div className="flex items-center justify-center h-20">
                       <Image
@@ -71,10 +92,9 @@ export default function CustomerCarousel() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            
           </Carousel>
         </div>
       </div>
     </div>
-  )
+  );
 }

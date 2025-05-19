@@ -9,6 +9,7 @@ import {
   DollarSign,
   DollarSignIcon,
   File,
+  FilePlus2,
   FileText,
   FolderOpen,
   HomeIcon,
@@ -16,6 +17,7 @@ import {
   Link,
   LucideIcon,
   PieChart,
+  Receipt,
   Settings,
   User,
 } from "lucide-react";
@@ -53,6 +55,8 @@ const iconMap: { [key: string]: LucideIcon } = {
   Calendar,
   FolderOpen,
   CalendarDays,
+  FilePlus2,
+  Receipt,
 };
 
 interface MenuItem {
