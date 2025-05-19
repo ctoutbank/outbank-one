@@ -51,7 +51,7 @@ export default function PricingSolicitationForm({
   const [solicitationId, setSolicitationId] = useState<number | null>(
     pricingSolicitation?.id || null
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formStatus, setFormStatus] = useState<
     "DRAFT" | "SEND_DOCUMENTS" | "PENDING"
   >(pricingSolicitation?.status === "PENDING" ? "PENDING" : "DRAFT");
@@ -186,14 +186,10 @@ export default function PricingSolicitationForm({
     return id;
   }
 
-  // Simplified function to just open the dialog
-  function handleOpenDocumentUpload() {
-    setOpenUploadDialog(true);
-  }
 
   // Final submission handler
   async function onSubmit(values: PricingSolicitationSchema) {
-    setIsSubmitting(true);
+ 
     try {
       if (solicitationId) {
         // Update existing solicitation to PENDING status
@@ -213,7 +209,7 @@ export default function PricingSolicitationForm({
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {
-      setIsSubmitting(false);
+      
     }
   }
 
