@@ -32,22 +32,13 @@ import {
 
 export const revalidate = 0;
 
-// Função para buscar os parâmetros de filtro de relatório
-
-interface ReportDetailProps {
-  params: {
-    id: string;
-  };
-  searchParams: {
-    activeTab?: string;
-    filterId?: string;
-  };
-}
-
 export default async function ReportDetail({
   params,
   searchParams,
-}: ReportDetailProps) {
+}: {
+  params: { id: string };
+  searchParams: { activeTab?: string; filterId?: string };
+}) {
   const permissions = await checkPagePermission("Relatórios", "Atualizar");
   const activeTab = searchParams.activeTab || "step1";
 
@@ -206,8 +197,6 @@ export default async function ReportDetail({
             })
             .join(", ");
         }
-
-        // Tratamento específico para Estabelecimento
 
         // Converter string para Date quando necessário
         const dtinsert = filter.dtinsert ? new Date(filter.dtinsert) : null;
