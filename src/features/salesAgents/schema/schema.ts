@@ -68,8 +68,8 @@ export const schemaSalesAgent = z.object({
   dtupdate: z.date().optional(),
   documentId: z.string().optional(),
   slugCustomer: z.string().optional(),
-  cpf: z.string().optional(),
-  phone: z.string().optional(),
+  cpf: z.string().min(11, "O cpf deve ter 11 dígitos").max(11, "Deve ter 11 dígitos"),
+  phone: z.string().min(11, "O número de telefone deve ter 11 dígitos (DDD incluso)").max(11, "Deve ter 11 dígitos"),
   birthDate: z.date().optional(),
   idUser: z.number().optional(),
 });

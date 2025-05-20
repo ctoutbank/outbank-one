@@ -479,7 +479,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                             Telefone <span className="text-destructive ml-1">*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o telefone do novo consultor" {...field} />
+                                            <Input placeholder="Digite o telefone do novo consultor" maxLength={11} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -516,7 +516,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                             <span className="text-destructive ml-1">*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o cpf do novo consultor" {...field} />
+                                            <Input placeholder="Digite o cpf do novo consultor" maxLength={11} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
