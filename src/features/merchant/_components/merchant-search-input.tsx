@@ -31,7 +31,7 @@ export function MerchantSearchInput() {
     return (
         <div className="flex items-center gap-2">
             <Input
-                placeholder="Buscar por nome fantasia"
+                placeholder="Pesquisar"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={handleKeyDown}
