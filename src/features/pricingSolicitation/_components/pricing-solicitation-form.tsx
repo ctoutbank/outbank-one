@@ -51,7 +51,7 @@ export default function PricingSolicitationForm({
   const [solicitationId, setSolicitationId] = useState<number | null>(
     pricingSolicitation?.id || null
   );
-  
+
   const [formStatus, setFormStatus] = useState<
     "DRAFT" | "SEND_DOCUMENTS" | "PENDING"
   >(pricingSolicitation?.status === "PENDING" ? "PENDING" : "DRAFT");
@@ -186,10 +186,8 @@ export default function PricingSolicitationForm({
     return id;
   }
 
-
   // Final submission handler
   async function onSubmit(values: PricingSolicitationSchema) {
- 
     try {
       if (solicitationId) {
         // Update existing solicitation to PENDING status
@@ -209,7 +207,6 @@ export default function PricingSolicitationForm({
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {
-      
     }
   }
 
