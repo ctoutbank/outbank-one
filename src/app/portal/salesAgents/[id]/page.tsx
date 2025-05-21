@@ -23,22 +23,20 @@ export default async function SalesAgentsDetail({
         subtitle={agent?.id ? "Editar Consultor" : "Adicionar Consultor"}
       >
         <SalesAgentsForm
-          salesAgent={{
-            id: agent?.id,
-            firstName: agent?.firstName || "",
-            lastName: agent?.lastName || "",
-            email: agent?.email || "",
-            active: agent?.active ?? true,
-            dtinsert: agent?.dtinsert ? new Date(agent.dtinsert) : new Date(),
-            dtupdate: agent?.dtupdate ? new Date(agent.dtupdate) : new Date(),
-            documentId: agent?.documentId || "",
-            slugCustomer: agent?.slugCustomer || "",
-
-            cpf: agent?.cpf || "",
-            phone: agent?.phone || "",
-            birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
-          }}
-        />
+            salesAgent={{
+                id: agent?.id,
+                firstName: agent?.firstName || "",
+                lastName: agent?.lastName || "",
+                email: agent?.email || "",
+                active: agent?.active ?? true,
+                dtinsert: agent?.dtinsert ? new Date(agent.dtinsert) : new Date(),
+                dtupdate: agent?.dtupdate ? new Date(agent.dtupdate) : new Date(),
+                documentId: agent?.documentId || "",
+                slugCustomer: agent?.slugCustomer || "",
+                cpf: agent?.cpf || "",
+                phone: agent?.phone || "",
+                birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
+            }} profiles={[]} customers={[]}        />
       </BaseBody>
     </>
   );

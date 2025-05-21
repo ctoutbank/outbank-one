@@ -28,7 +28,7 @@ export type UserInsert = {
   idProfile: number | null;
   idAddress: number | null;
   selectedMerchants?: string[];
-  fullAccess: boolean;
+  fullAccess?: boolean;
   active: boolean | null;
   idClerk: string | null;
   slug?: string;
