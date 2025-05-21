@@ -33,6 +33,7 @@ import {
 } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 
+import { UploadIcon } from "lucide-react";
 import { DocumentUploadContent } from "./document-upload-content";
 import { PricingSolicitationReadOnlyView } from "./pricing-solicitation-readonly";
 import { BusinessInfoSection } from "./sections/business-info-section";
@@ -51,10 +52,15 @@ export default function PricingSolicitationForm({
   const [solicitationId, setSolicitationId] = useState<number | null>(
     pricingSolicitation?.id || null
   );
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formStatus, setFormStatus] = useState<
     "DRAFT" | "SEND_DOCUMENTS" | "PENDING"
   >(pricingSolicitation?.status === "PENDING" ? "PENDING" : "DRAFT");
+  // Simplified function to just open the dialog
+  function handleOpenDocumentUpload() {
+    setOpenUploadDialog(true);
+  }
 
   const form = useForm<PricingSolicitationSchema>({
     resolver: zodResolver(schemaPricingSolicitation),
@@ -186,10 +192,9 @@ export default function PricingSolicitationForm({
     return id;
   }
 
-
   // Final submission handler
   async function onSubmit(values: PricingSolicitationSchema) {
- 
+    setIsSubmitting(true);
     try {
       if (solicitationId) {
         // Update existing solicitation to PENDING status
@@ -209,7 +214,7 @@ export default function PricingSolicitationForm({
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {
-      
+      setIsSubmitting(false);
     }
   }
 
@@ -255,6 +260,21 @@ export default function PricingSolicitationForm({
                   control={form.control}
                   isNewSolicitation={solicitationId === null}
                 />
+
+                <div className="flex justify-end items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleOpenDocumentUpload}
+                    className="flex items-center gap-2"
+                  >
+                    <UploadIcon className="h-4 w-4" />
+                    Importar
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Enviando..." : "Enviar"}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
