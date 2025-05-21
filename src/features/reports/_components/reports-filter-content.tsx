@@ -9,8 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
-import {KeyboardEvent, useEffect, useRef, useState} from "react";
+import {CalendarIcon, Search} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { format as formatDate } from "date-fns";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Calendar} from "@/components/ui/calendar";
+import {cn} from "@/lib/utils";
+
 
 type ReportsFilterContentProps = {
   searchIn?: string;
@@ -130,7 +135,7 @@ export function ReportsFilterContent({
 
   // Handler para a tecla Enter
   const handleKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
+    e: React.KeyboardEvent<any>
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -171,17 +176,36 @@ export function ReportsFilterContent({
 
         <div>
           <div className="text-xs font-medium mb-1.5">Data de Criação</div>
-          <Input
-            type="date"
-            value={creationDate ? creationDate.toISOString().split("T")[0] : ""}
-            onChange={(e) =>
-              setCreationDate(
-                e.target.value ? new Date(e.target.value) : undefined
-              )
-            }
-            onKeyDown={handleKeyDown}
-            className="h-9"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="relative w-full">
+                <CalendarIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Button
+                    variant="outline"
+                    className={cn(
+                        "w-full pl-8 text-left font-normal h-9",
+                        !creationDate && "text-muted-foreground"
+                    )}
+                    onKeyDown={handleKeyDown}
+                >
+                  {creationDate ? formatDate(creationDate, "dd/MM/yyyy") : "Selecionar data"}
+                </Button>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent
+                className="w-auto p-0"
+                align="start"
+                onMouseDown={(e) => e.stopPropagation()}
+            >
+              <Calendar
+                  mode="single"
+                  selected={creationDate}
+                  onSelect={(date) => setCreationDate(date ?? undefined)}
+                  initialFocus
+                  toDate={new Date()}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>

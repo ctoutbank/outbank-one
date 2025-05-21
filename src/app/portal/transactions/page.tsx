@@ -35,12 +35,12 @@ type TransactionsProps = {
 };
 
 async function TransactionsContent({
-  searchParams,
-}: {
+                                     searchParams,
+                                   }: {
   searchParams: TransactionsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20"); 
+  const pageSize = parseInt(searchParams.pageSize || "20");
 
   const dateFrom = searchParams.dateFrom || getStartOfDay();
   const dateTo = searchParams.dateTo || getEndOfDay();
@@ -48,148 +48,148 @@ async function TransactionsContent({
   // Filtros para getTransactions (lista detalhada)
   // Esta consulta suporta todos os filtros
   const transactionList = await getTransactions(
-    page,
-    pageSize,
-    searchParams.status,
-    searchParams.merchant,
-    dateFrom,
-    dateTo,
-    searchParams.productType,
-    searchParams.brand,
-    searchParams.nsu,
-    searchParams.method,
-    searchParams.salesChannel,
-    searchParams.terminal,
-    searchParams.valueMin,
-    searchParams.valueMax
+      page,
+      pageSize,
+      searchParams.status,
+      searchParams.merchant,
+      dateFrom,
+      dateTo,
+      searchParams.productType,
+      searchParams.brand,
+      searchParams.nsu,
+      searchParams.method,
+      searchParams.salesChannel,
+      searchParams.terminal,
+      searchParams.valueMin,
+      searchParams.valueMax
   );
 
   // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)
   // Esta consulta suporta os filtros principais
   const transactionsGroupedReport = await getTransactionsGroupedReport(
-    dateFrom,
-    dateTo,
-    searchParams.status,
-    searchParams.productType,
-    searchParams.brand,
-    searchParams.method,
-    searchParams.salesChannel,
-    searchParams.terminal,
-    searchParams.valueMin,
-    searchParams.valueMax,
-    searchParams.merchant
+      dateFrom,
+      dateTo,
+      searchParams.status,
+      searchParams.productType,
+      searchParams.brand,
+      searchParams.method,
+      searchParams.salesChannel,
+      searchParams.terminal,
+      searchParams.valueMin,
+      searchParams.valueMax,
+      searchParams.merchant
   );
 
   return (
-    <>
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 flex-1">
-            <TransactionsFilter
-              statusIn={searchParams.status}
-              merchantIn={searchParams.merchant}
-              dateFromIn={dateFrom}
-              dateToIn={dateTo}
-              productTypeIn={searchParams.productType}
-              brandIn={searchParams.brand}
-              nsuIn={searchParams.nsu}
-              methodIn={searchParams.method}
-              salesChannelIn={searchParams.salesChannel}
-              terminalIn={searchParams.terminal}
-              valueMinIn={searchParams.valueMin}
-              valueMaxIn={searchParams.valueMax}
-            />
-          </div>
-          <TransactionsExport />
+      <>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <TransactionsFilter
+                  statusIn={searchParams.status}
+                  merchantIn={searchParams.merchant}
+                  dateFromIn={dateFrom}
+                  dateToIn={dateTo}
+                  productTypeIn={searchParams.productType}
+                  brandIn={searchParams.brand}
+                  nsuIn={searchParams.nsu}
+                  methodIn={searchParams.method}
+                  salesChannelIn={searchParams.salesChannel}
+                  terminalIn={searchParams.terminal}
+                  valueMinIn={searchParams.valueMin}
+                  valueMaxIn={searchParams.valueMax}
+              />
+            </div>
+            <TransactionsExport />
 
-          {/* Componente para exportação em PDF 
+            {/* Componente para exportação em PDF
           <TransactionsExportPdf />*/}
-        </div>
+          </div>
 
-        <div>
-          {" "}
-          <TransactionsDashboardTable
-            transactions={transactionsGroupedReport}
-          />
-        </div>
-
-        <TransactionsList transactions={transactionList.transactions} />
-
-        {transactionList.totalCount > 0 && (
-          <div className="flex items-center justify-between mt-4">
-            <PageSizeSelector
-              currentPageSize={pageSize}
-              pageName="portal/transactions"
-            />
-            <PaginationRecords
-              totalRecords={transactionList.totalCount}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/transactions"
+          <div>
+            {" "}
+            <TransactionsDashboardTable
+                transactions={transactionsGroupedReport}
             />
           </div>
-        )}
-      </div>
-    </>
+
+          <TransactionsList transactions={transactionList.transactions} />
+
+          {transactionList.totalCount > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/transactions"
+                />
+                <PaginationRecords
+                    totalRecords={transactionList.totalCount}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/transactions"
+                />
+              </div>
+          )}
+        </div>
+      </>
   );
 }
 
 export default async function TransactionsPage({
-  searchParams,
-}: {
+                                                 searchParams,
+                                               }: {
   searchParams: TransactionsProps;
 }) {
   await checkPagePermission("Lançamentos Financeiros");
 
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
-      />
-      <BaseBody
-        title="Vendas"
-        subtitle={`Visualização de todas as vendas`}
-        actions={<SyncButton syncType="transactions" />}
-      >
-        <Suspense
-          fallback={
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <Skeleton className="h-10 w-[120px]" />
-                  <Skeleton className="h-10 w-[150px]" />
-                </div>
-                <div className="flex gap-2">
-                  <Skeleton className="h-10 w-[120px]" />
-                  <Skeleton className="h-10 w-[120px]" />
-                </div>
-              </div>
-              <div className="rounded-md border">
-                <div className="p-4">
-                  <div className="flex items-center gap-4 mb-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <Skeleton key={i} className="h-4 w-[100px]" />
-                    ))}
+      <>
+        <BaseHeader
+            breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
+        />
+        <BaseBody
+            title="Vendas"
+            subtitle={`Visualização de todas as vendas`}
+            actions={<SyncButton syncType="transactions" />}
+        >
+          <Suspense
+              fallback={
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <Skeleton className="h-10 w-[120px]" />
+                      <Skeleton className="h-10 w-[150px]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-10 w-[120px]" />
+                      <Skeleton className="h-10 w-[120px]" />
+                    </div>
                   </div>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 mb-4">
-                      {Array.from({ length: 6 }).map((_, j) => (
-                        <Skeleton key={j} className="h-4 w-[100px]" />
+                  <div className="rounded-md border">
+                    <div className="p-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <Skeleton key={i} className="h-4 w-[100px]" />
+                        ))}
+                      </div>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-4 mb-4">
+                            {Array.from({ length: 6 }).map((_, j) => (
+                                <Skeleton key={j} className="h-4 w-[100px]" />
+                            ))}
+                          </div>
                       ))}
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <Skeleton className="h-8 w-[100px]" />
+                    <Skeleton className="h-8 w-[300px]" />
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <Skeleton className="h-8 w-[100px]" />
-                <Skeleton className="h-8 w-[300px]" />
-              </div>
-            </div>
-          }
-        >
-          <TransactionsContent searchParams={searchParams} />
-        </Suspense>
-      </BaseBody>
-    </>
+              }
+          >
+            <TransactionsContent searchParams={searchParams} />
+          </Suspense>
+        </BaseBody>
+      </>
   );
 }

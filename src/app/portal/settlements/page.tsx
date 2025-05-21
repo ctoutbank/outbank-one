@@ -15,6 +15,7 @@ import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { formatDate } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
+import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -148,20 +149,24 @@ export default async function SettlementsPage({
             Nenhum item encontrado
           </div>
         ) : (
-          <>
-            <MerchantSettlementsList
-              merchantSettlementList={merchantSettlements}
-            />
+            <>
+              <MerchantSettlementsList merchantSettlementList={merchantSettlements} />
 
-            {totalRecords > 0 && (
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/settlements"
-              ></PaginationRecords>
-            )}
-          </>
+              {totalRecords > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={pageSize}
+                        pageName="portal/settlements"
+                    />
+                    <PaginationRecords
+                        totalRecords={totalRecords}
+                        currentPage={page}
+                        pageSize={pageSize}
+                        pageName="portal/settlements"
+                    />
+                  </div>
+              )}
+            </>
         )}
       </BaseBody>
     </>

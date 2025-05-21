@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontal } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useState } from "react";
 import type { MerchantAgendaList } from "../server/merchantAgenda";
 
@@ -82,7 +82,7 @@ export default function MerchantAgendaList({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

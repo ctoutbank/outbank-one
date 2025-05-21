@@ -4,8 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import {CalendarIcon, Search} from "lucide-react";
 import { KeyboardEvent, useState } from "react";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {format} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
+import * as React from "react";
 
 type TerminalsFilterContentProps = {
   dateFromIn?: Date;
@@ -94,6 +98,10 @@ export function TerminalsFilterContent({
     }
   };
 
+  const handlePopoverContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Impede que o evento de clique se propague para o trigger
+  };
+
   return (
     <div
       className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-[999] w-[1100px]"
@@ -172,27 +180,60 @@ export function TerminalsFilterContent({
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Inclusão Inicial</h3>
-          <Input
-            type="date"
-            value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
-            onChange={(e) =>
-              setDateFrom(e.target.value ? new Date(e.target.value) : undefined)
-            }
-            onKeyDown={handleKeyDown}
-          />
+          <h3 className="text-sm font-medium">Data Inicial</h3>
+          <div className="flex flex-col gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateFrom && "text-muted-foreground"
+                    )}
+                >
+                  <p></p>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "De"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[1001]" align="start" onMouseDown={(e) => e.stopPropagation()}>
+                <Calendar
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={setDateFrom}
+                    initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Data de Inclusão Final</h3>
-          <Input
-            type="date"
-            value={dateTo ? dateTo.toISOString().split("T")[0] : ""}
-            onChange={(e) =>
-              setDateTo(e.target.value ? new Date(e.target.value) : undefined)
-            }
-            onKeyDown={handleKeyDown}
-          />
+          <h3 className="text-sm font-medium">Data Final</h3>
+          <div className="flex flex-col gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateTo && "text-muted-foreground"
+                    )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "Até"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[1001]" align="start" onClick={handlePopoverContentClick} onMouseDown={(e) => e.stopPropagation()}>
+                <Calendar
+                    mode="single"
+                    selected={dateTo}
+                    onSelect={setDateTo}
+                    initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
 

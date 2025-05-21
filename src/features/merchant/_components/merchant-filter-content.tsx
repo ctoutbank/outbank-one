@@ -1,9 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {format} from "date-fns";
 import {
   Select,
   SelectContent,
@@ -12,8 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusKyc } from "@/lib/lookuptables/lookuptables";
-import { Search } from "lucide-react";
+import {CalendarIcon, Search} from "lucide-react";
 import { KeyboardEvent, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type FilterMerchantsContentProps = {
   dateFromIn?: Date;
@@ -168,17 +172,34 @@ export function FilterMerchantsContent({
 
         {/* Terceira linha */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Cadastrado Em</h3>
-          <Input
-            type="date"
-            value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
-            onChange={(e) =>
-              setDateFrom(e.target.value ? new Date(e.target.value) : undefined)
-            }
-            onKeyDown={handleKeyDown}
-            className="w-full"
-          />
+          <h3 className="text-sm font-medium">Cadastrado em</h3>
+          <div className="flex flex-col gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateFrom && "text-muted-foreground"
+                    )}
+                >
+                  <p></p>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Dia de cadastro"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
+                <Calendar
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={setDateFrom}
+                    initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
+
 
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Status KYC</h3>

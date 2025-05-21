@@ -9,6 +9,7 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
+import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -113,12 +114,18 @@ export default async function SalesAgentsPage({
           <SalesAgentlist SalesAgents={salesAgents} />
 
           {totalRecords && totalRecords > 0 && (
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/salesAgents"
-            />
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/salesAgents"
+                />
+                <PaginationRecords
+                    totalRecords={totalRecords}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/salesAgents"
+                />
+              </div>
           )}
         </div>
       </BaseBody>

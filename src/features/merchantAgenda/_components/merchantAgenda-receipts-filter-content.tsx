@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search } from "lucide-react";
 import {useEffect, useRef, useState} from "react";
+import {format, parseISO} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
 
 type MerchantAgendaFilterContentProps = {
   merchant?: string;
@@ -54,21 +59,46 @@ export function MerchantAgendaReceiptsFilterContent({
           </div>
         </div>
         {view === "day" && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Data</h3>
-            <div className="relative">
-              <CalendarIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="date"
-                className="pl-8"
-                value={dateInput}
-                onChange={(e) => setDateInput(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-              />
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Data</h3>
+              <div className="flex flex-col gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <div className="relative w-full">
+                      <CalendarIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Button
+                          variant="outline"
+                          className={cn(
+                              "w-full pl-8 text-left font-normal h-10",
+                              !dateInput && "text-muted-foreground"
+                          )}
+                      >
+                        {dateInput ? format(parseISO(dateInput), "dd/MM/yyyy") : "Selecionar data"}
+                      </Button>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent
+                      className="w-auto p-0"
+                      align="start"
+                      onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <Calendar
+                        mode="single"
+                        selected={dateInput ? parseISO(dateInput) : undefined}
+                        onSelect={(date) => {
+                          if (date) setDateInput(date.toISOString().split("T")[0]);
+                        }}
+                        initialFocus
+                        toDate={new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-          </div>
         )}
       </div>
+
+
 
       <div className="flex justify-end pt-4 mt-4 border-t">
         <Button

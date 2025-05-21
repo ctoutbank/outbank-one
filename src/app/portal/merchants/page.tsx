@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
+import { MerchantSearchInput } from "@/features/merchant/_components/merchant-search-input";
 import {
   getMerchants,
   getMerchantsWithDashboardData,
@@ -120,7 +121,9 @@ export default async function MerchantsPage({
         actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 justify-between mb-1">
+
+           <div className="flex items-center gap-2">
             <MerchantFilter
               establishmentIn={searchParams.establishment}
               statusIn={searchParams.status}
@@ -131,7 +134,10 @@ export default async function MerchantsPage({
               activeIn={searchParams.active}
               salesAgentIn={searchParams.salesAgent}
             />
+                  <MerchantSearchInput />
+           </div>
             <div className="flex items-center gap-2">
+
               <ExcelImportButton />
               <ExcelExport
                 data={merchantsExcel.merchants.map((merchant) => ({
@@ -178,6 +184,7 @@ export default async function MerchantsPage({
               </Button>
             </div>
           </div>
+
 
           <MerchantDashboardContent {...merchantData} />
 

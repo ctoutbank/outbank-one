@@ -3,9 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import {CalendarIcon, Search } from "lucide-react";
 import {useEffect, useRef, useState} from "react";
+import {Calendar} from "@/components/ui/calendar";
+import { format as formatDate } from "date-fns"
 
 type FilterEdisContentProps = {
   typeIn?: string;
@@ -116,11 +119,32 @@ export function FilterEdisContent({
 
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Data</h3>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                  variant="outline"
+                  className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                  )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? formatDate(new Date(date), "dd/MM/yyyy") : "Selecionar data"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                  mode="single"
+                  selected={date ? new Date(date) : undefined}
+                  onSelect={(selectedDate) => {
+                    if (selectedDate) {
+                      setDate(selectedDate.toISOString().split("T")[0]); // formata como yyyy-MM-dd
+                    }
+                  }}
+                  initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

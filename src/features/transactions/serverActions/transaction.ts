@@ -46,21 +46,21 @@ export type MerchantTotal = {
 };
 
 export async function getTransactions(
-  page: number = 1,
-  pageSize: number = 100,
-  status?: string,
-  merchant?: string,
-  dateFrom?: string,
-  dateTo?: string,
-  productType?: string,
-  brand?: string,
-  nsu?: string,
-  method?: string,
-  salesChannel?: string,
-  terminal?: string,
-  valueMin?: string,
-  valueMax?: string,
-  filterByUserMerchant?: boolean
+    page: number = 1,
+    pageSize: number = 100,
+    status?: string,
+    merchant?: string,
+    dateFrom?: string,
+    dateTo?: string,
+    productType?: string,
+    brand?: string,
+    nsu?: string,
+    method?: string,
+    salesChannel?: string,
+    terminal?: string,
+    valueMin?: string,
+    valueMax?: string,
+    filterByUserMerchant?: boolean
 ): Promise<TransactionsList> {
   const conditions = [];
 
@@ -70,7 +70,7 @@ export async function getTransactions(
     } else {
       if (userMerchants.slugMerchants.length > 0) {
         conditions.push(
-          inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+            inArray(transactions.slugMerchant, userMerchants.slugMerchants)
         );
       } else {
         return {
@@ -180,28 +180,28 @@ export async function getTransactions(
   let totalCount;
   if (page !== -1) {
     transactionList = await db
-      .select()
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause)
-      .orderBy(desc(transactions.dtInsert))
-      .offset((page - 1) * pageSize)
-      .limit(pageSize);
+        .select()
+        .from(transactions)
+        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+        .where(whereClause)
+        .orderBy(desc(transactions.dtInsert))
+        .offset((page - 1) * pageSize)
+        .limit(pageSize);
     totalCount = await db
-      .select({ count: count() })
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause);
+        .select({ count: count() })
+        .from(transactions)
+        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+        .where(whereClause);
   } else {
     console.log("page -1");
     transactionList = await db
-      .select()
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause);
+        .select()
+        .from(transactions)
+        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+        .where(whereClause);
   }
   return {
     transactions: transactionList.map((item) => ({
@@ -219,8 +219,8 @@ export async function getTransactions(
       brand: item.transactions.brand || "",
       transactionStatus: item.transactions.transactionStatus || "",
       amount: item.transactions.totalAmount
-        ? parseFloat(item.transactions.totalAmount)
-        : 0,
+          ? parseFloat(item.transactions.totalAmount)
+          : 0,
     })),
     totalCount: totalCount ? totalCount[0].count : 0,
   };
@@ -235,8 +235,8 @@ export type TransactionsGroupedReport = {
   date: string;
 };
 function normalizeDateRange(
-  start: string,
-  end: string
+    start: string,
+    end: string
 ): { start: string; end: string } {
   // Normaliza o início para 'YYYY-MM-DDT00:00:00'
   const startDate = start.split("T")[0] + "T00:00:00";
@@ -254,17 +254,17 @@ function normalizeDateRange(
 }
 
 export async function getTransactionsGroupedReport(
-  dateFrom: string,
-  dateTo: string,
-  status?: string,
-  productType?: string,
-  brand?: string,
-  method?: string,
-  salesChannel?: string,
-  terminal?: string,
-  valueMin?: string,
-  valueMax?: string,
-  merchant?: string
+    dateFrom: string,
+    dateTo: string,
+    status?: string,
+    productType?: string,
+    brand?: string,
+    method?: string,
+    salesChannel?: string,
+    terminal?: string,
+    valueMin?: string,
+    valueMax?: string,
+    merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
   // Construir condições dinâmicas para a consulta SQL
   const conditions = [];
@@ -429,9 +429,9 @@ export async function getTotalTransactions(dateFrom: string, dateTo: string) {
 }
 
 export async function getTotalTransactionsByMonth(
-  dateFrom: string,
-  dateTo: string,
-  viewMode?: string
+    dateFrom: string,
+    dateTo: string,
+    viewMode?: string
 ) {
   const conditions = [];
   const normalizeDate = normalizeDateRange(dateFrom, dateTo);
@@ -461,37 +461,37 @@ export async function getTotalTransactionsByMonth(
   const isMonthlyView = viewMode === "month";
 
   const result = await db
-    .select({
-      sum: sum(transactions.totalAmount),
-      count: count(),
-      date: isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-    })
-    .from(transactions)
-    .where(whereClause)
-    .groupBy(
-      isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-    )
-    .orderBy(
-      isHourlyView
-        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-        : isWeeklyView
-        ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-        : isMonthlyView
-        ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-        : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-    );
+      .select({
+        sum: sum(transactions.totalAmount),
+        count: count(),
+        date: isHourlyView
+            ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+            : isWeeklyView
+                ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+                : isMonthlyView
+                    ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+                    : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+      })
+      .from(transactions)
+      .where(whereClause)
+      .groupBy(
+          isHourlyView
+              ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+              : isWeeklyView
+                  ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+                  : isMonthlyView
+                      ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+                      : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+      )
+      .orderBy(
+          isHourlyView
+              ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+              : isWeeklyView
+                  ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+                  : isMonthlyView
+                      ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+                      : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+      );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({
     bruto: item.sum ? parseFloat(item.sum) : 0,
@@ -511,13 +511,13 @@ export async function getTotalTransactionsByMonth(
       const existingData = totals.find((item) => item.hour === hour);
       console.log(existingData);
       return (
-        existingData || {
-          bruto: 0,
-          count: 0,
-          lucro: 0,
-          date: new Date(dateFrom),
-          hour,
-        }
+          existingData || {
+            bruto: 0,
+            count: 0,
+            lucro: 0,
+            date: new Date(dateFrom),
+            hour,
+          }
       );
     });
   }
@@ -529,13 +529,13 @@ export async function getTotalTransactionsByMonth(
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfWeek === day);
       return (
-        existingData || {
-          bruto: 0,
-          count: 0,
-          lucro: 0,
-          date: new Date(dateFrom),
-          dayOfWeek: day,
-        }
+          existingData || {
+            bruto: 0,
+            count: 0,
+            lucro: 0,
+            date: new Date(dateFrom),
+            dayOfWeek: day,
+          }
       );
     });
   }
@@ -544,22 +544,22 @@ export async function getTotalTransactionsByMonth(
   if (isMonthlyView) {
     const dateF = new Date(dateFrom);
     const lastDayOfMonth = new Date(
-      dateF.getFullYear(),
-      dateF.getMonth() + 1,
-      0
+        dateF.getFullYear(),
+        dateF.getMonth() + 1,
+        0
     ).getDate();
     const days = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
     const [year, month] = dateFrom.split("T")[0].split("-").map(Number);
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfMonth === day);
       return (
-        existingData || {
-          bruto: 0,
-          count: 0,
-          lucro: 0,
-          date: new Date(year, month, day),
-          dayOfMonth: day,
-        }
+          existingData || {
+            bruto: 0,
+            count: 0,
+            lucro: 0,
+            date: new Date(year, month, day),
+            dayOfMonth: day,
+          }
       );
     });
   }
