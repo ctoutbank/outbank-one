@@ -12,6 +12,7 @@ import {
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { CSSProperties } from "react";
+import { useWatch } from "react-hook-form";
 
 interface FeesSectionProps {
   control: any;
@@ -135,8 +136,8 @@ function CurrencyInput({
   );
 }
 
-// BrandTables component for displaying brand fees
-function BrandTables({
+// POSBrandTable component for displaying POS brand fees
+function POSBrandTable({
   control,
   isReadOnly = false,
   isNewSolicitation = false,
@@ -147,9 +148,11 @@ function BrandTables({
 }) {
   // Define payment types as columns
   const paymentTypes = SolicitationFeeProductTypeList;
+  const brandsValues = useWatch({ control, name: "brands" });
 
   return (
     <div className="w-full overflow-x-auto">
+      <h3 className="text-lg font-medium mb-4">Taxas Transações na POS</h3>
       <Table className="w-full">
         <TableHeader>
           <TableRow>
@@ -202,9 +205,9 @@ function BrandTables({
                     {isReadOnly ? (
                       <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-gray-100">
                         <span>
-                          {control._formValues.brands?.[brandIndex]
-                            ?.productTypes?.[typeIndex]?.fee
-                            ? `${control._formValues.brands[brandIndex].productTypes[typeIndex].fee}%`
+                          {brandsValues?.[brandIndex]?.productTypes?.[typeIndex]
+                            ?.fee
+                            ? `${brandsValues[brandIndex].productTypes[typeIndex].fee}%`
                             : "-"}
                         </span>
                       </div>
@@ -235,9 +238,10 @@ function BrandTables({
                       {isReadOnly ? (
                         <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-yellow-100">
                           <span>
-                            {control._formValues.brands?.[brandIndex]
-                              ?.productTypes?.[typeIndex]?.feeAdmin
-                              ? `${control._formValues.brands[brandIndex].productTypes[typeIndex].feeAdmin}%`
+                            {brandsValues?.[brandIndex]?.productTypes?.[
+                              typeIndex
+                            ]?.feeAdmin
+                              ? `${brandsValues[brandIndex].productTypes[typeIndex].feeAdmin}%`
                               : "-"}
                           </span>
                         </div>
@@ -267,125 +271,418 @@ function BrandTables({
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
 
-      {/* PIX Fees Section */}
-      <div className="mt-12 mb-6">
-        <h3 className="text-lg font-medium mb-4">PIX</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div>
-            <h4 className="font-medium mb-2">MDR</h4>
-            <div className="flex gap-2">
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {isReadOnly ? (
-                  <span>
-                    {control._formValues.pixMdr
-                      ? `${control._formValues.pixMdr}%`
-                      : "-"}
-                  </span>
-                ) : (
-                  <FormField
-                    control={control}
-                    name="pixMdr"
-                    render={({ field }) => (
-                      <FormControl>
-                        <PercentageInput
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="0,01%"
-                          className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                        />
-                      </FormControl>
-                    )}
-                  />
+// OnlineBrandTable component for displaying online brand fees
+function OnlineBrandTable({
+  control,
+  isReadOnly = false,
+  isNewSolicitation = false,
+}: {
+  control: any;
+  isReadOnly?: boolean;
+  isNewSolicitation?: boolean;
+}) {
+  // Define payment types as columns
+  const paymentTypes = SolicitationFeeProductTypeList;
+  const brandsValues = useWatch({ control, name: "brands" });
+
+  return (
+    <div className="w-full overflow-x-auto mt-8">
+      <h3 className="text-lg font-medium mb-4">Taxas Transações Online</h3>
+      <Table className="w-full">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="sticky left-0 z-10 bg-white text-sm">
+              Bandeiras
+            </TableHead>
+            {paymentTypes.map((type, index) => (
+              <>
+                <TableHead
+                  key={`${type.value}-noCardFee-${index}`}
+                  className="text-center min-w-[100px] text-sm"
+                >
+                  {type.label}{" "}
+                </TableHead>
+                {!isNewSolicitation && (
+                  <TableHead
+                    key={`${type.value}-noCardFeeAdmin-${index}`}
+                    className="text-center min-w-[100px] text-sm"
+                  >
+                    {type.label}{" "}
+                  </TableHead>
                 )}
-              </div>
+              </>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {brandList.map((brand, brandIndex) => (
+            <TableRow key={brand.value}>
+              <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                <div className="flex items-center gap-2">
+                  {getCardImage(brand.value) && (
+                    <img
+                      src={getCardImage(brand.value)}
+                      alt={brand.label}
+                      width={40}
+                      height={24}
+                      className="object-contain"
+                    />
+                  )}
+                  {brand.label}
+                </div>
+              </TableCell>
+              {paymentTypes.map((type, typeIndex) => (
+                <>
+                  <TableCell
+                    key={`${brand.value}-${type.value}-noCardFee-${typeIndex}`}
+                    className="p-1 text-center"
+                  >
+                    {isReadOnly ? (
+                      <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-gray-100">
+                        <span>
+                          {brandsValues?.[brandIndex]?.productTypes?.[typeIndex]
+                            ?.noCardFee
+                            ? `${brandsValues[brandIndex].productTypes[typeIndex].noCardFee}%`
+                            : "-"}
+                        </span>
+                      </div>
+                    ) : (
+                      <FormField
+                        control={control}
+                        name={`brands.${brandIndex}.productTypes.${typeIndex}.noCardFee`}
+                        render={({ field }) => (
+                          <FormControl>
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-gray-100">
+                              <PercentageInput
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="0%"
+                                className="border-0 p-0 h-auto text-center w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                              />
+                            </div>
+                          </FormControl>
+                        )}
+                      />
+                    )}
+                  </TableCell>
+                  {!isNewSolicitation && (
+                    <TableCell
+                      key={`${brand.value}-${type.value}-noCardFeeAdmin-${typeIndex}`}
+                      className="p-1 text-center"
+                    >
+                      {isReadOnly ? (
+                        <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-yellow-100">
+                          <span>
+                            {brandsValues?.[brandIndex]?.productTypes?.[
+                              typeIndex
+                            ]?.noCardFeeAdmin
+                              ? `${brandsValues[brandIndex].productTypes[typeIndex].noCardFeeAdmin}%`
+                              : "-"}
+                          </span>
+                        </div>
+                      ) : (
+                        <FormField
+                          control={control}
+                          name={`brands.${brandIndex}.productTypes.${typeIndex}.noCardFeeAdmin`}
+                          render={({ field }) => (
+                            <FormControl>
+                              <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-yellow-100">
+                                <PercentageInput
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="0%"
+                                  className="border-0 p-0 h-auto text-center w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                                />
+                              </div>
+                            </FormControl>
+                          )}
+                        />
+                      )}
+                    </TableCell>
+                  )}
+                </>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// PIX Fees Component
+function PIXFeesSection({
+  control,
+  isReadOnly = false,
+}: {
+  control: any;
+  isReadOnly?: boolean;
+}) {
+  const cardPixMdr = useWatch({ control, name: "cardPixMdr" });
+  const cardPixMinimumCostFee = useWatch({
+    control,
+    name: "cardPixMinimumCostFee",
+  });
+  const cardPixCeilingFee = useWatch({ control, name: "cardPixCeilingFee" });
+  const eventualAnticipationFee = useWatch({
+    control,
+    name: "eventualAnticipationFee",
+  });
+
+  return (
+    <div className="mt-12 mb-6">
+      <h3 className="text-lg font-medium mb-4">PIX</h3>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div>
+          <h4 className="font-medium mb-2">MDR</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>{cardPixMdr ? `${cardPixMdr}%` : "-"}</span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="cardPixMdr"
+                  render={({ field }) => (
+                    <FormControl>
+                      <PercentageInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="0,01%"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
             </div>
           </div>
-          <div>
-            <h4 className="font-medium mb-2">Custo Mínimo</h4>
-            <div className="flex gap-2">
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {isReadOnly ? (
-                  <span>
-                    {control._formValues.pixMinCost
-                      ? `R$ ${control._formValues.pixMinCost}`
-                      : "-"}
-                  </span>
-                ) : (
-                  <FormField
-                    control={control}
-                    name="pixMinCost"
-                    render={({ field }) => (
-                      <FormControl>
-                        <CurrencyInput
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="R$ 0,09"
-                          className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                        />
-                      </FormControl>
-                    )}
-                  />
-                )}
-              </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Custo Mínimo</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {cardPixMinimumCostFee ? `R$ ${cardPixMinimumCostFee}` : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="cardPixMinimumCostFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="R$ 0,09"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
             </div>
           </div>
-          <div>
-            <h4 className="font-medium mb-2">Custo Máximo</h4>
-            <div className="flex gap-2">
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {isReadOnly ? (
-                  <span>
-                    {control._formValues.pixMaxCost
-                      ? `R$ ${control._formValues.pixMaxCost}`
-                      : "-"}
-                  </span>
-                ) : (
-                  <FormField
-                    control={control}
-                    name="pixMaxCost"
-                    render={({ field }) => (
-                      <FormControl>
-                        <CurrencyInput
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="R$ 0,09"
-                          className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                        />
-                      </FormControl>
-                    )}
-                  />
-                )}
-              </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Custo Máximo</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="cardPixCeilingFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="R$ 0,09"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
             </div>
           </div>
-          <div>
-            <h4 className="font-medium mb-2">Antecipação</h4>
-            <div className="flex gap-2">
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {isReadOnly ? (
-                  <span>
-                    {control._formValues.pixAnticipation
-                      ? `${control._formValues.pixAnticipation}%`
-                      : "-"}
-                  </span>
-                ) : (
-                  <FormField
-                    control={control}
-                    name="pixAnticipation"
-                    render={({ field }) => (
-                      <FormControl>
-                        <PercentageInput
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="1,67%"
-                          className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                        />
-                      </FormControl>
-                    )}
-                  />
-                )}
-              </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Antecipação</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {eventualAnticipationFee
+                    ? `${eventualAnticipationFee}%`
+                    : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="eventualAnticipationFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <PercentageInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="1,67%"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// NonCardPIXFeesSection Component for PIX without card
+function NonCardPIXFeesSection({
+  control,
+  isReadOnly = false,
+}: {
+  control: any;
+  isReadOnly?: boolean;
+}) {
+  const nonCardPixMdr = useWatch({ control, name: "nonCardPixMdr" });
+  const nonCardPixMinimumCostFee = useWatch({
+    control,
+    name: "nonCardPixMinimumCostFee",
+  });
+  const nonCardPixCeilingFee = useWatch({
+    control,
+    name: "nonCardPixCeilingFee",
+  });
+  const nonCardEventualAnticipationFee = useWatch({
+    control,
+    name: "nonCardEventualAnticipationFee",
+  });
+
+  return (
+    <div className="mt-8 mb-6">
+      <h3 className="text-lg font-medium mb-4">PIX sem Cartão</h3>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div>
+          <h4 className="font-medium mb-2">MDR</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>{nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}</span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="nonCardPixMdr"
+                  render={({ field }) => (
+                    <FormControl>
+                      <PercentageInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="0,01%"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Custo Mínimo</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {nonCardPixMinimumCostFee
+                    ? `R$ ${nonCardPixMinimumCostFee}`
+                    : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="nonCardPixMinimumCostFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="R$ 0,09"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Custo Máximo</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {nonCardPixCeilingFee ? `R$ ${nonCardPixCeilingFee}` : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="nonCardPixCeilingFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="R$ 0,09"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Antecipação</h4>
+          <div className="flex gap-2">
+            <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
+              {isReadOnly ? (
+                <span>
+                  {nonCardEventualAnticipationFee
+                    ? `${nonCardEventualAnticipationFee}%`
+                    : "-"}
+                </span>
+              ) : (
+                <FormField
+                  control={control}
+                  name="nonCardEventualAnticipationFee"
+                  render={({ field }) => (
+                    <FormControl>
+                      <PercentageInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="1,67%"
+                        className="border-0 p-0 h-auto w-full bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -419,11 +716,25 @@ export function FeesSection({
         </div>
       )}
 
-      <BrandTables
+      {/* POS Brand Table */}
+      <POSBrandTable
         control={control}
         isReadOnly={isReadOnly}
         isNewSolicitation={isNewSolicitation}
       />
+
+      {/* Online Brand Table */}
+      <OnlineBrandTable
+        control={control}
+        isReadOnly={isReadOnly}
+        isNewSolicitation={isNewSolicitation}
+      />
+
+      {/* PIX Fees Section */}
+      <PIXFeesSection control={control} isReadOnly={isReadOnly} />
+
+      {/* Non-Card PIX Fees Section */}
+      <NonCardPIXFeesSection control={control} isReadOnly={isReadOnly} />
     </div>
   );
 }

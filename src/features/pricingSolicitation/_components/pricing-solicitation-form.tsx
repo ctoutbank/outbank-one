@@ -78,6 +78,12 @@ export default function PricingSolicitationForm({
               fee: pt.fee?.toString() || "",
               feeAdmin: pt.feeAdmin?.toString() || "",
               feeDock: pt.feeDock?.toString() || "",
+              noCardFee: pt.noCardFee?.toString() || "",
+              noCardTransactionAnticipationMdr:
+                pt.noCardTransactionAnticipationMdr?.toString() || "",
+              noCardFeeAdmin: pt.noCardFeeAdmin?.toString() || "",
+              noCardFeeDock: pt.noCardFeeDock?.toString() || "",
+
               transactionFeeStart: pt.transactionFeeStart?.toString() || "",
               transactionFeeEnd: pt.transactionFeeEnd?.toString() || "",
               pixMinimumCostFee: pt.pixMinimumCostFee?.toString() || "",
@@ -143,6 +149,12 @@ export default function PricingSolicitationForm({
       averageTicket: data.ticketAverage || null,
       description: data.description || null,
       cnaeInUse: data.cnaeInUse ?? null,
+      cardPixMdr: data.cardPixMdr || null,
+      cardPixCeilingFee: data.cardPixCeilingFee || null,
+      cardPixMinimumCostFee: data.cardPixMinimumCostFee || null,
+      nonCardPixMdr: data.nonCardPixMdr || null,
+      nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
+      nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
       brands: (data.brands || []).map((brand) => ({
         name: brand.name,
         productTypes: (brand.productTypes || []).map((productType) => ({
@@ -152,10 +164,6 @@ export default function PricingSolicitationForm({
           feeDock: productType.feeDock || "",
           transactionFeeStart: productType.transactionFeeStart || "",
           transactionFeeEnd: productType.transactionFeeEnd || "",
-          pixMinimumCostFee: productType.pixMinimumCostFee || "",
-          pixCeilingFee: productType.pixCeilingFee || "",
-          transactionAnticipationMdr:
-            productType.transactionAnticipationMdr || "",
         })),
       })),
     };
@@ -170,7 +178,6 @@ export default function PricingSolicitationForm({
     const result = await insertPricingSolicitation({
       ...formattedData,
       status: status,
-      id: 0,
     });
 
     return result;

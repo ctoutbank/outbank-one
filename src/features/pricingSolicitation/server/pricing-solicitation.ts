@@ -10,6 +10,7 @@ import {
   solicitationFeeBrand,
   users,
 } from "../../../../drizzle/schema";
+import { PricingSolicitationSchema } from "../schema/schema";
 
 export interface DDMerchant {
   id: number;
@@ -27,7 +28,10 @@ export interface PricingSolicitationList {
 }
 
 export type PricingSolicitationInsert = typeof solicitationFee.$inferInsert;
-export type PricingSolicitationDetail = typeof solicitationFee.$inferSelect;
+export type PricingSolicitationDetail = typeof solicitationFee.$inferSelect & {
+  eventualAnticipationFee?: string | null;
+  nonCardEventualAnticipationFee?: string | null;
+};
 
 export interface ProductType {
   name: string;
@@ -39,6 +43,10 @@ export interface ProductType {
   pixMinimumCostFee: number;
   pixCeilingFee: number;
   transactionAnticipationMdr: number;
+  noCardFee: number;
+  noCardTransactionAnticipationMdr: number;
+  noCardFeeAdmin: number;
+  noCardFeeDock: number;
 }
 
 export interface Brand {
@@ -111,6 +119,14 @@ export async function getPricingSolicitationById(
       sf."average_ticket",
       sf.description,
       sf."cnae_in_use",
+      sf."card_pix_mdr",
+      sf."card_pix_ceiling_fee",
+      sf."card_pix_minimum_cost_fee",
+      sf."eventual_anticipation_fee" as "eventualAnticipationFee",
+      sf."non_card_pix_mdr",
+      sf."non_card_pix_ceiling_fee",
+      sf."non_card_pix_minimum_cost_fee",
+      sf."eventual_anticipation_fee" as "nonCardEventualAnticipationFee",
       json_agg(
         json_build_object(
           'name', sfb.brand,
@@ -119,12 +135,15 @@ export async function getPricingSolicitationById(
               json_build_object(
                 'name', sbpt."product_type",
                 'fee', sbpt.fee,
+                'noCardFee', sbpt."no_card_fee",
+                'noCardTransactionAnticipationMdr', sbpt."no_card_transaction_anticipation_mdr",
+                'noCardFeeAdmin', sbpt."no_card_fee_admin",
+                'noCardFeeDock', sbpt."no_card_fee_dock",
                 'feeAdmin', sbpt."fee_admin",
                 'feeDock', sbpt."fee_dock",
                 'transactionFeeStart', sbpt."transaction_fee_start",
                 'transactionFeeEnd', sbpt."transaction_fee_end",
-                'pixMinimumCostFee', sbpt."pix_minimum_cost_fee", 
-                'pixCeilingFee', sbpt."pix_ceiling_fee",
+                
                 'transactionAnticipationMdr', sbpt."transaction_anticipation_mdr"
               )
             )
@@ -167,7 +186,7 @@ export async function insertPricingSolicitation(
     const { brands, ...solicitationData } = pricingSolicitation;
 
     // Remove the id field to let the database auto-generate it
-    const {  ...dataToInsert } = solicitationData;
+    const { ...dataToInsert } = solicitationData;
 
     const [newSolicitation] = await db
       .insert(solicitationFee)
@@ -201,10 +220,14 @@ export async function insertPricingSolicitation(
           solicitationFeeBrandId: newBrand.id,
           productType: productType.name,
           fee: sql`${productType.fee}::numeric`,
+          feeAdmin: sql`${productType.feeAdmin}::numeric`,
+          feeDock: sql`${productType.feeDock}::numeric`,
           transactionFeeStart: sql`${productType.transactionFeeStart}::integer`,
           transactionFeeEnd: sql`${productType.transactionFeeEnd}::integer`,
-          pixMinimumCostFee: sql`${productType.pixMinimumCostFee}::numeric`,
-          pixCeilingFee: sql`${productType.pixCeilingFee}::numeric`,
+          noCardFee: sql`${productType.noCardFee}::numeric`,
+          noCardFeeAdmin: sql`${productType.noCardFeeAdmin}::numeric`,
+          noCardFeeDock: sql`${productType.noCardFeeDock}::numeric`,
+          noCardTransactionAnticipationMdr: sql`${productType.noCardTransactionAnticipationMdr}::numeric`,
           transactionAnticipationMdr: sql`${productType.transactionAnticipationMdr}::numeric`,
           dtinsert: new Date().toISOString(),
           dtupdate: new Date().toISOString(),
@@ -288,10 +311,14 @@ export async function updatePricingSolicitation(
           solicitationFeeBrandId: newBrand.id,
           productType: productType.name,
           fee: sql`${productType.fee}::numeric`,
+          feeAdmin: sql`${productType.feeAdmin}::numeric`,
+          feeDock: sql`${productType.feeDock}::numeric`,
           transactionFeeStart: sql`${productType.transactionFeeStart}::integer`,
           transactionFeeEnd: sql`${productType.transactionFeeEnd}::integer`,
-          pixMinimumCostFee: sql`${productType.pixMinimumCostFee}::numeric`,
-          pixCeilingFee: sql`${productType.pixCeilingFee}::numeric`,
+          noCardFee: sql`${productType.noCardFee}::numeric`,
+          noCardFeeAdmin: sql`${productType.noCardFeeAdmin}::numeric`,
+          noCardFeeDock: sql`${productType.noCardFeeDock}::numeric`,
+          noCardTransactionAnticipationMdr: sql`${productType.noCardTransactionAnticipationMdr}::numeric`,
           transactionAnticipationMdr: sql`${productType.transactionAnticipationMdr}::numeric`,
           dtinsert: new Date().toISOString(),
           dtupdate: new Date().toISOString(),
@@ -306,4 +333,87 @@ export async function updatePricingSolicitation(
     console.error("Error updating pricing solicitation:", error);
     throw error;
   }
+}
+
+// Função para aprovar uma solicitação de taxas
+export async function approvePricingSolicitation(id: number) {
+  if (!id) {
+    throw new Error("Solicitation ID is required for approval");
+  }
+
+  try {
+    await db
+      .update(solicitationFee)
+      .set({
+        status: "APPROVED",
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(solicitationFee.id, id));
+
+    return { id, success: true };
+  } catch (error) {
+    console.error("Error approving pricing solicitation:", error);
+    throw error;
+  }
+}
+
+// Função para rejeitar uma solicitação de taxas
+export async function rejectPricingSolicitation(id: number, reason?: string) {
+  if (!id) {
+    throw new Error("Solicitation ID is required for rejection");
+  }
+
+  try {
+    await db
+      .update(solicitationFee)
+      .set({
+        status: "CANCELED",
+        description: reason ? `CANCELED: ${reason}` : "CANCELED",
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(solicitationFee.id, id));
+
+    return { id, success: true };
+  } catch (error) {
+    console.error("Error rejecting pricing solicitation:", error);
+    throw error;
+  }
+}
+
+// Map form data to solicitation structure
+export async function mapFormDataToSolicitation(
+  data: PricingSolicitationSchema
+) {
+  return {
+    cnae: data.cnae || null,
+    mcc: data.mcc || null,
+    cnpjQuantity: data.cnpjsQuantity ? Number(data.cnpjsQuantity) : null,
+    slug: null,
+    dtinsert: new Date().toISOString(),
+    dtupdate: new Date().toISOString(),
+    idCustomers: null,
+    monthlyPosFee: data.tpvMonthly || null,
+    averageTicket: data.ticketAverage || null,
+    description: data.description || null,
+    cnaeInUse: data.cnaeInUse ?? null,
+    cardPixMdr: data.cardPixMdr || null,
+    cardPixCeilingFee: data.cardPixCeilingFee || null,
+    cardPixMinimumCostFee: data.cardPixMinimumCostFee || null,
+    eventualAnticipationFee: data.eventualAnticipationFee || null,
+    nonCardPixMdr: data.nonCardPixMdr || null,
+    nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
+    nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
+    nonCardEventualAnticipationFee: data.nonCardEventualAnticipationFee || null,
+    brands: (data.brands || []).map((brand) => ({
+      name: brand.name,
+      productTypes: (brand.productTypes || []).map((productType) => ({
+        name: productType.name,
+        fee: productType.fee || "",
+        feeAdmin: productType.feeAdmin || "",
+        feeDock: productType.feeDock || "",
+        transactionFeeStart: productType.transactionFeeStart || "",
+        transactionFeeEnd: productType.transactionFeeEnd || "",
+      })),
+    })),
+  };
 }
