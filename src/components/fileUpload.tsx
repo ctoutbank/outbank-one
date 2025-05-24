@@ -21,8 +21,13 @@ interface FileUploadProps {
   acceptedFileTypes?: string;
   maxSizeMB?: number;
   initialFiles?: File[];
-  entityType: "merchant" | "terminal" | "customer" | "payment";
-  entityId: number;
+  entityType:
+    | "merchant"
+    | "terminal"
+    | "customer"
+    | "payment"
+    | "pricingSolicitation";
+  entityId?: number;
   fileType?: string;
   onUploadComplete?: (fileData: {
     fileId: number;
@@ -36,6 +41,7 @@ interface FileUploadProps {
     fileName: string;
     fileExtension: string;
   } | null>;
+  preUploadHook?: () => Promise<number>;
 }
 
 interface FileWithCustomName extends File {
@@ -53,6 +59,7 @@ export default function FileUpload({
   fileType,
   onUploadComplete,
   customUploadHandler,
+  preUploadHook,
 }: FileUploadProps) {
   const [files, setFiles] = useState<FileWithCustomName[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -62,18 +69,22 @@ export default function FileUpload({
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [localEntityId, setLocalEntityId] = useState<number | undefined>(
+    entityId
+  );
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
   // Carregar arquivos existentes
   useEffect(() => {
     const loadExistingFiles = async () => {
-      if (fileType && entityId) {
+      if (fileType && localEntityId) {
         try {
           setIsLoading(true);
+          setError(null); // Limpar mensagens de erro anteriores
           const existingFiles = await getFilesByFileType(
             entityType,
-            entityId,
+            localEntityId,
             fileType
           );
 
@@ -85,21 +96,34 @@ export default function FileUpload({
                 type: `application/${file.extension.toLowerCase()}`,
                 size: 0,
                 fileURL: file.fileUrl,
-              } as FileWithCustomName)
+              }) as FileWithCustomName
           );
 
           setFiles(formattedFiles);
+          console.log(
+            `Carregados ${formattedFiles.length} arquivos para ${entityType}/${localEntityId}/${fileType}`
+          );
         } catch (error) {
           console.error("Erro ao carregar arquivos existentes:", error);
           setError("Erro ao carregar arquivos existentes");
         } finally {
           setIsLoading(false);
         }
+      } else {
+        setIsLoading(false);
       }
     };
 
     loadExistingFiles();
-  }, [entityType, entityId, fileType]);
+  }, [entityType, localEntityId, fileType]);
+
+  // Atualiza localEntityId quando entityId muda
+  useEffect(() => {
+    if (entityId !== undefined && entityId !== localEntityId) {
+      console.log(`ID da entidade atualizado: ${entityId}`);
+      setLocalEntityId(entityId);
+    }
+  }, [entityId]);
 
   const handleFileChange = async (selectedFiles: FileList | null) => {
     setError(null);
@@ -143,6 +167,32 @@ export default function FileUpload({
     if (newFiles.length > 0) {
       setIsUploading(true);
       try {
+        // Verificar se o preUploadHook existe e se não temos um entityId definido
+        let finalEntityId = localEntityId;
+        if (!finalEntityId && preUploadHook) {
+          try {
+            // Executar o hook de pré-upload para criar as entidades necessárias
+            const createdEntityId = await preUploadHook();
+            if (createdEntityId) {
+              finalEntityId = createdEntityId;
+              setLocalEntityId(createdEntityId);
+            } else {
+              throw new Error("Falha ao criar entidades relacionadas");
+            }
+          } catch (error) {
+            console.error("Erro no hook de pré-upload:", error);
+            setError("Erro ao preparar o upload. Tente novamente.");
+            setIsUploading(false);
+            return;
+          }
+        }
+
+        if (!finalEntityId) {
+          setError("ID da entidade não disponível para upload");
+          setIsUploading(false);
+          return;
+        }
+
         for (const file of newFiles) {
           let result;
 
@@ -157,8 +207,8 @@ export default function FileUpload({
             result = await createFileWithRelation(
               formData,
               entityType,
-              entityId,
-              `${entityType}s/${entityId}`,
+              finalEntityId,
+              `${entityType}s/${finalEntityId}`,
               fileType || title
             );
           }
@@ -173,7 +223,7 @@ export default function FileUpload({
         // Recarregar os arquivos após o upload
         const existingFiles = await getFilesByFileType(
           entityType,
-          entityId,
+          finalEntityId,
           fileType || ""
         );
         const formattedFiles = existingFiles.map(
@@ -184,7 +234,7 @@ export default function FileUpload({
               type: `application/${file.extension.toLowerCase()}`,
               size: 0,
               fileURL: file.fileUrl,
-            } as FileWithCustomName)
+            }) as FileWithCustomName
         );
 
         setFiles(formattedFiles);

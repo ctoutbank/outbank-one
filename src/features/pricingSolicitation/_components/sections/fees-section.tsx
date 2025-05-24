@@ -18,6 +18,7 @@ interface FeesSectionProps {
   control: any;
   isReadOnly?: boolean;
   isNewSolicitation?: boolean;
+  hideFeeAdmin?: boolean;
 }
 
 const getCardImage = (cardName: string): string => {
@@ -141,10 +142,12 @@ function POSBrandTable({
   control,
   isReadOnly = false,
   isNewSolicitation = false,
+  hideFeeAdmin = false,
 }: {
   control: any;
   isReadOnly?: boolean;
   isNewSolicitation?: boolean;
+  hideFeeAdmin?: boolean;
 }) {
   // Define payment types as columns
   const paymentTypes = SolicitationFeeProductTypeList;
@@ -167,7 +170,7 @@ function POSBrandTable({
                 >
                   {type.label}{" "}
                 </TableHead>
-                {!isNewSolicitation && (
+                {!isNewSolicitation && !hideFeeAdmin && (
                   <TableHead
                     key={`${type.value}-feeAdmin-${index}`}
                     className="text-center min-w-[100px] text-sm"
@@ -230,7 +233,7 @@ function POSBrandTable({
                       />
                     )}
                   </TableCell>
-                  {!isNewSolicitation && (
+                  {!isNewSolicitation && !hideFeeAdmin && (
                     <TableCell
                       key={`${brand.value}-${type.value}-feeAdmin-${typeIndex}`}
                       className="p-1 text-center"
@@ -280,10 +283,12 @@ function OnlineBrandTable({
   control,
   isReadOnly = false,
   isNewSolicitation = false,
+  hideFeeAdmin = false,
 }: {
   control: any;
   isReadOnly?: boolean;
   isNewSolicitation?: boolean;
+  hideFeeAdmin?: boolean;
 }) {
   // Define payment types as columns
   const paymentTypes = SolicitationFeeProductTypeList;
@@ -301,14 +306,14 @@ function OnlineBrandTable({
             {paymentTypes.map((type, index) => (
               <>
                 <TableHead
-                  key={`${type.value}-noCardFee-${index}`}
+                  key={`${type.value}-online-fee-${index}`}
                   className="text-center min-w-[100px] text-sm"
                 >
                   {type.label}{" "}
                 </TableHead>
-                {!isNewSolicitation && (
+                {!isNewSolicitation && !hideFeeAdmin && (
                   <TableHead
-                    key={`${type.value}-noCardFeeAdmin-${index}`}
+                    key={`${type.value}-online-feeAdmin-${index}`}
                     className="text-center min-w-[100px] text-sm"
                   >
                     {type.label}{" "}
@@ -369,7 +374,7 @@ function OnlineBrandTable({
                       />
                     )}
                   </TableCell>
-                  {!isNewSolicitation && (
+                  {!isNewSolicitation && !hideFeeAdmin && (
                     <TableCell
                       key={`${brand.value}-${type.value}-noCardFeeAdmin-${typeIndex}`}
                       className="p-1 text-center"
@@ -695,6 +700,7 @@ export function FeesSection({
   control,
   isReadOnly = false,
   isNewSolicitation = false,
+  hideFeeAdmin = false,
 }: FeesSectionProps) {
   return (
     <div className="space-y-4">
@@ -721,6 +727,7 @@ export function FeesSection({
         control={control}
         isReadOnly={isReadOnly}
         isNewSolicitation={isNewSolicitation}
+        hideFeeAdmin={hideFeeAdmin}
       />
       {/* PIX Fees Section */}
       <PIXFeesSection control={control} isReadOnly={isReadOnly} />
@@ -730,6 +737,7 @@ export function FeesSection({
         control={control}
         isReadOnly={isReadOnly}
         isNewSolicitation={isNewSolicitation}
+        hideFeeAdmin={hideFeeAdmin}
       />
 
       {/* Non-Card PIX Fees Section */}

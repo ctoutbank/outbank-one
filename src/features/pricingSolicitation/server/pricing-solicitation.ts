@@ -212,24 +212,84 @@ export async function insertPricingSolicitation(
 
       // 3. Create product type records for each product type in the brand
       for (const productType of brand.productTypes || []) {
-        // Use the same field names as defined in the schema
-        await db.insert(solicitationBrandProductType).values({
-          slug: generateSlug(),
-          solicitationFeeBrandId: newBrand.id,
-          productType: productType.name,
-          fee: sql`${productType.fee}::numeric`,
-          feeAdmin: sql`${productType.feeAdmin}::numeric`,
-          feeDock: sql`${productType.feeDock}::numeric`,
-          transactionFeeStart: sql`${productType.transactionFeeStart}::integer`,
-          transactionFeeEnd: sql`${productType.transactionFeeEnd}::integer`,
-          noCardFee: sql`${productType.noCardFee}::numeric`,
-          noCardFeeAdmin: sql`${productType.noCardFeeAdmin}::numeric`,
-          noCardFeeDock: sql`${productType.noCardFeeDock}::numeric`,
-          noCardTransactionAnticipationMdr: sql`${productType.noCardTransactionAnticipationMdr}::numeric`,
-          transactionAnticipationMdr: sql`${productType.transactionAnticipationMdr}::numeric`,
-          dtinsert: new Date().toISOString(),
-          dtupdate: new Date().toISOString(),
-        });
+        try {
+          // Tratar os valores para garantir que são números
+          const feeValue =
+            typeof productType.fee === "number" ? productType.fee : 0;
+          const feeAdminValue =
+            typeof productType.feeAdmin === "number" ? productType.feeAdmin : 0;
+          const feeDockValue =
+            typeof productType.feeDock === "number" ? productType.feeDock : 0;
+          const transactionFeeStartValue =
+            typeof productType.transactionFeeStart === "number"
+              ? Math.floor(productType.transactionFeeStart)
+              : 0;
+          const transactionFeeEndValue =
+            typeof productType.transactionFeeEnd === "number"
+              ? Math.floor(productType.transactionFeeEnd)
+              : 0;
+          const noCardFeeValue =
+            typeof productType.noCardFee === "number"
+              ? productType.noCardFee
+              : 0;
+          const noCardFeeAdminValue =
+            typeof productType.noCardFeeAdmin === "number"
+              ? productType.noCardFeeAdmin
+              : 0;
+          const noCardFeeDockValue =
+            typeof productType.noCardFeeDock === "number"
+              ? productType.noCardFeeDock
+              : 0;
+          const noCardTransactionAnticipationMdrValue =
+            typeof productType.noCardTransactionAnticipationMdr === "number"
+              ? productType.noCardTransactionAnticipationMdr
+              : 0;
+          const transactionAnticipationMdrValue =
+            typeof productType.transactionAnticipationMdr === "number"
+              ? productType.transactionAnticipationMdr
+              : 0;
+
+          // Use SQL raw para fazer a inserção diretamente
+          await db.execute(sql`
+            INSERT INTO solicitation_brand_product_type (
+              slug, 
+              solicitation_fee_brand_id, 
+              product_type, 
+              fee, 
+              fee_admin, 
+              fee_dock, 
+              transaction_fee_start, 
+              transaction_fee_end, 
+              no_card_fee, 
+              no_card_fee_admin, 
+              no_card_fee_dock, 
+              no_card_transaction_anticipation_mdr, 
+              transaction_anticipation_mdr, 
+              dtinsert, 
+              dtupdate
+            ) VALUES (
+              ${generateSlug()}, 
+              ${newBrand.id}, 
+              ${productType.name || "Produto Padrão"}, 
+              ${feeValue}, 
+              ${feeAdminValue}, 
+              ${feeDockValue}, 
+              ${transactionFeeStartValue}, 
+              ${transactionFeeEndValue}, 
+              ${noCardFeeValue}, 
+              ${noCardFeeAdminValue}, 
+              ${noCardFeeDockValue}, 
+              ${noCardTransactionAnticipationMdrValue}, 
+              ${transactionAnticipationMdrValue}, 
+              ${new Date().toISOString()}, 
+              ${new Date().toISOString()}
+            )
+          `);
+        } catch (error) {
+          console.error("Erro ao inserir tipo de produto:", error);
+          // Continue com o próximo tipo de produto mesmo se houver erro
+          continue;
+        }
       }
     }
 
@@ -248,24 +308,25 @@ export async function updatePricingSolicitation(
   }
 
   // Update the last modified date
-  pricingSolicitation.dtupdate = new Date().toISOString();
+  if (pricingSolicitation.status === "SEND_SOLICITATION") {
+    pricingSolicitation.dtupdate = new Date().toISOString();
+    pricingSolicitation.status = "PENDING";
+  }
 
   try {
-    const { brands, ...solicitationData } = pricingSolicitation;
+    const { brands, id, ...solicitationData } = pricingSolicitation;
 
     // 1. Update the main solicitation fee record
     await db
       .update(solicitationFee)
       .set(solicitationData)
-      .where(eq(solicitationFee.id, pricingSolicitation.id));
+      .where(eq(solicitationFee.id, id));
 
     // 2. Delete existing brand records and product types (we'll recreate them)
     const existingBrands = await db
       .select({ id: solicitationFeeBrand.id })
       .from(solicitationFeeBrand)
-      .where(
-        eq(solicitationFeeBrand.solicitationFeeId, pricingSolicitation.id)
-      );
+      .where(eq(solicitationFeeBrand.solicitationFeeId, id));
 
     for (const brand of existingBrands) {
       // Delete product types first (due to foreign key constraints)
@@ -279,16 +340,14 @@ export async function updatePricingSolicitation(
     // Delete the brands
     await db
       .delete(solicitationFeeBrand)
-      .where(
-        eq(solicitationFeeBrand.solicitationFeeId, pricingSolicitation.id)
-      );
+      .where(eq(solicitationFeeBrand.solicitationFeeId, id));
 
     // 3. Create new brand records for each brand
     for (const brand of brands || []) {
       // Create a brand record with only the necessary fields
       const brandData = {
         slug: generateSlug(),
-        solicitationFeeId: pricingSolicitation.id,
+        solicitationFeeId: id,
         brand: brand.name,
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
@@ -303,30 +362,88 @@ export async function updatePricingSolicitation(
 
       // 4. Create product type records for each product type in the brand
       for (const productType of brand.productTypes || []) {
-        // Create a product type record with only the necessary fields
-        const productTypeData = {
-          slug: generateSlug(),
-          solicitationFeeBrandId: newBrand.id,
-          productType: productType.name,
-          fee: sql`${productType.fee}::numeric`,
-          feeAdmin: sql`${productType.feeAdmin}::numeric`,
-          feeDock: sql`${productType.feeDock}::numeric`,
-          transactionFeeStart: sql`${productType.transactionFeeStart}::integer`,
-          transactionFeeEnd: sql`${productType.transactionFeeEnd}::integer`,
-          noCardFee: sql`${productType.noCardFee}::numeric`,
-          noCardFeeAdmin: sql`${productType.noCardFeeAdmin}::numeric`,
-          noCardFeeDock: sql`${productType.noCardFeeDock}::numeric`,
-          noCardTransactionAnticipationMdr: sql`${productType.noCardTransactionAnticipationMdr}::numeric`,
-          transactionAnticipationMdr: sql`${productType.transactionAnticipationMdr}::numeric`,
-          dtinsert: new Date().toISOString(),
-          dtupdate: new Date().toISOString(),
-        };
+        try {
+          // Tratar os valores para garantir que são números
+          const feeValue =
+            typeof productType.fee === "number" ? productType.fee : 0;
+          const feeAdminValue =
+            typeof productType.feeAdmin === "number" ? productType.feeAdmin : 0;
+          const feeDockValue =
+            typeof productType.feeDock === "number" ? productType.feeDock : 0;
+          const transactionFeeStartValue =
+            typeof productType.transactionFeeStart === "number"
+              ? Math.floor(productType.transactionFeeStart)
+              : 0;
+          const transactionFeeEndValue =
+            typeof productType.transactionFeeEnd === "number"
+              ? Math.floor(productType.transactionFeeEnd)
+              : 0;
+          const noCardFeeValue =
+            typeof productType.noCardFee === "number"
+              ? productType.noCardFee
+              : 0;
+          const noCardFeeAdminValue =
+            typeof productType.noCardFeeAdmin === "number"
+              ? productType.noCardFeeAdmin
+              : 0;
+          const noCardFeeDockValue =
+            typeof productType.noCardFeeDock === "number"
+              ? productType.noCardFeeDock
+              : 0;
+          const noCardTransactionAnticipationMdrValue =
+            typeof productType.noCardTransactionAnticipationMdr === "number"
+              ? productType.noCardTransactionAnticipationMdr
+              : 0;
+          const transactionAnticipationMdrValue =
+            typeof productType.transactionAnticipationMdr === "number"
+              ? productType.transactionAnticipationMdr
+              : 0;
 
-        await db.insert(solicitationBrandProductType).values(productTypeData);
+          // Use SQL raw para fazer a inserção diretamente
+          await db.execute(sql`
+            INSERT INTO solicitation_brand_product_type (
+              slug, 
+              solicitation_fee_brand_id, 
+              product_type, 
+              fee, 
+              fee_admin, 
+              fee_dock, 
+              transaction_fee_start, 
+              transaction_fee_end, 
+              no_card_fee, 
+              no_card_fee_admin, 
+              no_card_fee_dock, 
+              no_card_transaction_anticipation_mdr, 
+              transaction_anticipation_mdr, 
+              dtinsert, 
+              dtupdate
+            ) VALUES (
+              ${generateSlug()}, 
+              ${newBrand.id}, 
+              ${productType.name || "Produto Padrão"}, 
+              ${feeValue}, 
+              ${feeAdminValue}, 
+              ${feeDockValue}, 
+              ${transactionFeeStartValue}, 
+              ${transactionFeeEndValue}, 
+              ${noCardFeeValue}, 
+              ${noCardFeeAdminValue}, 
+              ${noCardFeeDockValue}, 
+              ${noCardTransactionAnticipationMdrValue}, 
+              ${transactionAnticipationMdrValue}, 
+              ${new Date().toISOString()}, 
+              ${new Date().toISOString()}
+            )
+          `);
+        } catch (error) {
+          console.error("Erro ao atualizar tipo de produto:", error);
+          // Continue com o próximo tipo de produto mesmo se houver erro
+          continue;
+        }
       }
     }
 
-    return { id: pricingSolicitation.id };
+    return { id };
   } catch (error) {
     console.error("Error updating pricing solicitation:", error);
     throw error;

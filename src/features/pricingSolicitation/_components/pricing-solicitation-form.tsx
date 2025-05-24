@@ -53,14 +53,35 @@ export default function PricingSolicitationForm({
     pricingSolicitation?.id || null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadSuccessful, setUploadSuccessful] = useState(false);
 
   const [formStatus, setFormStatus] = useState<
-    "DRAFT" | "SEND_DOCUMENTS" | "PENDING"
-  >(pricingSolicitation?.status === "PENDING" ? "PENDING" : "DRAFT");
+    "DRAFT" | "SEND_DOCUMENTS" | "PENDING" | "SEND_SOLICITATION"
+  >(
+    pricingSolicitation?.status === "PENDING"
+      ? "PENDING"
+      : pricingSolicitation?.status === "SEND_SOLICITATION"
+        ? "SEND_SOLICITATION"
+        : "DRAFT"
+  );
+
   // Simplified function to just open the dialog
   function handleOpenDocumentUpload() {
+    setUploadSuccessful(false);
     setOpenUploadDialog(true);
   }
+
+  // Função para lidar com a criação de solicitação durante o upload
+  const handleSolicitationCreated = (id: number) => {
+    console.log(`Solicitação criada com ID: ${id}`);
+    setSolicitationId(id);
+    setFormStatus("SEND_SOLICITATION");
+    setUploadSuccessful(true);
+
+    // Atualizar a URL para incluir o ID da solicitação sem navegar
+    // Corrigir o caminho para usar o formato correto da aplicação
+    window.history.replaceState({}, "", `/portal/pricingsolicitation/${id}`);
+  };
 
   const form = useForm<PricingSolicitationSchema>({
     resolver: zodResolver(schemaPricingSolicitation),
@@ -117,9 +138,28 @@ export default function PricingSolicitationForm({
 
     const formattedData = {
       ...data,
-      brands: data.brands.map((brand: any) => ({
+      cnae: data.cnae || null,
+      mcc: data.mcc || null,
+      cnpjQuantity: data.cnpjQuantity ? Number(data.cnpjQuantity) : null,
+      monthlyPosFee: data.monthlyPosFee || null,
+      averageTicket: data.averageTicket || null,
+      description: data.description || null,
+      cnaeInUse: data.cnaeInUse ?? null,
+      slug: data.slug || null,
+      dtinsert: data.dtinsert || new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+      idCustomers: data.idCustomers || null,
+      cardPixMdr: Number(data.cardPixMdr) || 0,
+      cardPixCeilingFee: Number(data.cardPixCeilingFee) || 0,
+      cardPixMinimumCostFee: Number(data.cardPixMinimumCostFee) || 0,
+      nonCardPixMdr: Number(data.nonCardPixMdr) || 0,
+      nonCardPixCeilingFee: Number(data.nonCardPixCeilingFee) || 0,
+      nonCardPixMinimumCostFee: Number(data.nonCardPixMinimumCostFee) || 0,
+      eventualAnticipationFee: Number(data.eventualAnticipationFee) || 0,
+      status: data.status || "PENDING",
+      brands: (data.brands || []).map((brand: any) => ({
         name: brand.name,
-        productTypes: brand.productTypes.map((pt: any) => {
+        productTypes: (brand.productTypes || []).map((pt: any) => {
           console.log(
             `Formatando ${brand.name} - ${pt.name}: fee=${pt.fee}, noCardFee=${pt.noCardFee}`
           );
@@ -143,13 +183,6 @@ export default function PricingSolicitationForm({
           };
         }),
       })),
-      cardPixMdr: Number(data.cardPixMdr) || 0,
-      cardPixCeilingFee: Number(data.cardPixCeilingFee) || 0,
-      cardPixMinimumCostFee: Number(data.cardPixMinimumCostFee) || 0,
-      nonCardPixMdr: Number(data.nonCardPixMdr) || 0,
-      nonCardPixCeilingFee: Number(data.nonCardPixCeilingFee) || 0,
-      nonCardPixMinimumCostFee: Number(data.nonCardPixMinimumCostFee) || 0,
-      eventualAnticipationFee: Number(data.eventualAnticipationFee) || 0,
     } as PricingSolicitationForm;
 
     console.log("Dados após formatação:", formattedData);
@@ -158,7 +191,10 @@ export default function PricingSolicitationForm({
 
   // Map form data to solicitation structure
   function mapFormDataToSolicitation(data: PricingSolicitationSchema) {
-    return {
+    // Se não houver dados, retorna objeto vazio
+    if (!data) return {};
+
+    const mappedData = {
       cnae: data.cnae || null,
       mcc: data.mcc || null,
       cnpjQuantity: data.cnpjsQuantity ? Number(data.cnpjsQuantity) : null,
@@ -176,6 +212,8 @@ export default function PricingSolicitationForm({
       nonCardPixMdr: data.nonCardPixMdr || null,
       nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
       nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
+      eventualAnticipationFee: data.eventualAnticipationFee || null,
+      status: "SEND_SOLICITATION", // Definir status padrão para upload
       brands: (data.brands || []).map((brand) => ({
         name: brand.name,
         productTypes: (brand.productTypes || []).map((productType) => ({
@@ -186,9 +224,16 @@ export default function PricingSolicitationForm({
           transactionFeeStart: productType.transactionFeeStart || "",
           transactionFeeEnd: productType.transactionFeeEnd || "",
           noCardFee: productType.noCardFee || "",
+          noCardFeeAdmin: productType.noCardFeeAdmin || "",
+          noCardFeeDock: productType.noCardFeeDock || "",
+          noCardTransactionAnticipationMdr:
+            productType.noCardTransactionAnticipationMdr || "",
         })),
       })),
     };
+
+    console.log("Dados do formulário mapeados para upload:", mappedData);
+    return mappedData;
   }
 
   // Create a new solicitation
@@ -216,13 +261,23 @@ export default function PricingSolicitationForm({
     const formattedData = formatDataSolicitation(
       mapFormDataToSolicitation(values)
     );
-    await updatePricingSolicitation({
+    console.log("Dados formatados para atualização:", {
       ...formattedData,
-      id: id,
-      status: status,
+      id,
+      status,
     });
 
-    return id;
+    try {
+      await updatePricingSolicitation({
+        ...formattedData,
+        id: id,
+        status: status,
+      });
+      return id;
+    } catch (error) {
+      console.error("Erro na função updatePricingSolicitation:", error);
+      throw error;
+    }
   }
 
   // Final submission handler
@@ -230,10 +285,22 @@ export default function PricingSolicitationForm({
     setIsSubmitting(true);
     try {
       if (solicitationId) {
-        // Update existing solicitation to PENDING status
-        await updateExistingSolicitation(values, solicitationId, "PENDING");
-        setFormStatus("PENDING");
-        router.push(`/porta/pricingsolicitation/${solicitationId}`);
+        let newStatus = "PENDING";
+
+        // Se o status for SEND_SOLICITATION e existir solicitation_fee.id,
+        // atualiza todas as tabelas e muda o status para PENDING
+        if (formStatus === "SEND_SOLICITATION" && solicitationId) {
+          newStatus = "PENDING";
+        }
+
+        console.log("Valores antes de atualizar:", values);
+        console.log("Status:", newStatus);
+        console.log("ID da solicitação:", solicitationId);
+
+        // Atualiza a solicitação existente para o novo status
+        await updateExistingSolicitation(values, solicitationId, newStatus);
+        setFormStatus(newStatus as any);
+        router.push(`/portal/pricingsolicitation/${solicitationId}`);
       } else {
         // Create new solicitation with PENDING status
         const result = await createPricingSolicitation(values, "PENDING");
@@ -241,11 +308,19 @@ export default function PricingSolicitationForm({
         if (result && typeof result.id === "number") {
           setSolicitationId(result.id);
           setFormStatus("PENDING");
-          router.push(`/pricing-solicitation/${result.id}`);
+          router.push(`/portal/pricingsolicitation/${result.id}`);
         }
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      let errorMessage = "Erro desconhecido";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        console.error("Stack:", error.stack);
+      }
+
+      alert(`Erro ao enviar formulário: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -254,6 +329,12 @@ export default function PricingSolicitationForm({
   // Handle closing upload dialog
   const handleCloseUploadDialog = () => {
     setOpenUploadDialog(false);
+
+    // Se uma solicitação foi criada durante o upload e temos um ID
+    if (uploadSuccessful && solicitationId) {
+      // Navegar para a página correta com o ID da solicitação
+      router.push(`/portal/pricingsolicitation/${solicitationId}`);
+    }
   };
 
   // If form is in PENDING status, show read-only view
@@ -292,6 +373,7 @@ export default function PricingSolicitationForm({
                 <FeesSection
                   control={form.control}
                   isNewSolicitation={solicitationId === null}
+                  hideFeeAdmin={formStatus === "SEND_SOLICITATION"}
                 />
 
                 <div className="flex justify-end items-center gap-4">
@@ -320,11 +402,31 @@ export default function PricingSolicitationForm({
           <DialogHeader>
             <DialogTitle>Importar Documentos</DialogTitle>
             <DialogDescription>
-              Selecione os documentos que deseja anexar à solicitação.
+              {uploadSuccessful
+                ? `Solicitação #${solicitationId} criada com sucesso. Você pode continuar adicionando documentos.`
+                : "Selecione os documentos que deseja anexar à solicitação."}
             </DialogDescription>
           </DialogHeader>
 
-          <DocumentUploadContent solicitationId={solicitationId} />
+          {uploadSuccessful && (
+            <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">
+              <p className="text-sm">
+                A solicitação foi criada com sucesso. A URL foi atualizada com o
+                ID da solicitação. Você pode continuar adicionando documentos ou
+                fechar esta janela para continuar editando a solicitação.
+              </p>
+            </div>
+          )}
+
+          <DocumentUploadContent
+            solicitationId={solicitationId}
+            formData={
+              !solicitationId
+                ? mapFormDataToSolicitation(form.getValues())
+                : undefined
+            }
+            onSolicitationCreated={handleSolicitationCreated}
+          />
 
           <DialogFooter>
             <Button
