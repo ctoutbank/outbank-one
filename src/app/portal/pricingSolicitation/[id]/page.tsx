@@ -14,7 +14,7 @@ export default async function PricingSolicitationDetail({
   const pricingSolicitationById = await getPricingSolicitationById(
     parseInt(params.id)
   );
-
+  console.log(pricingSolicitationById);
   // Determine if we should show the form or read-only view
   // Aqui, estamos determinando se a solicitação deve ser exibida em modo somente leitura (read-only) ou editável.
   // A variável isReadOnly será verdadeira apenas se o status da solicitação for "PENDING", ou seja, quando ela está em análise e não pode ser editada.

@@ -102,8 +102,7 @@ export default function PricingSolicitationForm({
                 feeDock: "",
                 transactionFeeStart: productType.transactionFeeStart || "",
                 transactionFeeEnd: productType.transactionFeeEnd || "",
-                pixMinimumCostFee: "",
-                pixCeilingFee: "",
+
                 transactionAnticipationMdr: "",
               })
             ),
@@ -113,26 +112,48 @@ export default function PricingSolicitationForm({
     },
   });
 
-  // Format data for API
-  function formatForAPI(data: any): PricingSolicitationForm {
-    return {
+  function formatDataSolicitation(data: any): PricingSolicitationForm {
+    console.log("Dados antes da formatação:", data);
+
+    const formattedData = {
       ...data,
       brands: data.brands.map((brand: any) => ({
         name: brand.name,
-        productTypes: brand.productTypes.map((pt: any) => ({
-          name: pt.name,
-          fee: Number(pt.fee) || 0,
-          feeAdmin: Number(pt.feeAdmin) || 0,
-          feeDock: Number(pt.feeDock) || 0,
-          transactionFeeStart: Number(pt.transactionFeeStart) || 0,
-          transactionFeeEnd: Number(pt.transactionFeeEnd) || 0,
-          pixMinimumCostFee: Number(pt.pixMinimumCostFee) || 0,
-          pixCeilingFee: Number(pt.pixCeilingFee) || 0,
-          transactionAnticipationMdr:
-            Number(pt.transactionAnticipationMdr) || 0,
-        })),
+        productTypes: brand.productTypes.map((pt: any) => {
+          console.log(
+            `Formatando ${brand.name} - ${pt.name}: fee=${pt.fee}, noCardFee=${pt.noCardFee}`
+          );
+
+          return {
+            name: pt.name,
+            fee: Number(pt.fee) || 0,
+            feeAdmin: Number(pt.feeAdmin) || 0,
+            feeDock: Number(pt.feeDock) || 0,
+            noCardFee: Number(pt.noCardFee) || 0,
+            noCardFeeAdmin: Number(pt.noCardFeeAdmin) || 0,
+            noCardFeeDock: Number(pt.noCardFeeDock) || 0,
+            noCardTransactionAnticipationMdr:
+              Number(pt.noCardTransactionAnticipationMdr) || 0,
+            transactionFeeStart: Number(pt.transactionFeeStart) || 0,
+            transactionFeeEnd: Number(pt.transactionFeeEnd) || 0,
+            pixMinimumCostFee: Number(pt.pixMinimumCostFee) || 0,
+            pixCeilingFee: Number(pt.pixCeilingFee) || 0,
+            transactionAnticipationMdr:
+              Number(pt.transactionAnticipationMdr) || 0,
+          };
+        }),
       })),
+      cardPixMdr: Number(data.cardPixMdr) || 0,
+      cardPixCeilingFee: Number(data.cardPixCeilingFee) || 0,
+      cardPixMinimumCostFee: Number(data.cardPixMinimumCostFee) || 0,
+      nonCardPixMdr: Number(data.nonCardPixMdr) || 0,
+      nonCardPixCeilingFee: Number(data.nonCardPixCeilingFee) || 0,
+      nonCardPixMinimumCostFee: Number(data.nonCardPixMinimumCostFee) || 0,
+      eventualAnticipationFee: Number(data.eventualAnticipationFee) || 0,
     } as PricingSolicitationForm;
+
+    console.log("Dados após formatação:", formattedData);
+    return formattedData;
   }
 
   // Map form data to solicitation structure
@@ -164,6 +185,7 @@ export default function PricingSolicitationForm({
           feeDock: productType.feeDock || "",
           transactionFeeStart: productType.transactionFeeStart || "",
           transactionFeeEnd: productType.transactionFeeEnd || "",
+          noCardFee: productType.noCardFee || "",
         })),
       })),
     };
@@ -174,7 +196,9 @@ export default function PricingSolicitationForm({
     values: PricingSolicitationSchema,
     status: string
   ) {
-    const formattedData = formatForAPI(mapFormDataToSolicitation(values));
+    const formattedData = formatDataSolicitation(
+      mapFormDataToSolicitation(values)
+    );
     const result = await insertPricingSolicitation({
       ...formattedData,
       status: status,
@@ -189,7 +213,9 @@ export default function PricingSolicitationForm({
     id: number,
     status: string
   ) {
-    const formattedData = formatForAPI(mapFormDataToSolicitation(values));
+    const formattedData = formatDataSolicitation(
+      mapFormDataToSolicitation(values)
+    );
     await updatePricingSolicitation({
       ...formattedData,
       id: id,
@@ -207,7 +233,7 @@ export default function PricingSolicitationForm({
         // Update existing solicitation to PENDING status
         await updateExistingSolicitation(values, solicitationId, "PENDING");
         setFormStatus("PENDING");
-        router.push(`/pricing-solicitation/${solicitationId}`);
+        router.push(`/porta/pricingsolicitation/${solicitationId}`);
       } else {
         // Create new solicitation with PENDING status
         const result = await createPricingSolicitation(values, "PENDING");

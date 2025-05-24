@@ -32,17 +32,26 @@ export function PricingSolicitationReadOnlyView({
 
     const productTypeMap = new Map();
     brand.productTypes?.forEach((pt) => {
-      productTypeMap.set(pt.name, pt);
+      // Normalize product type name by removing extra spaces
+      const normalizedName = pt.name?.trim() ?? "";
+      if (normalizedName) {
+        productTypeMap.set(normalizedName, pt);
+      }
     });
 
     return {
       brand: brandItem,
       productTypes: SolicitationFeeProductTypeList.map((ptItem) => {
+        const normalizedValue = ptItem.value.trim();
+        const productType = productTypeMap.get(normalizedValue);
+
         return (
-          productTypeMap.get(ptItem.value) || {
-            name: ptItem.value,
+          productType || {
+            name: normalizedValue,
             fee: "-",
+            feeAdmin: "-",
             noCardFee: "-",
+            noCardFeeAdmin: "-",
           }
         );
       }),
@@ -283,8 +292,8 @@ export function PricingSolicitationReadOnlyView({
                   <div>
                     <h4 className="font-medium">Antecipação</h4>
                     <div className="bg-gray-100 rounded-md p-2 mt-1">
-                      {data.nonCardEventualAnticipationFee
-                        ? `${data.nonCardEventualAnticipationFee}%`
+                      {data.eventualAnticipationFee
+                        ? `${data.eventualAnticipationFee}%`
                         : "-"}
                     </div>
                   </div>

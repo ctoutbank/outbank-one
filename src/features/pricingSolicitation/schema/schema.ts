@@ -35,7 +35,7 @@ export const schemaPricingSolicitation = z
     nonCardPixMdr: z.string().optional(),
     nonCardPixCeilingFee: z.string().optional(),
     nonCardPixMinimumCostFee: z.string().optional(),
-    nonCardEventualAnticipationFee: z.string().optional(),
+
     noCardFee: z.string().optional(),
     noCardTransactionAnticipationMdr: z.string().optional(),
     noCardFeeAdmin: z.string().optional(),

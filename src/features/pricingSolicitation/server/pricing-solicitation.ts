@@ -109,51 +109,49 @@ export async function getPricingSolicitationById(
       sf.id,
       sf.cnae,
       sf.mcc,
-      sf."cnpj_quantity",
+      sf.cnpj_quantity as "cnpjQuantity",
       sf.status,
       sf.dtinsert,
       sf.dtupdate,
       sf.slug,
-      sf."id_customers",
-      sf."monthly_pos_fee",
-      sf."average_ticket",
+      sf.id_customers as "idCustomers",
+      sf.monthly_pos_fee as "monthlyPosFee",
+      sf.average_ticket as "averageTicket",
       sf.description,
-      sf."cnae_in_use",
-      sf."card_pix_mdr",
-      sf."card_pix_ceiling_fee",
-      sf."card_pix_minimum_cost_fee",
-      sf."eventual_anticipation_fee" as "eventualAnticipationFee",
-      sf."non_card_pix_mdr",
-      sf."non_card_pix_ceiling_fee",
-      sf."non_card_pix_minimum_cost_fee",
-      sf."eventual_anticipation_fee" as "nonCardEventualAnticipationFee",
+      sf.cnae_in_use as "cnaeInUse",
+      sf.card_pix_mdr as "cardPixMdr",
+      sf.card_pix_ceiling_fee as "cardPixCeilingFee",
+      sf.card_pix_minimum_cost_fee as "cardPixMinimumCostFee",
+      sf.eventual_anticipation_fee as "eventualAnticipationFee",
+      sf.non_card_pix_mdr as "nonCardPixMdr",
+      sf.non_card_pix_ceiling_fee as "nonCardPixCeilingFee",
+      sf.non_card_pix_minimum_cost_fee as "nonCardPixMinimumCostFee",
       json_agg(
         json_build_object(
           'name', sfb.brand,
           'productTypes', (
             SELECT json_agg(
               json_build_object(
-                'name', sbpt."product_type",
+                'name', sbpt.product_type,
                 'fee', sbpt.fee,
-                'noCardFee', sbpt."no_card_fee",
-                'noCardTransactionAnticipationMdr', sbpt."no_card_transaction_anticipation_mdr",
-                'noCardFeeAdmin', sbpt."no_card_fee_admin",
-                'noCardFeeDock', sbpt."no_card_fee_dock",
-                'feeAdmin', sbpt."fee_admin",
-                'feeDock', sbpt."fee_dock",
-                'transactionFeeStart', sbpt."transaction_fee_start",
-                'transactionFeeEnd', sbpt."transaction_fee_end",
-                
-                'transactionAnticipationMdr', sbpt."transaction_anticipation_mdr"
+                'feeAdmin', sbpt.fee_admin,
+                'feeDock', sbpt.fee_dock,
+                'transactionFeeStart', sbpt.transaction_fee_start,
+                'transactionFeeEnd', sbpt.transaction_fee_end,
+                'noCardFee', sbpt.no_card_fee,
+                'noCardFeeAdmin', sbpt.no_card_fee_admin,
+                'noCardFeeDock', sbpt.no_card_fee_dock,
+                'noCardTransactionAnticipationMdr', sbpt.no_card_transaction_anticipation_mdr,
+                'transactionAnticipationMdr', sbpt.transaction_anticipation_mdr
               )
             )
             FROM ${solicitationBrandProductType} sbpt
-            WHERE sbpt."solicitation_fee_brand_id" = sfb.id
+            WHERE sbpt.solicitation_fee_brand_id = sfb.id
           )
         )
       ) as brands
     FROM ${solicitationFee} sf
-    LEFT JOIN ${solicitationFeeBrand} sfb ON sf.id = sfb."solicitation_fee_id"
+    LEFT JOIN ${solicitationFeeBrand} sfb ON sf.id = sfb.solicitation_fee_id
     WHERE sf.id = ${id}
     GROUP BY sf.id
   `);
@@ -403,7 +401,7 @@ export async function mapFormDataToSolicitation(
     nonCardPixMdr: data.nonCardPixMdr || null,
     nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
     nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
-    nonCardEventualAnticipationFee: data.nonCardEventualAnticipationFee || null,
+
     brands: (data.brands || []).map((brand) => ({
       name: brand.name,
       productTypes: (brand.productTypes || []).map((productType) => ({

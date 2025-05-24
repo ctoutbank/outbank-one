@@ -567,9 +567,9 @@ function NonCardPIXFeesSection({
     control,
     name: "nonCardPixCeilingFee",
   });
-  const nonCardEventualAnticipationFee = useWatch({
+  const EventualAnticipationFee = useWatch({
     control,
-    name: "nonCardEventualAnticipationFee",
+    name: "EventualAnticipationFee",
   });
 
   return (
@@ -663,14 +663,14 @@ function NonCardPIXFeesSection({
             <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
               {isReadOnly ? (
                 <span>
-                  {nonCardEventualAnticipationFee
-                    ? `${nonCardEventualAnticipationFee}%`
+                  {EventualAnticipationFee
+                    ? `${EventualAnticipationFee}%`
                     : "-"}
                 </span>
               ) : (
                 <FormField
                   control={control}
-                  name="nonCardEventualAnticipationFee"
+                  name="EventualAnticipationFee"
                   render={({ field }) => (
                     <FormControl>
                       <PercentageInput
@@ -722,6 +722,8 @@ export function FeesSection({
         isReadOnly={isReadOnly}
         isNewSolicitation={isNewSolicitation}
       />
+      {/* PIX Fees Section */}
+      <PIXFeesSection control={control} isReadOnly={isReadOnly} />
 
       {/* Online Brand Table */}
       <OnlineBrandTable
@@ -729,9 +731,6 @@ export function FeesSection({
         isReadOnly={isReadOnly}
         isNewSolicitation={isNewSolicitation}
       />
-
-      {/* PIX Fees Section */}
-      <PIXFeesSection control={control} isReadOnly={isReadOnly} />
 
       {/* Non-Card PIX Fees Section */}
       <NonCardPIXFeesSection control={control} isReadOnly={isReadOnly} />

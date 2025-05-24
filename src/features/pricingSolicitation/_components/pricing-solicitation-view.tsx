@@ -26,16 +26,36 @@ import {
   rejectAction,
   updateToSendDocumentsAction,
 } from "@/features/pricingSolicitation/actions/pricing-solicitation-actions";
-import type {
-  PricingSolicitationForm,
-  ProductType,
-} from "@/features/pricingSolicitation/server/pricing-solicitation";
+import type { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { DownloadIcon, FileIcon, UploadIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+
+interface PricingSolicitationViewProps {
+  pricingSolicitation: PricingSolicitationForm;
+}
+
+interface ProductType {
+  name?: string;
+  fee?: string | number;
+  feeAdmin?: string | number;
+  feeDock?: string | number;
+  transactionFeeStart?: string | number;
+  transactionFeeEnd?: string | number;
+  noCardFee?: string | number;
+  noCardFeeAdmin?: string | number;
+  noCardFeeDock?: string | number;
+  noCardTransactionAnticipationMdr?: string | number;
+  transactionAnticipationMdr?: string | number;
+}
+
+interface Brand {
+  name: string;
+  productTypes?: ProductType[];
+}
 
 const getCardImage = (cardName: string): string => {
   const cardMap: { [key: string]: string } = {
@@ -50,12 +70,26 @@ const getCardImage = (cardName: string): string => {
   return cardMap[cardName] || "";
 };
 
+// Função para normalizar uma string
+function normalizeString(str: string | undefined | null): string {
+  return (str ?? "").toUpperCase().trim().replace(/\s+/g, "");
+}
+
+// Função para normalizar um tipo de produto
+function normalizeProductType(pt: ProductType): ProductType {
+  return {
+    ...pt,
+    name: normalizeString(pt.name),
+    fee: pt.fee ?? "-",
+    feeAdmin: pt.feeAdmin ?? "-",
+    noCardFee: pt.noCardFee ?? "-",
+    noCardFeeAdmin: pt.noCardFeeAdmin ?? "-",
+  };
+}
+
 export function PricingSolicitationView({
   pricingSolicitation,
-}: {
-  pricingSolicitation: PricingSolicitationForm;
-}) {
-  // Adicionar um form vazio para fornecer o contexto necessário
+}: PricingSolicitationViewProps) {
   const form = useForm();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,105 +104,225 @@ export function PricingSolicitationView({
     return <div>Nenhuma solicitação encontrada</div>;
   }
 
-  // Log para debug
-  console.log(
-    "PricingSolicitation data:",
-    JSON.stringify(pricingSolicitation, null, 2)
-  );
+  console.log(pricingSolicitation);
 
-  // Map brands from solicitation to display format
-  const brandsMap = new Map();
+  // Mapear marcas da solicitação para o formato de exibição
+  const brandsMap = new Map<string, Brand>();
   pricingSolicitation.brands?.forEach((brand) => {
-    brandsMap.set(brand.name, brand);
+    const normalizedBrandName = normalizeString(brand.name);
+    console.log("Processing brand from DB:", {
+      originalName: brand.name,
+      normalizedName: normalizedBrandName,
+      productTypes: brand.productTypes?.map((pt) => ({
+        original: {
+          name: pt.name,
+          fee: pt.fee,
+          feeAdmin: pt.feeAdmin,
+          noCardFee: pt.noCardFee,
+          noCardFeeAdmin: pt.noCardFeeAdmin,
+        },
+        normalized: normalizeProductType(pt),
+      })),
+    });
+
+    brandsMap.set(normalizedBrandName, {
+      ...brand,
+      name: normalizedBrandName,
+      productTypes: brand.productTypes?.map(normalizeProductType),
+    });
   });
 
-  // Organize fees by brand and product type
-  const feesData = brandList.map((brandItem) => {
-    const brand = brandsMap.get(brandItem.value) || {
-      name: brandItem.value,
-      productTypes: [],
-    };
+  // feesData agora garante todas as bandeiras e tipos, mesmo que não existam no banco
+  const feesData = brandList.map((brand) => {
+    const normalizedBrandName = normalizeString(brand.value);
+    const foundBrand = brandsMap.get(normalizedBrandName);
 
-    const productTypeMap = new Map();
-    brand.productTypes?.forEach((pt: ProductType) => {
-      productTypeMap.set(pt.name, pt);
+    console.log(`Processing brand ${brand.value}:`, {
+      originalName: brand.value,
+      normalizedName: normalizedBrandName,
+      foundBrand: foundBrand
+        ? {
+            name: foundBrand.name,
+            productTypes: foundBrand.productTypes?.map((pt) => ({
+              name: pt.name,
+              fee: pt.fee,
+              feeAdmin: pt.feeAdmin,
+              noCardFee: pt.noCardFee,
+              noCardFeeAdmin: pt.noCardFeeAdmin,
+            })),
+          }
+        : null,
+    });
+
+    // Agrupa os tipos POS
+    const posTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt) => normalizeString(pt.name) === normalizedTypeName
+      );
+
+      console.log(`Looking for POS type ${type.value}:`, {
+        typeValue: type.value,
+        normalizedTypeName,
+        foundType: foundType
+          ? {
+              name: foundType.name,
+              fee: foundType.fee,
+              feeAdmin: foundType.feeAdmin,
+            }
+          : null,
+        allProductTypes: foundBrand?.productTypes?.map((pt) => ({
+          name: pt.name,
+          normalizedName: normalizeString(pt.name),
+        })),
+      });
+
+      return {
+        value: type.value,
+        label: type.label,
+        fee: foundType?.fee ?? "-",
+        feeAdmin: foundType?.feeAdmin ?? "-",
+      };
+    });
+
+    // Agrupa os tipos Online
+    const onlineTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt) => normalizeString(pt.name) === normalizedTypeName
+      );
+
+      console.log(`Looking for Online type ${type.value}:`, {
+        typeValue: type.value,
+        normalizedTypeName,
+        foundType: foundType
+          ? {
+              name: foundType.name,
+              noCardFee: foundType.noCardFee,
+              noCardFeeAdmin: foundType.noCardFeeAdmin,
+            }
+          : null,
+        allProductTypes: foundBrand?.productTypes?.map((pt) => ({
+          name: pt.name,
+          normalizedName: normalizeString(pt.name),
+        })),
+      });
+
+      return {
+        value: type.value,
+        label: type.label,
+        noCardFee: foundType?.noCardFee ?? "-",
+        noCardFeeAdmin: foundType?.noCardFeeAdmin ?? "-",
+      };
     });
 
     return {
-      brand: brandItem,
-      productTypes: SolicitationFeeProductTypeList.map((ptItem) => {
-        return (
-          productTypeMap.get(ptItem.value) || {
-            name: ptItem.value,
-            fee: "-",
-          }
-        );
-      }),
+      brand: {
+        value: brand.value,
+        label: brand.label,
+      },
+      posTypes,
+      onlineTypes,
     };
   });
 
-  // Correção para acessar os campos corretamente
-  // Obtém os valores dos campos da API, que podem vir com diferentes formatos de nome
-  const data = pricingSolicitation as any;
-  const cnpjQuantity = data.cnpj_quantity || pricingSolicitation.cnpjQuantity;
-  const averageTicket =
-    data.average_ticket || pricingSolicitation.averageTicket;
-  const monthlyPosFee =
-    data.monthly_pos_fee || pricingSolicitation.monthlyPosFee;
-  const cnaeInUse = data.cnae_in_use || pricingSolicitation.cnaeInUse;
+  console.log("Final Fees Data:", JSON.stringify(feesData, null, 2));
 
-  // Obter os campos de PIX considerando os diferentes formatos
-  const cardPixMdr = data.card_pix_mdr || pricingSolicitation.cardPixMdr;
-  const cardPixCeilingFee =
-    data.card_pix_ceiling_fee || pricingSolicitation.cardPixCeilingFee;
-  const cardPixMinimumCostFee =
-    data.card_pix_minimum_cost_fee || pricingSolicitation.cardPixMinimumCostFee;
-  const eventualAnticipationFee =
-    data.eventualAnticipationFee || data.eventual_anticipation_fee;
+  // Você pode sim criar uma constante que normaliza toda a estrutura, facilitando o acesso aos campos independentemente do formato do nome.
+  // Exemplo de normalização dos campos em uma única constante:
+  const normalized = {
+    ...pricingSolicitation,
+    cnpjQuantity:
+      (pricingSolicitation as any).cnpj_quantity ??
+      pricingSolicitation.cnpjQuantity,
+    averageTicket:
+      (pricingSolicitation as any).average_ticket ??
+      pricingSolicitation.averageTicket,
+    monthlyPosFee:
+      (pricingSolicitation as any).monthly_pos_fee ??
+      pricingSolicitation.monthlyPosFee,
+    cnaeInUse:
+      (pricingSolicitation as any).cnae_in_use ?? pricingSolicitation.cnaeInUse,
 
-  // PIX sem cartão
-  const nonCardPixMdr =
-    data.non_card_pix_mdr || pricingSolicitation.nonCardPixMdr;
-  const nonCardPixCeilingFee =
-    data.non_card_pix_ceiling_fee || pricingSolicitation.nonCardPixCeilingFee;
-  const nonCardPixMinimumCostFee =
-    data.non_card_pix_minimum_cost_fee ||
-    pricingSolicitation.nonCardPixMinimumCostFee;
-  const nonCardEventualAnticipationFee =
-    data.nonCardEventualAnticipationFee ||
-    data.non_card_eventual_anticipation_fee;
+    // PIX com cartão
+    cardPixMdr:
+      (pricingSolicitation as any).card_pix_mdr ??
+      pricingSolicitation.cardPixMdr,
+    cardPixCeilingFee:
+      (pricingSolicitation as any).card_pix_ceiling_fee ??
+      pricingSolicitation.cardPixCeilingFee,
+    cardPixMinimumCostFee:
+      (pricingSolicitation as any).card_pix_minimum_cost_fee ??
+      pricingSolicitation.cardPixMinimumCostFee,
+    eventualAnticipationFee:
+      (pricingSolicitation as any).eventualAnticipationFee ??
+      (pricingSolicitation as any).eventual_anticipation_fee,
 
-  // Função para download do aditivo
+    // PIX sem cartão
+    nonCardPixMdr:
+      (pricingSolicitation as any).non_card_pix_mdr ??
+      pricingSolicitation.nonCardPixMdr,
+    nonCardPixCeilingFee:
+      (pricingSolicitation as any).non_card_pix_ceiling_fee ??
+      pricingSolicitation.nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee:
+      (pricingSolicitation as any).non_card_pix_minimum_cost_fee ??
+      pricingSolicitation.nonCardPixMinimumCostFee,
+    nonCardEventualAnticipationFee:
+      (pricingSolicitation as any).nonCardEventualAnticipationFee ??
+      (pricingSolicitation as any).non_card_eventual_anticipation_fee,
+  };
+
+  console.log(normalized);
+
+  // Agora você pode acessar os campos normalizados:
+  const {
+    cnpjQuantity,
+    averageTicket,
+    monthlyPosFee,
+    cnaeInUse,
+    cardPixMdr,
+    cardPixCeilingFee,
+    cardPixMinimumCostFee,
+    eventualAnticipationFee,
+    nonCardPixMdr,
+    nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee,
+    nonCardEventualAnticipationFee,
+  } = normalized;
+
+  console.log(
+    pricingSolicitation.brands?.map((b) => ({
+      name: b.name,
+      productTypes: b.productTypes?.map((pt) => ({
+        name: pt.name,
+        noCardFee: pt.noCardFee,
+        noCardFeeAdmin: pt.noCardFeeAdmin,
+      })),
+    }))
+  );
+
+  // Handlers
   const downloadAditivo = () => {
     window.open("/AditivoAcquiring.pdf");
     setDocumentDownloaded(true);
   };
 
-  // Função para abrir o diálogo de upload
   const handleOpenUploadDialog = () => {
     setShowUploadDialog(true);
   };
 
-  // Função para processar o upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadedFile(e.target.files[0]);
     }
   };
 
-  // Função para enviar o arquivo e atualizar o status
   const handleUploadSubmit = async () => {
     if (!uploadedFile || !pricingSolicitation.id) return;
 
     setIsSubmitting(true);
     try {
-      // Simular upload do arquivo - em uma implementação real, você enviaria para o servidor
-      // const formData = new FormData();
-      // formData.append('file', uploadedFile);
-      // formData.append('solicitationId', pricingSolicitation.id.toString());
-      // await fetch('/api/upload', { method: 'POST', body: formData });
-
-      // Atualizar status para SEND_DOCUMENTS
       const result = await updateToSendDocumentsAction(pricingSolicitation.id);
 
       if (result.success) {
@@ -188,7 +342,6 @@ export function PricingSolicitationView({
     }
   };
 
-  // Função para aprovar solicitação
   const handleApprove = async () => {
     if (!pricingSolicitation.id) return;
 
@@ -209,12 +362,10 @@ export function PricingSolicitationView({
     }
   };
 
-  // Função para abrir o diálogo de rejeição
   const handleOpenRejectDialog = () => {
     setShowRejectDialog(true);
   };
 
-  // Função para rejeitar solicitação
   const handleReject = async () => {
     if (!pricingSolicitation.id) return;
 
@@ -313,12 +464,20 @@ export function PricingSolicitationView({
                   Bandeiras
                 </TableHead>
                 {SolicitationFeeProductTypeList.map((type, index) => (
-                  <TableHead
-                    key={`${type.value}-${index}`}
-                    className="text-center min-w-[100px]"
-                  >
-                    {type.label}
-                  </TableHead>
+                  <>
+                    <TableHead
+                      key={`${type.value}-fee-${index}`}
+                      className="text-center min-w-[100px]"
+                    >
+                      {type.label}
+                    </TableHead>
+                    <TableHead
+                      key={`${type.value}-feeAdmin-${index}`}
+                      className="text-center min-w-[100px]"
+                    >
+                      {type.label}
+                    </TableHead>
+                  </>
                 ))}
               </TableRow>
             </TableHeader>
@@ -339,26 +498,32 @@ export function PricingSolicitationView({
                       {item.brand.label}
                     </div>
                   </TableCell>
-                  {item.productTypes.map((productType, typeIndex) => (
-                    <TableCell
-                      key={`${item.brand.value}-${productType.name}-${typeIndex}`}
-                      className="p-1 text-center"
-                    >
-                      <div
-                        className={`rounded-full py-1 px-3 inline-block w-[70px] text-center ${
-                          typeIndex % 2 === 0 ? "bg-blue-100" : "bg-amber-100"
-                        }`}
+                  {item.posTypes.map((productType, typeIndex) => (
+                    <>
+                      <TableCell
+                        key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                        className="p-1 text-center"
                       >
-                        {productType.fee || "-"}
-                      </div>
-                    </TableCell>
+                        <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                          {productType.fee || "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell
+                        key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                        className="p-1 text-center"
+                      >
+                        <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                          {productType.feeAdmin || "-"}
+                        </div>
+                      </TableCell>
+                    </>
                   ))}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {/* PIX Fees Section - if available */}
+          {/* PIX Fees Section */}
           <div className="mt-12 mb-6">
             <h3 className="text-lg font-medium mb-4">Taxas PIX</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -403,18 +568,26 @@ export function PricingSolicitationView({
                     Bandeiras
                   </TableHead>
                   {SolicitationFeeProductTypeList.map((type, index) => (
-                    <TableHead
-                      key={`${type.value}-online-${index}`}
-                      className="text-center min-w-[100px]"
-                    >
-                      {type.label}
-                    </TableHead>
+                    <>
+                      <TableHead
+                        key={`${type.value}-noCardFee-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                      <TableHead
+                        key={`${type.value}-noCardFeeAdmin-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                    </>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {feesData.map((item) => (
-                  <TableRow key={`online-${item.brand.value}`}>
+                  <TableRow key={item.brand.value}>
                     <TableCell className="font-medium sticky left-0 z-10 bg-white">
                       <div className="flex items-center gap-2">
                         {getCardImage(item.brand.value) && (
@@ -429,19 +602,25 @@ export function PricingSolicitationView({
                         {item.brand.label}
                       </div>
                     </TableCell>
-                    {item.productTypes.map((productType, typeIndex) => (
-                      <TableCell
-                        key={`${item.brand.value}-${productType.name}-online-${typeIndex}`}
-                        className="p-1 text-center"
-                      >
-                        <div
-                          className={`rounded-full py-1 px-3 inline-block w-[70px] text-center ${
-                            typeIndex % 2 === 0 ? "bg-blue-100" : "bg-amber-100"
-                          }`}
+                    {item.onlineTypes.map((productType, typeIndex) => (
+                      <>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                          className="p-1 text-center"
                         >
-                          {productType.noCardFee || "-"}
-                        </div>
-                      </TableCell>
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                            {productType.noCardFee || "-"}
+                          </div>
+                        </TableCell>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                          className="p-1 text-center"
+                        >
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                            {productType.noCardFeeAdmin || "-"}
+                          </div>
+                        </TableCell>
+                      </>
                     ))}
                   </TableRow>
                 ))}

@@ -502,7 +502,7 @@ export default function ExcelImportButton() {
                     className="flex items-center p-0 h-auto text-gray-700 hover:text-gray-900"
                   >
                     <FileText className="mr-2 h-4 w-4" />
-                    Baixar Template
+                    Template
                   </Button>
                   <div
                     className="ml-2 text-gray-500 cursor-help"
