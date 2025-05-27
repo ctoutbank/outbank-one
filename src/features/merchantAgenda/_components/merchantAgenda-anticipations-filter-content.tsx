@@ -109,7 +109,7 @@ export function AnticipationsListFilterContent({
   ];
 
   return (
-    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[700px]">
+    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[800px] min-h-[450px] max-h-[450px]">
       <div className="space-y-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Status</h3>

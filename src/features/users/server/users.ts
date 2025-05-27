@@ -743,3 +743,10 @@ export async function createSalesAgent(
     throw error;
   }
 }
+export async function getMerchantsWithDDD(): Promise<{ area_code: string | null }[]> {
+  return db.select({
+    area_code: merchants.areaCode,
+  }).from(merchants);
+}
+
+

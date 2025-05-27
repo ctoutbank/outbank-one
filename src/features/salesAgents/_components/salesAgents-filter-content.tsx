@@ -83,7 +83,7 @@ export function SalesAgentsFilterContent({
 
   return (
     <div ref={filterRef}
-      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px] z-60"
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[900px] z-60"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >

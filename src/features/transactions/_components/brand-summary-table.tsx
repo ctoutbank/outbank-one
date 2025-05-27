@@ -1,12 +1,12 @@
 import { getBrandLabel } from "@/lib/lookuptables/lookuptables-transactions";
 import { TransactionsGroupedReport } from "../serverActions/transaction";
 import {
-  SummaryTableItem,
-  TransactionSummaryTable,
+    SummaryTableItem,
+    TransactionSummaryTable,
 } from "./transaction-summary-table";
 
 interface BrandSummaryTableProps {
-  transactions: TransactionsGroupedReport[];
+    transactions: TransactionsGroupedReport[];
 }
 
 export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
@@ -22,6 +22,12 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                 const filteredTransactions = transactions.filter(
                     (t) => t.product_type === value
                 );
+
+                const nullBrands = filteredTransactions.filter((t) => t.brand == null);
+                if (nullBrands.length > 0) {
+                    console.warn(`Transações com brand nula em "${label}":`);
+                    console.table(nullBrands);
+                }
 
                 const transactionsByBrand = filteredTransactions.reduce(
                     (acc, curr) => {
@@ -53,21 +59,33 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                     >
                 );
 
+                // LOG para verificar quais brands foram agrupadas
+                console.log(`\n--- ${label} ---`);
+                console.log("Brands presentes:", Object.keys(transactionsByBrand));
+
+                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
+                    (item) => {
+                        const mappedLabel = getBrandLabel(item.brand);
+
+                        // LOGs para depuração de cada item
+                        console.log("Brand encontrada:", item.brand);
+                        console.log("Label mapeada:", mappedLabel);
+
+                        return {
+                            id: `brand-${value}-${item.brand}`,
+                            label: mappedLabel || `[${item.brand}]`,
+                            count: item.count,
+                            totalAmount: item.totalAmount,
+                        };
+                    }
+                );
+
                 const totalGeral = Object.values(transactionsByBrand).reduce(
                     (acc, curr) => ({
                         quantidade: acc.quantidade + curr.count,
                         valorTotal: acc.valorTotal + curr.totalAmount,
                     }),
                     { quantidade: 0, valorTotal: 0 }
-                );
-
-                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
-                    (item) => ({
-                        id: `brand-${value}-${item.brand}`,
-                        label: getBrandLabel(item.brand) || item.brand,
-                        count: item.count,
-                        totalAmount: item.totalAmount,
-                    })
                 );
 
                 return (

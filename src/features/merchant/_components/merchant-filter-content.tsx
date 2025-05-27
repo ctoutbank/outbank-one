@@ -92,10 +92,11 @@ export function FilterMerchantsContent({
 
   return (
     <div
-      className="mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      className="mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[800px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Primeira linha */}
         <div className="space-y-2">

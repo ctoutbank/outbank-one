@@ -249,7 +249,6 @@ function normalizeDateRange(
 
   // Final fica como 'YYYY-MM-DDT23:59:59'
   const endDate = `${nextDay}T23:59:59`;
-
   return { start: startDate, end: endDate };
 }
 

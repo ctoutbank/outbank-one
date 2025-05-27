@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { CircuitBoard, HardDrive } from "lucide-react";
 import { ModeloAtivo } from "../serverActions/terminal";
@@ -83,7 +82,7 @@ export function TerminalsDashboardContent({
           </Card>
 
           {/* Modelos Ativos Card */}
-          <Card className="bg-white lg:col-span-9 w-full">
+          <Card className="bg-white lg:col-span-9 w-full min-h-[200px] max-h[200px]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -98,7 +97,6 @@ export function TerminalsDashboardContent({
               </div>
               <Separator className="mb-3" />
               {modelosAtivosDetalhes.length > 0 ? (
-                <ScrollArea className="h-[70px] pr-3">
                   <div className="flex flex-row flex-wrap gap-4">
                     {modelosAtivosDetalhes.map((modelo, index) => (
                       <div key={index} className="text-center min-w-[100px]">
@@ -113,7 +111,6 @@ export function TerminalsDashboardContent({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
               ) : (
                 <div className="flex justify-center items-center h-[70px] text-zinc-400">
                   Nenhum modelo ativo encontrado

@@ -3,14 +3,15 @@ import CardValue from "@/components/dashboard/cardValue";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import {
-  getTotalMerchants,
-  getTotalTransactions,
-  getTotalTransactionsByMonth,
+    getTotalMerchants,
+    getTotalTransactions,
+    getTotalTransactionsByMonth, getTransactionsGroupedReport,
 } from "@/features/transactions/serverActions/transaction";
 import { gateDateByViewMode } from "@/lib/utils";
 import { Suspense } from "react";
 import { BarChartCustom } from "./_components/barChart";
 import DashboardFilters from "./_components/dashboard-filters";
+import {TransactionsDashboardCards} from "@/features/transactions/_components/transactions-dashboard-cards";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -30,6 +31,9 @@ export default async function SalesDashboard({
       previousPeriod.from!,
       previousPeriod.to!
   );
+
+
+  const transactions = await getTransactionsGroupedReport(period.from, period.to)
 
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
     period.from!,
@@ -134,6 +138,9 @@ export default async function SalesDashboard({
             />
           </div>
         </Suspense>
+          <div>
+             <TransactionsDashboardCards transactions={transactions}/>
+          </div>
       </BaseBody>
     </>
   );
