@@ -9,6 +9,9 @@ interface BrandSummaryTableProps {
     transactions: TransactionsGroupedReport[];
 }
 
+// Lista de todas as bandeiras possíveis que devem aparecer mesmo que não tenham valores
+const allBrands = ["VISA", "MASTERCARD", "ELO", "HIPERCARD", "AMEX", "CABAL"];
+
 export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
     const productTypes = [
         { label: "Débito por Bandeira", value: "DEBIT" },
@@ -23,62 +26,34 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                     (t) => t.product_type === value
                 );
 
-                const nullBrands = filteredTransactions.filter((t) => t.brand == null);
-                if (nullBrands.length > 0) {
-                    console.warn(`Transações com brand nula em "${label}":`);
-                    console.table(nullBrands);
-                }
+                // Inicializa o objeto com todas as bandeiras com valor 0
+                const transactionsByBrand = allBrands.reduce((acc, brand) => {
+                    acc[brand] = {
+                        brand,
+                        count: 0,
+                        totalAmount: 0,
+                    };
+                    return acc;
+                }, {} as Record<string, { brand: string; count: number; totalAmount: number }>);
 
-                const transactionsByBrand = filteredTransactions.reduce(
-                    (acc, curr) => {
-                        if (!acc[curr.brand]) {
-                            acc[curr.brand] = {
-                                brand: curr.brand,
+                // Adiciona os valores reais
+                filteredTransactions.forEach((curr) => {
+                    if (
+                        curr.transaction_status === "AUTHORIZED" ||
+                        curr.transaction_status === "PENDING"
+                    ) {
+                        const brand = curr.brand;
+                        if (!transactionsByBrand[brand]) {
+                            transactionsByBrand[brand] = {
+                                brand,
                                 count: 0,
                                 totalAmount: 0,
                             };
                         }
-
-                        if (
-                            curr.transaction_status === "AUTHORIZED" ||
-                            curr.transaction_status === "PENDING"
-                        ) {
-                            acc[curr.brand].count += Number(curr.count);
-                            acc[curr.brand].totalAmount += Number(curr.total_amount);
-                        }
-
-                        return acc;
-                    },
-                    {} as Record<
-                        string,
-                        {
-                            brand: string;
-                            count: number;
-                            totalAmount: number;
-                        }
-                    >
-                );
-
-                // LOG para verificar quais brands foram agrupadas
-                console.log(`\n--- ${label} ---`);
-                console.log("Brands presentes:", Object.keys(transactionsByBrand));
-
-                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
-                    (item) => {
-                        const mappedLabel = getBrandLabel(item.brand);
-
-                        // LOGs para depuração de cada item
-                        console.log("Brand encontrada:", item.brand);
-                        console.log("Label mapeada:", mappedLabel);
-
-                        return {
-                            id: `brand-${value}-${item.brand}`,
-                            label: mappedLabel || `[${item.brand}]`,
-                            count: item.count,
-                            totalAmount: item.totalAmount,
-                        };
+                        transactionsByBrand[brand].count += Number(curr.count);
+                        transactionsByBrand[brand].totalAmount += Number(curr.total_amount);
                     }
-                );
+                });
 
                 const totalGeral = Object.values(transactionsByBrand).reduce(
                     (acc, curr) => ({
@@ -86,6 +61,15 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                         valorTotal: acc.valorTotal + curr.totalAmount,
                     }),
                     { quantidade: 0, valorTotal: 0 }
+                );
+
+                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
+                    (item) => ({
+                        id: `brand-${value}-${item.brand}`,
+                        label: getBrandLabel(item.brand) || item.brand,
+                        count: item.count,
+                        totalAmount: item.totalAmount,
+                    })
                 );
 
                 return (
