@@ -2,6 +2,7 @@
 
 import FileUpload from "@/components/fileUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import {
   createFileWithPricingSolicitation,
   getFilesByFileType,
@@ -121,101 +122,15 @@ export function DocumentUploadContent({
     }
 
     try {
-      // Preparar dados básicos da solicitação
-      const baseData = {
-        cnae: "00000000",
-        mcc: "0000",
-        cnpjQuantity: 1,
-        monthlyPosFee: 0,
-        averageTicket: 0,
-        description: "Solicitação criada automaticamente",
-        status: "SEND_SOLICITATION",
-        // Novos campos para PIX e configurações de antecipação
-        cardPixMdr: 0,
-        cardPixCeilingFee: 0,
-        cardPixMinimumCostFee: 0,
-        nonCardPixMdr: 0,
-        nonCardPixCeilingFee: 0,
-        nonCardPixMinimumCostFee: 0,
-        compulsoryAnticipationConfig: 0,
-        eventualAnticipationFee: 0,
-        nonCardEventualAnticipationFee: 0,
-        // Campos admin
-        cardPixMdrAdmin: 0,
-        cardPixCeilingFeeAdmin: 0,
-        cardPixMinimumCostFeeAdmin: 0,
-        nonCardPixMdrAdmin: 0,
-        nonCardPixCeilingFeeAdmin: 0,
-        nonCardPixMinimumCostFeeAdmin: 0,
-        eventualAnticipationFeeAdmin: 0,
-        nonCardEventualAnticipationFeeAdmin: 0,
-        // Campos dock
-        cardPixMdrDock: 0,
-        cardPixCeilingFeeDock: 0,
-        cardPixMinimumCostFeeDock: 0,
-        nonCardPixMdrDock: 0,
-        nonCardPixCeilingFeeDock: 0,
-        nonCardPixMinimumCostFeeDock: 0,
-        eventualAnticipationFeeDock: 0,
-        nonCardEventualAnticipationFeeDock: 0,
-      };
-
       // Combinar dados do formulário com os dados padrão
-      let combinedData = formData
+      const combinedData: PricingSolicitationForm = formData
         ? {
-            ...baseData,
             ...formData,
             // Garantir que o status está definido como SEND_SOLICITATION
             status: "SEND_SOLICITATION",
           }
-        : pricingSolicitationData || baseData;
+        : pricingSolicitationData;
 
-      // Limpar e validar dados para evitar erros SQL
-      combinedData = {
-        ...combinedData,
-        // Converter valores para números onde necessário
-        cnpjQuantity: Number(combinedData.cnpjQuantity) || 1,
-        monthlyPosFee: Number(combinedData.monthlyPosFee) || 0,
-        averageTicket: Number(combinedData.averageTicket) || 0,
-        // Novos campos
-        cardPixMdr: Number(combinedData.cardPixMdr) || 0,
-        cardPixCeilingFee: Number(combinedData.cardPixCeilingFee) || 0,
-        cardPixMinimumCostFee: Number(combinedData.cardPixMinimumCostFee) || 0,
-        nonCardPixMdr: Number(combinedData.nonCardPixMdr) || 0,
-        nonCardPixCeilingFee: Number(combinedData.nonCardPixCeilingFee) || 0,
-        nonCardPixMinimumCostFee:
-          Number(combinedData.nonCardPixMinimumCostFee) || 0,
-        compulsoryAnticipationConfig:
-          Number(combinedData.compulsoryAnticipationConfig) || 0,
-        eventualAnticipationFee:
-          Number(combinedData.eventualAnticipationFee) || 0,
-        nonCardEventualAnticipationFee:
-          Number(combinedData.nonCardEventualAnticipationFee) || 0,
-
-        // Se houver marcas, garantir que os dados estejam no formato correto
-        brands: combinedData.brands
-          ? combinedData.brands.map((brand: any) => ({
-              name: brand.name || "Marca Padrão",
-              productTypes: brand.productTypes
-                ? brand.productTypes.map((pt: any) => ({
-                    name: pt.name || "Tipo Padrão",
-                    fee: Number(pt.fee) || 0,
-                    feeAdmin: Number(pt.feeAdmin) || 0,
-                    feeDock: Number(pt.feeDock) || 0,
-                    transactionFeeStart: Number(pt.transactionFeeStart) || 0,
-                    transactionFeeEnd: Number(pt.transactionFeeEnd) || 0,
-                    noCardFee: Number(pt.noCardFee) || 0,
-                    noCardFeeAdmin: Number(pt.noCardFeeAdmin) || 0,
-                    noCardFeeDock: Number(pt.noCardFeeDock) || 0,
-                    noCardTransactionAnticipationMdr:
-                      Number(pt.noCardTransactionAnticipationMdr) || 0,
-                    transactionAnticipationMdr:
-                      Number(pt.transactionAnticipationMdr) || 0,
-                  }))
-                : [],
-            }))
-          : [],
-      };
 
       console.log("Dados enviados para criação da solicitação:", combinedData);
 
@@ -231,12 +146,13 @@ export function DocumentUploadContent({
         onSolicitationCreated(newSolicitationId);
       }
 
-      await createFileWithPricingSolicitation(
+      /*await createFileWithPricingSolicitation(
         combinedData,
+
         newSolicitationId,
 
         "pricingSolicitation"
-      );
+      );*/
 
       return newSolicitationId;
     } catch (error) {

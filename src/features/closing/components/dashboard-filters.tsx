@@ -26,10 +26,7 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   const [currentMonth, setCurrentMonth] = React.useState(initial);
 
   // Calcula o primeiro e último dia do mês selecionado
-  const from = currentMonth
-    .startOf("month")
-    .toISO({ suppressMilliseconds: true });
-  const to = currentMonth.endOf("month").toISO({ suppressMilliseconds: true });
+ 
 
   // Mês máximo permitido (mês atual)
   const nowMonth = DateTime.utc().startOf("month");

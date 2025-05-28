@@ -11,6 +11,7 @@ import {
   solicitationFeeDocument,
 } from "../../drizzle/schema";
 
+
 // Tipos para gerenciamento de arquivos
 export type FileEntityType =
   | "merchant"

@@ -7,6 +7,7 @@ export const schemaPricingBrandProductType = z.object({
   feeDock: z.string().optional(),
   transactionFeeStart: z.string().optional(),
   transactionFeeEnd: z.string().optional(),
+  transactionAnticipationMdr: z.string().optional(),
   noCardFee: z.string().optional(),
   noCardTransactionAnticipationMdr: z.string().optional(),
   noCardFeeAdmin: z.string().optional(),

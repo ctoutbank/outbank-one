@@ -29,6 +29,8 @@ export interface PricingSolicitationList {
   totalCount: number | null;
 }
 
+
+
 export type PricingSolicitationInsert = typeof solicitationFee.$inferInsert;
 export type PricingSolicitationDetail = typeof solicitationFee.$inferSelect & {
   eventualAnticipationFee?: string | null;
@@ -37,18 +39,16 @@ export type PricingSolicitationDetail = typeof solicitationFee.$inferSelect & {
 
 export interface ProductType {
   name: string;
-  fee: number;
-  feeAdmin: number;
-  feeDock: number;
-  transactionFeeStart: number;
-  transactionFeeEnd: number;
-  pixMinimumCostFee: number;
-  pixCeilingFee: number;
-  transactionAnticipationMdr: number;
-  noCardFee: number;
-  noCardTransactionAnticipationMdr: number;
-  noCardFeeAdmin: number;
-  noCardFeeDock: number;
+  fee: string;
+  feeAdmin: string;
+  feeDock: string;
+  transactionFeeStart: string;
+  transactionFeeEnd: string;
+  transactionAnticipationMdr: string;
+  noCardFee: string;
+  noCardTransactionAnticipationMdr: string;
+  noCardFeeAdmin: string;
+  noCardFeeDock: string;
 }
 
 export interface Brand {

@@ -118,8 +118,6 @@ export default function PricingSolicitationForm({
 
               transactionFeeStart: pt.transactionFeeStart?.toString() || "",
               transactionFeeEnd: pt.transactionFeeEnd?.toString() || "",
-              pixMinimumCostFee: pt.pixMinimumCostFee?.toString() || "",
-              pixCeilingFee: pt.pixCeilingFee?.toString() || "",
               transactionAnticipationMdr:
                 pt.transactionAnticipationMdr?.toString() || "",
             })),
@@ -207,10 +205,11 @@ export default function PricingSolicitationForm({
     // Se não houver dados, retorna objeto vazio
     if (!data) return {};
 
-    const mappedData = {
-      cnae: data.cnae || null,
-      mcc: data.mcc || null,
-      cnpjQuantity: data.cnpjsQuantity ? Number(data.cnpjsQuantity) : null,
+    const mappedData: PricingSolicitationForm = {
+      id: 0,
+      cnae: data.cnae || "",
+      mcc: data.mcc || "",
+      cnpjQuantity: data.cnpjsQuantity ? Number(data.cnpjsQuantity) : 0,
       slug: null,
       dtinsert: new Date().toISOString(),
       dtupdate: new Date().toISOString(),
@@ -225,14 +224,34 @@ export default function PricingSolicitationForm({
       nonCardPixMdr: data.nonCardPixMdr || null,
       nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
       nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
+      compulsoryAnticipationConfig:
+        Number(data.eventualAnticipationFee) || null,
       eventualAnticipationFee: data.eventualAnticipationFee || null,
       nonCardEventualAnticipationFee:
         data.nonCardEventualAnticipationFee || null,
+      cardPixMdrAdmin: "0",
+      cardPixCeilingFeeAdmin: "0",
+      cardPixMinimumCostFeeAdmin: "0",
+      nonCardPixMdrAdmin: "0",
+      nonCardPixCeilingFeeAdmin: "0",
+      nonCardPixMinimumCostFeeAdmin: "0",
+      compulsoryAnticipationConfigAdmin: 0,
+      eventualAnticipationFeeAdmin: "0",
+      nonCardEventualAnticipationFeeAdmin: "0",
+      cardPixMdrDock: "0",
+      cardPixCeilingFeeDock: "0",
+      cardPixMinimumCostFeeDock: "0",
+      nonCardPixMdrDock: "0",
+      nonCardPixCeilingFeeDock: "0",
+      nonCardPixMinimumCostFeeDock: "0",
+      compulsoryAnticipationConfigDock: 0,
+      eventualAnticipationFeeDock: "0",
+      nonCardEventualAnticipationFeeDock: "0",
       status: "SEND_SOLICITATION", // Definir status padrão para upload
       brands: (data.brands || []).map((brand) => ({
-        name: brand.name,
+        name: brand.name || "",
         productTypes: (brand.productTypes || []).map((productType) => ({
-          name: productType.name,
+          name: productType.name || "",
           fee: productType.fee || "",
           feeAdmin: productType.feeAdmin || "",
           feeDock: productType.feeDock || "",
@@ -243,6 +262,8 @@ export default function PricingSolicitationForm({
           noCardFeeDock: productType.noCardFeeDock || "",
           noCardTransactionAnticipationMdr:
             productType.noCardTransactionAnticipationMdr || "",
+          transactionAnticipationMdr:
+            productType.transactionAnticipationMdr || "",
         })),
       })),
     };
