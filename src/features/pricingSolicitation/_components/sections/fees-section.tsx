@@ -184,7 +184,7 @@ function POSBrandTable({
         </TableHeader>
         <TableBody>
           {brandList.map((brand, brandIndex) => (
-            <TableRow key={brand.value}>
+            <TableRow key={`pos-${brand.value}-${brandIndex}`}>
               <TableCell className="font-medium sticky left-0 z-10 bg-white">
                 <div className="flex items-center gap-2">
                   {getCardImage(brand.value) && (
@@ -325,7 +325,7 @@ function OnlineBrandTable({
         </TableHeader>
         <TableBody>
           {brandList.map((brand, brandIndex) => (
-            <TableRow key={brand.value}>
+            <TableRow key={`online-${brand.value}-${brandIndex}`}>
               <TableCell className="font-medium sticky left-0 z-10 bg-white">
                 <div className="flex items-center gap-2">
                   {getCardImage(brand.value) && (
@@ -572,9 +572,9 @@ function NonCardPIXFeesSection({
     control,
     name: "nonCardPixCeilingFee",
   });
-  const EventualAnticipationFee = useWatch({
+  const nonCardEventualAnticipationFee = useWatch({
     control,
-    name: "EventualAnticipationFee",
+    name: "nonCardEventualAnticipationFee",
   });
 
   return (
@@ -668,14 +668,14 @@ function NonCardPIXFeesSection({
             <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
               {isReadOnly ? (
                 <span>
-                  {EventualAnticipationFee
-                    ? `${EventualAnticipationFee}%`
+                  {nonCardEventualAnticipationFee
+                    ? `${nonCardEventualAnticipationFee}%`
                     : "-"}
                 </span>
               ) : (
                 <FormField
                   control={control}
-                  name="EventualAnticipationFee"
+                  name="nonCardEventualAnticipationFee"
                   render={({ field }) => (
                     <FormControl>
                       <PercentageInput

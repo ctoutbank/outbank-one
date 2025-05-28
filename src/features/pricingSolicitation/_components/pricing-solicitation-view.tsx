@@ -1,6 +1,8 @@
 "use client";
 
+import FileUpload from "@/components/fileUpload";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +23,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+
+import ListDocumentDownload from "@/features/pricingSolicitation/_components/list-document-download";
 import {
   approveAction,
   rejectAction,
@@ -29,7 +33,7 @@ import {
 import type { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { DownloadIcon, FileIcon, UploadIcon } from "lucide-react";
+import { DownloadIcon, FileIcon, UploadIcon, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -90,6 +94,15 @@ function normalizeProductType(pt: ProductType): ProductType {
 export function PricingSolicitationView({
   pricingSolicitation,
 }: PricingSolicitationViewProps) {
+  const handleUploadComplete = (fileData: {
+    fileId: number;
+    fileURL: string;
+    fileName: string;
+    fileExtension: string;
+  }) => {
+    console.log("Arquivo enviado com sucesso:", fileData);
+    setRefreshDocsKey((k) => k + 1);
+  };
   const form = useForm();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,12 +112,28 @@ export function PricingSolicitationView({
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [refreshDocsKey, setRefreshDocsKey] = useState(0);
+  const [uploadSuccessful] = useState(false);
 
   if (!pricingSolicitation) {
     return <div>Nenhuma solicitação encontrada</div>;
   }
 
-  console.log(pricingSolicitation);
+  console.log("PricingSolicitation completo:", pricingSolicitation);
+  console.log("Campos PIX Admin:", {
+    cardPixMdrAdmin: pricingSolicitation.cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin: pricingSolicitation.cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin: pricingSolicitation.cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin:
+      pricingSolicitation.eventualAnticipationFeeAdmin,
+    nonCardPixMdrAdmin: pricingSolicitation.nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin: pricingSolicitation.nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin:
+      pricingSolicitation.nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin:
+      pricingSolicitation.nonCardEventualAnticipationFeeAdmin,
+  });
 
   // Mapear marcas da solicitação para o formato de exibição
   const brandsMap = new Map<string, Brand>();
@@ -132,6 +161,15 @@ export function PricingSolicitationView({
     });
   });
 
+  const handleCloseUploadDialog = () => {
+    setOpenUploadDialog(false);
+
+    // Se uma solicitação foi criada durante o upload e temos um ID
+    if (uploadSuccessful && pricingSolicitation.id) {
+      // Navegar para a página correta com o ID da solicitação
+      router.push(`/portal/pricingSolicitation/${pricingSolicitation.id}`);
+    }
+  };
   // feesData agora garante todas as bandeiras e tipos, mesmo que não existam no banco
   const feesData = brandList.map((brand) => {
     const normalizedBrandName = normalizeString(brand.value);
@@ -258,6 +296,20 @@ export function PricingSolicitationView({
       (pricingSolicitation as any).eventualAnticipationFee ??
       (pricingSolicitation as any).eventual_anticipation_fee,
 
+    // Novos campos Admin para PIX com cartão
+    cardPixMdrAdmin:
+      (pricingSolicitation as any).card_pix_mdr_admin ??
+      pricingSolicitation.cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin:
+      (pricingSolicitation as any).card_pix_ceiling_fee_admin ??
+      pricingSolicitation.cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin:
+      (pricingSolicitation as any).card_pix_minimum_cost_fee_admin ??
+      pricingSolicitation.cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin:
+      (pricingSolicitation as any).eventual_anticipation_fee_admin ??
+      pricingSolicitation.eventualAnticipationFeeAdmin,
+
     // PIX sem cartão
     nonCardPixMdr:
       (pricingSolicitation as any).non_card_pix_mdr ??
@@ -271,6 +323,20 @@ export function PricingSolicitationView({
     nonCardEventualAnticipationFee:
       (pricingSolicitation as any).nonCardEventualAnticipationFee ??
       (pricingSolicitation as any).non_card_eventual_anticipation_fee,
+
+    // Novos campos Admin para PIX sem cartão
+    nonCardPixMdrAdmin:
+      (pricingSolicitation as any).non_card_pix_mdr_admin ??
+      pricingSolicitation.nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin:
+      (pricingSolicitation as any).non_card_pix_ceiling_fee_admin ??
+      pricingSolicitation.nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin:
+      (pricingSolicitation as any).non_card_pix_minimum_cost_fee_admin ??
+      pricingSolicitation.nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin:
+      (pricingSolicitation as any).non_card_eventual_anticipation_fee_admin ??
+      pricingSolicitation.nonCardEventualAnticipationFeeAdmin,
   };
 
   console.log(normalized);
@@ -285,10 +351,18 @@ export function PricingSolicitationView({
     cardPixCeilingFee,
     cardPixMinimumCostFee,
     eventualAnticipationFee,
+    cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin,
     nonCardPixMdr,
     nonCardPixCeilingFee,
     nonCardPixMinimumCostFee,
     nonCardEventualAnticipationFee,
+    nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin,
   } = normalized;
 
   console.log(
@@ -390,177 +464,287 @@ export function PricingSolicitationView({
   return (
     <Form {...form}>
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <div className="space-y-2">
-              <FormLabel>CNAE</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50">
-                {pricingSolicitation.cnae || "-"}
+        {/* Card: Dados da Solicitação */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Solicitação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>CNAE</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {pricingSolicitation.cnae || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>MCC</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {pricingSolicitation.mcc || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>Quantidade de CNPJs</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {cnpjQuantity || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>Ticket Médio</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {averageTicket || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>TPV Mensal</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {monthlyPosFee || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                  <div className="h-4 w-4 rounded border flex items-center justify-center">
+                    {cnaeInUse && (
+                      <span className="h-2 w-2 bg-black rounded-sm" />
+                    )}
+                  </div>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>CNAE em uso?</FormLabel>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div>
-            <div className="space-y-2">
-              <FormLabel>MCC</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50">
-                {pricingSolicitation.mcc || "-"}
+            {cnaeInUse && pricingSolicitation.description && (
+              <div className="mb-6">
+                <div className="space-y-2">
+                  <FormLabel>Descrição</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
+                    {pricingSolicitation.description}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div>
-            <div className="space-y-2">
-              <FormLabel>Quantidade de CNPJs</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50">
-                {cnpjQuantity || "-"}
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="space-y-2">
-              <FormLabel>Ticket Médio</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50">
-                {averageTicket || "-"}
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="space-y-2">
-              <FormLabel>TPV Mensal</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50">
-                {monthlyPosFee || "-"}
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-              <div className="h-4 w-4 rounded border flex items-center justify-center">
-                {cnaeInUse && <span className="h-2 w-2 bg-black rounded-sm" />}
-              </div>
-              <div className="space-y-1 leading-none">
-                <FormLabel>CNAE em uso?</FormLabel>
-              </div>
-            </div>
-          </div>
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {cnaeInUse && pricingSolicitation.description && (
-          <div className="mb-6">
-            <div className="space-y-2">
-              <FormLabel>Descrição</FormLabel>
-              <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
-                {pricingSolicitation.description}
-              </div>
+        {/* Card: Documentos */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Documentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 col-span-2">
+            <div className="mt-4 ">
+              {pricingSolicitation.id && (
+                <ListDocumentDownload
+                  solicitationId={pricingSolicitation.id}
+                  refreshKey={refreshDocsKey}
+                />
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Brand Table */}
-        <div className="w-full overflow-x-auto">
-          <h3 className="text-lg font-medium mt-8">Taxas Transações Pos</h3>
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="sticky left-0 z-10 bg-white">
-                  Bandeiras
-                </TableHead>
-                {SolicitationFeeProductTypeList.map((type, index) => (
-                  <>
-                    <TableHead
-                      key={`${type.value}-fee-${index}`}
-                      className="text-center min-w-[100px]"
-                    >
-                      {type.label}
+            {/* Adicionar botão para abrir o diálogo de upload quando status é PENDING */}
+
+            {pricingSolicitation.status === "PENDING" && (
+              <div className="flex justify-end ">
+                <Button
+                  onClick={() => setOpenUploadDialog(true)}
+                  className="flex items-center gap-2"
+                >
+                  <UploadIcon className="w-4 h-4" />
+                  Importar Documentos
+                </Button>
+              </div>
+            )}
+          </CardContent>
+          <CardContent>
+            <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
+              <DialogContent className="sm:max-w-[900px]">
+                <DialogHeader>
+                  <DialogTitle>Importar Documentos</DialogTitle>
+                  <DialogDescription>
+                    Selecione os documentos que deseja anexar à solicitação.
+                  </DialogDescription>
+                </DialogHeader>
+                <FileUpload
+                  title="Documentos"
+                  description="Selecione os documentos que deseja anexar à solicitação."
+                  entityType="solicitationFee"
+                  entityId={Number(pricingSolicitation.id)}
+                  fileType="DOCUMENTOS"
+                  maxSizeMB={5}
+                  acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
+                  onUploadComplete={handleUploadComplete}
+                />
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleCloseUploadDialog}
+                  >
+                    Concluir
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Card: Taxas Transações POS */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Taxas Transações POS
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky left-0 z-10 bg-white">
+                      Bandeiras
                     </TableHead>
-                    <TableHead
-                      key={`${type.value}-feeAdmin-${index}`}
-                      className="text-center min-w-[100px]"
-                    >
-                      {type.label}
-                    </TableHead>
-                  </>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {feesData.map((item) => (
-                <TableRow key={item.brand.value}>
-                  <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                    <div className="flex items-center gap-2">
-                      {getCardImage(item.brand.value) && (
-                        <img
-                          src={getCardImage(item.brand.value)}
-                          alt={item.brand.label}
-                          width={40}
-                          height={24}
-                          className="object-contain"
-                        />
-                      )}
-                      {item.brand.label}
-                    </div>
-                  </TableCell>
-                  {item.posTypes.map((productType, typeIndex) => (
-                    <>
-                      <TableCell
-                        key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
-                        className="p-1 text-center"
-                      >
-                        <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                          {productType.fee || "-"}
+                    {SolicitationFeeProductTypeList.map((type, index) => (
+                      <>
+                        <TableHead
+                          key={`${type.value}-fee-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                        <TableHead
+                          key={`${type.value}-feeAdmin-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                      </>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feesData.map((item) => (
+                    <TableRow key={item.brand.value}>
+                      <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                        <div className="flex items-center gap-2">
+                          {getCardImage(item.brand.value) && (
+                            <img
+                              src={getCardImage(item.brand.value)}
+                              alt={item.brand.label}
+                              width={40}
+                              height={24}
+                              className="object-contain"
+                            />
+                          )}
+                          {item.brand.label}
                         </div>
                       </TableCell>
-                      <TableCell
-                        key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
-                        className="p-1 text-center"
-                      >
-                        <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                          {productType.feeAdmin || "-"}
-                        </div>
-                      </TableCell>
-                    </>
+                      {item.posTypes.map((productType, typeIndex) => (
+                        <>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                              {productType.fee || "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                              {productType.feeAdmin || "-"}
+                            </div>
+                          </TableCell>
+                        </>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {/* PIX Fees Section */}
-          <div className="mt-12 mb-6">
-            <h3 className="text-lg font-medium mb-4">Taxas PIX</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div>
-                <h4 className="font-medium mb-2">MDR</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {cardPixMdr || "-"}
+                </TableBody>
+              </Table>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixMdr || "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixMdrAdmin || "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {cardPixMinimumCostFee ? `R$ ${cardPixMinimumCostFee}` : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixMinimumCostFee
+                      ? `R$ ${cardPixMinimumCostFee}`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixMinimumCostFeeAdmin
+                      ? `R$ ${cardPixMinimumCostFeeAdmin}`
+                      : "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Custo Máximo</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixCeilingFeeAdmin
+                      ? `R$ ${cardPixCeilingFeeAdmin}`
+                      : "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Antecipação</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {eventualAnticipationFee
-                    ? `${eventualAnticipationFee}%`
-                    : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {eventualAnticipationFee
+                      ? `${eventualAnticipationFee}%`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {eventualAnticipationFeeAdmin
+                      ? `${eventualAnticipationFeeAdmin}%`
+                      : "-"}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Online Transactions Table */}
-          <div className="mt-12 mb-6">
-            <h3 className="text-lg font-medium mb-4">
+        {/* Card: Taxas Transações Online */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
               Taxas Transações Online
-            </h3>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
@@ -626,123 +810,140 @@ export function PricingSolicitationView({
                 ))}
               </TableBody>
             </Table>
-          </div>
-
-          {/* Non-Card PIX Fees Section */}
-          <div className="mt-12 mb-6">
-            <h3 className="text-lg font-medium mb-4">Taxas PIX </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div>
-                <h4 className="font-medium mb-2">MDR</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {nonCardPixMdr || "-"}
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX Online</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixMdr || "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixMdrAdmin || "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {nonCardPixMinimumCostFee
-                    ? `R$ ${nonCardPixMinimumCostFee}`
-                    : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixMinimumCostFee
+                      ? `R$ ${nonCardPixMinimumCostFee}`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixMinimumCostFeeAdmin
+                      ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
+                      : "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Custo Máximo</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {nonCardPixCeilingFee ? `R$ ${nonCardPixCeilingFee}` : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixCeilingFee ? `R$ ${nonCardPixCeilingFee}` : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixCeilingFeeAdmin
+                      ? `R$ ${nonCardPixCeilingFeeAdmin}`
+                      : "-"}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Antecipação</h4>
-                <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                  {nonCardEventualAnticipationFee
-                    ? `${nonCardEventualAnticipationFee}%`
-                    : "-"}
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardEventualAnticipationFee
+                      ? `${nonCardEventualAnticipationFee}%`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardEventualAnticipationFeeAdmin
+                      ? `${nonCardEventualAnticipationFeeAdmin}%`
+                      : "-"}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Status indicator */}
-        <div className="mt-8">
-          <div className="p-4 rounded-md bg-amber-50">
-            <p className="text-amber-800 font-medium">
-              Status:{" "}
-              {pricingSolicitation.status === "PENDING"
-                ? "Em análise"
-                : pricingSolicitation.status === "SEND_DOCUMENTS" ||
-                    pricingSolicitation.status === "REVIEWED"
-                  ? "Aguardando documentos"
-                  : pricingSolicitation.status === "APPROVED"
-                    ? "Aprovado"
-                    : pricingSolicitation.status === "CANCELED"
-                      ? "Rejeitado"
-                      : pricingSolicitation.status}
-            </p>
-            <p className="text-amber-700 text-sm mt-1">
-              {pricingSolicitation.status === "PENDING"
-                ? "Esta solicitação está em análise."
-                : pricingSolicitation.status === "REVIEWED"
-                  ? "Faça o download do aditivo, assine-o e envie-o para prosseguir."
-                  : pricingSolicitation.status === "SEND_DOCUMENTS"
-                    ? "Aditivo recebido. A solicitação pode ser aprovada."
-                    : ""}
-            </p>
-          </div>
-        </div>
-
-        {/* Botões de ação conforme o status */}
-        {pricingSolicitation.id && (
-          <div className="flex justify-end gap-4 mt-6">
-            {/* Botão de Recusar - disponível para PENDING e SEND_DOCUMENTS */}
-            {(pricingSolicitation.status === "REVIEWED" ||
-              pricingSolicitation.status === "SEND_DOCUMENTS") && (
-              <Button
-                variant="outline"
-                onClick={handleOpenRejectDialog}
-                disabled={isSubmitting}
-                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-              >
-                Recusar
-              </Button>
+        {/* Card: Status e Ações */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Status da Solicitação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="p-4 rounded-md bg-amber-50">
+              <p className="text-amber-800 font-medium">
+                Status:{" "}
+                {pricingSolicitation.status === "PENDING"
+                  ? "Em análise"
+                  : pricingSolicitation.status === "SEND_DOCUMENTS" ||
+                      pricingSolicitation.status === "REVIEWED"
+                    ? "Aguardando documentos"
+                    : pricingSolicitation.status === "APPROVED"
+                      ? "Aprovado"
+                      : pricingSolicitation.status === "CANCELED"
+                        ? "Rejeitado"
+                        : pricingSolicitation.status}
+              </p>
+              <p className="text-amber-700 text-sm mt-1">
+                {pricingSolicitation.status === "PENDING"
+                  ? "Esta solicitação está em análise."
+                  : pricingSolicitation.status === "REVIEWED"
+                    ? "Faça o download do aditivo, assine-o e envie-o para prosseguir."
+                    : pricingSolicitation.status === "SEND_DOCUMENTS"
+                      ? "Aditivo recebido. A solicitação pode ser aprovada."
+                      : ""}
+              </p>
+            </div>
+            {pricingSolicitation.id && (
+              <div className="flex justify-end gap-4 mt-6">
+                {(pricingSolicitation.status === "REVIEWED" ||
+                  pricingSolicitation.status === "SEND_DOCUMENTS") && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenRejectDialog}
+                    disabled={isSubmitting}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                  >
+                    Recusar
+                  </Button>
+                )}
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <>
+                    <Button
+                      variant="link"
+                      onClick={downloadAditivo}
+                      type="button"
+                      className="flex items-center p-0 h-auto text-gray-700 hover:text-gray-900"
+                    >
+                      <DownloadIcon className="w-4 h-4" />
+                      Download Aditivo
+                    </Button>
+                    <Button
+                      onClick={handleOpenUploadDialog}
+                      disabled={!documentDownloaded || isSubmitting}
+                      className="flex items-center gap-2"
+                    >
+                      <UploadIcon className="w-4 h-4" />
+                      {isSubmitting ? "Enviando..." : "Enviar Aditivo Assinado"}
+                    </Button>
+                  </>
+                )}
+                {pricingSolicitation.status === "SEND_DOCUMENTS" && (
+                  <Button
+                    onClick={handleApprove}
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? "Processando..." : "Aceitar"}
+                  </Button>
+                )}
+              </div>
             )}
-
-            {/* Quando REVIEWED, mostrar botão de download e envio de aditivo */}
-            {pricingSolicitation.status === "REVIEWED" && (
-              <>
-                <Button
-                  variant="link"
-                  onClick={downloadAditivo}
-                  type="button"
-                  className="flex items-center p-0 h-auto text-gray-700 hover:text-gray-900"
-                >
-                  <DownloadIcon className="w-4 h-4" />
-                  Download Aditivo
-                </Button>
-                <Button
-                  onClick={handleOpenUploadDialog}
-                  disabled={!documentDownloaded || isSubmitting}
-                  className="flex items-center gap-2"
-                >
-                  <UploadIcon className="w-4 h-4" />
-                  {isSubmitting ? "Enviando..." : "Enviar Aditivo Assinado"}
-                </Button>
-              </>
-            )}
-
-            {/* Quando SEND_DOCUMENTS, mostrar botão de aceitar */}
-            {pricingSolicitation.status === "SEND_DOCUMENTS" && (
-              <Button
-                onClick={handleApprove}
-                disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isSubmitting ? "Processando..." : "Aceitar"}
-              </Button>
-            )}
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal de Upload de Aditivo */}

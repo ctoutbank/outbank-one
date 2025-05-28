@@ -20,6 +20,16 @@ function sanitizeNumericValues(data: any) {
     "nonCardPixCeilingFee",
     "nonCardPixMinimumCostFee",
     "eventualAnticipationFee",
+    "nonCardEventualAnticipationFee",
+    // Campos admin
+    "cardPixMdrAdmin",
+    "cardPixCeilingFeeAdmin",
+    "cardPixMinimumCostFeeAdmin",
+    "eventualAnticipationFeeAdmin",
+    "nonCardPixMdrAdmin",
+    "nonCardPixCeilingFeeAdmin",
+    "nonCardPixMinimumCostFeeAdmin",
+    "nonCardEventualAnticipationFeeAdmin",
   ];
 
   // Converter campos para números válidos ou zero
@@ -121,6 +131,7 @@ export async function createPricingSolicitationForUpload(
       throw new Error("Falha ao criar solicitação");
     }
 
+    // Retornar o ID da nova solicitação criada
     return newSolicitation.id;
   } catch (error) {
     console.error("Erro ao criar solicitação:", error);

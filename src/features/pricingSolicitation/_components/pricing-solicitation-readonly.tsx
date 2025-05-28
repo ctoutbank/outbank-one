@@ -72,7 +72,6 @@ export function PricingSolicitationReadOnlyView({
         )}
 
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Taxas</h3>
           <FeesSection control={form.control} isReadOnly={true} />
         </div>
       </div>

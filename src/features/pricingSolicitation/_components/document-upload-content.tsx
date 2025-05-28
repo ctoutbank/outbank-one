@@ -2,8 +2,11 @@
 
 import FileUpload from "@/components/fileUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createFileWithPricingSolicitation } from "@/server/upload";
-import { useEffect, useState } from "react";
+import {
+  createFileWithPricingSolicitation,
+  getFilesByFileType,
+} from "@/server/upload";
+import { useEffect, useRef, useState } from "react";
 import { createPricingSolicitationForUpload } from "../server/create-solicitation";
 
 interface DocumentUploadContentProps {
@@ -23,6 +26,9 @@ export function DocumentUploadContent({
     number | null
   >(solicitationId || null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const initialLoadComplete = useRef(false);
 
   // Document types available for upload
   const documentTypes = [
@@ -30,16 +36,52 @@ export function DocumentUploadContent({
       title: "Documento Principal",
       description:
         "Documento principal da solicitação (ex: contrato, proposta)",
-      fileType: "PRINCIPAL",
+      fileType: "SOLICITATION_DOC", // Alterado para não exceder 20 caracteres
       acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
       maxSizeMB: 5,
     },
   ];
 
+  // Carregar documentos existentes apenas uma vez na montagem do componente
+  useEffect(() => {
+    const loadExistingDocuments = async () => {
+      if (initialLoadComplete.current) return;
+      if (!createdSolicitationId && !solicitationId) return;
+
+      const targetId = createdSolicitationId || solicitationId;
+      if (!targetId) return;
+
+      setIsLoading(true);
+      try {
+        // Carregar documentos para cada tipo de documento
+        const documents = [];
+        for (const docType of documentTypes) {
+          const files = await getFilesByFileType(
+            "solicitationFee",
+            targetId,
+            docType.fileType
+          );
+          documents.push(...files);
+        }
+
+        setUploadedDocuments(documents);
+        initialLoadComplete.current = true;
+      } catch (error) {
+        console.error("Erro ao carregar documentos existentes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExistingDocuments();
+  }, [createdSolicitationId, solicitationId]);
+
   // Atualizar o ID da solicitação quando ele muda externamente
   useEffect(() => {
     if (solicitationId && solicitationId !== createdSolicitationId) {
       setCreatedSolicitationId(solicitationId);
+      // Resetar o flag para permitir novo carregamento se o ID mudar
+      initialLoadComplete.current = false;
     }
   }, [solicitationId]);
 
@@ -51,6 +93,21 @@ export function DocumentUploadContent({
     fileExtension: string;
   }) => {
     console.log("Upload completo:", fileData);
+    // Adicionar o novo documento à lista sem recarregar todos
+    setUploadedDocuments((prev) => {
+      // Verificar se o documento já existe na lista
+      const exists = prev.some((doc) => doc.id === fileData.fileId);
+      if (exists) return prev;
+      return [
+        ...prev,
+        {
+          id: fileData.fileId,
+          fileName: fileData.fileName,
+          fileUrl: fileData.fileURL,
+          extension: fileData.fileExtension,
+        },
+      ];
+    });
   };
 
   // Hook de pré-upload para criar as entidades necessárias
@@ -73,6 +130,34 @@ export function DocumentUploadContent({
         averageTicket: 0,
         description: "Solicitação criada automaticamente",
         status: "SEND_SOLICITATION",
+        // Novos campos para PIX e configurações de antecipação
+        cardPixMdr: 0,
+        cardPixCeilingFee: 0,
+        cardPixMinimumCostFee: 0,
+        nonCardPixMdr: 0,
+        nonCardPixCeilingFee: 0,
+        nonCardPixMinimumCostFee: 0,
+        compulsoryAnticipationConfig: 0,
+        eventualAnticipationFee: 0,
+        nonCardEventualAnticipationFee: 0,
+        // Campos admin
+        cardPixMdrAdmin: 0,
+        cardPixCeilingFeeAdmin: 0,
+        cardPixMinimumCostFeeAdmin: 0,
+        nonCardPixMdrAdmin: 0,
+        nonCardPixCeilingFeeAdmin: 0,
+        nonCardPixMinimumCostFeeAdmin: 0,
+        eventualAnticipationFeeAdmin: 0,
+        nonCardEventualAnticipationFeeAdmin: 0,
+        // Campos dock
+        cardPixMdrDock: 0,
+        cardPixCeilingFeeDock: 0,
+        cardPixMinimumCostFeeDock: 0,
+        nonCardPixMdrDock: 0,
+        nonCardPixCeilingFeeDock: 0,
+        nonCardPixMinimumCostFeeDock: 0,
+        eventualAnticipationFeeDock: 0,
+        nonCardEventualAnticipationFeeDock: 0,
       };
 
       // Combinar dados do formulário com os dados padrão
@@ -92,6 +177,21 @@ export function DocumentUploadContent({
         cnpjQuantity: Number(combinedData.cnpjQuantity) || 1,
         monthlyPosFee: Number(combinedData.monthlyPosFee) || 0,
         averageTicket: Number(combinedData.averageTicket) || 0,
+        // Novos campos
+        cardPixMdr: Number(combinedData.cardPixMdr) || 0,
+        cardPixCeilingFee: Number(combinedData.cardPixCeilingFee) || 0,
+        cardPixMinimumCostFee: Number(combinedData.cardPixMinimumCostFee) || 0,
+        nonCardPixMdr: Number(combinedData.nonCardPixMdr) || 0,
+        nonCardPixCeilingFee: Number(combinedData.nonCardPixCeilingFee) || 0,
+        nonCardPixMinimumCostFee:
+          Number(combinedData.nonCardPixMinimumCostFee) || 0,
+        compulsoryAnticipationConfig:
+          Number(combinedData.compulsoryAnticipationConfig) || 0,
+        eventualAnticipationFee:
+          Number(combinedData.eventualAnticipationFee) || 0,
+        nonCardEventualAnticipationFee:
+          Number(combinedData.nonCardEventualAnticipationFee) || 0,
+
         // Se houver marcas, garantir que os dados estejam no formato correto
         brands: combinedData.brands
           ? combinedData.brands.map((brand: any) => ({
@@ -131,6 +231,13 @@ export function DocumentUploadContent({
         onSolicitationCreated(newSolicitationId);
       }
 
+      await createFileWithPricingSolicitation(
+        combinedData,
+        newSolicitationId,
+
+        "pricingSolicitation"
+      );
+
       return newSolicitationId;
     } catch (error) {
       console.error("Erro ao criar solicitação:", error);
@@ -168,51 +275,102 @@ export function DocumentUploadContent({
               {uploadError}
             </div>
           )}
-          <div className="grid grid-cols-1  gap-8">
-            {documentTypes.map((doc, index) => (
-              <FileUpload
-                key={index}
-                title={doc.title}
-                description={doc.description}
-                entityType="pricingSolicitation"
-                entityId={createdSolicitationId || undefined}
-                fileType={doc.fileType}
-                onUploadComplete={handleUploadComplete}
-                maxSizeMB={doc.maxSizeMB}
-                acceptedFileTypes={doc.acceptedFileTypes}
-                preUploadHook={createSolicitationIfNeeded}
-                customUploadHandler={async (file) => {
-                  // Se não temos ID de solicitação e o hook não foi executado ainda
-                  if (!createdSolicitationId && !solicitationId) {
-                    const newId = await createSolicitationIfNeeded();
-                    if (!newId) {
-                      throw new Error("Falha ao criar solicitação");
-                    }
-                  }
 
-                  const targetId = createdSolicitationId || solicitationId;
-                  if (!targetId) {
-                    throw new Error("ID de solicitação não disponível");
-                  }
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-8">
+                {documentTypes.map((doc, index) => (
+                  <FileUpload
+                    key={index}
+                    title={doc.title}
+                    description={doc.description}
+                    entityType="solicitationFee"
+                    entityId={createdSolicitationId || undefined}
+                    fileType={doc.fileType}
+                    onUploadComplete={handleUploadComplete}
+                    maxSizeMB={doc.maxSizeMB}
+                    acceptedFileTypes={doc.acceptedFileTypes}
+                    preUploadHook={createSolicitationIfNeeded}
+                    customUploadHandler={async (file) => {
+                      // Se não temos ID de solicitação e o hook não foi executado ainda
+                      if (!createdSolicitationId && !solicitationId) {
+                        const newId = await createSolicitationIfNeeded();
+                        if (!newId) {
+                          throw new Error("Falha ao criar solicitação");
+                        }
+                      }
 
-                  const formData = new FormData();
-                  formData.append("File", file);
-                  formData.append("fileName", doc.fileType);
+                      const targetId = createdSolicitationId || solicitationId;
+                      if (!targetId) {
+                        throw new Error("ID de solicitação não disponível");
+                      }
 
-                  try {
-                    return await createFileWithPricingSolicitation(
-                      formData,
-                      targetId,
-                      doc.fileType
-                    );
-                  } catch (error) {
-                    console.error("Erro ao fazer upload do arquivo:", error);
-                    return null;
-                  }
-                }}
-              />
-            ))}
-          </div>
+                      const formData = new FormData();
+                      formData.append("File", file);
+                      formData.append("fileName", doc.fileType);
+
+                      try {
+                        return await createFileWithPricingSolicitation(
+                          formData,
+                          targetId,
+                          doc.fileType
+                        );
+                      } catch (error) {
+                        console.error(
+                          "Erro ao fazer upload do arquivo:",
+                          error
+                        );
+                        return null;
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Lista de documentos enviados */}
+              {uploadedDocuments.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-2">
+                    Documentos Enviados
+                  </h3>
+                  <ul className="space-y-2">
+                    {uploadedDocuments.map((doc, index) => (
+                      <li
+                        key={`doc-${doc.id || index}`}
+                        className="flex items-center p-2 bg-gray-50 rounded-md"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 mr-2 text-green-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{doc.fileName}</span>
+                        <a
+                          href={doc.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto text-blue-600 hover:text-blue-800"
+                        >
+                          Ver
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
