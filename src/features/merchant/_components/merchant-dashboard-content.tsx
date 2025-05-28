@@ -27,6 +27,7 @@ import {
   MerchantRegistrationSummary,
   MerchantTransactionChart,
   MerchantTypeChart,
+  TransactionShiftChart, TransactionStatusChart,
 } from "../server/merchant-dashboard";
 
 // Configuração para o gráfico A - Estabelecimentos cadastrados por período
@@ -45,6 +46,10 @@ const TYPE_COLORS = ["#3F84E5", "#FF9800"];
 
 const REGION_COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#a4de6c"];
 
+const SHIFT_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+
+const STATUS_COLORS = ["#00C49F", "#FF8042"];
+
 
 type MerchantDashboardContentProps = {
   totalMerchants: number;
@@ -61,6 +66,8 @@ type MerchantDashboardContentProps = {
   transactionData: MerchantTransactionChart[];
   typeData: MerchantTypeChart[];
   regionData: MerchantRegionChart[];
+  shiftData: TransactionShiftChart[];
+  statusData: TransactionStatusChart[];
 };
 
 export function MerchantDashboardContent({
@@ -76,135 +83,14 @@ export function MerchantDashboardContent({
   registrationSummary,
   transactionData,
   typeData, regionData,
+  shiftData,
+  statusData,
+
 }: MerchantDashboardContentProps) {
   return (
       <div className="flex flex-col gap-3">
         {/* Linha 1: Gráficos de Pizza */}
-        <div className="flex flex-wrap gap-3">
-          {/* Gráfico B - Transaciona/Não Transaciona */}
-          <Card className="bg-white border min-w-[160px] w-[calc(100%/6-12px)]">
-            <CardHeader className="p-1 pb-0">
-              <CardTitle className="text-sm font-medium mt-1 ml-1">Transações</CardTitle>
-            </CardHeader>
-            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
-              <div className="h-[180px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                    <Pie
-                        data={transactionData}
-                        cx="51%"
-                        cy="55%"
-                        labelLine={false}
-                        outerRadius={35}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    >
-                      {transactionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={TRANSACTION_COLORS[index % TRANSACTION_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
-                    <Legend
-                        layout="horizontal"
-                        verticalAlign="bottom"
-                        align="center"
-                        fontSize={9}
-                        iconSize={8}
-                        wrapperStyle={{ paddingTop: "1px" }}
-                        formatter={(value) => (
-                            <span style={{ fontSize: "12px", color: "#666", paddingLeft: "2px" }}>{value}</span>
-                        )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white border min-w-[160px] w-[calc(100%/6-12px)]">
-            <CardHeader className="p-1 pb-0">
-              <CardTitle className="text-sm font-medium mt-1 ml-1">Estabelecimentos por Região</CardTitle>
-            </CardHeader>
-            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
-              <div className="h-[180px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                    <Pie
-                        data={regionData}
-                        cx="51%"
-                        cy="55%"
-                        labelLine={false}
-                        outerRadius={35}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    >
-                      {Array.isArray(regionData) &&
-                          regionData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={REGION_COLORS[index % REGION_COLORS.length]} />
-                          ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
-                    <Legend
-                        layout="horizontal"
-                        verticalAlign="bottom"
-                        align="center"
-                        fontSize={9}
-                        iconSize={8}
-                        wrapperStyle={{ paddingTop: "1px" }}
-                        formatter={(value) => (
-                            <span style={{ fontSize: "12px", color: "#666", paddingLeft: "2px" }}>{value}</span>
-                        )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Gráfico C - Compulsória/Eventual */}
-          <Card className="bg-white border min-w-[160px] w-[calc(100%/6-12px)]">
-            <CardHeader className="p-1 pb-0">
-              <CardTitle className="text-sm font-medium mt-1 ml-1">Compulsória</CardTitle>
-            </CardHeader>
-            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
-              <div className="h-[180px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                        data={typeData}
-                        cx="52%"
-                        cy="53%"
-                        innerRadius={25}
-                        outerRadius={35}
-                        fill="#8884d8"
-                        dataKey="value"
-                        labelLine={false}
-                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    >
-                      {typeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
-                    <Legend
-                        layout="horizontal"
-                        verticalAlign="bottom"
-                        align="center"
-                        fontSize={9}
-                        iconSize={8}
-                        wrapperStyle={{ paddingTop: "1px" }}
-                        formatter={(value) => (
-                            <span style={{ fontSize: "12px", color: "#666", paddingLeft: "2px" }}>{value}</span>
-                        )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Linha 2: Demais Cards */}
         <div className="flex flex-wrap gap-3">
@@ -373,6 +259,230 @@ export function MerchantDashboardContent({
                     </div>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {/* Gráfico B - Transaciona/Não Transaciona */}
+          <Card className="bg-white border min-w-[130px] flex-1 basis-[125px] max-w-[180px]">
+            <CardHeader className="p-1 pb-0">
+              <CardTitle className="text-[clamp(10px,0.9vw,14px)] font-medium mt-1 ml-1">
+                Transações
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
+              <div className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={transactionData}
+                        cx="51%"
+                        cy="55%"
+                        labelLine={false}
+                        outerRadius={22}
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {transactionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={TRANSACTION_COLORS[index % TRANSACTION_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
+                    <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "clamp(7px, 0.65vw, 10px)",
+                          maxWidth: "100%",
+                          paddingTop: "2px"
+                        }}
+                        iconSize={6}
+                        formatter={(value) => (
+                            <span style={{ fontSize: "clamp(7px, 0.6vw, 10px)", color: "#666" }}>{value}</span>
+                        )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border min-w-[130px] flex-1 basis-[125px] max-w-[180px]">
+            <CardHeader className="p-1 pb-0">
+              <CardTitle className="text-[clamp(10px,0.9vw,14px)] font-medium mt-1 ml-1">
+                Estabelecimentos por região
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 px-2 flex justify-center items-center min-h-[160px]">
+              <div className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={regionData}
+                        cx="51%"
+                        cy="55%"
+                        labelLine={false}
+                        outerRadius={30}
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {regionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={REGION_COLORS[index % REGION_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
+                    <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "clamp(7px, 0.65vw, 10px)",
+                          maxWidth: "100%",
+                          paddingTop: "2px"
+                        }}
+                        iconSize={6}
+                        formatter={(value) => (
+                            <span style={{ fontSize: "clamp(7px, 0.6vw, 10px)", color: "#666" }}>{value}</span>
+                        )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border min-w-[130px] flex-1 basis-[125px] max-w-[180px]">
+            <CardHeader className="p-1 pb-0">
+              <CardTitle className="text-[clamp(10px,0.9vw,14px)] font-medium mt-1 ml-1">
+                Transações por turno
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 px-2 flex justify-center items-center min-h-[160px]">
+              <div className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={shiftData}
+                        cx="51%"
+                        cy="55%"
+                        labelLine={false}
+                        outerRadius={30}
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {shiftData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={SHIFT_COLORS[index % SHIFT_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
+                    <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "clamp(7px, 0.65vw, 10px)",
+                          maxWidth: "100%",
+                          paddingTop: "2px"
+                        }}
+                        iconSize={6}
+                        formatter={(value) => (
+                            <span style={{ fontSize: "clamp(7px, 0.65vw, 10px)", color: "#666" }}>{value}</span>
+                        )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Gráfico C - Compulsória/Eventual */}
+          <Card className="bg-white border min-w-[130px] flex-1 basis-[125px] max-w-[180px]">
+            <CardHeader className="p-1 pb-0">
+              <CardTitle className="text-[clamp(10px,0.9vw,14px)] font-medium mt-1 ml-1">
+                Compulsória
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
+              <div className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={typeData}
+                        cx="51%"
+                        cy="55%"
+                        labelLine={false}
+                        outerRadius={30}
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {typeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
+                    <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "clamp(7px, 0.65vw, 10px)",
+                          maxWidth: "100%",
+                          paddingTop: "2px"
+                        }}
+                        iconSize={6}
+                        formatter={(value) => (
+                            <span style={{ fontSize: "clamp(7px, 0.7vw, 12px)", color: "#666" }}>{value}</span>
+                        )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border min-w-[130px] flex-1 basis-[125px] max-w-[180px]">
+            <CardHeader className="p-1 pb-0">
+              <CardTitle className="text-[clamp(8px,0.7vw,12px)] font-medium mt-1 ml-1">
+                Status da transação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 px-2 flex justify-center items-center h-[160px]">
+              <div className="h-[180px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={statusData}
+                        cx="51%"
+                        cy="55%"
+                        labelLine={false}
+                        outerRadius={22}
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value}`, "Quantidade"]} />
+                    <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "clamp(7px, 0.65vw, 10px)",
+                          maxWidth: "100%",
+                          paddingTop: "2px"
+                        }}
+                        iconSize={6}
+                        formatter={(value) => (
+                            <span style={{ fontSize: "clamp(7px, 0.65vw, 10px)", color: "#666" }}>{value}</span>
+                        )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
