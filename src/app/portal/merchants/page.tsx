@@ -17,6 +17,7 @@ import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
+import {getMerchantsGroupedByRegion} from "@/features/merchant/server/merchant-dashboard";
 
 export const revalidate = 0;
 
@@ -60,7 +61,10 @@ export default async function MerchantsPage({
     searchParams.salesAgent
   );
 
-  // Buscar dados para exportação Excel
+    const regionData = await getMerchantsGroupedByRegion();
+
+
+    // Buscar dados para exportação Excel
   const merchantsExcel = await getMerchants(
     search,
     1,
@@ -91,6 +95,7 @@ export default async function MerchantsPage({
     registrationSummary: dashboardData.registrationSummary,
     transactionData: dashboardData.transactionData,
     typeData: dashboardData.typeData,
+    regionData,
   };
 
   const globalStyles = {

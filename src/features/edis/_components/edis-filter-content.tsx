@@ -72,7 +72,7 @@ export function FilterEdisContent({
   ];
 
   return (
-    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]">
+    <div ref={filterRef} className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[900px]">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="text-sm font-medium ml-2">Tipo de Arquivo</h3>

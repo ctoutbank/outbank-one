@@ -56,7 +56,7 @@ export function FilterPricingSolicitationContent({
   return (
     <div
       ref={filterRef}
-      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1100px]"
+      className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[900px]"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >

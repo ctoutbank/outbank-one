@@ -34,7 +34,7 @@ export function SettlementsHistoryDashboardContent({
     <div className="space-y-4">
       <div className="flex items-center flex-wrap gap-4 ">
         {/* Total Settlements Card */}
-        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
+        <Card className="bg-white min-w-[300px] max-w-[300px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function SettlementsHistoryDashboardContent({
         </Card>
 
         {/* Status Card */}
-        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
+        <Card className="bg-white min-w-[300px] max-w-[300px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export function SettlementsHistoryDashboardContent({
 
 
         {/* Restitution Card */}
-        <Card className="bg-white min-w-[320px] max-w-[320px] min-h-[200px] max-h-[200px]">
+        <Card className="bg-white min-w-[300px] max-w-[300px] min-h-[200px] max-h-[200px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

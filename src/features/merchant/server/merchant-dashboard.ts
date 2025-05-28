@@ -1,6 +1,6 @@
 "use server";
 
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { getUserMerchantsAccess,} from "@/features/users/server/users";
 import { db } from "@/server/db";
 import { and, count, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 import {
@@ -37,6 +37,11 @@ export type MerchantTransactionChart = {
 export type MerchantTypeChart = {
   name: string;
   value: number;
+}
+
+export type MerchantRegionChart = {
+  name: string; // Nome da região (ex: "Sudeste", "Norte", etc.)
+  value: number; // Quantidade de estabelecimentos
 };
 
 // Cache para condições de filtro
@@ -539,4 +544,71 @@ async function countMerchantsByType(
 
   const result = await query;
   return Number(result[0]?.count || 0);
+}
+
+//Mapeamento de estados por região
+const STATE_TO_REGION: Record<string, string> = {
+  AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
+  AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste',
+  PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
+  DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
+  ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
+  PR: 'Sul', RS: 'Sul', SC: 'Sul',
+};
+
+export async function getMerchantsGroupedByRegion(
+    search?: string,
+    establishment?: string,
+    status?: string,
+    state?: string,
+    dateFrom?: string,
+    email?: string,
+    cnpj?: string,
+    active?: string,
+    salesAgent?: string
+): Promise<MerchantRegionChart[]> {
+  const filterConditions = await createFilterConditions(
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+  );
+
+  const query = db
+      .select({
+        state: addresses.state,
+        total: count(),
+      })
+      .from(merchants)
+      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+      .leftJoin(categories, eq(merchants.idCategory, categories.id));
+
+  if (filterConditions.length > 0) {
+    query.where(and(...filterConditions));
+  }
+
+  const stateResults = await query.groupBy(addresses.state);
+
+  const regionMap: Record<string, number> = {};
+
+  for (const { state, total } of stateResults) {
+    if (!state) continue;
+
+    const region = STATE_TO_REGION[state.trim().toUpperCase()] || 'Sudeste';
+    regionMap[region] = (regionMap[region] || 0) + Number(total);
+  }
+
+  return Object.entries(regionMap).map(([region, value]) => ({
+    name: region,
+    value,
+  }));
 }

@@ -147,14 +147,14 @@ export function FilterTransactionsContent({
   return (
       <div
           ref={filterRef}
-          className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[1400px]"
+          className="absolute left-0 mt-2 bg-background border rounded-lg p-4 shadow-md min-w-[940px]"
           onKeyDown={handleKeyDown}
           tabIndex={0}
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Primeira linha - Status, Bandeira, Tipo de Pagamento, Processamento */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Status</h3>
+            <h3 className="text-sm font-medium pr-2">Status</h3>
             <MultiSelect
                 options={transactionStatusList}
                 onValueChange={setStatusValues}
@@ -184,7 +184,7 @@ export function FilterTransactionsContent({
                 options={transactionProductTypeList}
                 onValueChange={setProductTypeValues}
                 defaultValue={initialProductTypeValues}
-                placeholder="Selecione o tipo de pagamento"
+                placeholder="Selecione o tipo"
                 className="w-full"
                 variant="secondary"
             />
@@ -196,7 +196,7 @@ export function FilterTransactionsContent({
                 options={processingTypeList}
                 onValueChange={setSalesChannelValues}
                 defaultValue={initialSalesChannelValues}
-                placeholder="Selecione o processamento"
+                placeholder="Selecione-o"
                 className="w-full"
                 variant="secondary"
             />
@@ -210,9 +210,8 @@ export function FilterTransactionsContent({
                 onValueChange={setMethodValues}
                 defaultValue={initialMethodValues}
                 placeholder="Selecione o tipo"
-                className="w-full"
-                variant="secondary"
-            />
+                className="w-full truncate"
+                variant="secondary"/>
           </div>
 
           <div className="space-y-2">

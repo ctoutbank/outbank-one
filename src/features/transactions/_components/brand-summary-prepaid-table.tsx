@@ -9,11 +9,13 @@ interface BrandSummaryTableProps {
     transactions: TransactionsGroupedReport[];
 }
 
+// Lista de todas as bandeiras possíveis que devem aparecer mesmo que não tenham valores
+const allBrands = ["VISA", "MASTERCARD", "ELO", "HIPERCARD", "AMEX", "CABAL",];
+
 export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProps) {
     const productTypes = [
         { label: "Débito Pré-pago por Bandeira", value: "PREPAID_DEBIT" },
         { label: "Crédito Pré-pago por Bandeira", value: "PREPAID_CREDIT" },
-
     ];
 
     return (
@@ -24,35 +26,34 @@ export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProp
                     (t) => t.product_type === value
                 );
 
-                const transactionsByBrand = filteredTransactions.reduce(
-                    (acc, curr) => {
-                        if (!acc[curr.brand]) {
-                            acc[curr.brand] = {
-                                brand: curr.brand,
+                // Inicializa o objeto com todas as bandeiras com valor 0
+                const transactionsByBrand = allBrands.reduce((acc, brand) => {
+                    acc[brand] = {
+                        brand,
+                        count: 0,
+                        totalAmount: 0,
+                    };
+                    return acc;
+                }, {} as Record<string, { brand: string; count: number; totalAmount: number }>);
+
+                // Adiciona os valores reais
+                filteredTransactions.forEach((curr) => {
+                    if (
+                        curr.transaction_status === "AUTHORIZED" ||
+                        curr.transaction_status === "PENDING"
+                    ) {
+                        const brand = curr.brand;
+                        if (!transactionsByBrand[brand]) {
+                            transactionsByBrand[brand] = {
+                                brand,
                                 count: 0,
                                 totalAmount: 0,
                             };
                         }
-
-                        if (
-                            curr.transaction_status === "AUTHORIZED" ||
-                            curr.transaction_status === "PENDING"
-                            ) {
-                            acc[curr.brand].count += Number(curr.count);
-                            acc[curr.brand].totalAmount += Number(curr.total_amount);
-                        }
-
-                        return acc;
-                    },
-                    {} as Record<
-                        string,
-                        {
-                            brand: string;
-                            count: number;
-                            totalAmount: number;
-                        }
-                    >
-                );
+                        transactionsByBrand[brand].count += Number(curr.count);
+                        transactionsByBrand[brand].totalAmount += Number(curr.total_amount);
+                    }
+                });
 
                 const totalGeral = Object.values(transactionsByBrand).reduce(
                     (acc, curr) => ({
