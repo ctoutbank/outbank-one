@@ -234,10 +234,11 @@ export type TransactionsGroupedReport = {
   transaction_status: string;
   date: string;
 };
-function normalizeDateRange(
+
+export async function normalizeDateRange(
     start: string,
     end: string
-): { start: string; end: string } {
+): Promise<{ start: string; end: string }> {
   // Normaliza o início para 'YYYY-MM-DDT00:00:00'
   const startDate = start.split("T")[0] + "T00:00:00";
 
@@ -392,7 +393,7 @@ export type GetTotalTransactionsByMonthResult = {
 
 export async function getTotalTransactions(dateFrom: string, dateTo: string) {
   const conditions = [];
-  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
+  const normalizeDate = await normalizeDateRange(dateFrom, dateTo);
   if (dateFrom) {
     console.log(normalizeDate.start);
     const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
@@ -433,7 +434,7 @@ export async function getTotalTransactionsByMonth(
     viewMode?: string
 ) {
   const conditions = [];
-  const normalizeDate = normalizeDateRange(dateFrom, dateTo);
+  const normalizeDate = await normalizeDateRange(dateFrom, dateTo);
   if (dateFrom) {
     console.log(normalizeDate.start);
     const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
