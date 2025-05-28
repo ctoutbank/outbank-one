@@ -33,8 +33,8 @@ import {
 } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 
+import { DocumentUploadContent } from "@/features/pricingSolicitation/_components/document-upload-content";
 import { UploadIcon } from "lucide-react";
-import { DocumentUploadContent } from "./document-upload-content";
 import { PricingSolicitationReadOnlyView } from "./pricing-solicitation-readonly";
 import { BusinessInfoSection } from "./sections/business-info-section";
 import { DetailsSection } from "./sections/details-section";
@@ -80,7 +80,7 @@ export default function PricingSolicitationForm({
 
     // Atualizar a URL para incluir o ID da solicitação sem navegar
     // Corrigir o caminho para usar o formato correto da aplicação
-    window.history.replaceState({}, "", `/portal/pricingsolicitation/${id}`);
+    window.history.replaceState({}, "", `/portal/pricingSolicitation/${id}`);
   };
 
   const form = useForm<PricingSolicitationSchema>({
@@ -91,6 +91,17 @@ export default function PricingSolicitationForm({
       cnpjsQuantity: pricingSolicitation?.cnpjQuantity?.toString() || "",
       ticketAverage: pricingSolicitation?.averageTicket || "",
       tpvMonthly: pricingSolicitation?.monthlyPosFee || "",
+      cardPixMdr: pricingSolicitation?.cardPixMdr || "",
+      cardPixCeilingFee: pricingSolicitation?.cardPixCeilingFee || "",
+      cardPixMinimumCostFee: pricingSolicitation?.cardPixMinimumCostFee || "",
+      nonCardPixMdr: pricingSolicitation?.nonCardPixMdr || "",
+      nonCardPixCeilingFee: pricingSolicitation?.nonCardPixCeilingFee || "",
+      nonCardPixMinimumCostFee:
+        pricingSolicitation?.nonCardPixMinimumCostFee || "",
+      eventualAnticipationFee:
+        pricingSolicitation?.eventualAnticipationFee || "",
+      nonCardEventualAnticipationFee:
+        pricingSolicitation?.nonCardEventualAnticipationFee || "",
       brands: pricingSolicitation?.brands
         ? pricingSolicitation.brands.map((brand) => ({
             name: brand.name,
@@ -156,6 +167,8 @@ export default function PricingSolicitationForm({
       nonCardPixCeilingFee: Number(data.nonCardPixCeilingFee) || 0,
       nonCardPixMinimumCostFee: Number(data.nonCardPixMinimumCostFee) || 0,
       eventualAnticipationFee: Number(data.eventualAnticipationFee) || 0,
+      nonCardEventualAnticipationFee:
+        Number(data.nonCardEventualAnticipationFee) || 0,
       status: data.status || "PENDING",
       brands: (data.brands || []).map((brand: any) => ({
         name: brand.name,
@@ -213,6 +226,8 @@ export default function PricingSolicitationForm({
       nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
       nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
       eventualAnticipationFee: data.eventualAnticipationFee || null,
+      nonCardEventualAnticipationFee:
+        data.nonCardEventualAnticipationFee || null,
       status: "SEND_SOLICITATION", // Definir status padrão para upload
       brands: (data.brands || []).map((brand) => ({
         name: brand.name,
@@ -300,7 +315,7 @@ export default function PricingSolicitationForm({
         // Atualiza a solicitação existente para o novo status
         await updateExistingSolicitation(values, solicitationId, newStatus);
         setFormStatus(newStatus as any);
-        router.push(`/portal/pricingsolicitation/${solicitationId}`);
+        router.push(`/portal/pricingSolicitation/${solicitationId}`);
       } else {
         // Create new solicitation with PENDING status
         const result = await createPricingSolicitation(values, "PENDING");
@@ -308,7 +323,7 @@ export default function PricingSolicitationForm({
         if (result && typeof result.id === "number") {
           setSolicitationId(result.id);
           setFormStatus("PENDING");
-          router.push(`/portal/pricingsolicitation/${result.id}`);
+          router.push(`/portal/pricingSolicitation/${result.id}`);
         }
       }
     } catch (error) {
@@ -333,7 +348,7 @@ export default function PricingSolicitationForm({
     // Se uma solicitação foi criada durante o upload e temos um ID
     if (uploadSuccessful && solicitationId) {
       // Navegar para a página correta com o ID da solicitação
-      router.push(`/portal/pricingsolicitation/${solicitationId}`);
+      router.push(`/portal/pricingSolicitation/${solicitationId}`);
     }
   };
 
@@ -408,16 +423,6 @@ export default function PricingSolicitationForm({
             </DialogDescription>
           </DialogHeader>
 
-          {uploadSuccessful && (
-            <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">
-              <p className="text-sm">
-                A solicitação foi criada com sucesso. A URL foi atualizada com o
-                ID da solicitação. Você pode continuar adicionando documentos ou
-                fechar esta janela para continuar editando a solicitação.
-              </p>
-            </div>
-          )}
-
           <DocumentUploadContent
             solicitationId={solicitationId}
             formData={
@@ -427,7 +432,6 @@ export default function PricingSolicitationForm({
             }
             onSolicitationCreated={handleSolicitationCreated}
           />
-
           <DialogFooter>
             <Button
               type="button"

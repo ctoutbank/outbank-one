@@ -5,9 +5,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import {
   customers,
+  file,
   solicitationBrandProductType,
   solicitationFee,
   solicitationFeeBrand,
+  solicitationFeeDocument,
   users,
 } from "../../../../drizzle/schema";
 import { PricingSolicitationSchema } from "../schema/schema";
@@ -126,6 +128,15 @@ export async function getPricingSolicitationById(
       sf.non_card_pix_mdr as "nonCardPixMdr",
       sf.non_card_pix_ceiling_fee as "nonCardPixCeilingFee",
       sf.non_card_pix_minimum_cost_fee as "nonCardPixMinimumCostFee",
+      sf.non_card_eventual_anticipation_fee as "nonCardEventualAnticipationFee",
+      sf.card_pix_mdr_admin as "cardPixMdrAdmin",
+      sf.card_pix_ceiling_fee_admin as "cardPixCeilingFeeAdmin",
+      sf.card_pix_minimum_cost_fee_admin as "cardPixMinimumCostFeeAdmin",
+      sf.eventual_anticipation_fee_admin as "eventualAnticipationFeeAdmin",
+      sf.non_card_pix_mdr_admin as "nonCardPixMdrAdmin",
+      sf.non_card_pix_ceiling_fee_admin as "nonCardPixCeilingFeeAdmin",
+      sf.non_card_pix_minimum_cost_fee_admin as "nonCardPixMinimumCostFeeAdmin",
+      sf.non_card_eventual_anticipation_fee_admin as "nonCardEventualAnticipationFeeAdmin",
       json_agg(
         json_build_object(
           'name', sfb.brand,
@@ -518,6 +529,16 @@ export async function mapFormDataToSolicitation(
     nonCardPixMdr: data.nonCardPixMdr || null,
     nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
     nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
+    nonCardEventualAnticipationFee: data.nonCardEventualAnticipationFee || null,
+    cardPixMdrAdmin: data.cardPixMdrAdmin || null,
+    cardPixCeilingFeeAdmin: data.cardPixCeilingFeeAdmin || null,
+    cardPixMinimumCostFeeAdmin: data.cardPixMinimumCostFeeAdmin || null,
+    eventualAnticipationFeeAdmin: data.eventualAnticipationFeeAdmin || null,
+    nonCardPixMdrAdmin: data.nonCardPixMdrAdmin || null,
+    nonCardPixCeilingFeeAdmin: data.nonCardPixCeilingFeeAdmin || null,
+    nonCardPixMinimumCostFeeAdmin: data.nonCardPixMinimumCostFeeAdmin || null,
+    nonCardEventualAnticipationFeeAdmin:
+      data.nonCardEventualAnticipationFeeAdmin || null,
 
     brands: (data.brands || []).map((brand) => ({
       name: brand.name,
@@ -531,4 +552,26 @@ export async function mapFormDataToSolicitation(
       })),
     })),
   };
+}
+
+// Função para buscar os documentos relacionados a uma solicitação de taxas (solicitationFeeId)
+// Faz join entre solicitationFeeDocument e file, retornando url e name dos arquivos
+
+export async function getDocumentsBySolicitationFeeId(
+  solicitationFeeId: number
+) {
+  // Faz join entre solicitationFeeDocument e file usando fileId
+  const documents = await db
+    .select({
+      fileName: file.fileName,
+      fileUrl: file.fileUrl,
+      fileType: file.fileType,
+      fileId: file.id,
+      solicitationFeeDocumentId: solicitationFeeDocument.id,
+    })
+    .from(solicitationFeeDocument)
+    .innerJoin(file, eq(solicitationFeeDocument.idFile, file.id))
+    .where(eq(solicitationFeeDocument.solicitationFeeId, solicitationFeeId));
+
+  return documents;
 }
