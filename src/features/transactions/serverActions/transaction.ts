@@ -46,21 +46,21 @@ export type MerchantTotal = {
 };
 
 export async function getTransactions(
-    page: number = 1,
-    pageSize: number = 100,
-    status?: string,
-    merchant?: string,
-    dateFrom?: string,
-    dateTo?: string,
-    productType?: string,
-    brand?: string,
-    nsu?: string,
-    method?: string,
-    salesChannel?: string,
-    terminal?: string,
-    valueMin?: string,
-    valueMax?: string,
-    filterByUserMerchant?: boolean
+  page: number = 1,
+  pageSize: number = 100,
+  status?: string,
+  merchant?: string,
+  dateFrom?: string,
+  dateTo?: string,
+  productType?: string,
+  brand?: string,
+  nsu?: string,
+  method?: string,
+  salesChannel?: string,
+  terminal?: string,
+  valueMin?: string,
+  valueMax?: string,
+  filterByUserMerchant?: boolean
 ): Promise<TransactionsList> {
   const conditions = [];
 
@@ -70,7 +70,7 @@ export async function getTransactions(
     } else {
       if (userMerchants.slugMerchants.length > 0) {
         conditions.push(
-            inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+          inArray(transactions.slugMerchant, userMerchants.slugMerchants)
         );
       } else {
         return {
@@ -180,28 +180,28 @@ export async function getTransactions(
   let totalCount;
   if (page !== -1) {
     transactionList = await db
-        .select()
-        .from(transactions)
-        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-        .where(whereClause)
-        .orderBy(desc(transactions.dtInsert))
-        .offset((page - 1) * pageSize)
-        .limit(pageSize);
+      .select()
+      .from(transactions)
+      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+      .where(whereClause)
+      .orderBy(desc(transactions.dtInsert))
+      .offset((page - 1) * pageSize)
+      .limit(pageSize);
     totalCount = await db
-        .select({ count: count() })
-        .from(transactions)
-        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-        .where(whereClause);
+      .select({ count: count() })
+      .from(transactions)
+      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+      .where(whereClause);
   } else {
     console.log("page -1");
     transactionList = await db
-        .select()
-        .from(transactions)
-        .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-        .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-        .where(whereClause);
+      .select()
+      .from(transactions)
+      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+      .where(whereClause);
   }
   return {
     transactions: transactionList.map((item) => ({
@@ -219,8 +219,8 @@ export async function getTransactions(
       brand: item.transactions.brand || "",
       transactionStatus: item.transactions.transactionStatus || "",
       amount: item.transactions.totalAmount
-          ? parseFloat(item.transactions.totalAmount)
-          : 0,
+        ? parseFloat(item.transactions.totalAmount)
+        : 0,
     })),
     totalCount: totalCount ? totalCount[0].count : 0,
   };
@@ -236,8 +236,8 @@ export type TransactionsGroupedReport = {
 };
 
 export async function normalizeDateRange(
-    start: string,
-    end: string
+  start: string,
+  end: string
 ): Promise<{ start: string; end: string }> {
   // Normaliza o início para 'YYYY-MM-DDT00:00:00'
   const startDate = start.split("T")[0] + "T00:00:00";
@@ -254,17 +254,17 @@ export async function normalizeDateRange(
 }
 
 export async function getTransactionsGroupedReport(
-    dateFrom: string,
-    dateTo: string,
-    status?: string,
-    productType?: string,
-    brand?: string,
-    method?: string,
-    salesChannel?: string,
-    terminal?: string,
-    valueMin?: string,
-    valueMax?: string,
-    merchant?: string
+  dateFrom: string,
+  dateTo: string,
+  status?: string,
+  productType?: string,
+  brand?: string,
+  method?: string,
+  salesChannel?: string,
+  terminal?: string,
+  valueMin?: string,
+  valueMax?: string,
+  merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
   // Construir condições dinâmicas para a consulta SQL
   const conditions = [];
@@ -380,6 +380,112 @@ export type GetTotalTransactionsResult = {
   count?: number;
   revenue?: number;
 };
+export type GetTotalTransactionsResults = {
+  total_transactions: number;
+  total_volume: string; // Numeric vem como string
+  gross_revenue: string;
+  admin_cost: string;
+  profit_margin_pct: string;
+};
+
+export async function getTotalTransactionss(
+  dateFrom: string,
+  dateTo: string
+): Promise<GetTotalTransactionsResults[]> {
+  const conditions = [];
+  const { start, end } = await normalizeDateRange(dateFrom, dateTo);
+
+  if (dateFrom) {
+    const dateFromUTC = getDateUTC(start, "America/Sao_Paulo")!;
+    conditions.push(gte(transactions.dtInsert, dateFromUTC));
+  }
+  if (dateTo) {
+    const dateToUTC = getDateUTC(end, "America/Sao_Paulo")!;
+    conditions.push(lte(transactions.dtInsert, dateToUTC));
+  }
+
+  // ignorar transações inválidas
+  conditions.push(
+    notInArray(transactions.transactionStatus, [
+      "CANCELED",
+      "DENIED",
+      "PROCESSING",
+    ])
+  );
+
+  const whereClause =
+    conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
+
+  const result = await db.execute(sql`
+    WITH base AS (
+      SELECT
+        transactions.total_amount,
+        -- Taxa aplicada: prioriza o MTX, senão cai no PIX do merchant_price
+        COALESCE(
+          mtp.card_transaction_mdr,
+          mp.card_pix_mdr
+        ) / 100.0 AS applied_mdr,
+        transactions.product_type
+      FROM transactions
+
+      LEFT JOIN transaction_cycles tc 
+        ON tc.slug_transaction = transactions.slug::text
+
+      -- 1) contrato base do merchant
+      JOIN merchant_price mp
+        ON mp.slug_merchant = transactions.slug_merchant
+       AND mp.active = TRUE
+
+      -- 2) grupo de preço por bandeira
+      JOIN merchant_price_group mpg
+        ON mpg.id_merchant_price = mp.id
+       AND mpg.brand = transactions.brand
+       AND mpg.active = TRUE
+
+      -- 3) faixa de transação (parcelas)
+      
+      JOIN merchant_transaction_price mtp
+        ON mtp.id_merchant_price_group = mpg.id
+       AND mtp.producttype = transactions.product_type
+       AND CAST(COALESCE(tc.installments, '1') AS INTEGER) BETWEEN
+           mtp.installment_transaction_fee_start
+         AND mtp.installment_transaction_fee_end
+
+      ${whereClause}
+    ),
+
+    fee_lookup AS (
+      SELECT
+        solicitation_fee_brand.brand,
+        solicitation_fee.fee_admin / 100.0 AS fee_admin
+      FROM solicitation_fee
+      JOIN solicitation_fee_brand 
+        ON solicitation_fee_brand.solicitation_fee_id = solicitation_fee.id
+       AND solicitation_fee_brand.status = 'approved'
+      JOIN solicitation_brand_product_type 
+        ON solicitation_brand_product_type.solicitation_fee_brand_id = solicitation_fee_brand.id
+    )
+
+    SELECT
+      COUNT(1)                            AS total_transactions,
+      SUM(b.total_amount)::TEXT           AS total_volume,
+      SUM(b.total_amount * b.applied_mdr)::TEXT   AS gross_revenue,
+      SUM(b.total_amount * fl.fee_admin)::TEXT    AS admin_cost,
+      (
+        (SUM(b.total_amount * b.applied_mdr)
+         - SUM(b.total_amount * fl.fee_admin))
+        / NULLIF(SUM(b.total_amount),0)
+        * 100
+      )::TEXT                            AS profit_margin_pct
+    FROM base b
+    LEFT JOIN fee_lookup fl
+      ON fl.product_type = b.product_type;
+  `);
+
+  const data = result.rows as GetTotalTransactionsResults[];
+  console.log(data);
+  return data;
+}
 
 export type GetTotalTransactionsByMonthResult = {
   bruto: number;
@@ -429,9 +535,9 @@ export async function getTotalTransactions(dateFrom: string, dateTo: string) {
 }
 
 export async function getTotalTransactionsByMonth(
-    dateFrom: string,
-    dateTo: string,
-    viewMode?: string
+  dateFrom: string,
+  dateTo: string,
+  viewMode?: string
 ) {
   const conditions = [];
   const normalizeDate = await normalizeDateRange(dateFrom, dateTo);
@@ -461,37 +567,37 @@ export async function getTotalTransactionsByMonth(
   const isMonthlyView = viewMode === "month";
 
   const result = await db
-      .select({
-        sum: sum(transactions.totalAmount),
-        count: count(),
-        date: isHourlyView
-            ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-            : isWeeklyView
-                ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-                : isMonthlyView
-                    ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-                    : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-      })
-      .from(transactions)
-      .where(whereClause)
-      .groupBy(
-          isHourlyView
-              ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-              : isWeeklyView
-                  ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-                  : isMonthlyView
-                      ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-                      : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-      )
-      .orderBy(
-          isHourlyView
-              ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-              : isWeeklyView
-                  ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-                  : isMonthlyView
-                      ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-                      : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
-      );
+    .select({
+      sum: sum(transactions.totalAmount),
+      count: count(),
+      date: isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : isWeeklyView
+          ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+          : isMonthlyView
+            ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+            : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`,
+    })
+    .from(transactions)
+    .where(whereClause)
+    .groupBy(
+      isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : isWeeklyView
+          ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+          : isMonthlyView
+            ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+            : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+    )
+    .orderBy(
+      isHourlyView
+        ? sql`EXTRACT(HOUR FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+        : isWeeklyView
+          ? sql`EXTRACT(DOW FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+          : isMonthlyView
+            ? sql`EXTRACT(DAY FROM dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+            : sql`DATE_TRUNC('month', dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo') ASC`
+    );
 
   const totals: GetTotalTransactionsByMonthResult[] = result.map((item) => ({
     bruto: item.sum ? parseFloat(item.sum) : 0,
@@ -511,13 +617,13 @@ export async function getTotalTransactionsByMonth(
       const existingData = totals.find((item) => item.hour === hour);
       console.log(existingData);
       return (
-          existingData || {
-            bruto: 0,
-            count: 0,
-            lucro: 0,
-            date: new Date(dateFrom),
-            hour,
-          }
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(dateFrom),
+          hour,
+        }
       );
     });
   }
@@ -529,13 +635,13 @@ export async function getTotalTransactionsByMonth(
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfWeek === day);
       return (
-          existingData || {
-            bruto: 0,
-            count: 0,
-            lucro: 0,
-            date: new Date(dateFrom),
-            dayOfWeek: day,
-          }
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(dateFrom),
+          dayOfWeek: day,
+        }
       );
     });
   }
@@ -544,22 +650,22 @@ export async function getTotalTransactionsByMonth(
   if (isMonthlyView) {
     const dateF = new Date(dateFrom);
     const lastDayOfMonth = new Date(
-        dateF.getFullYear(),
-        dateF.getMonth() + 1,
-        0
+      dateF.getFullYear(),
+      dateF.getMonth() + 1,
+      0
     ).getDate();
     const days = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
     const [year, month] = dateFrom.split("T")[0].split("-").map(Number);
     return days.map((day) => {
       const existingData = totals.find((item) => item.dayOfMonth === day);
       return (
-          existingData || {
-            bruto: 0,
-            count: 0,
-            lucro: 0,
-            date: new Date(year, month, day),
-            dayOfMonth: day,
-          }
+        existingData || {
+          bruto: 0,
+          count: 0,
+          lucro: 0,
+          date: new Date(year, month, day),
+          dayOfMonth: day,
+        }
       );
     });
   }
@@ -577,4 +683,205 @@ export async function getTotalMerchants() {
   const data = result.rows as MerchantTotal[];
   console.log(data);
   return data;
+}
+
+export async function getTotalTransactions2(dateFrom: string, dateTo: string) {
+  const conditions = [];
+  const normalizeDate = await normalizeDateRange(dateFrom, dateTo);
+  if (dateFrom) {
+    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo");
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
+  }
+
+  if (dateTo) {
+    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo");
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
+  }
+  const statusFilter = notInArray(transactions.transactionStatus, [
+    "CANCELED",
+    "DENIED",
+    "PROCESSING",
+  ]);
+  conditions.push(statusFilter);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const result = await db.execute(sql`
+    WITH base AS (
+      SELECT
+        transactions.total_amount,
+        transactions.product_type,
+        transactions.brand,
+        COALESCE(
+          merchant_transaction_price.card_transaction_mdr,
+          merchant_price.card_pix_mdr
+        ) / 100.0 AS applied_mdr,
+        COALESCE(
+          merchant_transaction_price.non_card_transaction_mdr,
+          merchant_price.non_card_pix_mdr
+        ) / 100.0 AS non_card_applied_mdr,
+        transaction_cycles.installments
+      FROM transactions
+
+      -- 1) Contrato base do merchant
+      JOIN merchant_price
+        ON merchant_price.slug_merchant = transactions.slug_merchant
+       AND merchant_price.active = TRUE
+
+      -- 2) Grupo de preço por bandeira
+      JOIN merchant_price_group
+        ON merchant_price_group.id_merchant_price = merchant_price.id
+       AND merchant_price_group.brand = transactions.brand
+       AND merchant_price_group.active = TRUE
+
+      -- 3) Faixa de transação (parcelas)
+      JOIN merchant_transaction_price
+        ON merchant_transaction_price.id_merchant_price_group = merchant_price_group.id
+       AND merchant_transaction_price.producttype = transactions.product_type
+
+      -- 4) Transaction cycles
+      LEFT JOIN transaction_cycles 
+        ON transaction_cycles.slug_transaction = transactions.slug::text
+
+      -- 5) Solicitation_fee_brand e solicitation_brand_product_type
+      LEFT JOIN solicitation_fee_brand
+        ON solicitation_fee_brand.brand = transactions.brand
+
+      LEFT JOIN solicitation_brand_product_type
+        ON solicitation_brand_product_type.solicitation_fee_brand_id = solicitation_fee_brand.id
+       AND solicitation_brand_product_type.product_type = transactions.product_type
+
+      ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+      AND (
+        transaction_cycles.slug_transaction IS NULL OR
+        CAST(COALESCE(transaction_cycles.installments, '1') AS INTEGER) BETWEEN
+          merchant_transaction_price.installment_transaction_fee_start
+        AND merchant_transaction_price.installment_transaction_fee_end
+      )
+    )
+
+    SELECT
+      SUM(base.total_amount) AS sum,
+      COUNT(1) AS count,
+      SUM(
+        base.total_amount * 
+        (COALESCE(solicitation_brand_product_type.fee_admin, 0) - COALESCE(base.applied_mdr, 0)) +
+        (COALESCE(solicitation_brand_product_type.no_card_fee_admin, 0) - COALESCE(base.non_card_applied_mdr, 0))
+      ) AS revenue
+    FROM base
+    LEFT JOIN solicitation_brand_product_type
+      ON solicitation_brand_product_type.product_type = base.product_type
+      AND solicitation_brand_product_type.solicitation_fee_brand_id IN (
+        SELECT id FROM solicitation_fee_brand WHERE brand = base.brand
+      )
+  `);
+
+  const data = result.rows as GetTotalTransactionsResult[];
+  return data;
+}
+
+export type GetTotalTransactionsResult3 = {
+  total_transactions: number;
+  total_volume: string; // Numeric vem como string
+  gross_revenue: string;
+};
+
+export async function getTotalTransactions3(
+  dateFrom: string,
+  dateTo: string
+): Promise<GetTotalTransactionsResult3[]> {
+  const conditions = [];
+  const normalizeDate = await normalizeDateRange(dateFrom, dateTo);
+
+  if (dateFrom) {
+    const dateFromUTC = getDateUTC(normalizeDate.start, "America/Sao_Paulo")!;
+    conditions.push(gte(transactions.dtInsert, dateFromUTC));
+  }
+  if (dateTo) {
+    const dateToUTC = getDateUTC(normalizeDate.end, "America/Sao_Paulo")!;
+    conditions.push(lte(transactions.dtInsert, dateToUTC));
+  }
+
+  // ignorar transações inválidas
+  conditions.push(
+    notInArray(transactions.transactionStatus, [
+      "CANCELED",
+      "DENIED",
+      "PROCESSING",
+    ])
+  );
+
+  const whereClause =
+    conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
+
+  const result = await db.execute(sql`
+    WITH base AS (
+      SELECT
+      transactions.total_amount,
+        -- Taxa aplicada: prioriza o MTX, senão cai no PIX do merchant_price
+        COALESCE(
+          merchant_transaction_price.card_transaction_mdr,
+          merchant_price.card_pix_mdr
+        ) / 100.0 AS applied_mdr,
+        transactions.product_type, 
+        transactions.brand,
+        categories.mcc
+      FROM transactions 
+
+      JOIN merchants ON merchants.slug = transactions.slug_merchant
+
+      JOIN categories ON categories.id = merchants.id_category
+
+      -- 1) contrato base do merchant
+      JOIN merchant_price
+        ON merchant_price.slug_merchant = transactions.slug_merchant
+       AND merchant_price.active = TRUE
+
+      -- 2) grupo de preço por bandeira
+      JOIN merchant_price_group
+        ON merchant_price_group.id_merchant_price = merchant_price.id
+       AND merchant_price_group.brand            = transactions.brand
+       AND merchant_price_group.active = TRUE
+
+      -- 3) faixa de transação (parcelas)
+      JOIN merchant_transaction_price 
+        ON merchant_transaction_price.id_merchant_price_group   = merchant_price_group.id
+       AND merchant_transaction_price.producttype               = transactions.product_type
+       
+      ${whereClause}
+    ),
+
+    fee_lookup AS (
+      SELECT
+
+        solicitation_brand_product_type.product_type,
+        solicitation_brand_product_type.fee_admin / 100.0 AS fee_admin,
+        solicitation_brand_product_type.no_card_fee_admin / 100.0 AS no_card_fee_admin,
+        solicitation_fee_brand.brand,
+        solicitation_fee.mcc
+      FROM solicitation_fee
+      JOIN solicitation_fee_brand
+        ON solicitation_fee_brand.solicitation_fee_id = solicitation_fee.id
+
+      JOIN solicitation_brand_product_type 
+        ON solicitation_brand_product_type.solicitation_fee_brand_id = solicitation_fee_brand.id
+
+      
+    )
+
+    SELECT
+      COUNT(1)        AS total_transactions,
+      SUM(b.total_amount)::TEXT       AS total_volume,
+      SUM(b.total_amount * (b.applied_mdr - fee_lookup.fee_admin))::TEXT   AS gross_revenue
+     
+      
+       
+    FROM base b
+    JOIN fee_lookup
+      ON fee_lookup.product_type = b.product_type
+      AND fee_lookup.brand = b.brand AND fee_lookup.mcc = b.mcc
+  `);
+
+  console.log(result.rows);
+
+  return result.rows as GetTotalTransactionsResult3[];
 }
