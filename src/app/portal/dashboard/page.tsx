@@ -102,7 +102,7 @@ export default async function SalesDashboard({
                     }
                     previousValue={totalTransactionsPreviousPeriod[0]?.sum}
                     valueType="currency"
-                  />
+                  /> 
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"
