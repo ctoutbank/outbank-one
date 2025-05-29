@@ -579,6 +579,10 @@ export async function getMerchantsGroupedByRegion(
     active?: string,
     salesAgent?: string
 ): Promise<MerchantRegionChart[]> {
+
+  console.log('🔍 getMerchantsGroupedByRegion called with:', {
+    search, establishment, status, state, dateFrom, email, cnpj, active, salesAgent
+  });
   const filterConditions = await createFilterConditions(
       search,
       establishment,

@@ -81,9 +81,42 @@ export default async function MerchantsPage({
   );
 
   const totalRecords = merchants.totalCount;
-    const regionData = await getMerchantsGroupedByRegion();
-    const shiftData = await getTransactionsGroupedByShift()
-    const statusData = await getTransactionStatusData()
+
+    const regionData = await getMerchantsGroupedByRegion(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
+
+    const shiftData = await getTransactionsGroupedByShift(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
+
+    const statusData = await getTransactionStatusData(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
 
 
         const merchantData = {

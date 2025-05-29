@@ -80,6 +80,8 @@ async function TransactionsContent({
       searchParams.merchant
   );
 
+  console.log("Transactions salesPage", transactionsGroupedReport)
+
   return (
       <>
         <div className="flex flex-col space-y-4">

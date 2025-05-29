@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, } from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
 import { CircuitBoard, HardDrive } from "lucide-react";
 import { ModeloAtivo } from "../serverActions/terminal";
 
@@ -23,90 +23,101 @@ export function TerminalsDashboardContent({
                                             modelosAtivosDetalhes = [],
                                           }: TerminalsDashboardContentProps) {
   return (
+
       <div className="space-y-4">
         <div className="w-full mt-2 mb-2">
           <div className="grid grid-cols-1 gap-4">
+            <Card className="w-full border-l-8 border-black bg-sidebar">
+              <div className="flex items-center justify-between">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date().toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </CardHeader>
+              </div>
 
-            {/* Card único unificado */}
-            <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row justify-between gap-12">
-
-                  {/* Total por Serial */}
+              <CardContent>
+                <div className="flex flex-col lg:flex-row gap-8">
+                  {/* Seção de Terminais */}
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-4">
                       <HardDrive className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Total por Serial</span>
+                      <span className="text-lg font-medium">Terminais</span>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">
-                      {totalTerminals}
-                    </div>
-                    <div className="flex gap-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+
+                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                      <div className="text-center p-4 bg-background rounded-lg border">
+                        <div className="text-2xl font-semibold text-zinc-900 mb-2">{totalTerminals}</div>
+                        <div className="text-sm text-muted-foreground">Total de Terminais</div>
+                      </div>
+
+                      <div className="text-center p-4 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
                           <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span className="text-xs font-medium text-zinc-600">Ativo</span>
+                          <span className="text-sm font-medium text-zinc-600">Ativo</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900">
-                        {ativosTerminals}
-                      </span>
+                        <div className="text-xl font-semibold text-zinc-900">{ativosTerminals}</div>
                       </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+
+                      <div className="text-center p-4 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
                           <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                          <span className="text-xs font-medium text-zinc-600">Inativo</span>
+                          <span className="text-sm font-medium text-zinc-600">Inativo</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900">
-                        {inativosTerminals}
-                      </span>
+                        <div className="text-xl font-semibold text-zinc-900">{inativosTerminals}</div>
                       </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+
+                      <div className="text-center p-4 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
                           <div className="h-2 w-2 rounded-full bg-red-500" />
-                          <span className="text-xs font-medium text-zinc-600">Desativado</span>
+                          <span className="text-sm font-medium text-zinc-600">Desativado</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900">
-                        {desativadosTerminals}
-                      </span>
+                        <div className="text-xl font-semibold text-zinc-900">{desativadosTerminals}</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Modelos Ativos */}
+                  {/* Seção de Modelos Ativos */}
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-4">
                       <CircuitBoard className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Modelos Ativos</span>
+                      <span className="text-lg font-medium">Modelos Ativos</span>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">
-                      {totalModelosAtivos}
-                    </div>
-                    {modelosAtivosDetalhes.length > 0 ? (
-                        <div className="flex flex-wrap gap-4">
-                          {modelosAtivosDetalhes.map((modelo, index) => (
-                              <div key={index} className="text-center min-w-[100px]">
-                          <span className="text-xs font-medium text-zinc-600 block truncate mb-1">
-                            {modelo.nome}
-                          </span>
-                                <span className="text-base font-semibold text-zinc-900">
-                            {modelo.quantidade}
-                          </span>
-                              </div>
-                          ))}
-                        </div>
-                    ) : (
-                        <div className="flex justify-center items-center h-[70px] text-zinc-400">
-                          Nenhum modelo ativo encontrado
-                        </div>
-                    )}
-                  </div>
 
+                    <div className="grid gap-4">
+                      <div className="text-center p-4 bg-background rounded-lg border">
+                        <div className="text-2xl font-semibold text-zinc-900 mb-2">{totalModelosAtivos}</div>
+                        <div className="text-sm text-muted-foreground">Total de Modelos Ativos</div>
+                      </div>
+
+                      {modelosAtivosDetalhes.length > 0 ? (
+                          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {modelosAtivosDetalhes.map((modelo, index) => (
+                                <div key={index} className="text-center p-4 bg-background rounded-lg border">
+                                  <div className="text-lg font-semibold text-zinc-900 mb-1">{modelo.quantidade}</div>
+                                  <div className="text-sm text-muted-foreground truncate">{modelo.nome}</div>
+                                </div>
+                            ))}
+                          </div>
+                      ) : (
+                          <div className="flex justify-center items-center h-[100px] text-zinc-400 bg-background rounded-lg border">
+                            Nenhum modelo ativo encontrado
+                          </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </div>
       </div>
-  );
+  )
 }
