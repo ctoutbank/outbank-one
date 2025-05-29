@@ -11,13 +11,14 @@ import {
   solicitationFeeDocument,
 } from "../../drizzle/schema";
 
+
 // Tipos para gerenciamento de arquivos
 export type FileEntityType =
   | "merchant"
   | "terminal"
   | "customer"
   | "payment"
-  | "pricingSolicitation";
+  | "solicitationFee";
 
 export interface FileItem {
   id: number;
@@ -229,7 +230,7 @@ export async function createFileRelation(params: CreateFileRelationParams) {
     }
 
     // Implementação para pricing solicitation
-    if (entityType === "pricingSolicitation") {
+    if (entityType === "solicitationFee") {
       const result = await db
         .insert(solicitationFeeDocument)
         .values({
@@ -286,6 +287,40 @@ export async function getFilesByEntity(
           and(
             eq(merchantfile.idMerchant, entityId),
             eq(merchantfile.active, true),
+            eq(file.active, true)
+          )
+        );
+
+      // Filtrar e converter para garantir que todos os campos estão presentes e não são nulos
+      return files
+        .filter(
+          (f) =>
+            f.fileName !== null && f.fileUrl !== null && f.extension !== null
+        )
+        .map((f) => ({
+          id: f.id,
+          fileName: f.fileName as string,
+          fileUrl: f.fileUrl as string,
+          extension: f.extension as string,
+          active: f.active === true,
+        }));
+    }
+
+    // Implementação para pricing solicitation
+    if (entityType === "solicitationFee") {
+      const files = await db
+        .select({
+          id: file.id,
+          fileName: file.fileName,
+          fileUrl: file.fileUrl,
+          extension: file.extension,
+          active: file.active,
+        })
+        .from(solicitationFeeDocument)
+        .innerJoin(file, eq(solicitationFeeDocument.idFile, file.id))
+        .where(
+          and(
+            eq(solicitationFeeDocument.solicitationFeeId, entityId),
             eq(file.active, true)
           )
         );
@@ -529,7 +564,7 @@ export async function getFilesByFileType(
         }));
     }
 
-    if (entityType === "pricingSolicitation") {
+    if (entityType === "solicitationFee") {
       const files = await db
         .select({
           id: file.id,
@@ -579,7 +614,7 @@ export async function createFileWithPricingSolicitation(
 ): Promise<UploadFileResponse> {
   try {
     // Configure path for pricing solicitation files
-    const path = `pricing-solicitations/${solicitationId}`;
+    const path = `pricingSolicitations/${solicitationId}`;
 
     // Get file from FormData
     const file = formData.get("File") as File;
@@ -593,12 +628,16 @@ export async function createFileWithPricingSolicitation(
       fileName: file.name,
     });
 
+    // Garantir que o fileType não exceda 20 caracteres
+    const truncatedFileType =
+      fileType.length > 20 ? fileType.substring(0, 20) : fileType;
+
     // Upload file and create standard file record
     const uploadResult = await uploadFile({
       formData,
       path,
-      fileName: `${fileType}-${Date.now()}`,
-      fileType,
+      fileName: `${truncatedFileType}-${Date.now()}`,
+      fileType: truncatedFileType,
     });
 
     if (!uploadResult) {
@@ -609,13 +648,13 @@ export async function createFileWithPricingSolicitation(
     await db.insert(solicitationFeeDocument).values({
       solicitationFeeId: solicitationId,
       idFile: uploadResult.fileId,
-      type: fileType,
+      type: truncatedFileType,
       slug: null,
       dtinsert: new Date().toISOString(),
       dtupdate: new Date().toISOString(),
     });
 
-    revalidatePath(`/pricing-solicitation/${solicitationId}`);
+    revalidatePath(`/pricingSolicitation/${solicitationId}`);
     return uploadResult;
   } catch (error) {
     console.error(

@@ -1,6 +1,19 @@
 "use client";
 
-import { FormLabel } from "@/components/ui/form";
+import FileUpload from "@/components/fileUpload";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -9,10 +22,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PricingSolicitationForm, ProductType } from "@/features/pricingSolicitation/server/pricing-solicitation";
+import { Textarea } from "@/components/ui/textarea";
+
+import ListDocumentDownload from "@/features/pricingSolicitation/_components/list-document-download";
+import {
+  approveAction,
+  rejectAction,
+  updateToSendDocumentsAction,
+} from "@/features/pricingSolicitation/actions/pricing-solicitation-actions";
+import type { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
+import { DownloadIcon, FileIcon, UploadIcon, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
+interface PricingSolicitationViewProps {
+  pricingSolicitation: PricingSolicitationForm;
+}
+
+interface ProductType {
+  name?: string;
+  fee?: string | number;
+  feeAdmin?: string | number;
+  feeDock?: string | number;
+  transactionFeeStart?: string | number;
+  transactionFeeEnd?: string | number;
+  noCardFee?: string | number;
+  noCardFeeAdmin?: string | number;
+  noCardFeeDock?: string | number;
+  noCardTransactionAnticipationMdr?: string | number;
+  transactionAnticipationMdr?: string | number;
+}
+
+interface Brand {
+  name: string;
+  productTypes?: ProductType[];
+}
 
 const getCardImage = (cardName: string): string => {
   const cardMap: { [key: string]: string } = {
@@ -27,220 +74,959 @@ const getCardImage = (cardName: string): string => {
   return cardMap[cardName] || "";
 };
 
+// Função para normalizar uma string
+function normalizeString(str: string | undefined | null): string {
+  return (str ?? "").toUpperCase().trim().replace(/\s+/g, "");
+}
+
+// Função para normalizar um tipo de produto
+function normalizeProductType(pt: ProductType): ProductType {
+  return {
+    ...pt,
+    name: normalizeString(pt.name),
+    fee: pt.fee ?? "-",
+    feeAdmin: pt.feeAdmin ?? "-",
+    noCardFee: pt.noCardFee ?? "-",
+    noCardFeeAdmin: pt.noCardFeeAdmin ?? "-",
+  };
+}
+
 export function PricingSolicitationView({
   pricingSolicitation,
-}: {
-  pricingSolicitation: PricingSolicitationForm;
-}) {
+}: PricingSolicitationViewProps) {
+  const handleUploadComplete = (fileData: {
+    fileId: number;
+    fileURL: string;
+    fileName: string;
+    fileExtension: string;
+  }) => {
+    console.log("Arquivo enviado com sucesso:", fileData);
+    setRefreshDocsKey((k) => k + 1);
+  };
+  const form = useForm();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [documentDownloaded, setDocumentDownloaded] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [refreshDocsKey, setRefreshDocsKey] = useState(0);
+  const [uploadSuccessful] = useState(false);
+
   if (!pricingSolicitation) {
     return <div>Nenhuma solicitação encontrada</div>;
   }
 
-  // Map brands from solicitation to display format
-  const brandsMap = new Map();
-  pricingSolicitation.brands?.forEach((brand) => {
-    brandsMap.set(brand.name, brand);
+  console.log("PricingSolicitation completo:", pricingSolicitation);
+  console.log("Campos PIX Admin:", {
+    cardPixMdrAdmin: pricingSolicitation.cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin: pricingSolicitation.cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin: pricingSolicitation.cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin:
+      pricingSolicitation.eventualAnticipationFeeAdmin,
+    nonCardPixMdrAdmin: pricingSolicitation.nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin: pricingSolicitation.nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin:
+      pricingSolicitation.nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin:
+      pricingSolicitation.nonCardEventualAnticipationFeeAdmin,
   });
 
-  // Organize fees by brand and product type
-  const feesData = brandList.map((brandItem) => {
-    const brand = brandsMap.get(brandItem.value) || {
-      name: brandItem.value,
-      productTypes: [],
-    };
+  // Mapear marcas da solicitação para o formato de exibição
+  const brandsMap = new Map<string, Brand>();
+  pricingSolicitation.brands?.forEach((brand) => {
+    const normalizedBrandName = normalizeString(brand.name);
+    console.log("Processing brand from DB:", {
+      originalName: brand.name,
+      normalizedName: normalizedBrandName,
+      productTypes: brand.productTypes?.map((pt) => ({
+        original: {
+          name: pt.name,
+          fee: pt.fee,
+          feeAdmin: pt.feeAdmin,
+          noCardFee: pt.noCardFee,
+          noCardFeeAdmin: pt.noCardFeeAdmin,
+        },
+        normalized: normalizeProductType(pt),
+      })),
+    });
 
-    const productTypeMap = new Map();
-    brand.productTypes.forEach((pt: ProductType) => {
-      productTypeMap.set(pt.name, pt);
+    brandsMap.set(normalizedBrandName, {
+      ...brand,
+      name: normalizedBrandName,
+      productTypes: brand.productTypes?.map(normalizeProductType),
+    });
+  });
+
+  const handleCloseUploadDialog = () => {
+    setOpenUploadDialog(false);
+
+    // Se uma solicitação foi criada durante o upload e temos um ID
+    if (uploadSuccessful && pricingSolicitation.id) {
+      // Navegar para a página correta com o ID da solicitação
+      router.push(`/portal/pricingSolicitation/${pricingSolicitation.id}`);
+    }
+  };
+  // feesData agora garante todas as bandeiras e tipos, mesmo que não existam no banco
+  const feesData = brandList.map((brand) => {
+    const normalizedBrandName = normalizeString(brand.value);
+    const foundBrand = brandsMap.get(normalizedBrandName);
+
+    console.log(`Processing brand ${brand.value}:`, {
+      originalName: brand.value,
+      normalizedName: normalizedBrandName,
+      foundBrand: foundBrand
+        ? {
+            name: foundBrand.name,
+            productTypes: foundBrand.productTypes?.map((pt) => ({
+              name: pt.name,
+              fee: pt.fee,
+              feeAdmin: pt.feeAdmin,
+              noCardFee: pt.noCardFee,
+              noCardFeeAdmin: pt.noCardFeeAdmin,
+            })),
+          }
+        : null,
+    });
+
+    // Agrupa os tipos POS
+    const posTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt) => normalizeString(pt.name) === normalizedTypeName
+      );
+
+      console.log(`Looking for POS type ${type.value}:`, {
+        typeValue: type.value,
+        normalizedTypeName,
+        foundType: foundType
+          ? {
+              name: foundType.name,
+              fee: foundType.fee,
+              feeAdmin: foundType.feeAdmin,
+            }
+          : null,
+        allProductTypes: foundBrand?.productTypes?.map((pt) => ({
+          name: pt.name,
+          normalizedName: normalizeString(pt.name),
+        })),
+      });
+
+      return {
+        value: type.value,
+        label: type.label,
+        fee: foundType?.fee ?? "-",
+        feeAdmin: foundType?.feeAdmin ?? "-",
+      };
+    });
+
+    // Agrupa os tipos Online
+    const onlineTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt) => normalizeString(pt.name) === normalizedTypeName
+      );
+
+      console.log(`Looking for Online type ${type.value}:`, {
+        typeValue: type.value,
+        normalizedTypeName,
+        foundType: foundType
+          ? {
+              name: foundType.name,
+              noCardFee: foundType.noCardFee,
+              noCardFeeAdmin: foundType.noCardFeeAdmin,
+            }
+          : null,
+        allProductTypes: foundBrand?.productTypes?.map((pt) => ({
+          name: pt.name,
+          normalizedName: normalizeString(pt.name),
+        })),
+      });
+
+      return {
+        value: type.value,
+        label: type.label,
+        noCardFee: foundType?.noCardFee ?? "-",
+        noCardFeeAdmin: foundType?.noCardFeeAdmin ?? "-",
+      };
     });
 
     return {
-      brand: brandItem,
-      productTypes: SolicitationFeeProductTypeList.map((ptItem) => {
-        return (
-          productTypeMap.get(ptItem.value) || {
-            name: ptItem.value,
-            fee: "-",
-          }
-        );
-      }),
+      brand: {
+        value: brand.value,
+        label: brand.label,
+      },
+      posTypes,
+      onlineTypes,
     };
   });
 
+  console.log("Final Fees Data:", JSON.stringify(feesData, null, 2));
+
+  // Você pode sim criar uma constante que normaliza toda a estrutura, facilitando o acesso aos campos independentemente do formato do nome.
+  // Exemplo de normalização dos campos em uma única constante:
+  const normalized = {
+    ...pricingSolicitation,
+    cnpjQuantity:
+      (pricingSolicitation as any).cnpj_quantity ??
+      pricingSolicitation.cnpjQuantity,
+    averageTicket:
+      (pricingSolicitation as any).average_ticket ??
+      pricingSolicitation.averageTicket,
+    monthlyPosFee:
+      (pricingSolicitation as any).monthly_pos_fee ??
+      pricingSolicitation.monthlyPosFee,
+    cnaeInUse:
+      (pricingSolicitation as any).cnae_in_use ?? pricingSolicitation.cnaeInUse,
+
+    // PIX com cartão
+    cardPixMdr:
+      (pricingSolicitation as any).card_pix_mdr ??
+      pricingSolicitation.cardPixMdr,
+    cardPixCeilingFee:
+      (pricingSolicitation as any).card_pix_ceiling_fee ??
+      pricingSolicitation.cardPixCeilingFee,
+    cardPixMinimumCostFee:
+      (pricingSolicitation as any).card_pix_minimum_cost_fee ??
+      pricingSolicitation.cardPixMinimumCostFee,
+    eventualAnticipationFee:
+      (pricingSolicitation as any).eventualAnticipationFee ??
+      (pricingSolicitation as any).eventual_anticipation_fee,
+
+    // Novos campos Admin para PIX com cartão
+    cardPixMdrAdmin:
+      (pricingSolicitation as any).card_pix_mdr_admin ??
+      pricingSolicitation.cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin:
+      (pricingSolicitation as any).card_pix_ceiling_fee_admin ??
+      pricingSolicitation.cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin:
+      (pricingSolicitation as any).card_pix_minimum_cost_fee_admin ??
+      pricingSolicitation.cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin:
+      (pricingSolicitation as any).eventual_anticipation_fee_admin ??
+      pricingSolicitation.eventualAnticipationFeeAdmin,
+
+    // PIX sem cartão
+    nonCardPixMdr:
+      (pricingSolicitation as any).non_card_pix_mdr ??
+      pricingSolicitation.nonCardPixMdr,
+    nonCardPixCeilingFee:
+      (pricingSolicitation as any).non_card_pix_ceiling_fee ??
+      pricingSolicitation.nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee:
+      (pricingSolicitation as any).non_card_pix_minimum_cost_fee ??
+      pricingSolicitation.nonCardPixMinimumCostFee,
+    nonCardEventualAnticipationFee:
+      (pricingSolicitation as any).nonCardEventualAnticipationFee ??
+      (pricingSolicitation as any).non_card_eventual_anticipation_fee,
+
+    // Novos campos Admin para PIX sem cartão
+    nonCardPixMdrAdmin:
+      (pricingSolicitation as any).non_card_pix_mdr_admin ??
+      pricingSolicitation.nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin:
+      (pricingSolicitation as any).non_card_pix_ceiling_fee_admin ??
+      pricingSolicitation.nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin:
+      (pricingSolicitation as any).non_card_pix_minimum_cost_fee_admin ??
+      pricingSolicitation.nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin:
+      (pricingSolicitation as any).non_card_eventual_anticipation_fee_admin ??
+      pricingSolicitation.nonCardEventualAnticipationFeeAdmin,
+  };
+
+  console.log(normalized);
+
+  // Agora você pode acessar os campos normalizados:
+  const {
+    cnpjQuantity,
+    averageTicket,
+    monthlyPosFee,
+    cnaeInUse,
+    cardPixMdr,
+    cardPixCeilingFee,
+    cardPixMinimumCostFee,
+    eventualAnticipationFee,
+    cardPixMdrAdmin,
+    cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFeeAdmin,
+    eventualAnticipationFeeAdmin,
+    nonCardPixMdr,
+    nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee,
+    nonCardEventualAnticipationFee,
+    nonCardPixMdrAdmin,
+    nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFeeAdmin,
+    nonCardEventualAnticipationFeeAdmin,
+  } = normalized;
+
+  console.log(
+    pricingSolicitation.brands?.map((b) => ({
+      name: b.name,
+      productTypes: b.productTypes?.map((pt) => ({
+        name: pt.name,
+        noCardFee: pt.noCardFee,
+        noCardFeeAdmin: pt.noCardFeeAdmin,
+      })),
+    }))
+  );
+
+  // Handlers
+  const downloadAditivo = () => {
+    window.open("/AditivoAcquiring.pdf");
+    setDocumentDownloaded(true);
+  };
+
+  const handleOpenUploadDialog = () => {
+    setShowUploadDialog(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!uploadedFile || !pricingSolicitation.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateToSendDocumentsAction(pricingSolicitation.id);
+
+      if (result.success) {
+        setShowUploadDialog(false);
+        alert(
+          "Aditivo enviado com sucesso! Status atualizado para 'Aguardando documentos'."
+        );
+        router.refresh();
+      } else {
+        alert("Erro ao atualizar status: " + result.error);
+      }
+    } catch (error) {
+      console.error("Erro ao enviar aditivo:", error);
+      alert("Erro ao processar o envio do aditivo");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!pricingSolicitation.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await approveAction(pricingSolicitation.id);
+      if (result.success) {
+        alert("Solicitação aprovada com sucesso!");
+        router.refresh();
+      } else {
+        alert("Erro ao aprovar: " + result.error);
+      }
+    } catch (error) {
+      console.error("Erro ao aprovar:", error);
+      alert("Erro ao processar a aprovação");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenRejectDialog = () => {
+    setShowRejectDialog(true);
+  };
+
+  const handleReject = async () => {
+    if (!pricingSolicitation.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await rejectAction(pricingSolicitation.id, rejectReason);
+      if (result.success) {
+        setShowRejectDialog(false);
+        alert("Solicitação rejeitada com sucesso!");
+        router.refresh();
+      } else {
+        alert("Erro ao rejeitar: " + result.error);
+      }
+    } catch (error) {
+      console.error("Erro ao rejeitar:", error);
+      alert("Erro ao processar a rejeição");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <div className="space-y-2">
-            <FormLabel>CNAE</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50">
-              {pricingSolicitation.cnae || "-"}
+    <Form {...form}>
+      <div className="space-y-8">
+        {/* Card: Dados da Solicitação */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Solicitação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>CNAE</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {pricingSolicitation.cnae || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>MCC</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {pricingSolicitation.mcc || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>Quantidade de CNPJs</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {cnpjQuantity || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>Ticket Médio</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {averageTicket || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="space-y-2">
+                  <FormLabel>TPV Mensal</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50">
+                    {monthlyPosFee || "-"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                  <div className="h-4 w-4 rounded border flex items-center justify-center">
+                    {cnaeInUse && (
+                      <span className="h-2 w-2 bg-black rounded-sm" />
+                    )}
+                  </div>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>CNAE em uso?</FormLabel>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div>
-          <div className="space-y-2">
-            <FormLabel>MCC</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50">
-              {pricingSolicitation.mcc || "-"}
-            </div>
-          </div>
-        </div>
-        <div>
-          <div className="space-y-2">
-            <FormLabel>Quantidade de CNPJs</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50">
-              {pricingSolicitation.cnpjQuantity || "-"}
-            </div>
-          </div>
-        </div>
-        <div>
-          <div className="space-y-2">
-            <FormLabel>Ticket Médio</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50">
-              {pricingSolicitation.averageTicket || "-"}
-            </div>
-          </div>
-        </div>
-        <div>
-          <div className="space-y-2">
-            <FormLabel>TPV Mensal</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50">
-              {pricingSolicitation.monthlyPosFee || "-"}
-            </div>
-          </div>
-        </div>
-        <div>
-          <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-            <div className="h-4 w-4 rounded border flex items-center justify-center">
-              {pricingSolicitation.cnaeInUse && (
-                <span className="h-2 w-2 bg-black rounded-sm" />
+            {cnaeInUse && pricingSolicitation.description && (
+              <div className="mb-6">
+                <div className="space-y-2">
+                  <FormLabel>Descrição</FormLabel>
+                  <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
+                    {pricingSolicitation.description}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Card: Documentos */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Documentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 col-span-2">
+            <div className="mt-4 ">
+              {pricingSolicitation.id && (
+                <ListDocumentDownload
+                  solicitationId={pricingSolicitation.id}
+                  refreshKey={refreshDocsKey}
+                />
               )}
             </div>
-            <div className="space-y-1 leading-none">
-              <FormLabel>CNAE em uso?</FormLabel>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {pricingSolicitation.cnaeInUse && pricingSolicitation.description && (
-        <div className="mb-6">
-          <div className="space-y-2">
-            <FormLabel>Descrição</FormLabel>
-            <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
-              {pricingSolicitation.description}
-            </div>
-          </div>
-        </div>
-      )}
+            {/* Adicionar botão para abrir o diálogo de upload quando status é PENDING */}
 
-      {/* Brand Table */}
-      <div className="w-full overflow-x-auto">
-        <Table className="w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="sticky left-0 z-10 bg-white">
-                Bandeiras
-              </TableHead>
-              {SolicitationFeeProductTypeList.map((type, index) => (
-                <TableHead
-                  key={`${type.value}-${index}`}
-                  className="text-center min-w-[100px]"
+            {pricingSolicitation.status === "PENDING" && (
+              <div className="flex justify-end ">
+                <Button
+                  onClick={() => setOpenUploadDialog(true)}
+                  className="flex items-center gap-2"
                 >
-                  {type.label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {feesData.map((item) => (
-              <TableRow key={item.brand.value}>
-                <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                  <div className="flex items-center gap-2">
-                    {getCardImage(item.brand.value) && (
-                      <img
-                        src={getCardImage(item.brand.value)}
-                        alt={item.brand.label}
-                        width={40}
-                        height={24}
-                        className="object-contain"
-                      />
-                    )}
-                    {item.brand.label}
-                  </div>
-                </TableCell>
-                {item.productTypes.map((productType, typeIndex) => (
-                  <TableCell
-                    key={`${item.brand.value}-${productType.name}-${typeIndex}`}
-                    className="p-1 text-center"
+                  <UploadIcon className="w-4 h-4" />
+                  Importar Documentos
+                </Button>
+              </div>
+            )}
+          </CardContent>
+          <CardContent>
+            <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
+              <DialogContent className="sm:max-w-[900px]">
+                <DialogHeader>
+                  <DialogTitle>Importar Documentos</DialogTitle>
+                  <DialogDescription>
+                    Selecione os documentos que deseja anexar à solicitação.
+                  </DialogDescription>
+                </DialogHeader>
+                <FileUpload
+                  title="Documentos"
+                  description="Selecione os documentos que deseja anexar à solicitação."
+                  entityType="solicitationFee"
+                  entityId={Number(pricingSolicitation.id)}
+                  fileType="DOCUMENTOS"
+                  maxSizeMB={5}
+                  acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
+                  onUploadComplete={handleUploadComplete}
+                />
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleCloseUploadDialog}
                   >
-                    <div
-                      className={`rounded-full py-1 px-3 inline-block w-[70px] text-center ${
-                        typeIndex % 2 === 0 ? "bg-blue-100" : "bg-amber-100"
-                      }`}
-                    >
-                      {productType.fee || "-"}
-                    </div>
-                  </TableCell>
+                    Concluir
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Card: Taxas Transações POS */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Taxas Transações POS
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky left-0 z-10 bg-white">
+                      Bandeiras
+                    </TableHead>
+                    {SolicitationFeeProductTypeList.map((type, index) => (
+                      <>
+                        <TableHead
+                          key={`${type.value}-fee-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                        <TableHead
+                          key={`${type.value}-feeAdmin-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                      </>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feesData.map((item) => (
+                    <TableRow key={item.brand.value}>
+                      <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                        <div className="flex items-center gap-2">
+                          {getCardImage(item.brand.value) && (
+                            <img
+                              src={getCardImage(item.brand.value)}
+                              alt={item.brand.label}
+                              width={40}
+                              height={24}
+                              className="object-contain"
+                            />
+                          )}
+                          {item.brand.label}
+                        </div>
+                      </TableCell>
+                      {item.posTypes.map((productType, typeIndex) => (
+                        <>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                              {productType.fee || "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                              {productType.feeAdmin || "-"}
+                            </div>
+                          </TableCell>
+                        </>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixMdr || "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixMdrAdmin || "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixMinimumCostFee
+                      ? `R$ ${cardPixMinimumCostFee}`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixMinimumCostFeeAdmin
+                      ? `R$ ${cardPixMinimumCostFeeAdmin}`
+                      : "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {cardPixCeilingFeeAdmin
+                      ? `R$ ${cardPixCeilingFeeAdmin}`
+                      : "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {eventualAnticipationFee
+                      ? `${eventualAnticipationFee}%`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {eventualAnticipationFeeAdmin
+                      ? `${eventualAnticipationFeeAdmin}%`
+                      : "-"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card: Taxas Transações Online */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Taxas Transações Online
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="sticky left-0 z-10 bg-white">
+                    Bandeiras
+                  </TableHead>
+                  {SolicitationFeeProductTypeList.map((type, index) => (
+                    <>
+                      <TableHead
+                        key={`${type.value}-noCardFee-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                      <TableHead
+                        key={`${type.value}-noCardFeeAdmin-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                    </>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feesData.map((item) => (
+                  <TableRow key={item.brand.value}>
+                    <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                      <div className="flex items-center gap-2">
+                        {getCardImage(item.brand.value) && (
+                          <img
+                            src={getCardImage(item.brand.value)}
+                            alt={item.brand.label}
+                            width={40}
+                            height={24}
+                            className="object-contain"
+                          />
+                        )}
+                        {item.brand.label}
+                      </div>
+                    </TableCell>
+                    {item.onlineTypes.map((productType, typeIndex) => (
+                      <>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                          className="p-1 text-center"
+                        >
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                            {productType.noCardFee || "-"}
+                          </div>
+                        </TableCell>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                          className="p-1 text-center"
+                        >
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                            {productType.noCardFeeAdmin || "-"}
+                          </div>
+                        </TableCell>
+                      </>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableBody>
+            </Table>
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX Online</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixMdr || "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixMdrAdmin || "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixMinimumCostFee
+                      ? `R$ ${nonCardPixMinimumCostFee}`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixMinimumCostFeeAdmin
+                      ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
+                      : "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardPixCeilingFee ? `R$ ${nonCardPixCeilingFee}` : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardPixCeilingFeeAdmin
+                      ? `R$ ${nonCardPixCeilingFeeAdmin}`
+                      : "-"}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
+                    {nonCardEventualAnticipationFee
+                      ? `${nonCardEventualAnticipationFee}%`
+                      : "-"}
+                  </div>
+                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
+                    {nonCardEventualAnticipationFeeAdmin
+                      ? `${nonCardEventualAnticipationFeeAdmin}%`
+                      : "-"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* PIX Fees Section - if available */}
-        <div className="mt-12 mb-6">
-          <h3 className="text-lg font-medium mb-4">PIX</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <h4 className="font-medium mb-2">MDR</h4>
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {"-"}
-              </div>
+        {/* Card: Status e Ações */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Status da Solicitação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="p-4 rounded-md bg-amber-50">
+              <p className="text-amber-800 font-medium">
+                Status:{" "}
+                {pricingSolicitation.status === "PENDING"
+                  ? "Em análise"
+                  : pricingSolicitation.status === "SEND_DOCUMENTS" ||
+                      pricingSolicitation.status === "REVIEWED"
+                    ? "Aguardando documentos"
+                    : pricingSolicitation.status === "APPROVED"
+                      ? "Aprovado"
+                      : pricingSolicitation.status === "CANCELED"
+                        ? "Rejeitado"
+                        : pricingSolicitation.status}
+              </p>
+              <p className="text-amber-700 text-sm mt-1">
+                {pricingSolicitation.status === "PENDING"
+                  ? "Esta solicitação está em análise."
+                  : pricingSolicitation.status === "REVIEWED"
+                    ? "Faça o download do aditivo, assine-o e envie-o para prosseguir."
+                    : pricingSolicitation.status === "SEND_DOCUMENTS"
+                      ? "Aditivo recebido. A solicitação pode ser aprovada."
+                      : ""}
+              </p>
             </div>
-            <div>
-              <h4 className="font-medium mb-2">Custo Mínimo</h4>
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {"-"}
+            {pricingSolicitation.id && (
+              <div className="flex justify-end gap-4 mt-6">
+                {(pricingSolicitation.status === "REVIEWED" ||
+                  pricingSolicitation.status === "SEND_DOCUMENTS") && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenRejectDialog}
+                    disabled={isSubmitting}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                  >
+                    Recusar
+                  </Button>
+                )}
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <>
+                    <Button
+                      variant="link"
+                      onClick={downloadAditivo}
+                      type="button"
+                      className="flex items-center p-0 h-auto text-gray-700 hover:text-gray-900"
+                    >
+                      <DownloadIcon className="w-4 h-4" />
+                      Download Aditivo
+                    </Button>
+                    <Button
+                      onClick={handleOpenUploadDialog}
+                      disabled={!documentDownloaded || isSubmitting}
+                      className="flex items-center gap-2"
+                    >
+                      <UploadIcon className="w-4 h-4" />
+                      {isSubmitting ? "Enviando..." : "Enviar Aditivo Assinado"}
+                    </Button>
+                  </>
+                )}
+                {pricingSolicitation.status === "SEND_DOCUMENTS" && (
+                  <Button
+                    onClick={handleApprove}
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? "Processando..." : "Aceitar"}
+                  </Button>
+                )}
               </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modal de Upload de Aditivo */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
+            <DialogDescription>
+              Faça o upload do aditivo devidamente assinado para prosseguir com
+              a solicitação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="aditivo">Aditivo Assinado</Label>
+              <Input
+                id="aditivo"
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx"
+              />
             </div>
-            <div>
-              <h4 className="font-medium mb-2">Custo Máximo</h4>
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {"-"}
+            {uploadedFile && (
+              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                <FileIcon className="h-5 w-5 text-blue-500" />
+                <span className="text-sm">{uploadedFile.name}</span>
               </div>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Antecipação</h4>
-              <div className="rounded-full py-2 px-4 bg-gray-100 inline-block">
-                {"-"}
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowUploadDialog(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUploadSubmit}
+              disabled={!uploadedFile || isSubmitting}
+            >
+              {isSubmitting ? "Enviando..." : "Enviar Aditivo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Status indicator */}
-      <div className="mt-8">
-        <div className="p-4 rounded-md bg-amber-50">
-          <p className="text-amber-800 font-medium">
-            Status:{" "}
-            {pricingSolicitation.status === "PENDING"
-              ? "Em análise"
-              : pricingSolicitation.status === "SEND_DOCUMENTS"
-              ? "Aguardando documentos"
-              : pricingSolicitation.status}
-          </p>
-          <p className="text-amber-700 text-sm mt-1">
-            {pricingSolicitation.status === "PENDING"
-              ? "Esta solicitação está em análise e não pode ser editada."
-              : pricingSolicitation.status === "SEND_DOCUMENTS"
-              ? "Complete o envio dos documentos e clique em 'Enviar formulário' para finalizar a solicitação."
-              : ""}
-          </p>
-        </div>
-      </div>
-    </div>
+      {/* Modal de Rejeição */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Rejeição</DialogTitle>
+            <DialogDescription>
+              Informe o motivo da rejeição desta solicitação de taxas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Informe o motivo da rejeição"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRejectDialog(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleReject}
+              disabled={isSubmitting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isSubmitting ? "Processando..." : "Rejeitar Solicitação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Form>
   );
 }

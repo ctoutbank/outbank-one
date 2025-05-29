@@ -8,6 +8,7 @@ import { SettlementsHistoryDashboardContent } from "@/features/settlements/_comp
 import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
 import { getSettlements } from "@/features/settlements/server/settlements";
 import { SyncButton } from "@/features/sync/syncButton";
+import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -89,15 +90,22 @@ export default async function SettlementsPage({
             </div>
           </div>
 
-          <SettlementHistoryList Settlements={settlements} />
-          {totalRecords > 0 && (
-              <PaginationRecords
-                  totalRecords={totalRecords}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/settlements/history"
-              ></PaginationRecords>
-          )}
+            <SettlementHistoryList Settlements={settlements} />
+
+            {totalRecords > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={pageSize}
+                        pageName="portal/settlements/history"
+                    />
+                    <PaginationRecords
+                        totalRecords={totalRecords}
+                        currentPage={page}
+                        pageSize={pageSize}
+                        pageName="portal/settlements/history"
+                    />
+                </div>
+            )}
         </BaseBody>
       </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/empty-state";
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileFilter } from "@/features/users/_components/filter-profile";
@@ -92,15 +93,21 @@ export default function UserTabs({
         </div>
 
         {totalUsersRecords > 0 ? (
-          <div>
-            <UsersList users={users} permissions={permissions} />
-            <PaginationRecords
-              totalRecords={totalUsersRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/users"
-            />
-          </div>
+            <div>
+              <UsersList users={users} permissions={permissions} />
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/users"
+                />
+                <PaginationRecords
+                    totalRecords={totalUsersRecords}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/users"
+                />
+              </div>
+            </div>
         ) : (
           <EmptyState
             icon={Search}

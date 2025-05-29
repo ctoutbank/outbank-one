@@ -8,6 +8,7 @@ import EdisList from "@/features/edis/_components/edis-list";
 import { getEdis } from "@/features/edis/server/edis";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import PageSizeSelector from "@/components/page-size-selector";
 
 type EdisProps = {
   page?: string;
@@ -82,13 +83,20 @@ export default async function EdisPage({
           </div>
 
           <EdisList list={edis} />
+
           {totalRecords > 0 && (
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/edis"
-            />
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/edis"
+                />
+                <PaginationRecords
+                    totalRecords={totalRecords}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/edis"
+                />
+              </div>
           )}
         </div>
       </BaseBody>

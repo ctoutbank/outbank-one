@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { PricingSolicitationFilter } from "@/features/pricingSolicitation/_components/pricing-solicitation-filter";
 import PricingSolicitationList from "@/features/pricingSolicitation/_components/pricing-solicitation-list";
@@ -59,14 +60,20 @@ export default async function PricingSolicitationPage({
         {pricingSolicitations && (
           <PricingSolicitationList solicitations={pricingSolicitations} />
         )}
-        {totalRecords > 0 && (
-          <PaginationRecords
-            totalRecords={totalRecords}
-            currentPage={page}
-            pageSize={pageSize}
-            pageName="portal/pricingSolicitation"
-          />
-        )}
+          {totalRecords > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                  <PageSizeSelector
+                      currentPageSize={pageSize}
+                      pageName="portal/pricingSolicitation"
+                  />
+                  <PaginationRecords
+                      totalRecords={totalRecords}
+                      currentPage={page}
+                      pageSize={pageSize}
+                      pageName="portal/pricingSolicitation"
+                  />
+              </div>
+          )}
       </BaseBody>
     </>
   );

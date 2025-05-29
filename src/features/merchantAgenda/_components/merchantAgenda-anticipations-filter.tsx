@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AnticipationsListFilterButton } from "./merchantAgenda-anticipations-filter-button";
-import { AnticipationsListFilterContent } from "./merchantAgenda-aticipations-filter-content";
+import { AnticipationsListFilterContent } from "./merchantAgenda-anticipations-filter-content";
 
 type AnticipationsListFilterProps = {
   settlementDateFromIn?: Date;

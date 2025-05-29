@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import PageSizeSelector from "@/components/page-size-selector";
 
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
@@ -85,16 +86,21 @@ export default async function LegalNaturesPage({
               />
             </div>
           </div>
-
           <LegalNaturelist LegalNatures={legalNatures} />
 
           {totalRecords > 0 && (
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/legalNatures"
-            />
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/legalNatures"
+                />
+                <PaginationRecords
+                    totalRecords={totalRecords}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/legalNatures"
+                />
+              </div>
           )}
         </div>
       </BaseBody>

@@ -21,8 +21,13 @@ interface FileUploadProps {
   acceptedFileTypes?: string;
   maxSizeMB?: number;
   initialFiles?: File[];
-  entityType: "merchant" | "terminal" | "customer" | "payment";
-  entityId: number;
+  entityType:
+    | "merchant"
+    | "terminal"
+    | "customer"
+    | "payment"
+    | "solicitationFee";
+  entityId?: number;
   fileType?: string;
   onUploadComplete?: (fileData: {
     fileId: number;
@@ -36,12 +41,16 @@ interface FileUploadProps {
     fileName: string;
     fileExtension: string;
   } | null>;
+  preUploadHook?: () => Promise<number>;
 }
 
 interface FileWithCustomName extends File {
   customName: string;
   fileURL?: string;
 }
+
+// O erro pode estar relacionado a vários pontos neste componente, dependendo da mensagem de erro que você está recebendo.
+// Vou explicar os principais pontos de atenção e possíveis causas de erro neste trecho do FileUpload:
 
 export default function FileUpload({
   title,
@@ -53,6 +62,7 @@ export default function FileUpload({
   fileType,
   onUploadComplete,
   customUploadHandler,
+  preUploadHook,
 }: FileUploadProps) {
   const [files, setFiles] = useState<FileWithCustomName[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -62,18 +72,24 @@ export default function FileUpload({
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [localEntityId, setLocalEntityId] = useState<number | undefined>(
+    entityId
+  );
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
-  // Carregar arquivos existentes
+  // 1. Carregamento de arquivos existentes
+  // Se fileType ou localEntityId estiverem undefined, não vai buscar arquivos.
+  // Se getFilesByFileType lançar erro, será capturado e exibido.
   useEffect(() => {
     const loadExistingFiles = async () => {
-      if (fileType && entityId) {
+      if (fileType && localEntityId) {
         try {
           setIsLoading(true);
+          setError(null);
           const existingFiles = await getFilesByFileType(
             entityType,
-            entityId,
+            localEntityId,
             fileType
           );
 
@@ -85,22 +101,44 @@ export default function FileUpload({
                 type: `application/${file.extension.toLowerCase()}`,
                 size: 0,
                 fileURL: file.fileUrl,
-              } as FileWithCustomName)
+              }) as FileWithCustomName
           );
 
           setFiles(formattedFiles);
+          console.log(
+            `Carregados ${formattedFiles.length} arquivos para ${entityType}/${localEntityId}/${fileType}`
+          );
         } catch (error) {
+          // Aqui você verá o erro de carregamento de arquivos existentes
           console.error("Erro ao carregar arquivos existentes:", error);
           setError("Erro ao carregar arquivos existentes");
         } finally {
           setIsLoading(false);
         }
+      } else {
+        setIsLoading(false);
       }
     };
 
     loadExistingFiles();
-  }, [entityType, entityId, fileType]);
+  }, [entityType, localEntityId, fileType]);
 
+  // 2. Atualização do localEntityId quando entityId muda
+  // Se entityId mudar, localEntityId é atualizado.
+  useEffect(() => {
+    if (entityId !== undefined && entityId !== localEntityId) {
+      console.log(`ID da entidade atualizado: ${entityId}`);
+      setLocalEntityId(entityId);
+    }
+  }, [entityId]);
+
+  // 3. Upload de arquivos
+  // Possíveis erros:
+  // - acceptedFileTypes não bate com a extensão do arquivo
+  // - arquivo maior que o permitido
+  // - preUploadHook falha ao criar entidade
+  // - createFileWithRelation lança erro
+  // - Falta de entityId
   const handleFileChange = async (selectedFiles: FileList | null) => {
     setError(null);
 
@@ -108,10 +146,9 @@ export default function FileUpload({
 
     const newFiles = Array.from(selectedFiles)
       .filter((file) => {
-        // Extrair a extensão do arquivo
+        // Verifica extensão
         const fileExtension = file.name.split(".").pop()?.toLowerCase();
 
-        // Verificar se a extensão está na lista de tipos aceitos
         if (
           !acceptedFileTypes
             .toLowerCase()
@@ -126,6 +163,7 @@ export default function FileUpload({
           return false;
         }
 
+        // Verifica tamanho
         if (file.size > maxSizeBytes) {
           setError(
             `O arquivo ${file.name} excede o tamanho máximo de ${maxSizeMB}MB`
@@ -143,10 +181,36 @@ export default function FileUpload({
     if (newFiles.length > 0) {
       setIsUploading(true);
       try {
+        // Se não tem entityId, tenta criar com preUploadHook
+        let finalEntityId = localEntityId;
+        if (!finalEntityId && preUploadHook) {
+          try {
+            const createdEntityId = await preUploadHook();
+            if (createdEntityId) {
+              finalEntityId = createdEntityId;
+              setLocalEntityId(createdEntityId);
+            } else {
+              throw new Error("Falha ao criar entidades relacionadas");
+            }
+          } catch (error) {
+            // Se der erro aqui, vai cair neste catch
+            console.error("Erro no hook de pré-upload:", error);
+            setError("Erro ao preparar o upload. Tente novamente.");
+            setIsUploading(false);
+            return;
+          }
+        }
+
+        if (!finalEntityId) {
+          setError("ID da entidade não disponível para upload");
+          setIsUploading(false);
+          return;
+        }
+
         for (const file of newFiles) {
           let result;
 
-          // Use custom upload handler if provided
+          // Se customUploadHandler for passado, usa ele
           if (customUploadHandler) {
             result = await customUploadHandler(file);
           } else {
@@ -157,8 +221,8 @@ export default function FileUpload({
             result = await createFileWithRelation(
               formData,
               entityType,
-              entityId,
-              `${entityType}s/${entityId}`,
+              finalEntityId,
+              `${entityType}s/${finalEntityId}`,
               fileType || title
             );
           }
@@ -170,10 +234,10 @@ export default function FileUpload({
           }
         }
 
-        // Recarregar os arquivos após o upload
+        // Recarrega arquivos após upload
         const existingFiles = await getFilesByFileType(
           entityType,
-          entityId,
+          finalEntityId,
           fileType || ""
         );
         const formattedFiles = existingFiles.map(
@@ -184,11 +248,12 @@ export default function FileUpload({
               type: `application/${file.extension.toLowerCase()}`,
               size: 0,
               fileURL: file.fileUrl,
-            } as FileWithCustomName)
+            }) as FileWithCustomName
         );
 
         setFiles(formattedFiles);
       } catch (error) {
+        // Aqui você verá o erro detalhado do upload
         console.error("Erro detalhado do upload:", error);
         setError("Erro ao fazer upload dos arquivos. Tente novamente.");
       } finally {
@@ -196,6 +261,15 @@ export default function FileUpload({
       }
     }
   };
+
+  // DICAS DE DEBUG:
+  // 1. Veja o console do navegador e do servidor para mensagens de erro detalhadas.
+  // 2. Se o erro for "ID da entidade não disponível para upload", provavelmente o preUploadHook não está retornando o ID esperado.
+  // 3. Se o erro for "Erro ao carregar arquivos existentes", pode ser problema de permissão, endpoint, ou entityId/fileType inválidos.
+  // 4. Se o erro for "Tipo de arquivo não suportado", revise o acceptedFileTypes e a extensão do arquivo enviado.
+  // 5. Se o erro for "Erro detalhado do upload", pode ser erro no backend (createFileWithRelation) ou na comunicação com o servidor.
+
+  // Se você puder compartilhar a mensagem de erro exata, posso ajudar de forma mais direcionada!
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

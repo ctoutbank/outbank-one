@@ -10,6 +10,7 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import Categorylist from "../../../features/categories/_components/categories-list";
+import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -101,13 +102,20 @@ export default async function CategoriesPage({
           />
 
           {totalRecords > 0 && (
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/categories"
-            />
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/categories"
+                />
+                <PaginationRecords
+                    totalRecords={totalRecords}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/categories"
+                />
+              </div>
           )}
+
         </div>
       </BaseBody>
     </>

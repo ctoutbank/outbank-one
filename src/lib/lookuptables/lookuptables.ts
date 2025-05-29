@@ -163,6 +163,16 @@ export const PricingSolicitationStatus: SelectItem[] = [
     label: "Cancelado",
     color: "bg-red-500 hover:bg-red-600",
   },
+  {
+    value: "SEND_SOLICITATION",
+    label: "Pendente",
+    color: "bg-yellow-500 hover:bg-yellow-600",
+  },
+  {
+    value: "SEND_DOCUMENTS",
+    label: "Documentos Enviados",
+    color: "bg-red-500 hover:bg-red-600",
+  },
 ];
 
 export const SolicitationFeeProductTypeList: SelectItemSolicitationFee[] = [
@@ -179,13 +189,13 @@ export const SolicitationFeeProductTypeList: SelectItemSolicitationFee[] = [
     transactionFeeEnd: "0",
   },
   {
-    value: "CREDIT_INSTALLMENTS_2_TO_6 ",
+    value: "CREDIT_INSTALLMENTS_2_TO_6",
     label: "Crédito (2-6x)",
     transactionFeeStart: "2",
     transactionFeeEnd: "6",
   },
   {
-    value: "CREDIT_INSTALLMENTS_7_TO_12 ",
+    value: "CREDIT_INSTALLMENTS_7_TO_12",
     label: "Crédito (7-12x)",
     transactionFeeStart: "7",
     transactionFeeEnd: "12",

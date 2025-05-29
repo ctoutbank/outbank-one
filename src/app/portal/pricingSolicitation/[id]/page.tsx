@@ -14,9 +14,19 @@ export default async function PricingSolicitationDetail({
   const pricingSolicitationById = await getPricingSolicitationById(
     parseInt(params.id)
   );
-
+  console.log(pricingSolicitationById);
   // Determine if we should show the form or read-only view
-  const isReadOnly = pricingSolicitationById?.status === "PENDING";
+  // Aqui, estamos determinando se a solicitação deve ser exibida em modo somente leitura (read-only) ou editável.
+  // A variável isReadOnly será verdadeira apenas se o status da solicitação for "PENDING", ou seja, quando ela está em análise e não pode ser editada.
+  const isReadOnly =
+    pricingSolicitationById?.status === "PENDING" ||
+    pricingSolicitationById?.status === "REVIEWED";
+
+  // Em seguida, definimos o subtítulo da página de acordo com o contexto:
+  // - Se existe uma solicitação (pricingSolicitationById):
+  //    - Se está em modo somente leitura, mostramos "Visualizar Solicitação de Taxas"
+  //    - Caso contrário, mostramos "Editar Solicitação de Taxas"
+  // - Se não existe uma solicitação (novo cadastro), mostramos "Adicionar Solicitação de Taxas"
   const pageSubtitle = pricingSolicitationById
     ? isReadOnly
       ? "Visualizar Solicitação de Taxas"

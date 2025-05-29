@@ -28,7 +28,7 @@ export type UserInsert = {
   idProfile: number | null;
   idAddress: number | null;
   selectedMerchants?: string[];
-  fullAccess: boolean;
+  fullAccess?: boolean;
   active: boolean | null;
   idClerk: string | null;
   slug?: string;
@@ -743,3 +743,10 @@ export async function createSalesAgent(
     throw error;
   }
 }
+export async function getMerchantsWithDDD(): Promise<{ area_code: string | null }[]> {
+  return db.select({
+    area_code: merchants.areaCode,
+  }).from(merchants);
+}
+
+

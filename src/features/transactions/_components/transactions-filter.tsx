@@ -135,44 +135,44 @@ export function TransactionsFilter(props: TransactionsFilterWrapperProps) {
   };
 
   const activeFiltersCount =
-    getFilterCount(props.statusIn) +
-    (props.merchantIn ? 1 : 0) +
-    (props.dateFromIn ? 1 : 0) +
-    (props.dateToIn ? 1 : 0) +
-    getFilterCount(props.productTypeIn) +
-    getFilterCount(props.brandIn) +
-    (props.nsuIn ? 1 : 0) +
-    getFilterCount(props.methodIn) +
-    getFilterCount(props.salesChannelIn) +
-    (props.terminalIn ? 1 : 0) +
-    (props.valueMinIn ? 1 : 0) +
-    (props.valueMaxIn ? 1 : 0);
+      getFilterCount(props.statusIn) +
+      (props.merchantIn ? 1 : 0) +
+      (props.dateFromIn ? 1 : 0) +
+      (props.dateToIn ? 1 : 0) +
+      getFilterCount(props.productTypeIn) +
+      getFilterCount(props.brandIn) +
+      (props.nsuIn ? 1 : 0) +
+      getFilterCount(props.methodIn) +
+      getFilterCount(props.salesChannelIn) +
+      (props.terminalIn ? 1 : 0) +
+      (props.valueMinIn ? 1 : 0) +
+      (props.valueMaxIn ? 1 : 0);
 
   return (
-    <FilterTransactionsButton
-      activeFiltersCount={activeFiltersCount}
-      onClearFilters={handleClearFilters}
-      isFiltersVisible={isFiltersVisible}
-      onVisibilityChange={setIsFiltersVisible}
-      isPending={isPending}
-    >
+      <FilterTransactionsButton
+          activeFiltersCount={activeFiltersCount}
+          onClearFilters={handleClearFilters}
+          isFiltersVisible={isFiltersVisible}
+          onVisibilityChange={setIsFiltersVisible}
+          isPending={isPending}
+      >
 
-      <FilterTransactionsContent
-        onClose={() => setIsFiltersVisible(false)}
-        statusIn={props.statusIn}
-        merchantIn={props.merchantIn}
-        dateFromIn={props.dateFromIn}
-        dateToIn={props.dateToIn}
-        productTypeIn={props.productTypeIn}
-        brandIn={props.brandIn}
-        nsuIn={props.nsuIn}
-        methodIn={props.methodIn}
-        salesChannelIn={props.salesChannelIn}
-        terminalIn={props.terminalIn}
-        valueMinIn={props.valueMinIn}
-        valueMaxIn={props.valueMaxIn}
-        onFilter={handleFilter}
-      />
-    </FilterTransactionsButton>
+        <FilterTransactionsContent
+            onClose={() => setIsFiltersVisible(false)}
+            statusIn={props.statusIn}
+            merchantIn={props.merchantIn}
+            dateFromIn={props.dateFromIn}
+            dateToIn={props.dateToIn}
+            productTypeIn={props.productTypeIn}
+            brandIn={props.brandIn}
+            nsuIn={props.nsuIn}
+            methodIn={props.methodIn}
+            salesChannelIn={props.salesChannelIn}
+            terminalIn={props.terminalIn}
+            valueMinIn={props.valueMinIn}
+            valueMaxIn={props.valueMaxIn}
+            onFilter={handleFilter}
+        />
+      </FilterTransactionsButton>
   );
 }

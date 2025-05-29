@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
+import { MerchantSearchInput } from "@/features/merchant/_components/merchant-search-input";
 import {
   getMerchants,
   getMerchantsWithDashboardData,
@@ -16,6 +17,10 @@ import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
+import {
+    getMerchantsGroupedByRegion,
+    getTransactionsGroupedByShift, getTransactionStatusData
+} from "@/features/merchant/server/merchant-dashboard";
 
 export const revalidate = 0;
 
@@ -59,7 +64,8 @@ export default async function MerchantsPage({
     searchParams.salesAgent
   );
 
-  // Buscar dados para exportação Excel
+
+    // Buscar dados para exportação Excel
   const merchantsExcel = await getMerchants(
     search,
     1,
@@ -76,7 +82,44 @@ export default async function MerchantsPage({
 
   const totalRecords = merchants.totalCount;
 
-  const merchantData = {
+    const regionData = await getMerchantsGroupedByRegion(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
+
+    const shiftData = await getTransactionsGroupedByShift(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
+
+    const statusData = await getTransactionStatusData(
+        search,
+        searchParams.establishment,
+        searchParams.status,
+        searchParams.state,
+        searchParams.dateFrom,
+        searchParams.email,
+        searchParams.cnpj,
+        searchParams.active,
+        searchParams.salesAgent
+    );
+
+
+        const merchantData = {
     totalMerchants: merchants.totalCount,
     activeMerchants: merchants.active_count || 0,
     inactiveMerchants: merchants.inactive_count || 0,
@@ -90,6 +133,9 @@ export default async function MerchantsPage({
     registrationSummary: dashboardData.registrationSummary,
     transactionData: dashboardData.transactionData,
     typeData: dashboardData.typeData,
+    regionData,
+    shiftData,
+    statusData,
   };
 
   const globalStyles = {
@@ -120,7 +166,9 @@ export default async function MerchantsPage({
         actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 justify-between mb-1">
+
+           <div className="flex items-center gap-2">
             <MerchantFilter
               establishmentIn={searchParams.establishment}
               statusIn={searchParams.status}
@@ -131,7 +179,10 @@ export default async function MerchantsPage({
               activeIn={searchParams.active}
               salesAgentIn={searchParams.salesAgent}
             />
+                  <MerchantSearchInput />
+           </div>
             <div className="flex items-center gap-2">
+
               <ExcelImportButton />
               <ExcelExport
                 data={merchantsExcel.merchants.map((merchant) => ({
@@ -178,6 +229,7 @@ export default async function MerchantsPage({
               </Button>
             </div>
           </div>
+
 
           <MerchantDashboardContent {...merchantData} />
 

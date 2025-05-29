@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnticipationListComponent from "@/features/anticipations/_components/anticipation-list";
@@ -107,13 +108,20 @@ export default async function AntecipationsPage({
               <AnticipationListComponent
                 anticipations={anticipations}
               ></AnticipationListComponent>
+
               {anticipations.totalCount > 0 && (
-                <PaginationRecords
-                  totalRecords={anticipations.totalCount}
-                  currentPage={Number(page)}
-                  pageSize={Number(pageSize)}
-                  pageName="portal/anticipations"
-                />
+                  <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                    <PaginationRecords
+                        totalRecords={anticipations.totalCount}
+                        currentPage={Number(page)}
+                        pageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                  </div>
               )}
             </div>
           </TabsContent>
@@ -141,14 +149,23 @@ export default async function AntecipationsPage({
             <div className="w-full overflow-x-auto">
               <EventualAnticipationListComponent
                 anticipations={eventualAnticipations}
-              ></EventualAnticipationListComponent>
+              >
+
+              </EventualAnticipationListComponent>
+
               {eventualAnticipations.totalCount > 0 && (
-                <PaginationRecords
-                  totalRecords={eventualAnticipations.totalCount}
-                  currentPage={Number(page)}
-                  pageSize={Number(pageSize)}
-                  pageName="portal/anticipations"
-                />
+                  <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                    <PaginationRecords
+                        totalRecords={eventualAnticipations.totalCount}
+                        currentPage={Number(page)}
+                        pageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                  </div>
               )}
             </div>
           </TabsContent>

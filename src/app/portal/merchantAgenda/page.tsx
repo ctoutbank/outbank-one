@@ -31,6 +31,7 @@ export const revalidate = 0;
 // Create TabChangeHandler in a separate file
 import { MerchantAdjustmentsDashboardContent } from "@/features/merchantAgenda/_components/merchantAgenta-adjustments-dashboard-content";
 import { TabChangeHandler } from "@/features/merchantAgenda/_components/tab-change-handler";
+import PageSizeSelector from "@/components/page-size-selector";
 
 type MerchantAgendaProps = {
   page?: string;
@@ -253,17 +254,26 @@ export default async function MerchantAgendaPage({
                       .reduce((acc, item) => acc + item.feeAmount, 0)}
                   />
                 </div>
-                <div className="w-full overflow-x-auto">
-                  <MerchantAgendaList merchantAgendaList={merchantAgenda} />
-                </div>
-                {totalRecordsReceivables > 0 && (
-                  <PaginationRecords
-                    totalRecords={totalRecordsReceivables}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/merchantAgenda"
-                  />
-                )}
+                  <div className="w-full overflow-x-auto">
+                      <MerchantAgendaList
+                          merchantAgendaList={merchantAgenda}
+                      />
+                  </div>
+
+                  {totalRecordsReceivables > 0 && (
+                      <div className="flex items-center justify-between mt-4">
+                          <PageSizeSelector
+                              currentPageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                          <PaginationRecords
+                              totalRecords={totalRecordsReceivables}
+                              currentPage={page}
+                              pageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                      </div>
+                  )}
               </div>
             </TabsContent>
             <TabsContent value="anticipations" className="mt-6">
@@ -342,19 +352,26 @@ export default async function MerchantAgendaPage({
                   />
                 </div>
 
-                <div className="w-full overflow-x-auto">
-                  <MerchantAgendaAntecipationList
-                    merchantAgendaAnticipationList={merchantAgendaAnticipation}
-                  />
-                </div>
-                {totalRecordsAntecipations > 0 && (
-                  <PaginationRecords
-                    totalRecords={totalRecordsAntecipations}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/merchantAgenda"
-                  />
-                )}
+                  <div className="w-full overflow-x-auto">
+                      <MerchantAgendaAntecipationList
+                          merchantAgendaAnticipationList={merchantAgendaAnticipation}
+                      />
+                  </div>
+
+                  {totalRecordsAntecipations > 0 && (
+                      <div className="flex items-center justify-between mt-4">
+                          <PageSizeSelector
+                              currentPageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                          <PaginationRecords
+                              totalRecords={totalRecordsAntecipations}
+                              currentPage={page}
+                              pageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                      </div>
+                  )}
               </div>
             </TabsContent>
             <TabsContent value="adjustment" className="mt-6">
@@ -452,19 +469,26 @@ export default async function MerchantAgendaPage({
                     }
                   />
                 </div>
-                <div className="w-full overflow-x-auto">
-                  <MerchantAgendaAdjustmentList
-                    merchantAgendaAdjustmentList={merchantAgendaAdjustment}
-                  />
-                </div>
-                {totalRecordsAdjustments > 0 && (
-                  <PaginationRecords
-                    totalRecords={totalRecordsAdjustments}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/merchantAgenda"
-                  />
-                )}
+                  <div className="w-full overflow-x-auto">
+                      <MerchantAgendaAdjustmentList
+                          merchantAgendaAdjustmentList={merchantAgendaAdjustment}
+                      />
+                  </div>
+
+                  {totalRecordsAdjustments > 0 && (
+                      <div className="flex items-center justify-between mt-4">
+                          <PageSizeSelector
+                              currentPageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                          <PaginationRecords
+                              totalRecords={totalRecordsAdjustments}
+                              currentPage={page}
+                              pageSize={pageSize}
+                              pageName="portal/merchantAgenda"
+                          />
+                      </div>
+                  )}
               </div>
             </TabsContent>
           </TabChangeHandler>

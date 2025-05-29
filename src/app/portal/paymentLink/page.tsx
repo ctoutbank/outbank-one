@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-link-filter";
 import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
@@ -63,14 +64,22 @@ export default async function PaymentLinkPage({
           />
         </div>
         <PaymentLinkList links={paymentLinks} />
+
         {totalRecords > 0 && (
-          <PaginationRecords
-            totalRecords={totalRecords}
-            currentPage={page}
-            pageSize={pageSize}
-            pageName="portal/paymentLink"
-          />
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                  currentPageSize={pageSize}
+                  pageName="portal/paymentLink"
+              />
+              <PaginationRecords
+                  totalRecords={totalRecords}
+                  currentPage={page}
+                  pageSize={pageSize}
+                  pageName="portal/paymentLink"
+              />
+            </div>
         )}
+
       </BaseBody>
     </>
   );
