@@ -1,166 +1,124 @@
-"use client";
+"use client"
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { AlertTriangle, FileCheck, FileText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card"
+import { AlertTriangle, FileCheck, FileText } from "lucide-react"
 
 type EdisDashboardContentProps = {
-  totalEdis: number;
-  activeEdis: number;
-  inactiveEdis: number;
-  pendingEdis: number;
-  processedEdis: number;
-  errorEdis: number;
-};
+  totalEdis: number
+  activeEdis: number
+  inactiveEdis: number
+  pendingEdis: number
+  processedEdis: number
+  errorEdis: number
+}
 
 export function EdisDashboardContent({
-  totalEdis,
-  activeEdis,
-  inactiveEdis,
-  pendingEdis,
-  processedEdis,
-  errorEdis,
-}: EdisDashboardContentProps) {
+                                       totalEdis,
+                                       activeEdis,
+                                       inactiveEdis,
+                                       pendingEdis,
+                                       processedEdis,
+                                       errorEdis,
+                                     }: EdisDashboardContentProps) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center flex-wrap gap-4 mb-2">
-        {/* Total EDIS Card */}
-        <Card className="bg-white min-w-[280px]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-zinc-500" />
-                <span className="text-sm font-medium text-zinc-600">
-                  Total de Arquivos
-                </span>
-              </div>
-              <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                {totalEdis}
-              </span>
-            </div>
-            <Separator className="mb-3" />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Ativos
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {activeEdis}
-                </span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Inativos
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {inactiveEdis}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-4">
+        <div className="w-full mt-2 mb-2">
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
+              <CardContent className="pt-6">
+                <div className="flex flex-col lg:flex-row justify-between gap-12">
+                  {/* Total de Arquivos */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xl font-bold">Total de Arquivos</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalEdis}</div>
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Ativos</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{activeEdis}</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Inativos</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{inactiveEdis}</span>
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Processamento Status Card */}
-        <Card className="bg-white min-w-[280px]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <FileCheck className="h-4 w-4 text-zinc-500" />
-                <span className="text-sm font-medium text-zinc-600">
-                  Status Processamento
-                </span>
-              </div>
-              <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                {processedEdis + pendingEdis + errorEdis}
-              </span>
-            </div>
-            <Separator className="mb-3" />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Processados
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {processedEdis}
-                </span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Pendentes
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {pendingEdis}
-                </span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Erros
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {errorEdis}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  {/* Status Processamento */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileCheck className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xl font-bold">Status Processamento</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-zinc-900 mb-3">
+                      {processedEdis + pendingEdis + errorEdis}
+                    </div>
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Processados</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{processedEdis}</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          <span className="text-xs font-medium text-zinc-600">Pendentes</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{pendingEdis}</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Erros</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{errorEdis}</span>
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Tipos de Arquivo Card */}
-        <Card className="bg-white min-w-[280px]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-zinc-500" />
-                <span className="text-sm font-medium text-zinc-600">
-                  Tipos de Arquivo
-                </span>
-              </div>
-              <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                {totalEdis}
-              </span>
-            </div>
-            <Separator className="mb-3" />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Remessa
-                  </span>
+                  {/* Tipos de Arquivo */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xl font-bold">Tipos de Arquivo</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalEdis}</div>
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-blue-500" />
+                          <span className="text-xs font-medium text-zinc-600">Remessa</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
+                        {Math.round(totalEdis * 0.6)}
+                      </span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-purple-500" />
+                          <span className="text-xs font-medium text-zinc-600">Retorno</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
+                        {Math.round(totalEdis * 0.4)}
+                      </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {Math.round(totalEdis * 0.6)}
-                </span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Retorno
-                  </span>
-                </div>
-                <span className="text-base font-semibold text-zinc-900">
-                  {Math.round(totalEdis * 0.4)}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+  )
 }

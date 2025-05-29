@@ -10,7 +10,7 @@ import {
   legalNatures,
   merchantPrice,
   merchants,
-  salesAgents,
+  salesAgents, transactions,
 } from "../../../../drizzle/schema";
 
 // Tipo para o gráfico A - Estabelecimentos cadastrados por período
@@ -38,11 +38,23 @@ export type MerchantTypeChart = {
   name: string;
   value: number;
 }
-
+// Tipo para o gráfico de região
 export type MerchantRegionChart = {
   name: string; // Nome da região (ex: "Sudeste", "Norte", etc.)
   value: number; // Quantidade de estabelecimentos
 };
+
+// Tipo para o gráfico de transação por turno
+export type TransactionShiftChart = {
+  name: string; // Nome do turno (Manhã, Tarde, Noite, Madrugada)
+  value: number; // Quantidade de transações
+};
+
+// Tipo para o gráfico de transações aprovadas e negadas
+export type TransactionStatusChart = {
+  name: string; // "Aprovada" ou "Negada"
+  value: number; // Quantidade de transações
+}
 
 // Cache para condições de filtro
 let lastFilterKey: string = "";
@@ -611,4 +623,177 @@ export async function getMerchantsGroupedByRegion(
     name: region,
     value,
   }));
+}
+
+export async function getTransactionsGroupedByShift(
+    search?: string,
+    establishment?: string,
+    status?: string,
+    state?: string,
+    dateFrom?: string,
+    email?: string,
+    cnpj?: string,
+    active?: string,
+    salesAgent?: string
+): Promise<TransactionShiftChart[]> {
+  // Criar condições de filtro aplicados aos merchants
+  const filterConditions = await createFilterConditions(
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+  );
+
+  // 1. Buscar slugs dos merchants filtrados
+  const merchantSlugsResult = await db
+      .select({ slug: merchants.slug })
+      .from(merchants)
+      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+      .leftJoin(categories, eq(merchants.idCategory, categories.id))
+      .where(and(...filterConditions));
+
+  const merchantSlugs = merchantSlugsResult
+      .map((m) => m.slug)
+      .filter((slug): slug is string => !!slug);
+
+  // 2. Se não tiver merchants após filtro, retorna todos os turnos zerados
+  if (merchantSlugs.length === 0) {
+    return [
+      { name: "Manhã", value: 0 },
+      { name: "Tarde", value: 0 },
+      { name: "Noite", value: 0 },
+      { name: "Madrugada", value: 0 },
+    ];
+  }
+
+  // 3. Buscar transações associadas aos merchants filtrados
+  const transactionsResult = await db
+      .select({ dtInsert: transactions.dtInsert })
+      .from(transactions)
+      .where(inArray(transactions.slugMerchant, merchantSlugs));
+
+  // 4. Agrupar transações por turno
+  const shiftMap: Record<string, number> = {
+    Manhã: 0,
+    Tarde: 0,
+    Noite: 0,
+    Madrugada: 0,
+  };
+
+  for (const { dtInsert } of transactionsResult) {
+    if (!dtInsert) continue;
+
+    const hour = new Date(dtInsert).getHours();
+
+    const shift =
+        hour >= 6 && hour < 12
+            ? "Manhã"
+            : hour >= 12 && hour < 18
+                ? "Tarde"
+                : hour >= 18 && hour < 24
+                    ? "Noite"
+                    : "Madrugada";
+
+    shiftMap[shift]++;
+  }
+
+  // 5. Retornar no formato esperado pelo front
+  return Object.entries(shiftMap).map(([name, value]) => ({
+    name,
+    value,
+  }));
+}
+
+export async function getTransactionStatusData(
+    search?: string,
+    establishment?: string,
+    status?: string,
+    state?: string,
+    dateFrom?: string,
+    email?: string,
+    cnpj?: string,
+    active?: string,
+    salesAgent?: string
+): Promise<TransactionStatusChart[]> {
+  // Criar condições de filtro aplicados aos merchants
+  const filterConditions = await createFilterConditions(
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+  );
+
+  // 1. Buscar slugs dos merchants filtrados
+  const merchantSlugsResult = await db
+      .select({ slug: merchants.slug })
+      .from(merchants)
+      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+      .leftJoin(categories, eq(merchants.idCategory, categories.id))
+      .where(and(...filterConditions));
+
+  const merchantSlugs = merchantSlugsResult
+      .map((m) => m.slug)
+      .filter((slug): slug is string => !!slug);
+
+  // 2. Se não tiver merchants após filtro, retorna todos os status zerados
+  if (merchantSlugs.length === 0) {
+    return [
+      { name: "Aprovada", value: 0 },
+      { name: "Negada", value: 0 },
+    ];
+  }
+
+  // 3. Buscar transações associadas aos merchants filtrados
+  const transactionsResult = await db
+      .select({
+        status: transactions.transactionStatus,
+        count: count(),
+      })
+      .from(transactions)
+      .where(inArray(transactions.slugMerchant, merchantSlugs))
+      .groupBy(transactions.transactionStatus);
+
+  // 4. Montar o mapa com contagem
+  const statusMap: Record<string, number> = {
+    AUTHORIZED: 0,
+    DENIED: 0,
+  };
+
+  for (const { status, count: total } of transactionsResult) {
+    if (status === "AUTHORIZED") {
+      statusMap.AUTHORIZED += Number(total);
+    } else if (status === "DENIED") {
+      statusMap.DENIED += Number(total);
+    }
+  }
+
+  // 5. Retornar no formato esperado
+  return [
+    {
+      name: "Aprovada",
+      value: statusMap.AUTHORIZED,
+    },
+    {
+      name: "Negada",
+      value: statusMap.DENIED,
+    },
+  ];
 }

@@ -1,67 +1,59 @@
-"use client";
+"use client"
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { FileText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card"
+import { FileText } from "lucide-react"
 
 type LegalNatureDashboardContentProps = {
-  totalLegalNatures: number;
-  activeLegalNatures: number;
-  inactiveLegalNatures: number;
-};
+  totalLegalNatures: number
+  activeLegalNatures: number
+  inactiveLegalNatures: number
+}
 
 export function LegalNatureDashboardContent({
-  totalLegalNatures,
-  activeLegalNatures,
-  inactiveLegalNatures,
-}: LegalNatureDashboardContentProps) {
+                                              totalLegalNatures,
+                                              activeLegalNatures,
+                                              inactiveLegalNatures,
+                                            }: LegalNatureDashboardContentProps) {
   return (
-    <div className="space-y-4">
-      <div className="w-full mb-2">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Total Legal Natures Card */}
-          <Card className="bg-white min-w-[280px]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-zinc-500" />
-                  <span className="text-sm font-medium text-zinc-600">
-                    Total de Naturezas Jurídicas
-                  </span>
-                </div>
-                <span className="text-2xl font-semibold text-zinc-900 ml-4">
-                  {totalLegalNatures}
-                </span>
-              </div>
-              <Separator className="mb-3" />
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    <span className="text-xs font-medium text-zinc-600">
-                      Ativas
-                    </span>
+      <div className="space-y-4">
+        <div className="w-full mt-2 mb-2">
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
+              <CardContent className="pt-6">
+                <div className="flex flex-col lg:flex-row justify-between gap-12">
+                  {/* Total de Naturezas Jurídicas */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xl font-bold">Total de Naturezas Jurídicas</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalLegalNatures}</div>
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Ativas</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
+                        {activeLegalNatures}
+                      </span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Inativas</span>
+                        </div>
+                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
+                        {inactiveLegalNatures}
+                      </span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-base font-semibold text-zinc-900">
-                    {activeLegalNatures}
-                  </span>
                 </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                    <span className="text-xs font-medium text-zinc-600">
-                      Inativas
-                    </span>
-                  </div>
-                  <span className="text-base font-semibold text-zinc-900">
-                    {inactiveLegalNatures}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
-  );
+  )
 }
