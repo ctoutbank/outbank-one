@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, FileText, FileType } from "lucide-react"
 
 type ReportsDashboardContentProps = {
@@ -27,107 +27,139 @@ export function ReportsDashboardContent({
                                           typeStats,
                                         }: ReportsDashboardContentProps) {
   return (
-      <div className="space-y-4">
+      <div className="w-full">
         <div className="w-full mt-2 mb-2">
-          <div className="grid grid-cols-1 gap-4">
-            <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row justify-between gap-12">
-                  {/* Total de Relatórios */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Total de Relatórios</span>
-                    </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalReports}</div>
-                    <div className="flex gap-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-blue-500" />
-                          <span className="text-xs font-medium text-zinc-600">Diários</span>
-                        </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {recurrenceStats.daily}
-                      </span>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-purple-500" />
-                          <span className="text-xs font-medium text-zinc-600">Semanais</span>
-                        </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {recurrenceStats.weekly}
-                      </span>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span className="text-xs font-medium text-zinc-600">Mensais</span>
-                        </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {recurrenceStats.monthly}
-                      </span>
-                      </div>
-                    </div>
+          <Card className="w-full border-l-8 border-black bg-sidebar">
+            <div className="flex items-center justify-between">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold">Relatórios</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {new Date().toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </CardHeader>
+            </div>
+
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-6 w-full">
+                {/* Total de Relatórios */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-lg font-medium">Total de Relatórios</span>
                   </div>
 
-                  {/* Formatos */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileType className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Formatos</span>
+                  <div className="grid gap-4">
+                    <div className="text-center p-4 bg-background rounded-lg border">
+                      <div className="text-2xl font-semibold text-zinc-900 mb-2">{totalReports}</div>
+                      <div className="text-sm text-muted-foreground">Total de Relatórios</div>
                     </div>
-                    <div className="text-lg font-semibold text-zinc-900 mb-3">{formatStats.pdf + formatStats.excel}</div>
-                    <div className="flex gap-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-red-500" />
-                          <span className="text-xs font-medium text-zinc-600">PDF</span>
-                        </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{formatStats.pdf}</span>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-green-500" />
-                          <span className="text-xs font-medium text-zinc-600">Excel</span>
-                        </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {formatStats.excel}
-                      </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Tipos de Relatório */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Tipos de Relatório</span>
-                    </div>
-                    <div className="text-lg font-semibold text-zinc-900 mb-3">{typeStats.sales + typeStats.schedule}</div>
-                    <div className="flex gap-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          <span className="text-xs font-medium text-zinc-600">Vendas</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-blue-500" />
+                          <span className="text-sm font-medium text-zinc-600">Diários</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">{typeStats.sales}</span>
+                        <div className="text-lg font-semibold text-zinc-900">{recurrenceStats.daily}</div>
                       </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <div className="h-2 w-2 rounded-full bg-blue-500" />
-                          <span className="text-xs font-medium text-zinc-600">Agenda</span>
+
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-purple-500" />
+                          <span className="text-sm font-medium text-zinc-600">Semanais</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {typeStats.schedule}
-                      </span>
+                        <div className="text-lg font-semibold text-zinc-900">{recurrenceStats.weekly}</div>
+                      </div>
+
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                          <span className="text-sm font-medium text-zinc-600">Mensais</span>
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900">{recurrenceStats.monthly}</div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                {/* Formatos */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileType className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-lg font-medium">Formatos</span>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <div className="text-center p-4 bg-background rounded-lg border">
+                      <div className="text-2xl font-semibold text-zinc-900 mb-2">
+                        {formatStats.pdf + formatStats.excel}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Total por Formato</div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-red-500" />
+                          <span className="text-sm font-medium text-zinc-600">PDF</span>
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900">{formatStats.pdf}</div>
+                      </div>
+
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-green-500" />
+                          <span className="text-sm font-medium text-zinc-600">Excel</span>
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900">{formatStats.excel}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tipos de Relatório */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-lg font-medium">Tipos de Relatório</span>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <div className="text-center p-4 bg-background rounded-lg border">
+                      <div className="text-2xl font-semibold text-zinc-900 mb-2">
+                        {typeStats.sales + typeStats.schedule}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Total por Tipo</div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-amber-500" />
+                          <span className="text-sm font-medium text-zinc-600">Vendas</span>
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900">{typeStats.sales}</div>
+                      </div>
+
+                      <div className="text-center p-3 bg-background rounded-lg border">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="h-3 w-3 rounded-full bg-blue-500" />
+                          <span className="text-sm font-medium text-zinc-600">Agenda</span>
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900">{typeStats.schedule}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
   )

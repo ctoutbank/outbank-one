@@ -165,8 +165,8 @@ export const PricingSolicitationStatus: SelectItem[] = [
   },
   {
     value: "SEND_SOLICITATION",
-    label: "Aguardando Documentos",
-    color: "bg-blue-500 hover:bg-blue-600",
+    label: "Pendente",
+    color: "bg-yellow-500 hover:bg-yellow-600",
   },
   {
     value: "SEND_DOCUMENTS",
