@@ -2,6 +2,7 @@
 
 import {
   approvePricingSolicitation,
+  completePricingSolicitation,
   getPricingSolicitationById,
   rejectPricingSolicitation,
   updatePricingSolicitation,
@@ -14,6 +15,19 @@ export async function approveAction(id: number) {
   } catch (error) {
     console.error("Erro ao aprovar solicitação:", error);
     return { success: false, error: "Não foi possível aprovar a solicitação" };
+  }
+}
+
+export async function completeAction(id: number) {
+  try {
+    const result = await completePricingSolicitation(id);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Erro ao completar solicitação:", error);
+    return {
+      success: false,
+      error: "Não foi possível completar a solicitação",
+    };
   }
 }
 

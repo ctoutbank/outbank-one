@@ -422,7 +422,15 @@ export default function PricingSolicitationForm({
                     <UploadIcon className="h-4 w-4" />
                     Importar
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !solicitationId}
+                    onClick={() => {
+                      if (!solicitationId) {
+                        alert("Envie os documentos");
+                      }
+                    }}
+                  >
                     {isSubmitting ? "Enviando..." : "Enviar"}
                   </Button>
                 </div>

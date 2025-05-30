@@ -1,5 +1,6 @@
 "use client";
 
+import { sendPricingSolicitationEmail } from "@/app/utils/send-email-adtivo";
 import FileUpload from "@/components/fileUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,19 +28,21 @@ import { Textarea } from "@/components/ui/textarea";
 import ListDocumentDownload from "@/features/pricingSolicitation/_components/list-document-download";
 import {
   approveAction,
+  completeAction,
   rejectAction,
   updateToSendDocumentsAction,
 } from "@/features/pricingSolicitation/actions/pricing-solicitation-actions";
-import type { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
+import { type PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { DownloadIcon, FileIcon, UploadIcon, User } from "lucide-react";
+import { FileIcon, UploadIcon, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface PricingSolicitationViewProps {
   pricingSolicitation: PricingSolicitationForm;
+  userEmail: string;
 }
 
 interface ProductType {
@@ -93,6 +96,7 @@ function normalizeProductType(pt: ProductType): ProductType {
 
 export function PricingSolicitationView({
   pricingSolicitation,
+  userEmail,
 }: PricingSolicitationViewProps) {
   const handleUploadComplete = (fileData: {
     fileId: number;
@@ -108,7 +112,7 @@ export function PricingSolicitationView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [documentDownloaded, setDocumentDownloaded] = useState(false);
+
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -377,14 +381,6 @@ export function PricingSolicitationView({
   );
 
   // Handlers
-  const downloadAditivo = () => {
-    window.open("/AditivoAcquiring.pdf");
-    setDocumentDownloaded(true);
-  };
-
-  const handleOpenUploadDialog = () => {
-    setShowUploadDialog(true);
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -398,12 +394,11 @@ export function PricingSolicitationView({
     setIsSubmitting(true);
     try {
       const result = await updateToSendDocumentsAction(pricingSolicitation.id);
+      await completeAction(pricingSolicitation.id);
 
       if (result.success) {
         setShowUploadDialog(false);
-        alert(
-          "Aditivo enviado com sucesso! Status atualizado para 'Aguardando documentos'."
-        );
+        alert("Aditivo enviado com sucesso! ");
         router.refresh();
       } else {
         alert("Erro ao atualizar status: " + result.error);
@@ -421,6 +416,7 @@ export function PricingSolicitationView({
 
     setIsSubmitting(true);
     try {
+      await sendPricingSolicitationEmail(userEmail);
       const result = await approveAction(pricingSolicitation.id);
       if (result.success) {
         alert("Solicitação aprovada com sucesso!");
@@ -878,22 +874,25 @@ export function PricingSolicitationView({
                 Status:{" "}
                 {pricingSolicitation.status === "PENDING"
                   ? "Em análise"
-                  : pricingSolicitation.status === "SEND_DOCUMENTS" ||
-                      pricingSolicitation.status === "REVIEWED"
-                    ? "Aguardando documentos"
-                    : pricingSolicitation.status === "APPROVED"
-                      ? "Aprovado"
-                      : pricingSolicitation.status === "CANCELED"
-                        ? "Rejeitado"
-                        : pricingSolicitation.status}
+                  : pricingSolicitation.status === "SEND_DOCUMENTS"
+                    ? "documentos enviado"
+                    : pricingSolicitation.status === "REVIEWED"
+                      ? "Aguardando documentos"
+                      : pricingSolicitation.status === "APPROVED"
+                        ? "Aprovado"
+                        : pricingSolicitation.status === "CANCELED"
+                          ? "Rejeitado"
+                          : pricingSolicitation.status === "COMPLETED"
+                            ? "Concluído"
+                            : pricingSolicitation.status}
               </p>
               <p className="text-amber-700 text-sm mt-1">
                 {pricingSolicitation.status === "PENDING"
                   ? "Esta solicitação está em análise."
                   : pricingSolicitation.status === "REVIEWED"
-                    ? "Faça o download do aditivo, assine-o e envie-o para prosseguir."
+                    ? ""
                     : pricingSolicitation.status === "SEND_DOCUMENTS"
-                      ? "Aditivo recebido. A solicitação pode ser aprovada."
+                      ? "."
                       : ""}
               </p>
             </div>
@@ -913,21 +912,14 @@ export function PricingSolicitationView({
                 {pricingSolicitation.status === "REVIEWED" && (
                   <>
                     <Button
-                      variant="link"
-                      onClick={downloadAditivo}
-                      type="button"
-                      className="flex items-center p-0 h-auto text-gray-700 hover:text-gray-900"
+                      variant="outline"
+                      onClick={() => {
+                        handleApprove();
+                      }}
+                      disabled={isSubmitting}
+                      className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
                     >
-                      <DownloadIcon className="w-4 h-4" />
-                      Download Aditivo
-                    </Button>
-                    <Button
-                      onClick={handleOpenUploadDialog}
-                      disabled={!documentDownloaded || isSubmitting}
-                      className="flex items-center gap-2"
-                    >
-                      <UploadIcon className="w-4 h-4" />
-                      {isSubmitting ? "Enviando..." : "Enviar Aditivo Assinado"}
+                      Aceitar
                     </Button>
                   </>
                 )}
@@ -938,6 +930,16 @@ export function PricingSolicitationView({
                     className="bg-green-600 hover:bg-green-700"
                   >
                     {isSubmitting ? "Processando..." : "Aceitar"}
+                  </Button>
+                )}
+                {pricingSolicitation.status === "APPROVED" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowUploadDialog(true)}
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Importar e Concluir
                   </Button>
                 )}
               </div>
@@ -952,8 +954,7 @@ export function PricingSolicitationView({
           <DialogHeader>
             <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
             <DialogDescription>
-              Faça o upload do aditivo devidamente assinado para prosseguir com
-              a solicitação.
+              Faça o upload do aditivo devidamente assinado
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">

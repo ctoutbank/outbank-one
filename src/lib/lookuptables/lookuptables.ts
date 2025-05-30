@@ -170,13 +170,13 @@ export const PricingSolicitationStatus: SelectItem[] = [
   },
   {
     value: "SEND_DOCUMENTS",
-    label: "Documentos Enviados",
+    label: "Envie os documentos",
     color: "bg-red-500 hover:bg-red-600",
   },
   {
     value: "COMPLETED",
     label: "Concluído",
-    color: "bg-green-600 hover:bg-green-800",
+    color: "bg-emerald-500 hover:bg-emerald-600",
   },
 ];
 
