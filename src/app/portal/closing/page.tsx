@@ -5,8 +5,8 @@ import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChartCustom } from "@/features/closing/components/barChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
-import { getTransactionsGroupedReport } from "@/features/closing/server/closing";
-import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
+import { TransactionsDashboardTable } from "@/features/closing/components/transactions-dashboard-table";
+import { getTransactionsGroupedReport,} from "@/features/transactions/serverActions/transaction";
 import {
   getTotalMerchants,
   getTotalTransactions,
@@ -17,18 +17,33 @@ import { gateDateByViewMode, getPreviousPeriodFromRange } from "@/lib/utils";
 import { Suspense } from "react";
 import TransactionsExport from "@/features/transactions/reports/transactions-export-excel";
 
+type ClosingSearchParams = {
+    viewMode?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    status?: string;
+    merchant?: string;
+    productType?: string;
+    brand?: string;
+    method?: string;
+    salesChannel?: string;
+    terminal?: string;
+    valueMin?: string;
+    valueMax?: string;
+};
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: { viewMode: string; dateFrom: string; dateTo: string };
+  searchParams: ClosingSearchParams & { viewMode: string; dateFrom: string; dateTo: string };
 }) {
   const viewMode = searchParams.viewMode || "month";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  let previousRange: { from: string; to: string } = { from: "", to: "" };
+  let previousRange: { from: string; to: string; } = { from: "", to: "" };
   if (searchParams.dateFrom || searchParams.dateTo) {
     previousRange = getPreviousPeriodFromRange(
       searchParams.dateFrom,
@@ -63,8 +78,18 @@ export default async function SalesDashboard({
   const totalMerchants = await getTotalMerchants();
   const transactionsGroupedReport = await getTransactionsGroupedReport(
     dateRange.start!,
-    dateRange.end!
+    dateRange.end!,
+        searchParams.status,
+        searchParams.productType,
+        searchParams.brand,
+        searchParams.method,
+        searchParams.salesChannel,
+        searchParams.terminal,
+        searchParams.valueMin,
+        searchParams.valueMax,
+        searchParams.merchant
   );
+
 
   return (
     <>

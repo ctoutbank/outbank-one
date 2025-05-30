@@ -52,16 +52,16 @@ export function SettlementsHistoryDashboardContent({
                             <div className="flex flex-col xl:flex-row gap-6 w-full">
                                 {/* Card de Total de Liquidações */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-lg font-medium">Total de Liquidações</span>
-                                    </div>
 
-                                    <Card className="bg-background border h-[250px] rounded-lg">
+                                    <Card className="bg-background border h-[270px] rounded-lg">
                                         <CardContent className="p-6">
                                             {/* Total de Liquidações */}
                                             <div className="text-center mb-6">
-                                                <div className="text-4xl font-bold text-zinc-900">{totalSettlements}</div>
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                                    <span className="text-lg font-medium">Total de Liquidações</span>
+                                                </div>
+                                                <div className="text-2xl font-bold text-zinc-900">{totalSettlements}</div>
                                                 <div className="text-sm text-muted-foreground mt-1  ">Total de Liquidações</div>
                                             </div>
 
@@ -70,7 +70,7 @@ export function SettlementsHistoryDashboardContent({
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-3 w-3 rounded-full bg-emerald-500" />
                                                     <span className="text-sm font-medium text-zinc-600">Valor Bruto</span>
-                                                    <span className="text-xl font-semibold text-zinc-900 ml-2">
+                                                    <span className="text-sm font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalGrossAmount)}
                           </span>
                                                 </div>
@@ -78,7 +78,7 @@ export function SettlementsHistoryDashboardContent({
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-3 w-3 rounded-full bg-blue-500" />
                                                     <span className="text-sm font-medium text-zinc-600">Valor Líquido</span>
-                                                    <span className="text-xl font-semibold text-zinc-900 ml-2">
+                                                    <span className="text-sm font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalNetAmount)}
                           </span>
                                                 </div>
@@ -89,16 +89,17 @@ export function SettlementsHistoryDashboardContent({
 
                                 {/* Card de Status */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <FileCheck className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-lg font-medium">Status</span>
-                                    </div>
 
-                                    <Card className="bg-background border h-[250px] rounded-lg">
+
+                                    <Card className="bg-background border h-[270px] rounded-lg">
                                         <CardContent className="p-6">
                                             {/* Total por Status */}
                                             <div className="text-center mb-6">
-                                                <div className="text-4xl font-bold text-zinc-900">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <FileCheck className="h-5 w-5 text-muted-foreground" />
+                                                    <span className="text-lg font-medium">Status</span>
+                                                </div>
+                                                <div className="text-2xl font-bold text-zinc-900">
                                                     {processingSettlements +
                                                         errorSettlements +
                                                         processedSettlements +
@@ -164,16 +165,17 @@ export function SettlementsHistoryDashboardContent({
 
                                 {/* Card de Restituições */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Wallet className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-lg font-medium">Restituições</span>
-                                    </div>
 
-                                    <Card className="bg-background border h-[250px]">
+
+                                    <Card className="bg-background border h-[270px]">
                                         <CardContent className="p-6">
                                             {/* Total de Restituições */}
                                             <div className="text-center mb-6">
-                                                <div className="text-4xl font-bold text-zinc-900">{formatCurrency(totalRestitutionAmount)}</div>
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <Wallet className="h-5 w-5 text-muted-foreground" />
+                                                    <span className="text-lg font-medium">Restituições</span>
+                                                </div>
+                                                <div className="text-2xl font-bold text-zinc-900">{formatCurrency(totalRestitutionAmount)}</div>
                                                 <div className="text-sm text-muted-foreground mt-1">Valor Total de Restituições</div>
                                             </div>
 
@@ -182,7 +184,7 @@ export function SettlementsHistoryDashboardContent({
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-3 w-3 rounded-full bg-red-500" />
                                                     <span className="text-sm font-medium text-zinc-600">Valor Total</span>
-                                                    <span className="text-xl font-semibold text-zinc-900 ml-2">
+                                                    <span className="text-sm font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalRestitutionAmount)}
                           </span>
                                                 </div>

@@ -24,7 +24,7 @@ export function SalesAgentDashboardContent({
               <Card className="w-full border-l-8 border-black bg-sidebar">
                   <div className="flex items-center justify-between">
                       <CardHeader>
-                          <CardTitle className="text-xl font-bold">Total de Consultores</CardTitle>
+                          <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
                           <p className="text-sm text-muted-foreground">
                               {new Date().toLocaleDateString("pt-BR", {
                                   day: "2-digit",
@@ -41,15 +41,15 @@ export function SalesAgentDashboardContent({
                       <div className="flex items-start justify-start w-full">
                           {/* Card Único de Consultores */}
                           <div className="w-full max-w-md">
-                              <div className="flex items-center gap-2 mb-4">
-                                  <Users className="h-5 w-5 text-muted-foreground" />
-                                  <span className="text-lg font-medium">Visão Geral</span>
-                              </div>
 
                               <Card className="bg-background border">
                                   <CardContent className="p-6">
                                       {/* Total de Consultores */}
                                       <div className="text-center mb-6">
+                                          <div className="flex items-center gap-2 mb-4">
+                                              <Users className="h-5 w-5 text-muted-foreground" />
+                                              <span className="text-lg font-medium">Total de consultores</span>
+                                          </div>
                                           <div className="text-4xl font-bold text-zinc-900">{totalAgents}</div>
                                           <div className="text-sm text-muted-foreground mt-1">Total de Consultores</div>
                                       </div>
