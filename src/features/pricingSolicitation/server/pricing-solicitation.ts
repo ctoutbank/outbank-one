@@ -1,4 +1,8 @@
 "use server";
+import {
+  getUserEmail,
+  sendPricingSolicitationEmail,
+} from "@/app/utils/send-email-adtivo";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
@@ -28,8 +32,6 @@ export interface PricingSolicitationList {
   }[];
   totalCount: number | null;
 }
-
-
 
 export type PricingSolicitationInsert = typeof solicitationFee.$inferInsert;
 export type PricingSolicitationDetail = typeof solicitationFee.$inferSelect & {
@@ -482,6 +484,26 @@ export async function approvePricingSolicitation(id: number) {
     throw error;
   }
 }
+export async function completePricingSolicitation(id: number) {
+  if (!id) {
+    throw new Error("Solicitation ID is required for completion");
+  }
+
+  try {
+    await db
+      .update(solicitationFee)
+      .set({
+        status: "COMPLETED",
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(solicitationFee.id, id));
+
+    return { id, success: true };
+  } catch (error) {
+    console.error("Error completing pricing solicitation:", error);
+    throw error;
+  }
+}
 
 // Função para rejeitar uma solicitação de taxas
 export async function rejectPricingSolicitation(id: number, reason?: string) {
@@ -574,4 +596,15 @@ export async function getDocumentsBySolicitationFeeId(
     .where(eq(solicitationFeeDocument.solicitationFeeId, solicitationFeeId));
 
   return documents;
+}
+
+export async function PostPricingSolicitationEmail() {
+  try {
+    const email = await getUserEmail();
+    console.log("email", email);
+    await sendPricingSolicitationEmail(email);
+  } catch (error) {
+    console.error("Error sending pricing solicitation email:", error);
+    throw error;
+  }
 }

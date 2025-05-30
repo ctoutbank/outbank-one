@@ -105,7 +105,7 @@ export async function createPricingSolicitationForUpload(
       cnpjQuantity: 1,
       idCustomers: userDB[0].customersId,
       description: "Solicitação criada automaticamente",
-      status: "SEND_SOLICITATION",
+      status: "PENDING",
       brands: [],
     };
 
@@ -121,6 +121,8 @@ export async function createPricingSolicitationForUpload(
 
     // Sanitizar os valores numéricos para evitar erros SQL
     data = sanitizeNumericValues(data);
+
+    delete data.id;
 
     console.log("Dados sanitizados para criação de solicitação:", data);
 
