@@ -1,3 +1,4 @@
+import { getUserEmail } from "@/app/utils/send-email-adtivo";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PricingSolicitationForm from "@/features/pricingSolicitation/_components/pricing-solicitation-form";
@@ -20,7 +21,11 @@ export default async function PricingSolicitationDetail({
   // A variável isReadOnly será verdadeira apenas se o status da solicitação for "PENDING", ou seja, quando ela está em análise e não pode ser editada.
   const isReadOnly =
     pricingSolicitationById?.status === "PENDING" ||
-    pricingSolicitationById?.status === "REVIEWED";
+    pricingSolicitationById?.status === "REVIEWED" ||
+    pricingSolicitationById?.status === "APPROVED" ||
+    pricingSolicitationById?.status === "COMPLETED";
+
+  const userEmail = await getUserEmail();
 
   // Em seguida, definimos o subtítulo da página de acordo com o contexto:
   // - Se existe uma solicitação (pricingSolicitationById):
@@ -44,6 +49,7 @@ export default async function PricingSolicitationDetail({
         {isReadOnly && pricingSolicitationById ? (
           <PricingSolicitationView
             pricingSolicitation={pricingSolicitationById}
+            userEmail={userEmail}
           />
         ) : (
           <PricingSolicitationForm
