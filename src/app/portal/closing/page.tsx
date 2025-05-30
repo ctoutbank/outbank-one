@@ -5,8 +5,8 @@ import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChartCustom } from "@/features/closing/components/barChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
-import { TransactionsDashboardTable } from "@/features/closing/components/transactions-dashboard-table";
 import { getTransactionsGroupedReport } from "@/features/closing/server/closing";
+import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import {
   getTotalMerchants,
   getTotalTransactions,
@@ -27,7 +27,7 @@ export default async function SalesDashboard({
   const viewMode = searchParams.viewMode || "month";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  let previousRange: { from: string; to: string; } = { from: "", to: "" };
+  let previousRange: { from: string; to: string } = { from: "", to: "" };
   if (searchParams.dateFrom || searchParams.dateTo) {
     previousRange = getPreviousPeriodFromRange(
       searchParams.dateFrom,

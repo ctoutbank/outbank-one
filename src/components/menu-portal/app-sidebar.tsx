@@ -5,6 +5,7 @@ import {
   Calculator,
   Calendar,
   CalendarDays,
+  CalendarFold,
   ChartBar,
   Check,
   DollarSign,
@@ -58,6 +59,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   CalendarDays,
   FilePlus2,
   Receipt,
+  CalendarFold
 };
 
 interface MenuItem {
