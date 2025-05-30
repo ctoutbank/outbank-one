@@ -36,11 +36,11 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                     return acc;
                 }, {} as Record<string, { brand: string; count: number; totalAmount: number }>);
 
-                // Adiciona os valores reais
+                // Adiciona os valores reais, ignorando brands nulas ou vazias
                 filteredTransactions.forEach((curr) => {
                     if (
-                        curr.transaction_status === "AUTHORIZED" ||
-                        curr.transaction_status === "PENDING"
+                        (curr.transaction_status === "AUTHORIZED" || curr.transaction_status === "PENDING") &&
+                        curr.brand && curr.brand.trim()
                     ) {
                         const brand = curr.brand;
                         if (!transactionsByBrand[brand]) {
@@ -63,14 +63,19 @@ export function BrandSummaryTable({ transactions }: BrandSummaryTableProps) {
                     { quantidade: 0, valorTotal: 0 }
                 );
 
-                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
-                    (item) => ({
+                const items: SummaryTableItem[] = Object.values(transactionsByBrand)
+                    .filter(
+                        (item) =>
+                            item.brand &&
+                            item.brand.trim() &&
+                            getBrandLabel(item.brand)
+                    )
+                    .map((item) => ({
                         id: `brand-${value}-${item.brand}`,
                         label: getBrandLabel(item.brand) || item.brand,
                         count: item.count,
                         totalAmount: item.totalAmount,
-                    })
-                );
+                    }));
 
                 return (
                     <TransactionSummaryTable

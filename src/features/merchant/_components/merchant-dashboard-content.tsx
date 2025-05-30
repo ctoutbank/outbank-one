@@ -88,8 +88,8 @@ export function MerchantDashboardContent({
                       </p>
                   </CardHeader>
 
-                  <CardContent className="p-6">
-                      <div className="space-y-6">
+                  <CardContent className="p-3">
+                      <div className="space-y-3">
                           {/* Linha Superior - Cards de Dados */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                               {/* Total de Estabelecimentos */}

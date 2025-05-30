@@ -312,3 +312,27 @@ export function getLocalTimezone(): string {
     return "-0300"; // Fallback para timezone do Brasil
   }
 }
+
+export function getPreviousPeriodFromRange(
+  from: string,
+  to: string
+): {
+  from: string;
+  to: string;
+} {
+  const fromDate = DateTime.fromISO(from, { zone: "utc" }).startOf("day");
+  const toDate = DateTime.fromISO(to, { zone: "utc" }).endOf("day");
+
+  const duration = toDate.diff(fromDate, ["days"]).days + 1;
+
+  const prevTo = fromDate.minus({ days: 1 }).endOf("day");
+  const prevFrom = prevTo.minus({ days: duration - 1 }).startOf("day");
+
+  const fmt = (dt: DateTime) =>
+    dt.toISO({ suppressSeconds: true, suppressMilliseconds: true });
+
+  return {
+    from: fmt(prevFrom)!,
+    to: fmt(prevTo)!,
+  };
+}

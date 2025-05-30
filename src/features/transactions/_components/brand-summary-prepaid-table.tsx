@@ -10,7 +10,7 @@ interface BrandSummaryTableProps {
 }
 
 // Lista de todas as bandeiras possíveis que devem aparecer mesmo que não tenham valores
-const allBrands = ["VISA", "MASTERCARD", "ELO", "HIPERCARD", "AMEX", "CABAL",];
+const allBrands = ["VISA", "MASTERCARD", "ELO", "HIPERCARD", "AMEX", "CABAL"];
 
 export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProps) {
     const productTypes = [
@@ -36,11 +36,11 @@ export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProp
                     return acc;
                 }, {} as Record<string, { brand: string; count: number; totalAmount: number }>);
 
-                // Adiciona os valores reais
+                // Adiciona os valores reais (somente com brand válida)
                 filteredTransactions.forEach((curr) => {
                     if (
-                        curr.transaction_status === "AUTHORIZED" ||
-                        curr.transaction_status === "PENDING"
+                        (curr.transaction_status === "AUTHORIZED" || curr.transaction_status === "PENDING") &&
+                        curr.brand && curr.brand.trim()
                     ) {
                         const brand = curr.brand;
                         if (!transactionsByBrand[brand]) {
@@ -63,14 +63,20 @@ export function BrandSummaryPrePaidTable({ transactions }: BrandSummaryTableProp
                     { quantidade: 0, valorTotal: 0 }
                 );
 
-                const items: SummaryTableItem[] = Object.values(transactionsByBrand).map(
-                    (item) => ({
+                // Monta os itens da tabela, ignorando brands nulas/vazias ou sem label válida
+                const items: SummaryTableItem[] = Object.values(transactionsByBrand)
+                    .filter(
+                        (item) =>
+                            item.brand &&
+                            item.brand.trim() &&
+                            getBrandLabel(item.brand)
+                    )
+                    .map((item) => ({
                         id: `brand-${value}-${item.brand}`,
                         label: getBrandLabel(item.brand) || item.brand,
                         count: item.count,
                         totalAmount: item.totalAmount,
-                    })
-                );
+                    }));
 
                 return (
                     <TransactionSummaryTable
