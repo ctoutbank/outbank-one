@@ -839,7 +839,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                 </Card>
 
                 <div className="flex justify-between">
-                    <Link href="/portal/users">
+                    <Link href="/portal/salesAgents">
                         <Button type="button" variant="outline">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Voltar

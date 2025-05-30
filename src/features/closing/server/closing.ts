@@ -1,8 +1,8 @@
+import { normalizeDateRange } from "@/features/transactions/serverActions/transaction";
 import { getDateUTC } from "@/lib/datetime-utils";
 import { db } from "@/server/db";
 import { and, gte, lte, notInArray, sql } from "drizzle-orm";
 import { transactions } from "../../../../drizzle/schema";
-import { normalizeDateRange } from "@/features/transactions/serverActions/transaction";
 
 export type GetTotalTransactionsResult = {
   sum?: number;
@@ -28,23 +28,20 @@ export async function getTransactionsGroupedReport(
 
   // Adicionar condições de data (sempre presentes)
   if (dateFrom) {
-    console.log(dateFrom);
-
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
-    console.log(dateFromUTC);
+
     conditions.push(gte(transactions.dtInsert, dateFromUTC!));
   }
 
   if (dateTo) {
     console.log(dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
-    console.log(dateToUTC);
+
     conditions.push(lte(transactions.dtInsert, dateToUTC!));
   }
 
   // Construir a cláusula WHERE
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-  console.log(whereClause);
   // Usar SQL para agrupar os resultados
   const result = await db.execute(sql`
     SELECT 

@@ -26,6 +26,15 @@ export default async function SalesDashboard({
   const viewMode = searchParams.viewMode || "today";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
+  const dateRange = await normalizeDateRange(period.from, period.to);
+  const dateRangePrevious = await normalizeDateRange(
+    previousPeriod.from!,
+    previousPeriod.to!
+  );
+  period.from = dateRange.start;
+  period.to = dateRange.end;
+  previousPeriod.from = dateRangePrevious.start;
+  previousPeriod.to = dateRangePrevious.end;
   const totalTransactions = await getTotalTransactions(
     period.from!,
     period.to!
@@ -34,9 +43,7 @@ export default async function SalesDashboard({
     previousPeriod.from!,
     previousPeriod.to!
   );
-  const dateRange = await normalizeDateRange(period.from, period.to);
-  period.from = dateRange.start;
-  period.to = dateRange.end;
+
   const transactions = await getTransactionsGroupedReport(
     period.from,
     period.to
@@ -102,7 +109,7 @@ export default async function SalesDashboard({
                     }
                     previousValue={totalTransactionsPreviousPeriod[0]?.sum}
                     valueType="currency"
-                  /> 
+                  />
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"

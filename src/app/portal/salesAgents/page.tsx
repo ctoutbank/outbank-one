@@ -74,7 +74,7 @@ export default async function SalesAgentsPage({
           </div>
 
           <div className="flex items-start justify-between gap-4">
-            <div className="max-w-md">
+            <div className="w-full">
               <SalesAgentDashboardContent
                 totalAgents={salesAgents?.totalCount || 0}
                 activeAgents={

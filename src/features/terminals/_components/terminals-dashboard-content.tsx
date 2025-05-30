@@ -23,8 +23,7 @@ export function TerminalsDashboardContent({
                                             modelosAtivosDetalhes = [],
                                           }: TerminalsDashboardContentProps) {
   return (
-
-      <div className="space-y-4">
+      <div className="w-full">
         <div className="w-full mt-2 mb-2">
           <div className="grid grid-cols-1 gap-4">
             <Card className="w-full border-l-8 border-black bg-sidebar">
@@ -43,75 +42,77 @@ export function TerminalsDashboardContent({
                 </CardHeader>
               </div>
 
-              <CardContent>
-                <div className="flex flex-col lg:flex-row gap-8">
-                  {/* Seção de Terminais */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-4">
-                      <HardDrive className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-lg font-medium">Terminais</span>
-                    </div>
+              <CardContent className="p-6">
+                <div className="flex flex-col xl:flex-row gap-6 w-full">
+                  {/* Card de Terminais */}
+                  <div className="flex-1 min-w-0">
 
-                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-background rounded-lg border">
-                        <div className="text-2xl font-semibold text-zinc-900 mb-2">{totalTerminals}</div>
-                        <div className="text-sm text-muted-foreground">Total de Terminais</div>
-                      </div>
 
-                      <div className="text-center p-4 bg-background rounded-lg border">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span className="text-sm font-medium text-zinc-600">Ativo</span>
+                    <Card className="bg-background border h-[210px]">
+                      <CardContent className="p-6">
+                        {/* Total de Terminais */}
+                        <div className="text-center mb-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <HardDrive className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-lg font-medium">Terminais</span>
+                          </div>
+                          <div className="text-4xl font-bold text-zinc-900">{totalTerminals}</div>
+                          <div className="text-sm text-muted-foreground mt-1">Total de Terminais</div>
                         </div>
-                        <div className="text-xl font-semibold text-zinc-900">{ativosTerminals}</div>
-                      </div>
 
-                      <div className="text-center p-4 bg-background rounded-lg border">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                          <span className="text-sm font-medium text-zinc-600">Inativo</span>
-                        </div>
-                        <div className="text-xl font-semibold text-zinc-900">{inativosTerminals}</div>
-                      </div>
+                        {/* Status dos Terminais */}
+                        <div className="flex flex-wrap justify-center gap-8">
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                            <span className="text-sm font-medium text-zinc-600">Ativo</span>
+                            <span className="text-xl font-semibold text-zinc-900 ml-2">{ativosTerminals}</span>
+                          </div>
 
-                      <div className="text-center p-4 bg-background rounded-lg border">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <div className="h-2 w-2 rounded-full bg-red-500" />
-                          <span className="text-sm font-medium text-zinc-600">Desativado</span>
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                            <span className="text-sm font-medium text-zinc-600">Inativo</span>
+                            <span className="text-xl font-semibold text-zinc-900 ml-2">{inativosTerminals}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full bg-red-500" />
+                            <span className="text-sm font-medium text-zinc-600">Desativado</span>
+                            <span className="text-xl font-semibold text-zinc-900 ml-2">{desativadosTerminals}</span>
+                          </div>
                         </div>
-                        <div className="text-xl font-semibold text-zinc-900">{desativadosTerminals}</div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
-                  {/* Seção de Modelos Ativos */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CircuitBoard className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-lg font-medium">Modelos Ativos</span>
-                    </div>
+                  {/* Card de Modelos Ativos */}
+                  <div className="flex-1 min-w-0">
 
-                    <div className="grid gap-4">
-                      <div className="text-center p-4 bg-background rounded-lg border">
-                        <div className="text-2xl font-semibold text-zinc-900 mb-2">{totalModelosAtivos}</div>
-                        <div className="text-sm text-muted-foreground">Total de Modelos Ativos</div>
-                      </div>
 
-                      {modelosAtivosDetalhes.length > 0 ? (
-                          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {modelosAtivosDetalhes.map((modelo, index) => (
-                                <div key={index} className="text-center p-4 bg-background rounded-lg border">
-                                  <div className="text-lg font-semibold text-zinc-900 mb-1">{modelo.quantidade}</div>
-                                  <div className="text-sm text-muted-foreground truncate">{modelo.nome}</div>
+                    <Card className="bg-background border h-[210px]">
+                      <CardContent className="p-6">
+                        {/* Total de Modelos Ativos */}
+                        <div className="text-center mb-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <CircuitBoard className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-lg font-medium">Modelos Ativos</span>
+                          </div>
+                          <div className="text-4xl font-bold text-zinc-900">{totalModelosAtivos}</div>
+                          <div className="text-sm text-muted-foreground mt-1">Total de Modelos Ativos</div>
+                        </div>
+
+                        {/* Detalhes dos Modelos */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                          {modelosAtivosDetalhes.map((modelo, index) => (
+                              <div key={index} className="text-center">
+                                <div className="text-lg font-semibold text-zinc-900">{modelo.quantidade}</div>
+                                <div className="text-xs text-muted-foreground font-medium truncate" title={modelo.nome}>
+                                  {modelo.nome}
                                 </div>
-                            ))}
-                          </div>
-                      ) : (
-                          <div className="flex justify-center items-center h-[100px] text-zinc-400 bg-background rounded-lg border">
-                            Nenhum modelo ativo encontrado
-                          </div>
-                      )}
-                    </div>
+                              </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </CardContent>

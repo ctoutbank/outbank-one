@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import {
   ArrowDownSquare,
@@ -63,107 +63,142 @@ export function MerchantAdjustmentsDashboardContent({
   const periodText = `${formattedFirstDate} - ${formattedLastDate}`;
 
   return (
-      <div className="space-y-4">
+      <div className="w-full">
         <div className="w-full mt-2 mb-2">
-          <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
+          <Card className="w-full border-l-8 border-black bg-sidebar">
+            <div className="flex items-center justify-between">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {new Date().toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </CardHeader>
+            </div>
             <CardContent className="pt-6">
-              <div className="flex flex-col lg:flex-row justify-between gap-12">
-                {/* Ajustes Liquidados */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ArrowUpSquare className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-xl font-bold">Liquidados</span>
-                  </div>
-                  <div className="text-2xl font-semibold text-zinc-900 mb-3">
-                    {totalSettledAdjustments}
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium text-zinc-600">Créditos</span>
-                      </div>
-                      <span className="text-base font-semibold text-zinc-900">
-                      {formatCurrency(settledCreditAdjustmentsValue)}
-                    </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Card de Ajustes Liquidados */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowUpSquare className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">Liquidados</span>
                     </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-red-500" />
-                        <span className="text-xs font-medium text-zinc-600">Débitos</span>
-                      </div>
-                      <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                      {formatCurrency(settledDebitAdjustmentsValue)}
-                    </span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Ajustes Parcialmente Liquidados */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CircleDollarSign className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-xl font-bold whitespace-nowrap">Parcialmente Liquidados</span>
-                  </div>
-                  <div className="text-2xl font-semibold text-zinc-900 mb-3">
-                    {formatCurrency(totalPartiallySettledAdjustmentsValue)}
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium text-zinc-600">Créditos</span>
-                      </div>
-                      <span className="text-base font-semibold text-zinc-900">
-                      {formatCurrency(partiallySettledCreditAdjustmentsValue)}
-                    </span>
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-zinc-900">{totalSettledAdjustments}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Total de Ajustes</div>
                     </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-red-500" />
-                        <span className="text-xs font-medium text-zinc-600">Débitos</span>
-                      </div>
-                      <span className="text-base font-semibold text-zinc-900 inline">
-                      {formatCurrency(partiallySettledDebitAdjustmentsValue)}
-                    </span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Ajustes Pendentes */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ArrowDownSquare className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-xl font-bold whitespace-nowrap">Pendentes</span>
-                  </div>
-                  <div className="text-2xl font-semibold text-zinc-900 mb-3">
-                    {formatCurrency(totalPendingAdjustmentsValue)}
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium text-zinc-600">Créditos</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Créditos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(settledCreditAdjustmentsValue)}
+                        </div>
                       </div>
-                      <span className="text-base font-semibold text-zinc-900">
-                      {formatCurrency(pendingCreditAdjustmentsValue)}
-                    </span>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <div className="h-2 w-2 rounded-full bg-red-500" />
-                        <span className="text-xs font-medium text-zinc-600">Débitos</span>
+
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Débitos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(settledDebitAdjustmentsValue)}
+                        </div>
                       </div>
-                      <span className="text-base font-semibold text-zinc-900">
-                      {formatCurrency(pendingDebitAdjustmentsValue)}
-                    </span>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card de Ajustes Parcialmente Liquidados */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Parcialmente Liquidados</span>
+                    </div>
+
+                    <div className="text-center mb-4">
+                      <div className="text-xl font-bold text-zinc-900">
+                        {formatCurrency(totalPartiallySettledAdjustmentsValue)}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">Valor Total</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Créditos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(partiallySettledCreditAdjustmentsValue)}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Débitos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(partiallySettledDebitAdjustmentsValue)}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card de Ajustes Pendentes */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowDownSquare className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">Pendentes</span>
+                    </div>
+
+                    <div className="text-center mb-4">
+                      <div className="text-xl font-bold text-zinc-900">
+                        {formatCurrency(totalPendingAdjustmentsValue)}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">Valor Total</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="text-xs font-medium text-zinc-600">Créditos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(pendingCreditAdjustmentsValue)}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="text-xs font-medium text-zinc-600">Débitos</span>
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatCurrency(pendingDebitAdjustmentsValue)}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <p className="mt-6 text-sm text-muted-foreground text-right">
-                Período: {periodText}
-              </p>
+
+              <p className="mt-6 text-sm text-muted-foreground text-right">Período: {periodText}</p>
             </CardContent>
           </Card>
         </div>
