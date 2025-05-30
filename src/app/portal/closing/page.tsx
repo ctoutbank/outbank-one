@@ -15,6 +15,7 @@ import {
 } from "@/features/transactions/serverActions/transaction";
 import { gateDateByViewMode, getPreviousPeriodFromRange } from "@/lib/utils";
 import { Suspense } from "react";
+import TransactionsExport from "@/features/transactions/reports/transactions-export-excel";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -71,13 +72,16 @@ export default async function SalesDashboard({
         breadcrumbItems={[{ title: "Fechamento", url: "/portal/closing" }]}
       />
       <BaseBody title="Fechamento" subtitle={``}>
-        <div className="mb-4 ml-1">
+        <div className="mb-4 ml-1 flex items-center justify-between">
           <DashboardFilters
             dateRange={{
               from: period.from,
               to: period.to,
             }}
           />
+            <div>
+                <TransactionsExport/>
+            </div>
         </div>
         <Suspense fallback={<div>Carregando...</div>}>
           <Card className="w-full border-l-8 border-black bg-sidebar">
