@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { Building2, Calendar, CircleDollarSign, ClipboardList, Tag } from "lucide-react"
 
@@ -36,100 +36,137 @@ export function MerchantAgendaAnticipationsDashboardContent({
   const periodText = `${formattedFirstDate} - ${formattedLastDate}`
 
   return (
-      <div className="space-y-4">
+      <div className="w-full">
         <div className="w-full mt-2 mb-2">
-          <div className="grid grid-cols-1 gap-4">
-            <Card className="w-full border-l-8 border-black bg-sidebar min-h-[200px]">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row justify-between gap-12">
-                  {/* Período */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Período</span>
+          <Card className="w-full border-l-8 border-black bg-sidebar">
+            <div className="flex items-center justify-between">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {new Date().toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </CardHeader>
+            </div>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+                {/* Card de Período */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">Período</span>
                     </div>
-                    <div className="text-lg font-semibold text-zinc-900 mb-3">{periodText}</div>
-                  </div>
 
-                  {/* Estabelecimentos */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Estabelecimentos</span>
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-zinc-900">{periodText}</div>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalEstablishments}</div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Pedidos de Antecipação */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ClipboardList className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold whitespace-nowrap">Pedidos de Antecipação</span>
+                {/* Card de Estabelecimentos */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">Estabelecimentos</span>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalAnticipationRequests}</div>
-                  </div>
 
-                  {/* Parcelas */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Tag className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">Parcelas</span>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-zinc-900">{totalEstablishments}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Total de Estabelecimentos</div>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{totalParcels}</div>
-                    <div className="flex gap-6">
+                  </CardContent>
+                </Card>
+
+                {/* Card de Pedidos de Antecipação */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Pedidos de Antecipação</span>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-zinc-900">{totalAnticipationRequests}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Total de Pedidos</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card de Parcelas */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">Parcelas</span>
+                    </div>
+
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-zinc-900">{totalParcels}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Total de Parcelas</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
                       <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                        <div className="flex items-center justify-center gap-1 mb-1">
                           <div className="h-2 w-2 rounded-full bg-emerald-500" />
                           <span className="text-xs font-medium text-zinc-600">Totalmente</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {fullyAnticipatedParcels}
-                      </span>
+                        <div className="text-sm font-semibold text-zinc-900">{fullyAnticipatedParcels}</div>
                       </div>
+
                       <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                        <div className="flex items-center justify-center gap-1 mb-1">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
                           <span className="text-xs font-medium text-zinc-600">Parcialmente</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {partiallyAnticipatedParcels}
-                      </span>
+                        <div className="text-sm font-semibold text-zinc-900">{partiallyAnticipatedParcels}</div>
                       </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Valores Financeiros */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CircleDollarSign className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold whitespace-nowrap">Total Líquido Antecipado</span>
+                {/* Card de Valores Financeiros */}
+                <Card className="bg-background border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Total Líquido Antecipado</span>
                     </div>
-                    <div className="text-2xl font-semibold text-zinc-900 mb-3">{formatCurrency(totalNetAnticipated)}</div>
-                    <div className="flex gap-6">
+
+                    <div className="text-center mb-4">
+                      <div className="text-xl font-bold text-zinc-900">{formatCurrency(totalNetAnticipated)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Valor Líquido</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
                       <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                        <div className="flex items-center justify-center gap-1 mb-1">
                           <div className="h-2 w-2 rounded-full bg-emerald-500" />
                           <span className="text-xs font-medium text-zinc-600">Bruto</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {formatCurrency(totalGrossAnticipated)}
-                      </span>
+                        <div className="text-sm font-semibold text-zinc-900">{formatCurrency(totalGrossAnticipated)}</div>
                       </div>
+
                       <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
+                        <div className="flex items-center justify-center gap-1 mb-1">
                           <div className="h-2 w-2 rounded-full bg-blue-500" />
                           <span className="text-xs font-medium text-zinc-600">Taxas</span>
                         </div>
-                        <span className="text-base font-semibold text-zinc-900 whitespace-nowrap">
-                        {formatCurrency(totalAnticipationFees)}
-                      </span>
+                        <div className="text-sm font-semibold text-zinc-900">{formatCurrency(totalAnticipationFees)}</div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
   )
