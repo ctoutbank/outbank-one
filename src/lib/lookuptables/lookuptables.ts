@@ -173,6 +173,11 @@ export const PricingSolicitationStatus: SelectItem[] = [
     label: "Documentos Enviados",
     color: "bg-red-500 hover:bg-red-600",
   },
+  {
+    value: "COMPLETED",
+    label: "Concluído",
+    color: "bg-green-600 hover:bg-green-800",
+  },
 ];
 
 export const SolicitationFeeProductTypeList: SelectItemSolicitationFee[] = [
