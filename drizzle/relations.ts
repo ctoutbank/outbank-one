@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { customers, paymentInstitution, users, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, addresses, merchantBankAccounts, customerFunctions, merchantpixaccount, reportExecution, file, reportExecutionStatus, contacts, payout, merchantfile, userMerchants, payoutAntecipations, merchantSettlementOrders, solicitationFee, solicitationFeeBrand, solicitationFeeDocument, solicitationBrandProductType, feeBrand, feeBrandProductType, fee } from "./schema";
+import { customers, paymentInstitution, users, salesAgents, settlements, reports, reportFilters, reportFiltersParam, merchantPixSettlementOrders, merchants, merchantSettlements, profiles, profileFunctions, functions, paymentLink, shoppingItems, merchantPriceGroup, merchantTransactionPrice, modules, moduleFunctions, merchantPrice, categories, legalNatures, configurations, addresses, merchantBankAccounts, customerFunctions, merchantpixaccount, reportExecution, file, reportExecutionStatus, contacts, payout, merchantfile, userMerchants, payoutAntecipations, merchantSettlementOrders, solicitationFee, solicitationFeeBrand, solicitationFeeDocument, solicitationBrandProductType, feeBrand, feeBrandProductType, fee, feeCredit } from "./schema";
 
 export const paymentInstitutionRelations = relations(paymentInstitution, ({one, many}) => ({
 	customer: one(customers, {
@@ -413,11 +413,12 @@ export const solicitationBrandProductTypeRelations = relations(solicitationBrand
 	}),
 }));
 
-export const feeBrandProductTypeRelations = relations(feeBrandProductType, ({one}) => ({
+export const feeBrandProductTypeRelations = relations(feeBrandProductType, ({one, many}) => ({
 	feeBrand: one(feeBrand, {
 		fields: [feeBrandProductType.idFeeBrand],
 		references: [feeBrand.id]
 	}),
+	feeCredits: many(feeCredit),
 }));
 
 export const feeBrandRelations = relations(feeBrand, ({one, many}) => ({
@@ -430,4 +431,11 @@ export const feeBrandRelations = relations(feeBrand, ({one, many}) => ({
 
 export const feeRelations = relations(fee, ({many}) => ({
 	feeBrands: many(feeBrand),
+}));
+
+export const feeCreditRelations = relations(feeCredit, ({one}) => ({
+	feeBrandProductType: one(feeBrandProductType, {
+		fields: [feeCredit.idFeeBrandProductType],
+		references: [feeBrandProductType.id]
+	}),
 }));

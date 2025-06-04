@@ -218,3 +218,48 @@ export const SolicitationFeeProductTypeList: SelectItemSolicitationFee[] = [
     transactionFeeEnd: "0",
   },
 ];
+
+export const FeeType: SelectItem[] = [
+  { value: "EVENTUAL", label: "Antecipação Eventual" },
+  { value: "COMPULSORY", label: "Antecipação Compulsória" },
+  { value: "NOANTECIPATION", label: "Sem Antecipação" },
+];
+
+export const FeeProductTypeList: SelectItemSolicitationFee[] = [
+  {
+    value: "DEBIT",
+    label: "Débito",
+    transactionFeeStart: "0",
+    transactionFeeEnd: "0",
+  },
+  {
+    value: "CREDIT",
+    label: "Crédito a Vista",
+    transactionFeeStart: "0",
+    transactionFeeEnd: "0",
+  },
+  {
+    value: "CREDIT_INSTALLMENTS_2_TO_6",
+    label: "Crédito (2-6x)",
+    transactionFeeStart: "2",
+    transactionFeeEnd: "6",
+  },
+  {
+    value: "CREDIT_INSTALLMENTS_7_TO_12",
+    label: "Crédito (7-12x)",
+    transactionFeeStart: "7",
+    transactionFeeEnd: "12",
+  },
+  {
+    value: "VOUCHER",
+    label: "Voucher",
+    transactionFeeStart: "0",
+    transactionFeeEnd: "0",
+  },
+  {
+    value: "PREPAID_CREDIT",
+    label: "Pré-pago",
+    transactionFeeStart: "0",
+    transactionFeeEnd: "0",
+  },
+];
