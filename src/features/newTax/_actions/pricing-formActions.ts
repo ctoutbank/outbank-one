@@ -1,10 +1,14 @@
 "use server";
 
+import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
+import { saveFee } from "@/features/newTax/server/fee-db";
 import { db } from "@/server/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { fee, feeBrand, feeBrandProductType } from "../../../../drizzle/schema";
 
-// Função para salvar as configurações de pricing para uma taxa
+/**
+ * Salva as configurações de pricing para uma taxa
+ */
 export async function saveMerchantPricingAction(
   feeId: string,
   groups: {
@@ -48,7 +52,9 @@ export async function saveMerchantPricingAction(
   }
 }
 
-// Função para atualizar as configurações de PIX
+/**
+ * Atualiza as configurações de PIX para uma taxa
+ */
 export async function updatePixConfigAction(
   feeId: string,
   pixConfig: {
@@ -99,36 +105,9 @@ export async function updatePixConfigAction(
   }
 }
 
-// Função para buscar as configurações de bandeiras de um merchant
-export async function getMerchantBrandsByFeeIdAction(feeId: string) {
-  try {
-    if (!feeId || feeId === "0") {
-      return [];
-    }
-
-    return await getMerchantBrandsByFeeId(parseInt(feeId));
-  } catch (error) {
-    console.error("Erro ao buscar bandeiras do merchant:", error);
-    return [];
-  }
-}
-
-// Função para buscar todas as bandeiras associadas a um merchant
-async function getMerchantBrandsByFeeId(feeId: number) {
-  try {
-    const brands = await db
-      .select()
-      .from(feeBrand)
-      .where(eq(feeBrand.idFee, feeId));
-
-    return brands;
-  } catch (error) {
-    console.error("Erro ao buscar bandeiras do merchant:", error);
-    return [];
-  }
-}
-
-// Função para processar um grupo de bandeiras e seus produtos
+/**
+ * Processa um grupo de bandeiras e seus produtos
+ */
 async function processCardBrandGroup(
   feeId: number,
   selectedBrands: string[],
@@ -208,31 +187,35 @@ async function processCardBrandGroup(
   }
 }
 
-// Função para mapear o ID do modo para o tipo de produto
+/**
+ * Mapeia o ID do modo para o tipo de produto
+ */
 function mapModeIdToProductType(modeId: string): {
   productType: string;
   installmentStart?: number;
   installmentEnd?: number;
 } {
   switch (modeId) {
-    case "creditoAVista":
+    case "CREDIT":
       return { productType: "credit", installmentStart: 1, installmentEnd: 1 };
-    case "creditoParcelado2a6":
+    case "CREDIT_INSTALLMENTS_2_TO_6":
       return { productType: "credit", installmentStart: 2, installmentEnd: 6 };
-    case "creditoParcelado7a12":
+    case "CREDIT_INSTALLMENTS_7_TO_12":
       return { productType: "credit", installmentStart: 7, installmentEnd: 12 };
-    case "debito":
+    case "DEBIT":
       return { productType: "debit" };
-    case "voucher":
+    case "VOUCHER":
       return { productType: "voucher" };
-    case "prePago":
+    case "PREPAID_CREDIT":
       return { productType: "prepaid" };
     default:
-      return { productType: "other" };
+      return { productType: "credit", installmentStart: 1, installmentEnd: 1 };
   }
 }
 
-// Função para processar um tipo de produto
+/**
+ * Processa um tipo de produto
+ */
 async function processProductType(
   brandId: number,
   productType: string,
@@ -243,96 +226,123 @@ async function processProductType(
   try {
     if (!modeData) return { success: false };
 
-    // Verificar se o tipo de produto já existe
+    // Buscar tipo de produto existente
     const existingProductTypes = await db
       .select()
       .from(feeBrandProductType)
       .where(
         and(
           eq(feeBrandProductType.idFeeBrand, brandId),
-          eq(feeBrandProductType.producttype, productType)
+          eq(feeBrandProductType.producttype, productType),
+          installmentStart
+            ? eq(
+                feeBrandProductType.installmentTransactionFeeStart,
+                installmentStart
+              )
+            : undefined,
+          installmentEnd
+            ? eq(
+                feeBrandProductType.installmentTransactionFeeEnd,
+                installmentEnd
+              )
+            : undefined
         )
       );
 
-    // Filtrar por parcelamento se necessário
-    const filteredProductType = existingProductTypes.filter((pt: any) => {
-      if (installmentStart === undefined || installmentEnd === undefined) {
-        return true;
-      }
-      return (
-        pt.installmentTransactionFeeStart === installmentStart &&
-        pt.installmentTransactionFeeEnd === installmentEnd
-      );
-    });
+    // Preparar dados para inserção/atualização
+    const productTypeData = {
+      slug: `${productType}-${Date.now()}`,
+      active: true,
+      dtupdate: new Date().toISOString(),
+      producttype: productType,
+      installmentTransactionFeeStart: installmentStart || 0,
+      installmentTransactionFeeEnd: installmentEnd || 0,
+      cardTransactionFee: sql`${parseFloat(modeData.presentTransaction || "0")}`,
+      cardTransactionMdr: sql`${parseFloat(modeData.presentIntermediation || "0")}`,
+      nonCardTransactionFee: sql`${parseFloat(modeData.notPresentTransaction || "0")}`,
+      nonCardTransactionMdr: sql`${parseFloat(modeData.notPresentIntermediation || "0")}`,
+      idFeeBrand: brandId,
+    };
 
-    if (filteredProductType.length > 0) {
-      // Atualizar tipo de produto existente
-      const updateData: any = {
-        dtupdate: new Date().toISOString(),
-      };
-
-      if (modeData.presentIntermediation) {
-        updateData.cardTransactionMdr = modeData.presentIntermediation;
-      }
-
-      if (modeData.notPresentIntermediation) {
-        updateData.nonCardTransactionMdr = modeData.notPresentIntermediation;
-      }
-
-      if (modeData.presentTransaction) {
-        updateData.cardTransactionFee = modeData.presentTransaction;
-      }
-
-      if (modeData.notPresentTransaction) {
-        updateData.nonCardTransactionFee = modeData.notPresentTransaction;
-      }
-
+    // Se existe, atualizar; senão, criar
+    if (existingProductTypes.length > 0) {
+      const productTypeId = existingProductTypes[0].id;
       await db
         .update(feeBrandProductType)
-        .set(updateData)
-        .where(eq(feeBrandProductType.id, filteredProductType[0].id));
+        .set(productTypeData)
+        .where(eq(feeBrandProductType.id, productTypeId));
     } else {
-      // Criar novo tipo de produto
-      const newProductType: any = {
-        slug: `${productType}-${Date.now()}`,
-        active: true,
+      await db.insert(feeBrandProductType).values({
+        ...productTypeData,
         dtinsert: new Date().toISOString(),
-        dtupdate: new Date().toISOString(),
-        producttype: productType,
-        idFeeBrand: brandId,
-      };
-
-      if (installmentStart !== undefined) {
-        newProductType.installmentTransactionFeeStart = installmentStart;
-      }
-
-      if (installmentEnd !== undefined) {
-        newProductType.installmentTransactionFeeEnd = installmentEnd;
-      }
-
-      if (modeData.presentIntermediation) {
-        newProductType.cardTransactionMdr = modeData.presentIntermediation;
-      }
-
-      if (modeData.notPresentIntermediation) {
-        newProductType.nonCardTransactionMdr =
-          modeData.notPresentIntermediation;
-      }
-
-      if (modeData.presentTransaction) {
-        newProductType.cardTransactionFee = modeData.presentTransaction;
-      }
-
-      if (modeData.notPresentTransaction) {
-        newProductType.nonCardTransactionFee = modeData.notPresentTransaction;
-      }
-
-      await db.insert(feeBrandProductType).values(newProductType);
+      });
     }
 
     return { success: true };
   } catch (error) {
     console.error("Erro ao processar tipo de produto:", error);
+    throw error;
+  }
+}
+
+export async function SaveFeeform(data: FeeNewSchema) {
+  try {
+    // Convertemos campos específicos para os tipos esperados pela função saveFee
+    const feeData = {
+      ...data,
+      // Convertemos id para bigint se existir
+      id: data.id ? BigInt(data.id.toString()) : undefined,
+
+      // Campos numéricos devem ser convertidos para number
+      compulsoryAnticipationConfig:
+        data.compulsoryAnticipationConfig !== undefined
+          ? Number(data.compulsoryAnticipationConfig)
+          : undefined,
+
+      eventualAnticipationFee:
+        data.eventualAnticipationFee !== undefined
+          ? Number(data.eventualAnticipationFee)
+          : undefined,
+
+      cardPixMdr:
+        data.cardPixMdr !== undefined ? Number(data.cardPixMdr) : undefined,
+
+      cardPixCeilingFee:
+        data.cardPixCeilingFee !== undefined
+          ? Number(data.cardPixCeilingFee)
+          : undefined,
+
+      cardPixMinimumCostFee:
+        data.cardPixMinimumCostFee !== undefined
+          ? Number(data.cardPixMinimumCostFee)
+          : undefined,
+
+      nonCardPixMdr:
+        data.nonCardPixMdr !== undefined
+          ? Number(data.nonCardPixMdr)
+          : undefined,
+
+      nonCardPixCeilingFee:
+        data.nonCardPixCeilingFee !== undefined
+          ? Number(data.nonCardPixCeilingFee)
+          : undefined,
+
+      nonCardPixMinimumCostFee:
+        data.nonCardPixMinimumCostFee !== undefined
+          ? Number(data.nonCardPixMinimumCostFee)
+          : undefined,
+
+      // Não incluímos feeBrand na conversão inicial, pois o saveFee vai cuidar disso
+      feeBrand: undefined,
+    };
+
+    // Chamar saveFee apenas com os dados básicos da taxa
+    // saveFee já tem lógica para tratar os feeBrand separadamente
+    const savedFee = await saveFee(feeData);
+
+    return { success: true, feeId: savedFee.id };
+  } catch (error) {
+    console.error("Erro ao salvar taxa:", error);
     throw error;
   }
 }

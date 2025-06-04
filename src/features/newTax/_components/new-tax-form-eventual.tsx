@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,15 +9,11 @@ import {
   updatePixConfigAction,
 } from "@/features/newTax/_actions/pricing-formActions";
 import type { FeeData } from "@/features/newTax/server/fee-db";
+import { FeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useTransition,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
 
 interface PaymentGroup {
@@ -38,33 +34,13 @@ interface PaymentGroup {
   };
 }
 
-const paymentModes = [
-  { id: "creditoAVista", label: "Crédito à Vista" },
-  {
-    id: "creditoParcelado2a6",
-    label: "Crédito Parcelado (2 a 6 vezes)",
-    hasInstallments: true,
-    installmentRange: [2, 6],
-  },
-  {
-    id: "creditoParcelado7a12",
-    label: "Crédito Parcelado (7 a 12 vezes)",
-    hasInstallments: true,
-    installmentRange: [7, 12],
-  },
-  { id: "debito", label: "Débito" },
-  { id: "voucher", label: "Voucher" },
-  { id: "prePago", label: "Pré-Pago" },
-];
-
-interface PaymentConfigFormWithCardProps {
+interface PaymentConfigFormProps {
   fee: FeeData;
   hideButtons?: boolean;
 }
 
 type ModeField = "presentIntermediation" | "notPresentIntermediation";
-
-type ModeId = string; // Se quiser, pode restringir para os ids válidos
+type ModeId = string;
 
 export const PaymentConfigFormWithCard = forwardRef<
   {
@@ -73,38 +49,12 @@ export const PaymentConfigFormWithCard = forwardRef<
       groups: PaymentGroup[];
     };
   },
-  PaymentConfigFormWithCardProps
+  PaymentConfigFormProps
 >(function PaymentConfigFormWithCard({ fee, hideButtons = false }, ref) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [groups, setGroups] = useState<PaymentGroup[]>([
-    {
-      id: "group-1",
-      selectedCards: [],
-      modes: paymentModes.reduce((acc, mode) => {
-        acc[mode.id] = {
-          expanded: false,
-          presentIntermediation: "",
-          notPresentIntermediation: "",
-          ...(mode.hasInstallments && {
-            installments: Array.from(
-              {
-                length:
-                  mode.installmentRange![1] - mode.installmentRange![0] + 1,
-              },
-              (_, i) => i + mode.installmentRange![0]
-            ).reduce((iAcc, installment) => {
-              iAcc[installment] = {
-                presentIntermediation: "",
-                notPresentIntermediation: "",
-              };
-              return iAcc;
-            }, {} as any),
-          }),
-        };
-        return acc;
-      }, {} as any),
-    },
+    initializePaymentGroup("group-1"),
   ]);
 
   const [pixConfig, setPixConfig] = useState({
@@ -118,6 +68,164 @@ export const PaymentConfigFormWithCard = forwardRef<
     anticipationRateNotPresent: fee.eventualAnticipationFee || "",
   });
 
+  // Inicializar um grupo de pagamento
+  function initializePaymentGroup(groupId: string): PaymentGroup {
+    return {
+      id: groupId,
+      selectedCards: [],
+      modes: FeeProductTypeList.reduce((acc, mode) => {
+        acc[mode.value] = {
+          expanded: false,
+          presentIntermediation: "",
+          notPresentIntermediation: "",
+          ...(parseInt(mode.transactionFeeStart) > 0 && {
+            installments: createInstallmentsObject(mode),
+          }),
+        };
+        return acc;
+      }, {} as any),
+    };
+  }
+
+  // Criar objeto de parcelas para um modo
+  function createInstallmentsObject(mode: any) {
+    return Array.from(
+      {
+        length:
+          parseInt(mode.transactionFeeEnd) -
+          parseInt(mode.transactionFeeStart) +
+          1,
+      },
+      (_, i) => i + parseInt(mode.transactionFeeStart)
+    ).reduce((acc, installment) => {
+      acc[installment] = {
+        presentIntermediation: "",
+        notPresentIntermediation: "",
+      };
+      return acc;
+    }, {} as any);
+  }
+
+  // Carregar dados das bandeiras e tipos de produto quando o componente é montado
+  useEffect(() => {
+    if (fee?.feeBrand && fee.feeBrand.length > 0) {
+      // Agrupar as bandeiras por idGroup
+      const brandsByGroup = fee.feeBrand.reduce(
+        (acc, brand) => {
+          if (!acc[brand.idGroup]) {
+            acc[brand.idGroup] = [];
+          }
+          acc[brand.idGroup].push(brand);
+          return acc;
+        },
+        {} as Record<number, typeof fee.feeBrand>
+      );
+
+      // Criar um grupo para cada conjunto de bandeiras agrupadas
+      const newGroups = Object.entries(brandsByGroup).map(
+        ([, brands], index) => {
+          const selectedCards = brands.map((brand) => brand.brand);
+          const initialModes = FeeProductTypeList.reduce((acc, mode) => {
+            acc[mode.value] = {
+              expanded: false,
+              presentIntermediation: "",
+              notPresentIntermediation: "",
+              ...(parseInt(mode.transactionFeeStart) > 0 && {
+                installments: createInstallmentsObject(mode),
+              }),
+            };
+            return acc;
+          }, {} as any);
+
+          // Preencher valores para cada modo de pagamento
+          brands.forEach((brand) => {
+            if (brand.feeBrandProductType?.length) {
+              brand.feeBrandProductType.forEach((pt) => {
+                const modeMapping = getModeMapping(pt.producttype);
+                if (modeMapping) {
+                  const { modeId, installment } = modeMapping;
+
+                  if (
+                    installment !== undefined &&
+                    initialModes[modeId]?.installments?.[installment]
+                  ) {
+                    // Para parcelamento específico
+                    initialModes[modeId].installments[installment] = {
+                      presentIntermediation:
+                        pt.cardTransactionMdr?.toString() || "",
+                      notPresentIntermediation:
+                        pt.nonCardTransactionMdr?.toString() || "",
+                    };
+                  } else if (initialModes[modeId]) {
+                    // Para modo sem parcelamento
+                    initialModes[modeId].presentIntermediation =
+                      pt.cardTransactionMdr?.toString() || "";
+                    initialModes[modeId].notPresentIntermediation =
+                      pt.nonCardTransactionMdr?.toString() || "";
+                  }
+                }
+              });
+            }
+          });
+
+          return {
+            id: `group-${index + 1}`,
+            selectedCards,
+            modes: initialModes,
+          };
+        }
+      );
+
+      if (newGroups.length > 0) {
+        setGroups(newGroups);
+      }
+    }
+
+    // Atualizar configuração de PIX
+    if (fee) {
+      setPixConfig({
+        mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
+        mdrNotPresent:
+          fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
+        minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
+        minCostNotPresent:
+          fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
+        maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
+        maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
+        anticipationRatePresent: fee.eventualAnticipationFee || "",
+        anticipationRateNotPresent: fee.eventualAnticipationFee || "",
+      });
+    }
+  }, [fee]);
+
+  // Mapear tipo de produto para ID do modo e parcela
+  function getModeMapping(
+    productType: string
+  ): { modeId: string; installment?: number } | null {
+    if (productType === "Crédito à Vista") {
+      return { modeId: "CREDIT" };
+    } else if (productType.includes("Crédito Parcelado (2 a 6")) {
+      const match = productType.match(/\((\d+)/);
+      return {
+        modeId: "CREDIT_INSTALLMENTS_2_TO_6",
+        installment: match ? parseInt(match[1]) : undefined,
+      };
+    } else if (productType.includes("Crédito Parcelado (7 a 12")) {
+      const match = productType.match(/\((\d+)/);
+      return {
+        modeId: "CREDIT_INSTALLMENTS_7_TO_12",
+        installment: match ? parseInt(match[1]) : undefined,
+      };
+    } else if (productType === "Débito") {
+      return { modeId: "DEBIT" };
+    } else if (productType === "Voucher") {
+      return { modeId: "VOUCHER" };
+    } else if (productType === "Pré-Pago") {
+      return { modeId: "PREPAID_CREDIT" };
+    }
+    return null;
+  }
+
   // Expor o método getFormData via ref para o componente pai
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
@@ -126,6 +234,7 @@ export const PaymentConfigFormWithCard = forwardRef<
     }),
   }));
 
+  // Funções para manipular grupos de pagamento
   function toggleCardSelection(
     groupIndex: number,
     cardId: string,
@@ -136,7 +245,7 @@ export const PaymentConfigFormWithCard = forwardRef<
       const group = newGroups[groupIndex];
 
       if (checked === undefined) {
-        // Comportamento antigo, baseado no estado atual
+        // Toggle baseado no estado atual
         if (group.selectedCards.includes(cardId)) {
           group.selectedCards = group.selectedCards.filter(
             (id) => id !== cardId
@@ -145,14 +254,12 @@ export const PaymentConfigFormWithCard = forwardRef<
           group.selectedCards = [...group.selectedCards, cardId];
         }
       } else {
-        // Novo comportamento, baseado no valor de checked
+        // Definir baseado no valor de checked
         if (checked) {
-          // Adicionar se não estiver na lista
           if (!group.selectedCards.includes(cardId)) {
             group.selectedCards = [...group.selectedCards, cardId];
           }
         } else {
-          // Remover se estiver na lista
           group.selectedCards = group.selectedCards.filter(
             (id) => id !== cardId
           );
@@ -175,33 +282,7 @@ export const PaymentConfigFormWithCard = forwardRef<
   function addNewGroup() {
     setGroups((prevGroups) => [
       ...prevGroups,
-      {
-        id: `group-${prevGroups.length + 1}`,
-        selectedCards: [],
-        modes: paymentModes.reduce((acc, mode) => {
-          acc[mode.id] = {
-            expanded: false,
-            presentIntermediation: "",
-            notPresentIntermediation: "",
-            ...(mode.hasInstallments && {
-              installments: Array.from(
-                {
-                  length:
-                    mode.installmentRange![1] - mode.installmentRange![0] + 1,
-                },
-                (_, i) => i + mode.installmentRange![0]
-              ).reduce((iAcc, installment) => {
-                iAcc[installment] = {
-                  presentIntermediation: "",
-                  notPresentIntermediation: "",
-                };
-                return iAcc;
-              }, {} as any),
-            }),
-          };
-          return acc;
-        }, {} as any),
-      },
+      initializePaymentGroup(`group-${prevGroups.length + 1}`),
     ]);
   }
 
@@ -221,35 +302,40 @@ export const PaymentConfigFormWithCard = forwardRef<
     setGroups((prevGroups) => {
       const newGroups = [...prevGroups];
       const group = newGroups[groupIndex];
+
       if (
         installment !== undefined &&
         group.modes[modeId].installments?.[installment]
       ) {
-        (group.modes[modeId].installments![installment] as any)[field] = value;
+        group.modes[modeId].installments![installment][field] = value;
       } else {
-        (group.modes[modeId] as any)[field] = value;
+        group.modes[modeId][field] = value;
       }
+
       return newGroups;
     });
   }
 
-  function handlePixInputChange(field: keyof typeof pixConfig, value: string) {
-    setPixConfig((prev) => ({ ...prev, [field]: value }));
-  }
-
   function handleSave() {
-    startTransition(async () => {
-      try {
-        await updatePixConfigAction(fee.id, pixConfig);
-        await saveMerchantPricingAction(fee.id, groups);
+    setIsPending(true);
+
+    Promise.all([
+      updatePixConfigAction(fee.id, pixConfig),
+      saveMerchantPricingAction(fee.id, groups),
+    ])
+      .then(() => {
         toast.success("Configurações salvas com sucesso");
         router.refresh();
-      } catch {
+      })
+      .catch(() => {
         toast.error("Erro ao salvar configurações");
-      }
-    });
+      })
+      .finally(() => {
+        setIsPending(false);
+      });
   }
 
+  // Helpers para UI
   const getCardImage = (cardName: string): string => {
     const cardMap: { [key: string]: string } = {
       MASTERCARD: "/mastercard.svg",
@@ -262,147 +348,35 @@ export const PaymentConfigFormWithCard = forwardRef<
     };
     return cardMap[cardName] || "";
   };
+
+  const hasInstallments = (modeId: string): boolean => {
+    const mode = FeeProductTypeList.find((item) => item.value === modeId);
+    return mode ? parseInt(mode.transactionFeeStart) > 0 : false;
+  };
+
+  const getInstallmentRange = (modeId: string): [number, number] => {
+    const mode = FeeProductTypeList.find((item) => item.value === modeId);
+    return mode
+      ? [parseInt(mode.transactionFeeStart), parseInt(mode.transactionFeeEnd)]
+      : [0, 0];
+  };
+
+  const shouldDisableMainModeInput = (
+    modeId: string,
+    isExpanded: boolean
+  ): boolean => {
+    return hasInstallments(modeId) && isExpanded;
+  };
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center">
-            <ChevronDown className="h-5 w-5 mr-2" />
-            <div>
-              <CardTitle className="text-lg">{fee.name}</CardTitle>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* PIX Section */}
-          <Card className="mb-6">
-            <CardContent className="p-0">
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 font-medium border-r bg-gray-50">PIX</div>
-                <div className="p-3 font-medium text-center border-r bg-gray-50">
-                  Cartão Presente
-                </div>
-                <div className="p-3 font-medium text-center bg-gray-50">
-                  Cartão Não Presente
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 border-r">MDR (%)</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.mdrPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("mdrPresent", e.target.value)
-                    }
-                  />
-                  <span className="ml-1">%</span>
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.mdrNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("mdrNotPresent", e.target.value)
-                    }
-                  />
-                  <span className="ml-1">%</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 border-r">Custo mínimo</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.minCostPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("minCostPresent", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.minCostNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("minCostNotPresent", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 border-r">Custo máximo</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.maxCostPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("maxCostPresent", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.maxCostNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("maxCostNotPresent", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3">
-                <div className="p-3 border-r">Taxa de Antecipação (% a.m.)</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.anticipationRatePresent}
-                    onChange={(e) =>
-                      handlePixInputChange(
-                        "anticipationRatePresent",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <span className="ml-1">% a.m.</span>
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.anticipationRateNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange(
-                        "anticipationRateNotPresent",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <span className="ml-1">% a.m.</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <CardContent className="p-0">
           {/* Grupos de Pagamento */}
           {groups.map((group, groupIndex) => (
             <Card key={group.id} className="mb-6">
               <CardContent className="p-0">
+                {/* Cabeçalho do grupo com seleção de bandeiras */}
                 <div className="p-3 border-b flex items-center justify-between bg-gray-50">
                   <div className="flex items-center">
                     <span className="font-medium mr-2">Bandeiras:</span>
@@ -453,21 +427,15 @@ export const PaymentConfigFormWithCard = forwardRef<
                               id={`${group.id}-${card.value}`}
                               checked={group.selectedCards.includes(card.value)}
                               onCheckedChange={(checked) => {
-                                if (checked === true) {
-                                  // Adicionar o cartão
-                                  toggleCardSelection(
-                                    groupIndex,
-                                    card.value,
-                                    true
-                                  );
-                                } else if (checked === false) {
-                                  // Remover o cartão
-                                  toggleCardSelection(
-                                    groupIndex,
-                                    card.value,
-                                    false
-                                  );
-                                }
+                                toggleCardSelection(
+                                  groupIndex,
+                                  card.value,
+                                  checked === true
+                                    ? true
+                                    : checked === false
+                                      ? false
+                                      : undefined
+                                );
                               }}
                               className="mr-1"
                             />
@@ -505,6 +473,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                   </div>
                 </div>
 
+                {/* Cabeçalho da tabela de modos */}
                 <div className="grid grid-cols-3 border-b">
                   <div className="p-3 font-medium border-r bg-gray-50">
                     Modo
@@ -517,19 +486,24 @@ export const PaymentConfigFormWithCard = forwardRef<
                   </div>
                 </div>
 
-                {paymentModes.map((mode) => (
-                  <div key={`${group.id}-${mode.id}`}>
+                {/* Modos de pagamento */}
+                {FeeProductTypeList.map((feeProductType) => (
+                  <div key={`${group.id}-${feeProductType.value}`}>
+                    {/* Linha principal do modo */}
                     <div className="grid grid-cols-3 border-b">
                       <div className="p-3 border-r flex items-center justify-between">
-                        <span>{mode.label}</span>
-                        {mode.hasInstallments && (
+                        <span>{feeProductType.label}</span>
+                        {hasInstallments(feeProductType.value) && (
                           <button
                             onClick={() =>
-                              toggleModeExpansion(groupIndex, mode.id)
+                              toggleModeExpansion(
+                                groupIndex,
+                                feeProductType.value
+                              )
                             }
                             className="focus:outline-none"
                           >
-                            {group.modes[mode.id].expanded ? (
+                            {group.modes[feeProductType.value].expanded ? (
                               <ChevronUp className="h-4 w-4" />
                             ) : (
                               <ChevronDown className="h-4 w-4" />
@@ -541,15 +515,22 @@ export const PaymentConfigFormWithCard = forwardRef<
                         <Input
                           type="text"
                           className="w-16 text-right"
-                          value={group.modes[mode.id].presentIntermediation}
+                          value={
+                            group.modes[feeProductType.value]
+                              .presentIntermediation
+                          }
                           onChange={(e) =>
                             handleInputChange(
                               groupIndex,
-                              mode.id,
+                              feeProductType.value,
                               "presentIntermediation",
                               e.target.value
                             )
                           }
+                          disabled={shouldDisableMainModeInput(
+                            feeProductType.value,
+                            group.modes[feeProductType.value].expanded
+                          )}
                         />
                         <span className="ml-1">%</span>
                       </div>
@@ -557,78 +538,88 @@ export const PaymentConfigFormWithCard = forwardRef<
                         <Input
                           type="text"
                           className="w-16 text-right"
-                          value={group.modes[mode.id].notPresentIntermediation}
+                          value={
+                            group.modes[feeProductType.value]
+                              .notPresentIntermediation
+                          }
                           onChange={(e) =>
                             handleInputChange(
                               groupIndex,
-                              mode.id,
+                              feeProductType.value,
                               "notPresentIntermediation",
                               e.target.value
                             )
                           }
+                          disabled={shouldDisableMainModeInput(
+                            feeProductType.value,
+                            group.modes[feeProductType.value].expanded
+                          )}
                         />
                         <span className="ml-1">%</span>
                       </div>
                     </div>
 
-                    {mode.hasInstallments &&
-                      group.modes[mode.id].expanded &&
-                      Array.from(
-                        {
-                          length:
-                            mode.installmentRange![1] -
-                            mode.installmentRange![0] +
-                            1,
-                        },
-                        (_, i) => i + mode.installmentRange![0]
-                      ).map((installment) => (
-                        <div
-                          key={`${group.id}-${mode.id}-${installment}`}
-                          className="grid grid-cols-3 border-b bg-gray-50"
-                        >
-                          <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
-                          <div className="p-3 border-r flex items-center justify-center">
-                            <Input
-                              type="text"
-                              className="w-16 text-right"
-                              value={
-                                group.modes[mode.id].installments?.[installment]
-                                  ?.presentIntermediation || ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  groupIndex,
-                                  mode.id,
-                                  "presentIntermediation",
-                                  e.target.value,
-                                  installment
-                                )
-                              }
-                            />
-                            <span className="ml-1">%</span>
+                    {/* Linhas de parcelamento se expandido */}
+                    {hasInstallments(feeProductType.value) &&
+                      group.modes[feeProductType.value].expanded &&
+                      (() => {
+                        const [start, end] = getInstallmentRange(
+                          feeProductType.value
+                        );
+                        return Array.from(
+                          { length: end - start + 1 },
+                          (_, i) => i + start
+                        ).map((installment) => (
+                          <div
+                            key={`${group.id}-${feeProductType.value}-${installment}`}
+                            className="grid grid-cols-3 border-b bg-gray-50"
+                          >
+                            <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
+                            <div className="p-3 border-r flex items-center justify-center">
+                              <Input
+                                type="text"
+                                className="w-16 text-right"
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.presentIntermediation || ""
+                                }
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "presentIntermediation",
+                                    e.target.value,
+                                    installment
+                                  )
+                                }
+                              />
+                              <span className="ml-1">%</span>
+                            </div>
+                            <div className="p-3 flex items-center justify-center">
+                              <Input
+                                type="text"
+                                className="w-16 text-right"
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.notPresentIntermediation || ""
+                                }
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "notPresentIntermediation",
+                                    e.target.value,
+                                    installment
+                                  )
+                                }
+                              />
+                              <span className="ml-1">%</span>
+                            </div>
                           </div>
-                          <div className="p-3 flex items-center justify-center">
-                            <Input
-                              type="text"
-                              className="w-16 text-right"
-                              value={
-                                group.modes[mode.id].installments?.[installment]
-                                  ?.notPresentIntermediation || ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  groupIndex,
-                                  mode.id,
-                                  "notPresentIntermediation",
-                                  e.target.value,
-                                  installment
-                                )
-                              }
-                            />
-                            <span className="ml-1">%</span>
-                          </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                   </div>
                 ))}
               </CardContent>
@@ -650,49 +641,6 @@ export const PaymentConfigFormWithCard = forwardRef<
           )}
         </CardContent>
       </Card>
-
-      <h3 className="text-lg font-semibold mb-4">
-        Tabela de Taxas por Bandeira e Tipo de Produto
-      </h3>
-      {fee.feeBrand.map((brand) => (
-        <div key={brand.brand} className="mb-6">
-          <h4 className="font-medium mb-2">{brand.brand}</h4>
-          <table className="min-w-full border text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-2 py-1">Modo de Pagamento</th>
-                <th className="border px-2 py-1">MDR Cartão Presente</th>
-                <th className="border px-2 py-1">MDR Cartão Não Presente</th>
-                <th className="border px-2 py-1">
-                  Taxa Intermediação Presente
-                </th>
-                <th className="border px-2 py-1">
-                  Taxa Intermediação Não Presente
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {brand.feeBrandProductType.map((product) => (
-                <tr key={product.producttype}>
-                  <td className="border px-2 py-1">{product.producttype}</td>
-                  <td className="border px-2 py-1">
-                    {product.cardTransactionFee}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.nonCardTransactionFee}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.cardTransactionMdr}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.nonCardTransactionMdr}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
     </div>
   );
 });

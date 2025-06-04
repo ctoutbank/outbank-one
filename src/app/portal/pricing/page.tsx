@@ -9,6 +9,7 @@ export const revalidate = 0;
 export default async function NewTaxPage() {
   // Buscar taxas no servidor usando a action
   const fees = await getFeesAction();
+  console.log("fees", fees);
 
   return (
     <>

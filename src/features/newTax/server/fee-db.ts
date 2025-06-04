@@ -2,7 +2,7 @@
 
 import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
 import { db } from "@/server/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { fee, feeBrand, feeBrandProductType } from "../../../../drizzle/schema";
 
 export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
@@ -46,12 +46,13 @@ export type feetype = {
   value: string;
 };
 
-// Definição dos tipos necessários para corresponder com o schema
+// Definição dos tipos de dados
 export interface FeeData {
   id: string;
   active: boolean;
   dtinsert: string;
   dtupdate: string;
+  code: string;
   name: string;
   tableType: string;
   compulsoryAnticipationConfig: string;
@@ -64,6 +65,7 @@ export interface FeeData {
   nonCardPixCeilingFee: string;
   nonCardPixMinimumCostFee: string;
   feeBrand: FeeBrand[];
+  slug: string;
 }
 
 export interface FeeBrand {
@@ -94,7 +96,7 @@ export interface feeBrandProductType {
   idFeeBrand: number;
 }
 
-// Função auxiliar para mapear dados do DB para o formato da FeeData
+// Função para mapear dados do DB para o formato da FeeData
 function mapDbDataToFeeData(
   feeData: any,
   feeBrands: any[],
@@ -149,10 +151,11 @@ function mapDbDataToFeeData(
     dtupdate: feeData.dtupdate || "",
     name: feeData.name || "",
     tableType: feeData.tableType || "",
+    code: feeData.code || "",
     compulsoryAnticipationConfig:
       feeData.compulsoryAnticipationConfig?.toString() || "0",
     eventualAnticipationFee: feeData.eventualAnticipationFee?.toString() || "0",
-    anticipationType: feeData.anticipationType || "none",
+    anticipationType: feeData.anticipationType || "NOANTECIPATION",
     cardPixMdr: feeData.cardPixMdr?.toString() || "0",
     cardPixCeilingFee: feeData.cardPixCeilingFee?.toString() || "0",
     cardPixMinimumCostFee: feeData.cardPixMinimumCostFee?.toString() || "0",
@@ -161,6 +164,7 @@ function mapDbDataToFeeData(
     nonCardPixMinimumCostFee:
       feeData.nonCardPixMinimumCostFee?.toString() || "0",
     feeBrand: brandDetails,
+    slug: feeData.slug || "",
   };
 }
 
@@ -196,12 +200,8 @@ function getPaymentModeFromProductType(
 // Função para buscar todas as taxas
 export async function getFees(): Promise<FeeData[]> {
   try {
-    console.log("Buscando todas as taxas disponíveis");
-
     // Buscar todas as taxas no banco de dados
     const fees = await db.select().from(fee);
-
-    // Para cada taxa, buscar as marcas e tipos de produto associados
     const feeDataList: FeeData[] = [];
 
     for (const f of fees) {
@@ -221,14 +221,11 @@ export async function getFees(): Promise<FeeData[]> {
       const productTypes = await db
         .select()
         .from(feeBrandProductType)
-        .where(
-          sql`${feeBrandProductType.idFeeBrand} IN (${brandIds.join(",")})`
-        );
+        .where(inArray(feeBrandProductType.idFeeBrand, brandIds));
 
       feeDataList.push(mapDbDataToFeeData(f, brands, productTypes));
     }
 
-    console.log(`Encontradas ${feeDataList.length} taxas`);
     return feeDataList;
   } catch (error) {
     console.error("Erro ao buscar taxas:", error);
@@ -239,11 +236,8 @@ export async function getFees(): Promise<FeeData[]> {
 // Função para buscar uma taxa específica pelo ID
 export async function getFeeById(id: string): Promise<FeeData | null> {
   try {
-    console.log(`Buscando taxa com ID ${id}`);
-
     // Se for ID 0, retorna um objeto padrão para nova taxa
     if (id === "0") {
-      console.log("Criando objeto padrão para nova taxa");
       return createEmptyFee();
     }
 
@@ -254,8 +248,21 @@ export async function getFeeById(id: string): Promise<FeeData | null> {
       .where(eq(fee.id, parseInt(id)));
 
     if (!feeData) {
-      console.log(`Taxa com ID ${id} não encontrada, retornando null`);
       return null;
+    }
+
+    // Normalizar o tipo de antecipação para um formato padrão
+    if (feeData.anticipationType) {
+      if (
+        feeData.anticipationType === "Sem Antecipação" ||
+        feeData.anticipationType === "none"
+      ) {
+        feeData.anticipationType = "NOANTECIPATION";
+      } else if (feeData.anticipationType === "Antecipação Eventual") {
+        feeData.anticipationType = "EVENTUAL";
+      } else if (feeData.anticipationType === "Antecipação Compulsória") {
+        feeData.anticipationType = "COMPULSORY";
+      }
     }
 
     // Buscar as marcas associadas
@@ -273,7 +280,7 @@ export async function getFeeById(id: string): Promise<FeeData | null> {
     const productTypes = await db
       .select()
       .from(feeBrandProductType)
-      .where(sql`${feeBrandProductType.idFeeBrand} IN (${brandIds.join(",")})`);
+      .where(inArray(feeBrandProductType.idFeeBrand, brandIds));
 
     return mapDbDataToFeeData(feeData, brands, productTypes);
   } catch (error) {
@@ -291,9 +298,10 @@ function createEmptyFee(): FeeData {
     dtupdate: new Date().toISOString(),
     name: "Nova Taxa",
     tableType: "SIMPLE",
+    code: "",
     compulsoryAnticipationConfig: "0",
     eventualAnticipationFee: "0",
-    anticipationType: "none",
+    anticipationType: "NOANTECIPATION",
     cardPixMdr: "0",
     cardPixCeilingFee: "0",
     cardPixMinimumCostFee: "0",
@@ -301,6 +309,7 @@ function createEmptyFee(): FeeData {
     nonCardPixCeilingFee: "0",
     nonCardPixMinimumCostFee: "0",
     feeBrand: [],
+    slug: "",
   };
 }
 
@@ -330,8 +339,6 @@ export async function getModosPagamento(): Promise<string[]> {
 // Função para inserir uma nova taxa
 export async function insertFee(feeData: FeeNewSchema): Promise<number> {
   try {
-    console.log("Iniciando inserção de nova taxa");
-
     // Converter datas para ISO string
     const now = new Date().toISOString();
 
@@ -341,11 +348,12 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
       active: feeData.active !== undefined ? feeData.active : true,
       dtinsert: now,
       dtupdate: now,
+      code: feeData.code || "",
       name: feeData.name || "Nova Taxa",
       tableType: feeData.tableType || "SIMPLE",
       compulsoryAnticipationConfig: sql`${feeData.compulsoryAnticipationConfig || 0}`,
       eventualAnticipationFee: sql`${feeData.eventualAnticipationFee || 0}`,
-      anticipationType: feeData.anticipationType || "none",
+      anticipationType: feeData.anticipationType || "NOANTECIPATION",
       cardPixMdr: sql`${feeData.cardPixMdr || 0}`,
       cardPixCeilingFee: sql`${feeData.cardPixCeilingFee || 0}`,
       cardPixMinimumCostFee: sql`${feeData.cardPixMinimumCostFee || 0}`,
@@ -365,57 +373,10 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
     }
 
     const newFeeId = result[0].id;
-    console.log(`Nova taxa inserida com ID ${newFeeId}`);
 
     // Inserir as marcas (feeBrand) se fornecidas
     if (feeData.feeBrand && feeData.feeBrand.length > 0) {
-      for (const brand of feeData.feeBrand) {
-        // Inserir a marca
-        const brandInsertData = {
-          slug: brand.slug || "",
-          active: brand.active !== undefined ? brand.active : true,
-          dtinsert: now,
-          dtupdate: now,
-          brand: brand.brand || "",
-          idGroup: brand.idGroup || 0,
-          idFee: newFeeId,
-        };
-
-        const brandResult = await db
-          .insert(feeBrand)
-          .values(brandInsertData)
-          .returning({ id: feeBrand.id });
-
-        if (!brandResult[0]?.id) {
-          console.warn(`Falha ao inserir marca para taxa ${newFeeId}`);
-          continue;
-        }
-
-        const newBrandId = brandResult[0].id;
-
-        // Inserir os tipos de produto (feeBrandProductType) se fornecidos
-        if (brand.feeBrandProductType && brand.feeBrandProductType.length > 0) {
-          for (const productType of brand.feeBrandProductType) {
-            const productTypeInsertData = {
-              slug: productType.slug || "",
-              active:
-                productType.active !== undefined ? productType.active : true,
-              dtinsert: now,
-              dtupdate: now,
-              installmentTransactionFeeStart: sql`${productType.installmentTransactionFeeStart || 0}`,
-              installmentTransactionFeeEnd: sql`${productType.installmentTransactionFeeEnd || 0}`,
-              cardTransactionFee: sql`${productType.cardTransactionFee || 0}`,
-              cardTransactionMdr: sql`${productType.cardTransactionMdr || 0}`,
-              nonCardTransactionFee: sql`${productType.nonCardTransactionFee || 0}`,
-              nonCardTransactionMdr: sql`${productType.nonCardTransactionMdr || 0}`,
-              producttype: productType.producttype || "",
-              idFeeBrand: newBrandId,
-            };
-
-            await db.insert(feeBrandProductType).values(productTypeInsertData);
-          }
-        }
-      }
+      await insertBrandsWithProductTypes(feeData.feeBrand, newFeeId);
     }
 
     return newFeeId;
@@ -425,11 +386,70 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
   }
 }
 
+// Função para inserir marcas e tipos de produtos
+async function insertBrandsWithProductTypes(brands: any[], feeId: number) {
+  const now = new Date().toISOString();
+
+  for (const brand of brands) {
+    // Inserir a marca
+    const brandInsertData = {
+      slug: brand.slug || "",
+      active: brand.active !== undefined ? brand.active : true,
+      dtinsert: now,
+      dtupdate: now,
+      brand: brand.brand || "",
+      idGroup: brand.idGroup || 0,
+      idFee: feeId,
+    };
+
+    const brandResult = await db
+      .insert(feeBrand)
+      .values(brandInsertData)
+      .returning({ id: feeBrand.id });
+
+    if (!brandResult[0]?.id) {
+      console.warn(`Falha ao inserir marca para taxa ${feeId}`);
+      continue;
+    }
+
+    const newBrandId = brandResult[0].id;
+
+    // Inserir os tipos de produto (feeBrandProductType) se fornecidos
+    if (brand.feeBrandProductType && brand.feeBrandProductType.length > 0) {
+      await insertProductTypes(brand.feeBrandProductType, newBrandId, now);
+    }
+  }
+}
+
+// Função para inserir tipos de produtos
+async function insertProductTypes(
+  productTypes: any[],
+  brandId: number,
+  timestamp: string
+) {
+  for (const productType of productTypes) {
+    const productTypeInsertData = {
+      slug: productType.slug || "",
+      active: productType.active !== undefined ? productType.active : true,
+      dtinsert: timestamp,
+      dtupdate: timestamp,
+      installmentTransactionFeeStart: sql`${productType.installmentTransactionFeeStart || 0}`,
+      installmentTransactionFeeEnd: sql`${productType.installmentTransactionFeeEnd || 0}`,
+      cardTransactionFee: sql`${productType.cardTransactionFee || 0}`,
+      cardTransactionMdr: sql`${productType.cardTransactionMdr || 0}`,
+      nonCardTransactionFee: sql`${productType.nonCardTransactionFee || 0}`,
+      nonCardTransactionMdr: sql`${productType.nonCardTransactionMdr || 0}`,
+      producttype: productType.producttype || "",
+      idFeeBrand: brandId,
+    };
+
+    await db.insert(feeBrandProductType).values(productTypeInsertData);
+  }
+}
+
 // Função para atualizar uma taxa existente
 export async function updateFee(feeData: FeeNewSchema): Promise<void> {
   try {
-    console.log(`Iniciando atualização da taxa ID ${feeData.id}`);
-
     if (!feeData.id) {
       throw new Error("ID da taxa não fornecido para atualização");
     }
@@ -446,7 +466,7 @@ export async function updateFee(feeData: FeeNewSchema): Promise<void> {
       tableType: feeData.tableType || "SIMPLE",
       compulsoryAnticipationConfig: sql`${feeData.compulsoryAnticipationConfig || 0}`,
       eventualAnticipationFee: sql`${feeData.eventualAnticipationFee || 0}`,
-      anticipationType: feeData.anticipationType || "none",
+      anticipationType: feeData.anticipationType || "NOANTECIPATION",
       cardPixMdr: sql`${feeData.cardPixMdr || 0}`,
       cardPixCeilingFee: sql`${feeData.cardPixCeilingFee || 0}`,
       cardPixMinimumCostFee: sql`${feeData.cardPixMinimumCostFee || 0}`,
@@ -461,74 +481,9 @@ export async function updateFee(feeData: FeeNewSchema): Promise<void> {
       .set(updateData)
       .where(eq(fee.id, Number(feeData.id)));
 
-    console.log(`Taxa ID ${feeData.id} atualizada com sucesso`);
-
     // Atualizar as marcas (feeBrand) - estratégia de remover e recriar
     if (feeData.feeBrand && feeData.feeBrand.length > 0) {
-      // Primeiro, buscar todas as marcas existentes para essa taxa
-      const existingBrands = await db
-        .select()
-        .from(feeBrand)
-        .where(eq(feeBrand.idFee, Number(feeData.id)));
-
-      // Para cada marca existente, excluir seus tipos de produto
-      for (const brand of existingBrands) {
-        await db
-          .delete(feeBrandProductType)
-          .where(eq(feeBrandProductType.idFeeBrand, brand.id));
-      }
-
-      // Excluir todas as marcas existentes para essa taxa
-      await db.delete(feeBrand).where(eq(feeBrand.idFee, Number(feeData.id)));
-
-      // Inserir as novas marcas e tipos de produto
-      for (const brand of feeData.feeBrand) {
-        // Inserir a marca
-        const brandInsertData = {
-          slug: brand.slug || "",
-          active: brand.active !== undefined ? brand.active : true,
-          dtinsert: now,
-          dtupdate: now,
-          brand: brand.brand || "",
-          idGroup: brand.idGroup || 0,
-          idFee: Number(feeData.id),
-        };
-
-        const brandResult = await db
-          .insert(feeBrand)
-          .values(brandInsertData)
-          .returning({ id: feeBrand.id });
-
-        if (!brandResult[0]?.id) {
-          console.warn(`Falha ao inserir marca para taxa ${feeData.id}`);
-          continue;
-        }
-
-        const newBrandId = brandResult[0].id;
-
-        // Inserir os tipos de produto (feeBrandProductType) se fornecidos
-        if (brand.feeBrandProductType && brand.feeBrandProductType.length > 0) {
-          for (const productType of brand.feeBrandProductType) {
-            const productTypeInsertData = {
-              slug: productType.slug || "",
-              active:
-                productType.active !== undefined ? productType.active : true,
-              dtinsert: now,
-              dtupdate: now,
-              installmentTransactionFeeStart: sql`${productType.installmentTransactionFeeStart || 0}`,
-              installmentTransactionFeeEnd: sql`${productType.installmentTransactionFeeEnd || 0}`,
-              cardTransactionFee: sql`${productType.cardTransactionFee || 0}`,
-              cardTransactionMdr: sql`${productType.cardTransactionMdr || 0}`,
-              nonCardTransactionFee: sql`${productType.nonCardTransactionFee || 0}`,
-              nonCardTransactionMdr: sql`${productType.nonCardTransactionMdr || 0}`,
-              producttype: productType.producttype || "",
-              idFeeBrand: newBrandId,
-            };
-
-            await db.insert(feeBrandProductType).values(productTypeInsertData);
-          }
-        }
-      }
+      await updateBrandsAndProductTypes(feeData);
     }
   } catch (error) {
     console.error(`Erro ao atualizar taxa ID ${feeData.id}:`, error);
@@ -536,21 +491,50 @@ export async function updateFee(feeData: FeeNewSchema): Promise<void> {
   }
 }
 
+// Função para atualizar marcas e tipos de produtos
+async function updateBrandsAndProductTypes(
+  feeData: FeeNewSchema
+): Promise<void> {
+  const feeId = Number(feeData.id);
+
+  // Primeiro, buscar todas as marcas existentes para essa taxa
+  const existingBrands = await db
+    .select()
+    .from(feeBrand)
+    .where(eq(feeBrand.idFee, feeId));
+
+  // Para cada marca existente, excluir seus tipos de produto
+  for (const brand of existingBrands) {
+    await db
+      .delete(feeBrandProductType)
+      .where(eq(feeBrandProductType.idFeeBrand, brand.id));
+  }
+
+  // Excluir todas as marcas existentes para essa taxa
+  await db.delete(feeBrand).where(eq(feeBrand.idFee, feeId));
+
+  // Inserir as novas marcas e tipos de produto
+  if (feeData.feeBrand) {
+    await insertBrandsWithProductTypes(feeData.feeBrand, feeId);
+  }
+}
+
 // Função para salvar uma taxa (inserir nova ou atualizar existente)
 export async function saveFee(feeData: FeeNewSchema): Promise<FeeNewSchema> {
   try {
-    console.log("Iniciando salvamento de taxa");
-
+    // Verificar se é uma atualização ou inserção nova
     if (feeData.id) {
       // Atualizar taxa existente
       await updateFee(feeData);
+      return feeData;
     } else {
       // Inserir nova taxa
       const newId = await insertFee(feeData);
-      feeData.id = BigInt(newId);
+      return {
+        ...feeData,
+        id: BigInt(newId),
+      };
     }
-
-    return feeData;
   } catch (error) {
     console.error("Erro ao salvar taxa:", error);
     throw error;

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const schemaFeeBrandProductType = z.object({
-  id: z.bigint(),
-  slug: z.string().max(50),
-  active: z.boolean(),
+  id: z.bigint().optional(),
+  slug: z.string().max(50).optional(),
+  active: z.boolean().optional(),
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
   installmentTransactionFeeStart: z.number().int().optional(),
@@ -17,7 +17,7 @@ export const schemaFeeBrandProductType = z.object({
 });
 
 export const schemaFeeBrand = z.object({
-  id: z.bigint(),
+  id: z.bigint().optional(),
   slug: z.string().max(50).optional(),
   active: z.boolean().optional(),
   dtinsert: z.date().optional(),
@@ -38,21 +38,19 @@ export const schemaFee = z.object({
   tableType: z.string().max(20).optional(),
   compulsoryAnticipationConfig: z.number().int().optional(),
   eventualAnticipationFee: z.number().optional(),
-  anticipationType: z.string().max(25).optional(),
+  anticipationType: z.string().optional(),
   cardPixMdr: z.number().optional(),
   cardPixCeilingFee: z.number().optional(),
   cardPixMinimumCostFee: z.number().optional(),
   nonCardPixMdr: z.number().optional(),
   nonCardPixCeilingFee: z.number().optional(),
   nonCardPixMinimumCostFee: z.number().optional(),
+  code: z.string().max(50).optional(),
   feeBrand: z.array(schemaFeeBrand).optional(),
 });
 
 export type FeeNewSchema = z.infer<typeof schemaFee>;
-
-export const anticipationTypeSchema = z.object({
-  id: z.string().optional(),
-  anticipationType: z.enum(["NOANTECIPATION", "EVENTUAL", "COMPULSORY"]),
-});
-
-export type AnticipationTypeSchema = z.infer<typeof anticipationTypeSchema>;
+export type FeeBrandSchema = z.infer<typeof schemaFeeBrand>;
+export type FeeBrandProductTypeSchema = z.infer<
+  typeof schemaFeeBrandProductType
+>;

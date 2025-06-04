@@ -110,11 +110,11 @@ export default function FeeList({ fees }: FeeListProps) {
                   </AccordionTrigger>
                   <AccordionContent className="border-t bg-sidebar border-b-2 border-gray-200">
                     <NewTaxPixSession data={fee} />
-                    <div className="pl-6 pr-4 pb-1 pt-4">
+                    <div className="mt-1">
                       <div className="rounded-lg bg-white shadow-sm border border-gray-300">
                         {fee.feeBrand.length > 0 ? (
                           fee.feeBrand.map((brand: FeeBrand, index: number) => (
-                            <div key={index} className="mb-6">
+                            <div key={index} className=" mt-2">
                               <div className="px-4 py-3 border-b border-gray-200">
                                 <div className="flex items-center gap-2 mb-2">
                                   {getCardImage(brand.brand) && (

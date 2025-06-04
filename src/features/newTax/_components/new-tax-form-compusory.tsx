@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,15 +13,10 @@ import { FeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useTransition,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
 
-// Interface estendida que adiciona as propriedades necessárias
+// Interface para os tipos de produtos de pagamento com informações adicionais
 interface ExtendedFeeProductType {
   value: string;
   label: string;
@@ -31,47 +26,7 @@ interface ExtendedFeeProductType {
   installmentRange?: [number, number];
 }
 
-// Função auxiliar para determinar se um modo tem parcelas e qual o intervalo
-function getExtendedProductType(
-  mode: (typeof FeeProductTypeList)[number]
-): ExtendedFeeProductType {
-  const isInstallment = mode.value.includes("CREDIT_INSTALLMENTS");
-
-  if (isInstallment) {
-    if (mode.value === "CREDIT_INSTALLMENTS_2_TO_6") {
-      return {
-        ...mode,
-        hasInstallments: true,
-        installmentRange: [2, 6],
-      };
-    } else if (mode.value === "CREDIT_INSTALLMENTS_7_TO_12") {
-      return {
-        ...mode,
-        hasInstallments: true,
-        installmentRange: [7, 12],
-      };
-    }
-  }
-
-  return {
-    ...mode,
-    hasInstallments: false,
-  };
-}
-
-const getCardImage = (cardName: string): string => {
-  const cardMap: { [key: string]: string } = {
-    MASTERCARD: "/mastercard.svg",
-    VISA: "/visa.svg",
-    ELO: "/elo.svg",
-    AMERICAN_EXPRESS: "/american-express.svg",
-    HIPERCARD: "/hipercard.svg",
-    AMEX: "/american-express.svg",
-    CABAL: "/cabal.svg",
-  };
-  return cardMap[cardName] || "";
-};
-
+// Interface para grupos de pagamento
 interface PaymentGroup {
   id: string;
   selectedCards: string[];
@@ -111,7 +66,49 @@ type ModeField =
   | "presentTransaction"
   | "notPresentTransaction";
 
-type ModeId = string; // Se quiser, pode restringir para os ids válidos
+type ModeId = string;
+
+// Determinar se um modo tem parcelas e qual o intervalo
+function getExtendedProductType(
+  mode: (typeof FeeProductTypeList)[number]
+): ExtendedFeeProductType {
+  const isInstallment = mode.value.includes("CREDIT_INSTALLMENTS");
+
+  if (isInstallment) {
+    if (mode.value === "CREDIT_INSTALLMENTS_2_TO_6") {
+      return {
+        ...mode,
+        hasInstallments: true,
+        installmentRange: [2, 6],
+      };
+    } else if (mode.value === "CREDIT_INSTALLMENTS_7_TO_12") {
+      return {
+        ...mode,
+        hasInstallments: true,
+        installmentRange: [7, 12],
+      };
+    }
+  }
+
+  return {
+    ...mode,
+    hasInstallments: false,
+  };
+}
+
+// Função para obter imagem do cartão pelo nome
+function getCardImage(cardName: string): string {
+  const cardMap: { [key: string]: string } = {
+    MASTERCARD: "/mastercard.svg",
+    VISA: "/visa.svg",
+    ELO: "/elo.svg",
+    AMERICAN_EXPRESS: "/american-express.svg",
+    HIPERCARD: "/hipercard.svg",
+    AMEX: "/american-express.svg",
+    CABAL: "/cabal.svg",
+  };
+  return cardMap[cardName] || "";
+}
 
 export const PaymentConfigFormCompulsory = forwardRef<
   {
@@ -123,10 +120,24 @@ export const PaymentConfigFormCompulsory = forwardRef<
   PaymentConfigFormCompulsoryProps
 >(function PaymentConfigFormCompulsory({ fee, hideButtons = false }, ref) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [groups, setGroups] = useState<PaymentGroup[]>([
-    {
-      id: "group-1",
+    initializePaymentGroup("group-1"),
+  ]);
+
+  const [pixConfig, setPixConfig] = useState({
+    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
+    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
+    maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
+    maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
+  });
+
+  // Inicializar um grupo de pagamento
+  function initializePaymentGroup(groupId: string): PaymentGroup {
+    return {
+      id: groupId,
       selectedCards: [],
       modes: FeeProductTypeList.reduce((acc, modeBase) => {
         const mode = getExtendedProductType(modeBase);
@@ -139,38 +150,172 @@ export const PaymentConfigFormCompulsory = forwardRef<
           presentTransaction: "",
           notPresentTransaction: "",
           ...(mode.hasInstallments && {
-            installments: Array.from(
-              {
-                length:
-                  mode.installmentRange![1] - mode.installmentRange![0] + 1,
-              },
-              (_, i) => i + mode.installmentRange![0]
-            ).reduce((iAcc, installment) => {
-              iAcc[installment] = {
-                presentIntermediation: "",
-                notPresentIntermediation: "",
-                presentAnticipation: "",
-                notPresentAnticipation: "",
-                presentTransaction: "",
-                notPresentTransaction: "",
-              };
-              return iAcc;
-            }, {} as any),
+            installments: createInstallmentsObject(mode),
           }),
         };
         return acc;
       }, {} as any),
-    },
-  ]);
+    };
+  }
 
-  const [pixConfig, setPixConfig] = useState({
-    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
-    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
-    maxCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
-    maxCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
-  });
+  // Criar objeto de parcelas para um modo
+  function createInstallmentsObject(mode: ExtendedFeeProductType) {
+    if (!mode.installmentRange) return {};
+
+    return Array.from(
+      {
+        length: mode.installmentRange[1] - mode.installmentRange[0] + 1,
+      },
+      (_, i) => i + mode.installmentRange![0]
+    ).reduce((acc, installment) => {
+      acc[installment] = {
+        presentIntermediation: "",
+        notPresentIntermediation: "",
+        presentAnticipation: "",
+        notPresentAnticipation: "",
+        presentTransaction: "",
+        notPresentTransaction: "",
+      };
+      return acc;
+    }, {} as any);
+  }
+
+  // Carregar dados das bandeiras e tipos de produto quando o componente é montado
+  useEffect(() => {
+    if (fee?.feeBrand && fee.feeBrand.length > 0) {
+      // Agrupar as bandeiras por idGroup
+      const brandsByGroup = fee.feeBrand.reduce(
+        (acc, brand) => {
+          if (!acc[brand.idGroup]) {
+            acc[brand.idGroup] = [];
+          }
+          acc[brand.idGroup].push(brand);
+          return acc;
+        },
+        {} as Record<number, typeof fee.feeBrand>
+      );
+
+      // Criar um grupo para cada conjunto de bandeiras agrupadas
+      const newGroups = Object.entries(brandsByGroup).map(
+        ([, brands], index) => {
+          const selectedCards = brands.map((brand) => brand.brand);
+
+          // Inicializar modos de pagamento vazios
+          const initialModes = FeeProductTypeList.reduce((acc, modeBase) => {
+            const mode = getExtendedProductType(modeBase);
+            acc[mode.value] = {
+              expanded: false,
+              presentIntermediation: "",
+              notPresentIntermediation: "",
+              presentAnticipation: "",
+              notPresentAnticipation: "",
+              presentTransaction: "",
+              notPresentTransaction: "",
+              ...(mode.hasInstallments && {
+                installments: createInstallmentsObject(mode),
+              }),
+            };
+            return acc;
+          }, {} as any);
+
+          // Preencher valores para cada modo de pagamento
+          brands.forEach((brand) => {
+            if (brand.feeBrandProductType?.length) {
+              brand.feeBrandProductType.forEach((pt) => {
+                const modeMapping = getModeMapping(pt.producttype);
+                if (modeMapping) {
+                  const { modeId, installment } = modeMapping;
+
+                  if (
+                    installment !== undefined &&
+                    initialModes[modeId]?.installments?.[installment]
+                  ) {
+                    // Para parcelamento específico
+                    initialModes[modeId].installments[installment] = {
+                      presentIntermediation:
+                        pt.cardTransactionMdr?.toString() || "",
+                      notPresentIntermediation:
+                        pt.nonCardTransactionMdr?.toString() || "",
+                      presentTransaction:
+                        pt.cardTransactionFee?.toString() || "",
+                      notPresentTransaction:
+                        pt.nonCardTransactionFee?.toString() || "",
+                      presentAnticipation: "0",
+                      notPresentAnticipation: "0",
+                    };
+                  } else if (initialModes[modeId]) {
+                    // Para modo sem parcelamento
+                    initialModes[modeId].presentIntermediation =
+                      pt.cardTransactionMdr?.toString() || "";
+                    initialModes[modeId].notPresentIntermediation =
+                      pt.nonCardTransactionMdr?.toString() || "";
+                    initialModes[modeId].presentTransaction =
+                      pt.cardTransactionFee?.toString() || "";
+                    initialModes[modeId].notPresentTransaction =
+                      pt.nonCardTransactionFee?.toString() || "";
+                    initialModes[modeId].presentAnticipation = "0";
+                    initialModes[modeId].notPresentAnticipation = "0";
+                  }
+                }
+              });
+            }
+          });
+
+          return {
+            id: `group-${index + 1}`,
+            selectedCards,
+            modes: initialModes,
+          };
+        }
+      );
+
+      if (newGroups.length > 0) {
+        setGroups(newGroups);
+      }
+    }
+
+    // Atualizar configuração de PIX
+    if (fee) {
+      setPixConfig({
+        mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
+        mdrNotPresent:
+          fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
+        minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
+        minCostNotPresent:
+          fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
+        maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
+        maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
+      });
+    }
+  }, [fee]);
+
+  // Mapear tipo de produto para ID do modo e parcela
+  function getModeMapping(
+    producttype: string
+  ): { modeId: string; installment?: number } | null {
+    if (producttype === "Crédito à Vista") {
+      return { modeId: "CREDIT" };
+    } else if (producttype.includes("Crédito Parcelado (2 a 6")) {
+      const match = producttype.match(/\((\d+)/);
+      return {
+        modeId: "CREDIT_INSTALLMENTS_2_TO_6",
+        installment: match ? parseInt(match[1]) : undefined,
+      };
+    } else if (producttype.includes("Crédito Parcelado (7 a 12")) {
+      const match = producttype.match(/\((\d+)/);
+      return {
+        modeId: "CREDIT_INSTALLMENTS_7_TO_12",
+        installment: match ? parseInt(match[1]) : undefined,
+      };
+    } else if (producttype === "Débito") {
+      return { modeId: "DEBIT" };
+    } else if (producttype === "Voucher") {
+      return { modeId: "VOUCHER" };
+    } else if (producttype === "Pré-Pago") {
+      return { modeId: "PREPAID_CREDIT" };
+    }
+    return null;
+  }
 
   // Expor o método getFormData via ref para o componente pai
   useImperativeHandle(ref, () => ({
@@ -180,6 +325,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
     }),
   }));
 
+  // Funções para manipular grupos de pagamento
   function toggleCardSelection(
     groupIndex: number,
     cardId: string,
@@ -190,7 +336,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
       const group = newGroups[groupIndex];
 
       if (checked === undefined || checked === "indeterminate") {
-        // Comportamento antigo, baseado no estado atual
+        // Toggle baseado no estado atual
         if (group.selectedCards.includes(cardId)) {
           group.selectedCards = group.selectedCards.filter(
             (id) => id !== cardId
@@ -199,14 +345,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
           group.selectedCards = [...group.selectedCards, cardId];
         }
       } else {
-        // Novo comportamento, baseado no valor de checked
+        // Definir baseado no valor de checked
         if (checked) {
-          // Adicionar se não estiver na lista
           if (!group.selectedCards.includes(cardId)) {
             group.selectedCards = [...group.selectedCards, cardId];
           }
         } else {
-          // Remover se estiver na lista
           group.selectedCards = group.selectedCards.filter(
             (id) => id !== cardId
           );
@@ -229,42 +373,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
   function addNewGroup() {
     setGroups((prevGroups) => [
       ...prevGroups,
-      {
-        id: `group-${prevGroups.length + 1}`,
-        selectedCards: [],
-        modes: FeeProductTypeList.reduce((acc, modeBase) => {
-          const mode = getExtendedProductType(modeBase);
-          acc[mode.value] = {
-            expanded: false,
-            presentIntermediation: "",
-            notPresentIntermediation: "",
-            presentAnticipation: "",
-            notPresentAnticipation: "",
-            presentTransaction: "",
-            notPresentTransaction: "",
-            ...(mode.hasInstallments && {
-              installments: Array.from(
-                {
-                  length:
-                    mode.installmentRange![1] - mode.installmentRange![0] + 1,
-                },
-                (_, i) => i + mode.installmentRange![0]
-              ).reduce((iAcc, installment) => {
-                iAcc[installment] = {
-                  presentIntermediation: "",
-                  notPresentIntermediation: "",
-                  presentAnticipation: "",
-                  notPresentAnticipation: "",
-                  presentTransaction: "",
-                  notPresentTransaction: "",
-                };
-                return iAcc;
-              }, {} as any),
-            }),
-          };
-          return acc;
-        }, {} as any),
-      },
+      initializePaymentGroup(`group-${prevGroups.length + 1}`),
     ]);
   }
 
@@ -284,151 +393,48 @@ export const PaymentConfigFormCompulsory = forwardRef<
     setGroups((prevGroups) => {
       const newGroups = [...prevGroups];
       const group = newGroups[groupIndex];
+
       if (
         installment !== undefined &&
         group.modes[modeId].installments?.[installment]
       ) {
-        (group.modes[modeId].installments![installment] as any)[field] = value;
+        group.modes[modeId].installments![installment][field] = value;
       } else {
-        (group.modes[modeId] as any)[field] = value;
+        group.modes[modeId][field] = value;
       }
+
       return newGroups;
     });
   }
 
-  function handlePixInputChange(field: keyof typeof pixConfig, value: string) {
-    setPixConfig((prev) => ({ ...prev, [field]: value }));
-  }
-
   function handleSave() {
-    startTransition(async () => {
-      try {
-        await updatePixConfigAction(fee.id, pixConfig);
-        await saveMerchantPricingAction(fee.id, groups);
+    setIsPending(true);
+
+    Promise.all([
+      updatePixConfigAction(fee.id, pixConfig),
+      saveMerchantPricingAction(fee.id, groups),
+    ])
+      .then(() => {
         toast.success("Configurações salvas com sucesso");
         router.refresh();
-      } catch {
+      })
+      .catch(() => {
         toast.error("Erro ao salvar configurações");
-      }
-    });
+      })
+      .finally(() => {
+        setIsPending(false);
+      });
   }
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center">
-            <ChevronDown className="h-5 w-5 mr-2" />
-            <div>
-              <CardTitle className="text-lg">{fee.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Código da tabela: {fee.id}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg font-medium mb-4 text-orange-600">
-            Pedido de Antecipação: Compulsória
-          </div>
-
-          {/* PIX Section */}
-          <Card className="mb-6">
-            <CardContent className="p-0">
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 font-medium border-r bg-orange-50">PIX</div>
-                <div className="p-3 font-medium text-center border-r bg-orange-50">
-                  Cartão Presente
-                </div>
-                <div className="p-3 font-medium text-center bg-orange-50">
-                  Cartão Não Presente
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 border-r">MDR (%)</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.mdrPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("mdrPresent", e.target.value)
-                    }
-                  />
-                  <span className="ml-1">%</span>
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.mdrNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("mdrNotPresent", e.target.value)
-                    }
-                  />
-                  <span className="ml-1">%</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 border-b">
-                <div className="p-3 border-r">Custo mínimo</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.minCostPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("minCostPresent", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.minCostNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("minCostNotPresent", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3">
-                <div className="p-3 border-r">Custo máximo</div>
-                <div className="p-3 border-r flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.maxCostPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("maxCostPresent", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <span className="mr-1">R$</span>
-                  <Input
-                    type="text"
-                    className="w-16 text-right"
-                    value={pixConfig.maxCostNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange("maxCostNotPresent", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Groups */}
+        <CardContent className="p-0">
+          {/* Grupos de Pagamento */}
           {groups.map((group, groupIndex) => (
             <Card key={group.id} className="mb-6">
               <CardContent className="p-0">
+                {/* Cabeçalho do grupo com seleção de bandeiras */}
                 <div className="p-3 border-b flex items-center justify-between bg-gray-50">
                   <div className="flex items-center">
                     <span className="font-medium mr-2">Bandeiras:</span>
@@ -479,21 +485,11 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               id={`${group.id}-${card.value}`}
                               checked={group.selectedCards.includes(card.value)}
                               onCheckedChange={(checked) => {
-                                if (checked === true) {
-                                  // Adicionar o cartão
-                                  toggleCardSelection(
-                                    groupIndex,
-                                    card.value,
-                                    true
-                                  );
-                                } else if (checked === false) {
-                                  // Remover o cartão
-                                  toggleCardSelection(
-                                    groupIndex,
-                                    card.value,
-                                    false
-                                  );
-                                }
+                                toggleCardSelection(
+                                  groupIndex,
+                                  card.value,
+                                  checked
+                                );
                               }}
                               className="mr-1"
                             />
@@ -531,6 +527,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                   </div>
                 </div>
 
+                {/* Cabeçalho da tabela de modos */}
                 <div className="grid grid-cols-7 border-b">
                   <div className="p-3 font-medium border-r bg-orange-50">
                     Modo
@@ -565,10 +562,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                   </div>
                 </div>
 
+                {/* Modos de pagamento */}
                 {FeeProductTypeList.map((modeBase) => {
                   const mode = getExtendedProductType(modeBase);
                   return (
                     <div key={`${group.id}-${mode.value}`}>
+                      {/* Linha principal do modo */}
                       <div className="grid grid-cols-7 border-b">
                         <div className="p-3 border-r flex items-center justify-between">
                           <span>{mode.label}</span>
@@ -693,6 +692,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                         </div>
                       </div>
 
+                      {/* Linhas de parcelamento se expandido */}
                       {mode.hasInstallments &&
                         group.modes[mode.value].expanded &&
                         mode.installmentRange &&
@@ -853,60 +853,13 @@ export const PaymentConfigFormCompulsory = forwardRef<
               >
                 Cancelar
               </Button>
-              <Button
-                className="bg-orange-600 hover:bg-orange-700"
-                onClick={handleSave}
-                disabled={isPending}
-              >
+              <Button onClick={handleSave} disabled={isPending}>
                 {isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
-
-      <h3 className="text-lg font-semibold mb-4">
-        Tabela de Taxas por Bandeira e Tipo de Produto
-      </h3>
-      {fee.feeBrand.map((brand) => (
-        <div key={brand.brand} className="mb-6">
-          <h4 className="font-medium mb-2">{brand.brand}</h4>
-          <table className="min-w-full border text-sm">
-            <thead>
-              <tr className="bg-orange-100">
-                <th className="border px-2 py-1">Modo de Pagamento</th>
-                <th className="border px-2 py-1">MDR Cartão Presente</th>
-                <th className="border px-2 py-1">MDR Cartão Não Presente</th>
-                <th className="border px-2 py-1">
-                  Taxa Intermediação Presente
-                </th>
-                <th className="border px-2 py-1">
-                  Taxa Intermediação Não Presente
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {brand.feeBrandProductType.map((product) => (
-                <tr key={product.producttype}>
-                  <td className="border px-2 py-1">{product.producttype}</td>
-                  <td className="border px-2 py-1">
-                    {product.cardTransactionFee}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.nonCardTransactionFee}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.cardTransactionMdr}
-                  </td>
-                  <td className="border px-2 py-1">
-                    {product.nonCardTransactionMdr}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
     </div>
   );
 });
