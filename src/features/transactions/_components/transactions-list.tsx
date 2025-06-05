@@ -118,9 +118,9 @@ export default function TransactionsList({
             <TableRow key={transaction.slug}>
               <TableCell>
                 <div className="flex flex-col">
-                  {formatDate(transaction.dateInsert).split(" ")[0]}
+                  {formatDate(transaction.dtInsert).split(" ")[0]}
                   <span className="text-xs text-gray-500">
-                    {formatDate(transaction.dateInsert).split(" ")[1]}
+                    {formatDate(transaction.dtInsert).split(" ")[1]}
                   </span>
                 </div>
               </TableCell>
