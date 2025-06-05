@@ -178,7 +178,6 @@ export async function getTransactions(
 
   const transactionList = page === -1 ? await baseQuery : await baseQuery.limit(pageSize).offset((page - 1) * pageSize);
 
-  console.log("transactionList", transactionList);
 
   const totalCount =
       page !== -1
