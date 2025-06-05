@@ -2,7 +2,7 @@ import { TransactionsListRecord } from "@/features/transactions/serverActions/tr
 import { drawTableHeader, drawTableRow, getPageItems } from "@/lib/pdf-utils";
 
 import { calculatePagination, drawPageHeader } from "@/lib/pdf-utils";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import {formatCurrency, formatCurrencya, formatDate, formatPercentage, formatPercentagea} from "@/lib/utils";
 import ExcelJS from "exceljs";
 import { PDFDocument, PageSizes } from "pdf-lib";
 
@@ -40,15 +40,19 @@ export default async function reportsExecutionSalesGeneratePDF(
     transactions && Array.isArray(transactions)
       ? transactions.map((item) => ({
           date:
-            formatDate(new Date(item.dateInsert || "")) +
+            formatDate(new Date(item.dtInsert || "")) +
             " " +
-            new Date(item.dateInsert || "").toLocaleTimeString("pt-BR"),
+            new Date(item.dtInsert || "").toLocaleTimeString("pt-BR"),
           nsu: item.nsu || "",
           terminal: item.terminalLogicalNumber || "",
           valor: formatCurrency(Number(item.amount) || 0),
           bandeira: item.brand || "",
           tipo: item.productType || "",
           status: item.transactionStatus || "",
+          feeAdmin: item.feeAdmin || "",
+          transactionMdr: formatPercentagea(Number(item.transactionMdr) || 0),
+          lucro: formatPercentagea(Number(item.lucro) || 0),
+          repasse: formatCurrencya(Number(item.repasse) || 0,)
         }))
       : [];
 
@@ -167,13 +171,17 @@ export async function reportsExecutionSalesGenerateXLSX(
     const tipo = item.productType || "Não Especificado";
     const valor = Number(item.amount) || 0;
     const status = item.transactionStatus || "";
+    const fee = Number(item.feeAdmin) || 0;
+    const transactionMdr = Number(item.transactionMdr) || 0;
+    const lucro = Number(item.lucro) || 0;
+    const repasse = Number(item.repasse) || 0;
 
     // Tratar PIX-PIX separadamente
     if (bandeira === "PIX" && tipo === "PIX") {
       const chaveSheet = "PIX-PIX";
       dadosPorBandeira[chaveSheet].push({
         Data: (() => {
-          const data = new Date(item.dateInsert || "");
+          const data = new Date(item.dtInsert || "");
           data.setHours(data.getHours() - 3);
           return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
         })(),
@@ -183,6 +191,10 @@ export async function reportsExecutionSalesGenerateXLSX(
         Bandeira: bandeira,
         Tipo: tipo,
         Status: status,
+        FeeAdmin: formatPercentage(fee),
+        TransactionMdr: formatPercentagea(transactionMdr),
+        Lucro: formatPercentagea(lucro),
+        Repasse: formatCurrencya(repasse),
       });
 
       // Atualizar resumo geral para PIX-PIX
@@ -210,7 +222,7 @@ export async function reportsExecutionSalesGenerateXLSX(
       }
       dadosPorBandeira[chaveSheet].push({
         Data: (() => {
-          const data = new Date(item.dateInsert || "");
+          const data = new Date(item.dtInsert || "");
           data.setHours(data.getHours() - 3);
           return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
         })(),
@@ -220,6 +232,10 @@ export async function reportsExecutionSalesGenerateXLSX(
         Bandeira: bandeira,
         Tipo: tipo,
         Status: status,
+        FeeAdmin: formatCurrency(fee),
+        TransactionMdr: formatPercentagea(transactionMdr),
+        Lucro: formatPercentagea(lucro),
+        Repasse: formatCurrencya(repasse),
       });
 
       // Atualizar resumo geral
@@ -404,13 +420,17 @@ export async function reportsExecutionSalesGenerateXLSX(
     { header: "Bandeira", key: "Bandeira", width: 15 },
     { header: "Tipo", key: "Tipo", width: 20 },
     { header: "Status", key: "Status", width: 15 },
+    { header: "% Custo", key: "Fee_Admin", width: 15 },
+    { header: "% Total", key: "TransactionMdr", width: 15 },
+    { header: "% Lucro", key: "Lucro", width: 15 },
+    { header: "R$ Repasse", key: "Repasse", width: 15 },
   ];
 
   // Adicionar todas as transações
   transactions.forEach((item) => {
     todasTransacoesSheet.addRow({
       Data: (() => {
-        const data = new Date(item.dateInsert || "");
+        const data = new Date(item.dtInsert || "");
         data.setHours(data.getHours() - 3);
         return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
       })(),
@@ -420,6 +440,10 @@ export async function reportsExecutionSalesGenerateXLSX(
       Bandeira: item.brand || "",
       Tipo: item.productType || "",
       Status: item.transactionStatus || "",
+      Fee_Admin: formatPercentage(Number(item.feeAdmin) || 0),
+      TransactionMdr: formatPercentagea(Number(item.transactionMdr) || 0),
+      Lucro: formatPercentagea(Number(item.lucro) || 0),
+      Repasse: formatCurrencya(Number(item.repasse) || 0),
     });
   });
 
@@ -457,6 +481,9 @@ export async function reportsExecutionSalesGenerateXLSX(
         { header: "Terminal", key: "Terminal", width: 15 },
         { header: "Valor", key: "Valor", width: 20 },
         { header: "Status", key: "Status", width: 15 },
+        { header: "% Custo", key: "Fee_Admin", width: 15 },
+        { header: "% Total", key: "TransactionMdr", width: 15 },
+        { header: "R$ Lucro", key: "Lucro", width: 15 },
       ];
 
       dadosPorBandeira[chaveSheet].forEach((row) => {
@@ -466,6 +493,10 @@ export async function reportsExecutionSalesGenerateXLSX(
           Terminal: row.Terminal,
           Valor: row.Valor,
           Status: row.Status,
+          Fee_Admin: row.Fee_Admin,
+          TransactionMdr: row.TransactionMdr,
+          Lucro: row.Lucro,
+          Repasse: row.repasse,
         });
       });
 
