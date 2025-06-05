@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const dateFrom = searchParams.get("dateFrom") || undefined;
     const dateTo = searchParams.get("dateTo") || undefined;
 
+
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     console.log("timezone", timezone);
     // Função auxiliar para validar e processar data
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
       merchant,
       dateFromUTC!,
       dateToUTC!,
-      productType
+      productType,
     );
 
     const xlsxBytes = await reportsExecutionSalesGenerateXLSX(

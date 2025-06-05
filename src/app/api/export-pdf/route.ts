@@ -53,7 +53,7 @@ export async function GET(request: Request) {
   const dados =
     transactions.transactions && Array.isArray(transactions.transactions)
       ? transactions.transactions.map((item) => ({
-          id: item.dateInsert || "",
+          id: item.dtInsert || "",
           descricao: item.productType || "",
           valor: item.amount || "",
         }))
