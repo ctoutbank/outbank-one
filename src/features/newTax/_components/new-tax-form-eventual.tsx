@@ -515,10 +515,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                         <Input
                           type="text"
                           className="w-16 text-right"
-                          value={
-                            group.modes[feeProductType.value]
-                              .presentIntermediation
-                          }
+                          value={`${group.modes[feeProductType.value].presentIntermediation}%`}
                           onChange={(e) =>
                             handleInputChange(
                               groupIndex,
@@ -532,16 +529,12 @@ export const PaymentConfigFormWithCard = forwardRef<
                             group.modes[feeProductType.value].expanded
                           )}
                         />
-                        <span className="ml-1">%</span>
                       </div>
                       <div className="p-3 flex items-center justify-center">
                         <Input
                           type="text"
                           className="w-16 text-right"
-                          value={
-                            group.modes[feeProductType.value]
-                              .notPresentIntermediation
-                          }
+                          value={`${group.modes[feeProductType.value].notPresentIntermediation}%`}
                           onChange={(e) =>
                             handleInputChange(
                               groupIndex,
@@ -555,7 +548,6 @@ export const PaymentConfigFormWithCard = forwardRef<
                             group.modes[feeProductType.value].expanded
                           )}
                         />
-                        <span className="ml-1">%</span>
                       </div>
                     </div>
 

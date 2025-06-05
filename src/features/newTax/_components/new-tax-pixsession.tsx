@@ -55,7 +55,7 @@ export const NewTaxPixSession = forwardRef<
 
   return (
     <div>
-      <table className="min-w-full divide-y divide-gray-200 border">
+      <table className="w-full divide-y divide-gray-200 border">
         <thead className="bg-gray-100">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border-r">
@@ -76,11 +76,10 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <span className="mr-1">R$</span>
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.minCostPresent}
+                  value={`R$ ${pixConfig.minCostPresent}`}
                   onChange={(e) =>
                     handlePixInputChange("minCostPresent", e.target.value)
                   }
@@ -89,11 +88,10 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
               <div className="flex items-center justify-center">
-                <span className="mr-1">R$</span>
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.minCostNotPresent}
+                  value={`R$ ${pixConfig.minCostNotPresent}`}
                   onChange={(e) =>
                     handlePixInputChange("minCostNotPresent", e.target.value)
                   }
@@ -107,11 +105,10 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <span className="mr-1">R$</span>
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.maxCostPresent}
+                  value={`R$  ${pixConfig.maxCostPresent}`}
                   onChange={(e) =>
                     handlePixInputChange("maxCostPresent", e.target.value)
                   }
@@ -120,11 +117,10 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
               <div className="flex items-center justify-center">
-                <span className="mr-1">R$</span>
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.maxCostNotPresent}
+                  value={`R$ ${pixConfig.maxCostNotPresent}`}
                   onChange={(e) =>
                     handlePixInputChange("maxCostNotPresent", e.target.value)
                   }
@@ -141,12 +137,11 @@ export const NewTaxPixSession = forwardRef<
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.mdrPresent}
+                  value={`${pixConfig.mdrPresent}%`}
                   onChange={(e) =>
                     handlePixInputChange("mdrPresent", e.target.value)
                   }
                 />
-                <span className="ml-1">%</span>
               </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
@@ -154,12 +149,11 @@ export const NewTaxPixSession = forwardRef<
                 <Input
                   type="text"
                   className="w-20 text-right"
-                  value={pixConfig.mdrNotPresent}
+                  value={`${pixConfig.mdrNotPresent}%`}
                   onChange={(e) =>
                     handlePixInputChange("mdrNotPresent", e.target.value)
                   }
                 />
-                <span className="ml-1">%</span>
               </div>
             </td>
           </tr>

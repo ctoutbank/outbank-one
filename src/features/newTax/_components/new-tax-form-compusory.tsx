@@ -590,9 +590,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                           <Input
                             type="text"
                             className="w-16 text-right"
-                            value={
-                              group.modes[mode.value].presentIntermediation
-                            }
+                            value={`${group.modes[mode.value].presentIntermediation}%`}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -602,13 +600,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">%</span>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
                           <Input
                             type="text"
-                            className="w-16 text-right"
-                            value={group.modes[mode.value].presentAnticipation}
+                            className="w-30 text-right"
+                            value={`${group.modes[mode.value].presentAnticipation}% a.m.`.toLowerCase()}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -618,13 +615,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">% a.m.</span>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
                           <Input
                             type="text"
                             className="w-16 text-right"
-                            value={group.modes[mode.value].presentTransaction}
+                            value={`${group.modes[mode.value].presentTransaction}%`}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -634,15 +630,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">%</span>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
                           <Input
                             type="text"
                             className="w-16 text-right"
-                            value={
-                              group.modes[mode.value].notPresentIntermediation
-                            }
+                            value={`${group.modes[mode.value].notPresentIntermediation}%`}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -652,15 +645,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">%</span>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
                           <Input
                             type="text"
                             className="w-16 text-right"
-                            value={
-                              group.modes[mode.value].notPresentAnticipation
-                            }
+                            value={`${group.modes[mode.value].notPresentAnticipation}% a.m.`}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -670,15 +660,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">% a.m.</span>
                         </div>
                         <div className="p-3 flex items-center justify-center">
                           <Input
                             type="text"
                             className="w-16 text-right"
-                            value={
-                              group.modes[mode.value].notPresentTransaction
-                            }
+                            value={`${group.modes[mode.value].notPresentTransaction}%`}
                             onChange={(e) =>
                               handleInputChange(
                                 groupIndex,
@@ -688,7 +675,6 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               )
                             }
                           />
-                          <span className="ml-1">%</span>
                         </div>
                       </div>
 
