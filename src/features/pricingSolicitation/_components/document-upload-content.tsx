@@ -2,25 +2,19 @@
 
 import FileUpload from "@/components/fileUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
-import {
-  createFileWithPricingSolicitation,
-  getFilesByFileType,
-} from "@/server/upload";
+import { insertPricingSolicitation } from "@/features/pricingSolicitation/server/pricing-solicitation";
+import { getFilesByFileType } from "@/server/upload";
 import { useEffect, useRef, useState } from "react";
-import { createPricingSolicitationForUpload } from "../server/create-solicitation";
 
 interface DocumentUploadContentProps {
   solicitationId?: number | null;
   pricingSolicitationData?: any;
-  formData?: any; // Dados do formulário atual
   onSolicitationCreated?: (id: number) => void; // Callback quando a solicitação é criada
 }
 
 export function DocumentUploadContent({
   solicitationId,
   pricingSolicitationData,
-  formData,
   onSolicitationCreated,
 }: DocumentUploadContentProps) {
   const [createdSolicitationId, setCreatedSolicitationId] = useState<
@@ -113,48 +107,31 @@ export function DocumentUploadContent({
 
   // Hook de pré-upload para criar as entidades necessárias
   const createSolicitationIfNeeded = async (): Promise<number> => {
-    // Limpar mensagens de erro anteriores
     setUploadError(null);
 
-    // Se já temos um ID de solicitação, retorná-lo
     if (createdSolicitationId) {
       return createdSolicitationId;
     }
 
     try {
-      // Combinar dados do formulário com os dados padrão
-      const combinedData: PricingSolicitationForm = formData
-        ? {
-            ...formData,
-            // Garantir que o status está definido como SEND_SOLICITATION
-            status: "SEND_SOLICITATION",
-          }
-        : pricingSolicitationData;
+      console.log(
+        "Dados enviados para criação da solicitação:",
+        pricingSolicitationData
+      );
 
-
-      console.log("Dados enviados para criação da solicitação:", combinedData);
-
-      // Chamar a função de servidor para criar a solicitação
-      const newSolicitationId =
-        await createPricingSolicitationForUpload(combinedData);
+      const newSolicitationId = await insertPricingSolicitation(
+        pricingSolicitationData
+      );
 
       // Armazenar o ID da solicitação criada
-      setCreatedSolicitationId(newSolicitationId);
+      setCreatedSolicitationId(newSolicitationId.id);
 
       // Notificar o componente pai sobre a criação da solicitação
       if (onSolicitationCreated) {
-        onSolicitationCreated(newSolicitationId);
+        onSolicitationCreated(newSolicitationId.id);
       }
 
-      /*await createFileWithPricingSolicitation(
-        combinedData,
-
-        newSolicitationId,
-
-        "pricingSolicitation"
-      );*/
-
-      return newSolicitationId;
+      return newSolicitationId.id;
     } catch (error) {
       console.error("Erro ao criar solicitação:", error);
       // Definir mensagem de erro amigável
@@ -167,128 +144,110 @@ export function DocumentUploadContent({
     }
   };
 
+  async function createPricingSolicitation() {
+    const newId = await createSolicitationIfNeeded();
+
+    if (!newId) {
+      throw new Error("Falha ao criar solicitação");
+    }
+    console.log("newId", newId);
+    return newId;
+  }
+
   return (
-    <div className="space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-2xl">Documentos da Solicitação</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {uploadError && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {uploadError}
-            </div>
-          )}
-
-          {isLoading ? (
-            <div className="flex justify-center py-6">
-              <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-8">
-                {documentTypes.map((doc, index) => (
-                  <FileUpload
-                    key={index}
-                    title={doc.title}
-                    description={doc.description}
-                    entityType="solicitationFee"
-                    entityId={createdSolicitationId || undefined}
-                    fileType={doc.fileType}
-                    onUploadComplete={handleUploadComplete}
-                    maxSizeMB={doc.maxSizeMB}
-                    acceptedFileTypes={doc.acceptedFileTypes}
-                    preUploadHook={createSolicitationIfNeeded}
-                    customUploadHandler={async (file) => {
-                      // Se não temos ID de solicitação e o hook não foi executado ainda
-                      if (!createdSolicitationId && !solicitationId) {
-                        const newId = await createSolicitationIfNeeded();
-                        if (!newId) {
-                          throw new Error("Falha ao criar solicitação");
-                        }
-                      }
-
-                      const targetId = createdSolicitationId || solicitationId;
-                      if (!targetId) {
-                        throw new Error("ID de solicitação não disponível");
-                      }
-
-                      const formData = new FormData();
-                      formData.append("File", file);
-                      formData.append("fileName", doc.fileType);
-
-                      try {
-                        return await createFileWithPricingSolicitation(
-                          formData,
-                          targetId,
-                          doc.fileType
-                        );
-                      } catch (error) {
-                        console.error(
-                          "Erro ao fazer upload do arquivo:",
-                          error
-                        );
-                        return null;
-                      }
-                    }}
+    <form>
+      <div className="space-y-6">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl">
+              Documentos da Solicitação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {uploadError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
                   />
-                ))}
+                </svg>
+                {uploadError}
               </div>
+            )}
 
-              {/* Lista de documentos enviados */}
-              {uploadedDocuments.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-2">
-                    Documentos Enviados
-                  </h3>
-                  <ul className="space-y-2">
-                    {uploadedDocuments.map((doc, index) => (
-                      <li
-                        key={`doc-${doc.id || index}`}
-                        className="flex items-center p-2 bg-gray-50 rounded-md"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 mr-2 text-green-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>{doc.fileName}</span>
-                        <a
-                          href={doc.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-auto text-blue-600 hover:text-blue-800"
-                        >
-                          Ver
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+            {isLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-8">
+                  {documentTypes.map((doc, index) => (
+                    <FileUpload
+                      key={index}
+                      title={doc.title}
+                      description={doc.description}
+                      entityType="solicitationFee"
+                      entityId={createdSolicitationId || undefined}
+                      fileType={doc.fileType}
+                      onUploadComplete={handleUploadComplete}
+                      maxSizeMB={doc.maxSizeMB}
+                      acceptedFileTypes={doc.acceptedFileTypes}
+                      customUploadHandler={createPricingSolicitation}
+                    />
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+
+                {/* Lista de documentos enviados */}
+                {uploadedDocuments.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium mb-2">
+                      Documentos Enviados
+                    </h3>
+                    <ul className="space-y-2">
+                      {uploadedDocuments.map((doc, index) => (
+                        <li
+                          key={`doc-${doc.id || index}`}
+                          className="flex items-center p-2 bg-gray-50 rounded-md"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 mr-2 text-green-500"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span>{doc.fileName}</span>
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto text-blue-600 hover:text-blue-800"
+                          >
+                            Ver
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </form>
   );
 }

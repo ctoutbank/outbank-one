@@ -10,7 +10,7 @@ import {
   getTransactionsGroupedReport,
   normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction";
-import { gateDateByViewMode } from "@/lib/utils";
+import { format } from "date-fns";
 import { Suspense } from "react";
 import { BarChartCustom } from "./_components/barChart";
 import DashboardFilters from "./_components/dashboard-filters";
@@ -21,37 +21,47 @@ export const revalidate = 0;
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: { viewMode: string; dateFrom: string; dateTo: string };
+  searchParams: { dateFrom?: string; dateTo?: string };
 }) {
-  const viewMode = searchParams.viewMode || "today";
+  // Valores padrão caso não sejam fornecidos
+  const defaultDateFrom = "2024-09-01T00:00:00";
+  const defaultDateTo = format(new Date(), "yyyy-MM-dd'T'HH:mm");
 
-  const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  const dateRange = await normalizeDateRange(period.from, period.to);
-  const dateRangePrevious = await normalizeDateRange(
-    previousPeriod.from!,
-    previousPeriod.to!
+  const dateFrom = searchParams.dateFrom || defaultDateFrom;
+  const dateTo = searchParams.dateTo || defaultDateTo;
+
+  const dateRange = await normalizeDateRange(dateFrom, dateTo);
+
+  // Para o período anterior, vamos calcular um intervalo equivalente no passado
+  const fromDate = new Date(dateFrom);
+  const toDate = new Date(dateTo);
+  const diffInMs = toDate.getTime() - fromDate.getTime();
+
+  const previousFromDate = new Date(fromDate.getTime() - diffInMs);
+  const previousToDate = new Date(fromDate.getTime());
+
+  const previousDateRange = await normalizeDateRange(
+    previousFromDate.toISOString(),
+    previousToDate.toISOString()
   );
-  period.from = dateRange.start;
-  period.to = dateRange.end;
-  previousPeriod.from = dateRangePrevious.start;
-  previousPeriod.to = dateRangePrevious.end;
+
   const totalTransactions = await getTotalTransactions(
-    period.from!,
-    period.to!
+    dateRange.start,
+    dateRange.end
   );
   const totalTransactionsPreviousPeriod = await getTotalTransactions(
-    previousPeriod.from!,
-    previousPeriod.to!
+    previousDateRange.start,
+    previousDateRange.end
   );
 
   const transactions = await getTransactionsGroupedReport(
-    period.from,
-    period.to
+    dateRange.start,
+    dateRange.end
   );
   const totalTransactionsByMonth = await getTotalTransactionsByMonth(
-    period.from!,
-    period.to!,
-    viewMode
+    dateRange.start,
+    dateRange.end,
+    "custom" // Usando "custom" já que não é mais baseado em viewMode
   );
 
   const totalMerchants = await getTotalMerchants();
@@ -66,8 +76,8 @@ export default async function SalesDashboard({
         <div className="mb-6">
           <DashboardFilters
             dateRange={{
-              from: period.from,
-              to: period.to,
+              from: dateRange.start,
+              to: dateRange.end,
             }}
           />
         </div>
@@ -171,7 +181,7 @@ export default async function SalesDashboard({
           <div className="mt-8">
             <BarChartCustom
               chartData={totalTransactionsByMonth}
-              viewMode={viewMode}
+              viewMode="custom"
             />
           </div>
 

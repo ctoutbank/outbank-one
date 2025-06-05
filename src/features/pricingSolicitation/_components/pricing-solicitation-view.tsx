@@ -556,7 +556,7 @@ export function PricingSolicitationView({
 
             {/* Adicionar botão para abrir o diálogo de upload quando status é PENDING */}
 
-            {pricingSolicitation.status === "PENDING" && (
+            {pricingSolicitation.status === "SEND_DOCUMENTS" && (
               <div className="flex justify-end ">
                 <Button
                   onClick={() => setOpenUploadDialog(true)}
@@ -860,92 +860,54 @@ export function PricingSolicitationView({
           </CardContent>
         </Card>
 
-        {/* Card: Status e Ações */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Status da Solicitação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="p-4 rounded-md bg-amber-50">
-              <p className="text-amber-800 font-medium">
-                Status:{" "}
-                {pricingSolicitation.status === "PENDING"
-                  ? "Em análise"
-                  : pricingSolicitation.status === "SEND_DOCUMENTS"
-                    ? "documentos enviado"
-                    : pricingSolicitation.status === "REVIEWED"
-                      ? "Aguardando documentos"
-                      : pricingSolicitation.status === "APPROVED"
-                        ? "Aprovado"
-                        : pricingSolicitation.status === "CANCELED"
-                          ? "Rejeitado"
-                          : pricingSolicitation.status === "COMPLETED"
-                            ? "Concluído"
-                            : pricingSolicitation.status}
-              </p>
-              <p className="text-amber-700 text-sm mt-1">
-                {pricingSolicitation.status === "PENDING"
-                  ? "Esta solicitação está em análise."
-                  : pricingSolicitation.status === "REVIEWED"
-                    ? ""
-                    : pricingSolicitation.status === "SEND_DOCUMENTS"
-                      ? "."
-                      : ""}
-              </p>
-            </div>
-            {pricingSolicitation.id && (
-              <div className="flex justify-end gap-4 mt-6">
-                {(pricingSolicitation.status === "REVIEWED" ||
-                  pricingSolicitation.status === "SEND_DOCUMENTS") && (
-                  <Button
-                    variant="outline"
-                    onClick={handleOpenRejectDialog}
-                    disabled={isSubmitting}
-                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                  >
-                    Recusar
-                  </Button>
-                )}
-                {pricingSolicitation.status === "REVIEWED" && (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        handleApprove();
-                      }}
-                      disabled={isSubmitting}
-                      className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                    >
-                      Aceitar
-                    </Button>
-                  </>
-                )}
-                {pricingSolicitation.status === "SEND_DOCUMENTS" && (
-                  <Button
-                    onClick={handleApprove}
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isSubmitting ? "Processando..." : "Aceitar"}
-                  </Button>
-                )}
-                {pricingSolicitation.status === "APPROVED" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowUploadDialog(true)}
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Importar e Concluir
-                  </Button>
-                )}
-              </div>
+        {pricingSolicitation.id && (
+          <div className="flex justify-end gap-4 mt-6">
+            {(pricingSolicitation.status === "REVIEWED" ||
+              pricingSolicitation.status === "SEND_DOCUMENTS") && (
+              <Button
+                variant="outline"
+                onClick={handleOpenRejectDialog}
+                disabled={isSubmitting}
+                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+              >
+                Recusar
+              </Button>
             )}
-          </CardContent>
-        </Card>
+            {pricingSolicitation.status === "REVIEWED" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleApprove();
+                  }}
+                  disabled={isSubmitting}
+                  className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                >
+                  Aceitar
+                </Button>
+              </>
+            )}
+            {pricingSolicitation.status === "SEND_DOCUMENTS" && (
+              <Button
+                onClick={handleApprove}
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isSubmitting ? "Processando..." : "Aceitar"}
+              </Button>
+            )}
+            {pricingSolicitation.status === "APPROVED" && (
+              <Button
+                variant="outline"
+                onClick={() => setShowUploadDialog(true)}
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Importar e Concluir
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal de Upload de Aditivo */}

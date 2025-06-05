@@ -70,7 +70,6 @@ export function FilterPricingSolicitationContent({
             onKeyDown={handleKeyDown}
           />
         </div>
-
         <div className="space-y-2 ml-8">
           <h3 className="text-sm font-medium ml-2">Status</h3>
           <div className="flex flex-wrap gap-2">
@@ -93,7 +92,6 @@ export function FilterPricingSolicitationContent({
           </div>
         </div>
       </div>
-
       <div className="flex justify-end pt-4 mt-4 border-t">
         <Button onClick={applyFilters} className="flex items-center gap-2">
           <Search className="h-4 w-4" />

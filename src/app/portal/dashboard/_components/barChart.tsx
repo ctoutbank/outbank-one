@@ -32,8 +32,6 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-
-
 const DAYS_OF_WEEK = [
   "Domingo",
   "Segunda",
@@ -57,31 +55,43 @@ export function BarChartCustom({
   const isHourlyView = viewMode === "today" || viewMode === "yesterday";
   const isWeeklyView = viewMode === "week";
   const isMonthlyView = viewMode === "month";
+  const isCustomView = viewMode === "custom";
 
   //Serve para mostrar todos os anos mesmo que estejam vazios.
   const normalizedData = React.useMemo(() => {
     if (viewMode !== "year" || !chartData) return chartData;
 
     const months = [
-      "jan", "fev", "mar", "abr", "mai", "jun",
-      "jul", "ago", "set", "out", "nov", "dez"
+      "jan",
+      "fev",
+      "mar",
+      "abr",
+      "mai",
+      "jun",
+      "jul",
+      "ago",
+      "set",
+      "out",
+      "nov",
+      "dez",
     ];
 
     const monthMap = new Map(
-        chartData.map((item) => {
-          if (!item.date) return [0, item];
-          const monthIndex = new Date(item.date).getMonth();
-          return [monthIndex, item];
-        })
+      chartData.map((item) => {
+        if (!item.date) return [0, item];
+        const monthIndex = new Date(item.date).getMonth();
+        return [monthIndex, item];
+      })
     );
 
-    return months.map((_, index) =>
-            monthMap.get(index) ?? {
-              date: new Date(2025, index, 1).toISOString(), // ou só o índice se preferir
-              bruto: 0,
-              lucro: 0,
-              count: 0,
-            }
+    return months.map(
+      (_, index) =>
+        monthMap.get(index) ?? {
+          date: new Date(2025, index, 1).toISOString(), // ou só o índice se preferir
+          bruto: 0,
+          lucro: 0,
+          count: 0,
+        }
     );
   }, [chartData, viewMode]);
 
@@ -93,20 +103,22 @@ export function BarChartCustom({
     [chartData]
   );
 
+  const getDescription = () => {
+    if (isHourlyView) return "Mostrando o total de transações por hora";
+    if (isWeeklyView)
+      return "Mostrando o total de transações por dia da semana";
+    if (isMonthlyView) return "Mostrando o total de transações por mês";
+    if (isCustomView)
+      return "Mostrando o total de transações no período selecionado";
+    return "Mostrando o total de transações por ano";
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>Gráfico de Barras</CardTitle>
-          <CardDescription>
-            {isHourlyView
-              ? "Mostrando o total de transações por hora"
-              : isWeeklyView
-              ? "Mostrando o total de transações por dia da semana"
-              : isMonthlyView
-              ? "Mostrando o total de transações por  mês"
-              : "Mostrando o total de transações por ano"}
-          </CardDescription>
+          <CardDescription>{getDescription()}</CardDescription>
         </div>
         <div className="flex">
           {["bruto", "lucro"].map((key) => {
@@ -151,10 +163,10 @@ export function BarChartCustom({
                 isHourlyView
                   ? "hour"
                   : isWeeklyView
-                  ? "dayOfWeek"
-                  : isMonthlyView
-                  ? "dayOfMonth"
-                  : "date"
+                    ? "dayOfWeek"
+                    : isMonthlyView
+                      ? "dayOfMonth"
+                      : "date"
               }
               tickLine={false}
               axisLine={false}

@@ -6,7 +6,6 @@ import {
   Calendar,
   CalendarDays,
   CalendarFold,
-  ChartBar,
   Check,
   DollarSign,
   DollarSignIcon,
@@ -59,7 +58,7 @@ const iconMap: { [key: string]: LucideIcon } = {
   CalendarDays,
   FilePlus2,
   Receipt,
-  CalendarFold
+  CalendarFold,
 };
 
 interface MenuItem {
@@ -152,14 +151,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menuData.navMain} />
-        <a
+        {/* <a
           href="https://outbank-chart-ia.vercel.app/"
           target="_blank"
           className="flex items-center gap-2 p-4"
         >
           <ChartBar className="h-4 w-4" />
           <p>Acessar IA de Gráficos</p>
-        </a>
+        </a>*/}
       </SidebarContent>
       <SidebarFooter>
         <UserMenu />

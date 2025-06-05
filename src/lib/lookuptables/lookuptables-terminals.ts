@@ -25,3 +25,15 @@ export type TerminalType = "P" | "V" | "S" | "T";
 export function getTerminalTypeLabel(value: string): string | undefined {
   return terminalTypeList.find((item) => item.value === value)?.label;
 }
+
+export const terminalModels = [
+  "S920203GWB-C",
+  "L400;-C",
+  "VIRTUAL",
+  "INTEGRATION",
+  "PAYLINK",
+  "TapDevice",
+  "GPOS760;1024MB-C",
+  "FEPAS",
+  "GPOS700X;1024MB-C",
+];
