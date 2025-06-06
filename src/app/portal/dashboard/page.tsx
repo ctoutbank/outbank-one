@@ -74,12 +74,7 @@ export default async function SalesDashboard({
       />
       <BaseBody title="Dashboard" subtitle="Visão geral das vendas">
         <div className="mb-6">
-          <DashboardFilters
-            dateRange={{
-              from: dateRange.start,
-              to: dateRange.end,
-            }}
-          />
+          <DashboardFilters />
         </div>
 
         <Suspense fallback={<div>Carregando...</div>}>
@@ -107,15 +102,17 @@ export default async function SalesDashboard({
                     description="Total bruto das transações"
                     value={totalTransactions[0]?.sum || 0}
                     percentage={
-                      totalTransactions[0]?.sum &&
-                      totalTransactionsPreviousPeriod[0]?.sum
-                        ? (
-                            ((totalTransactions[0]?.sum -
-                              totalTransactionsPreviousPeriod[0]?.sum) /
-                              totalTransactionsPreviousPeriod[0]?.sum) *
-                            100
-                          ).toFixed(2)
-                        : "0"
+                      defaultDateFrom == "2024-09-01T00:00:00"
+                        ? "0"
+                        : totalTransactions[0]?.sum &&
+                            totalTransactionsPreviousPeriod[0]?.sum
+                          ? (
+                              ((totalTransactions[0]?.sum -
+                                totalTransactionsPreviousPeriod[0]?.sum) /
+                                totalTransactionsPreviousPeriod[0]?.sum) *
+                              100
+                            ).toFixed(2)
+                          : "0"
                     }
                     previousValue={totalTransactionsPreviousPeriod[0]?.sum}
                     valueType="currency"
@@ -125,15 +122,17 @@ export default async function SalesDashboard({
                     description="Total de lucro realizado"
                     value={totalTransactions[0]?.revenue || 0}
                     percentage={
-                      totalTransactions[0]?.revenue &&
-                      totalTransactionsPreviousPeriod[0]?.revenue
-                        ? (
-                            ((totalTransactions[0]?.revenue -
-                              totalTransactionsPreviousPeriod[0]?.revenue) /
-                              totalTransactionsPreviousPeriod[0]?.revenue) *
-                            100
-                          ).toFixed(2)
-                        : "0"
+                      defaultDateFrom == "2024-09-01T00:00:00"
+                        ? "0"
+                        : totalTransactions[0]?.revenue &&
+                            totalTransactionsPreviousPeriod[0]?.revenue
+                          ? (
+                              ((totalTransactions[0]?.revenue -
+                                totalTransactionsPreviousPeriod[0]?.revenue) /
+                                totalTransactionsPreviousPeriod[0]?.revenue) *
+                              100
+                            ).toFixed(2)
+                          : "0"
                     }
                     previousValue={totalTransactionsPreviousPeriod[0]?.revenue}
                     valueType="currency"
@@ -143,15 +142,17 @@ export default async function SalesDashboard({
                     description="Total de transações realizadas"
                     value={totalTransactions[0]?.count || 0}
                     percentage={
-                      totalTransactionsPreviousPeriod[0]?.count &&
-                      totalTransactions[0]?.count
-                        ? (
-                            ((totalTransactions[0]?.count -
-                              totalTransactionsPreviousPeriod[0]?.count) /
-                              totalTransactionsPreviousPeriod[0]?.count) *
-                            100
-                          ).toFixed(2)
-                        : "0"
+                      defaultDateFrom == "2024-09-01T00:00:00"
+                        ? "0"
+                        : totalTransactionsPreviousPeriod[0]?.count &&
+                            totalTransactions[0]?.count
+                          ? (
+                              ((totalTransactions[0]?.count -
+                                totalTransactionsPreviousPeriod[0]?.count) /
+                                totalTransactionsPreviousPeriod[0]?.count) *
+                              100
+                            ).toFixed(2)
+                          : "0"
                     }
                     previousValue={totalTransactionsPreviousPeriod[0]?.count}
                     valueType="number"
@@ -161,14 +162,17 @@ export default async function SalesDashboard({
                     description="Total de estabelecimentos cadastrados"
                     value={totalMerchants[0].total || 0}
                     percentage={
-                      previousTotalMerchants[0].total && totalMerchants[0].total
-                        ? (
-                            ((totalMerchants[0].total -
-                              previousTotalMerchants[0].total) /
-                              previousTotalMerchants[0].total) *
-                            100
-                          ).toFixed(2)
-                        : "0"
+                      defaultDateFrom == "2024-09-01T00:00:00"
+                        ? "0"
+                        : previousTotalMerchants[0].total &&
+                            totalMerchants[0].total
+                          ? (
+                              ((totalMerchants[0].total -
+                                previousTotalMerchants[0].total) /
+                                previousTotalMerchants[0].total) *
+                              100
+                            ).toFixed(2)
+                          : "0"
                     }
                     previousValue={previousTotalMerchants[0].total || 0}
                     valueType="number"

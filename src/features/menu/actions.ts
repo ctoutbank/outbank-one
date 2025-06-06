@@ -137,6 +137,7 @@ const menuData = {
       ],
     },
     {
+      /* {
       title: "Solicitação de Taxas",
       url: "/portal/pricingSolicitation",
       icon: "FilePlus2",
@@ -150,6 +151,7 @@ const menuData = {
       title: "Fechamento",
       url: "/portal/closing",
       icon: "CalendarFold",
+    },*/
     },
   ],
 };

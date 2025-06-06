@@ -39,8 +39,8 @@ interface Props {
 export function NavMain({ items }: Props) {
   const activeUrl = usePathname();
   return (
-    <SidebarGroup>
-      <SidebarMenu>
+    <SidebarGroup className="flex-1">
+      <SidebarMenu className="space-y-1">
         {items.map((item) => {
           // Verifica se qualquer submenu está ativo
           const isAnySubItemActive = item.items?.some(
@@ -60,14 +60,14 @@ export function NavMain({ items }: Props) {
                       isActive={isAnySubItemActive}
                     >
                       {item.icon && (
-                        <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6">
+                        <div className="relative flex items-center justify-center w-4 h-4 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4">
                           <item.icon
                             className="size-5 text-sidebar-foreground"
                             strokeWidth={2}
                           />
                         </div>
                       )}
-                      <span className="font-medium group-data-[collapsible=icon]:hidden">
+                      <span className="text-base group-data-[collapsible=icon]:hidden">
                         {item.title}
                       </span>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
@@ -87,7 +87,7 @@ export function NavMain({ items }: Props) {
                             isActive={activeUrl == subItem.url}
                           >
                             <a href={subItem.url}>
-                              <span>{subItem.title}</span>
+                              <span className="text-base">{subItem.title}</span>
                             </a>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -102,14 +102,14 @@ export function NavMain({ items }: Props) {
                 >
                   <a href={item.url}>
                     {item.icon && (
-                      <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6">
+                      <div className="relative flex items-center justify-center w-4 h-4 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4">
                         <item.icon
                           className="size-5 text-sidebar-foreground"
                           strokeWidth={2}
                         />
                       </div>
                     )}
-                    <span className="font-medium group-data-[collapsible=icon]:hidden">
+                    <span className="text-base group-data-[collapsible=icon]:hidden">
                       {item.title}
                     </span>
                   </a>
