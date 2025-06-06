@@ -109,11 +109,11 @@ const menuData = {
       url: "/portal/reports",
       icon: "FileText",
     },
-    /* {
+    {
       title: "Lançamentos Financeiros",
       url: "/portal/financialReleases",
       icon: "CalendarDays",
-    },  */
+    },
 
     { title: "Arquivos EDI", url: "/portal/edis", icon: "FolderOpen" },
 
@@ -137,7 +137,6 @@ const menuData = {
       ],
     },
     {
-      /* {
       title: "Solicitação de Taxas",
       url: "/portal/pricingSolicitation",
       icon: "FilePlus2",
@@ -151,7 +150,6 @@ const menuData = {
       title: "Fechamento",
       url: "/portal/closing",
       icon: "CalendarFold",
-    },*/
     },
   ],
 };

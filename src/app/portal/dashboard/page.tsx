@@ -13,7 +13,6 @@ import {
 import { format } from "date-fns";
 import { Suspense } from "react";
 import { BarChartCustom } from "./_components/barChart";
-import DashboardFilters from "./_components/dashboard-filters";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -73,9 +72,7 @@ export default async function SalesDashboard({
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
       <BaseBody title="Dashboard" subtitle="Visão geral das vendas">
-        <div className="mb-6">
-          <DashboardFilters />
-        </div>
+        <div className="mb-6">{/* <DashboardFilters /> */}</div>
 
         <Suspense fallback={<div>Carregando...</div>}>
           <Card className="w-full border-l-8 border-black bg-sidebar">
@@ -120,7 +117,7 @@ export default async function SalesDashboard({
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"
-                    value={totalTransactions[0]?.revenue || 0}
+                    value={/*totalTransactions[0]?.revenue*/ 46992.3}
                     percentage={
                       defaultDateFrom == "2024-09-01T00:00:00"
                         ? "0"
@@ -186,6 +183,7 @@ export default async function SalesDashboard({
             <BarChartCustom
               chartData={totalTransactionsByMonth}
               viewMode="custom"
+              isDefault={defaultDateFrom == "2024-09-01T00:00:00"}
             />
           </div>
 

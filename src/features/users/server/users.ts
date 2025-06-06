@@ -95,7 +95,7 @@ export async function getUsers(
 
   const clerk = await clerkClient();
   const clerkResult = (await clerk.users.getUserList(userListParams)).data;
-
+  console.log("clerkResult", clerkResult);
   const conditions = [
     customer ? eq(users.idCustomer, customer) : undefined,
     profile ? eq(users.idProfile, profile) : undefined,
@@ -137,6 +137,7 @@ export async function getUsers(
       const clerkData = clerkResult.find(
         (clerk: any) => clerk.id === dbUser.idClerk
       );
+      console.log("clerkData", clerkData);
 
       // Get user's merchants
       const userMerchantsList = await db
