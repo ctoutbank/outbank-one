@@ -5,7 +5,7 @@ import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChartCustom } from "@/features/closing/components/barChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
-import { TransactionsDashboardTable } from "@/features/closing/components/transactions-dashboard-table";
+
 import { getTransactionsGroupedReport,} from "@/features/transactions/serverActions/transaction";
 import {
   getTotalMerchants,
@@ -15,7 +15,8 @@ import {
 } from "@/features/transactions/serverActions/transaction";
 import { gateDateByViewMode, getPreviousPeriodFromRange } from "@/lib/utils";
 import { Suspense } from "react";
-import TransactionsExport from "@/features/transactions/reports/transactions-export-excel";
+import TransactionsExport from "@/features/closing/components/export-excel";
+import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 
 type ClosingSearchParams = {
     viewMode?: string;

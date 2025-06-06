@@ -35,12 +35,7 @@ interface FileUploadProps {
     fileName: string;
     fileExtension: string;
   }) => void;
-  customUploadHandler?: (file: File) => Promise<{
-    fileId: number;
-    fileURL: string;
-    fileName: string;
-    fileExtension: string;
-  } | null>;
+  customUploadHandler?: () => Promise<number>;
   preUploadHook?: () => Promise<number>;
 }
 
@@ -201,31 +196,31 @@ export default function FileUpload({
           }
         }
 
-        if (!finalEntityId) {
+        if (!finalEntityId && !customUploadHandler) {
           setError("ID da entidade não disponível para upload");
           setIsUploading(false);
           return;
         }
 
         for (const file of newFiles) {
-          let result;
+          
 
           // Se customUploadHandler for passado, usa ele
           if (customUploadHandler) {
-            result = await customUploadHandler(file);
-          } else {
-            const formData = new FormData();
-            formData.append("File", file);
-            formData.append("fileName", fileType || title);
-
-            result = await createFileWithRelation(
-              formData,
-              entityType,
-              finalEntityId,
-              `${entityType}s/${finalEntityId}`,
-              fileType || title
-            );
+            const newId = await customUploadHandler();
+            finalEntityId = newId;
           }
+          const formData = new FormData();
+          formData.append("File", file);
+          formData.append("fileName", fileType || title);
+
+          const result = await createFileWithRelation(
+            formData,
+            entityType,
+            finalEntityId || 0,
+            `${entityType}s/${finalEntityId}`,
+            fileType || title
+          );
 
           if (result && onUploadComplete) {
             onUploadComplete(result);
@@ -237,7 +232,7 @@ export default function FileUpload({
         // Recarrega arquivos após upload
         const existingFiles = await getFilesByFileType(
           entityType,
-          finalEntityId,
+          finalEntityId || 0,
           fileType || ""
         );
         const formattedFiles = existingFiles.map(

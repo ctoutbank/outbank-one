@@ -5,7 +5,6 @@ import { getDateUTC } from "@/lib/datetime-utils";
 import {
   and,
   count,
-  desc,
   eq,
   gte,
   ilike,
@@ -15,13 +14,22 @@ import {
   notInArray,
   sql,
 } from "drizzle-orm";
-import { merchants, terminals, transactions } from "../../../../drizzle/schema";
+import {
+  categories,
+  merchants,
+  payout,
+  solicitationBrandProductType,
+  solicitationFee,
+  solicitationFeeBrand,
+  terminals,
+  transactions,
+} from "../../../../drizzle/schema";
 import { db } from "../../../server/db/index";
 
 export type Transaction = typeof transactions.$inferSelect;
 export type TransactionsListRecord = {
   slug: string;
-  dateInsert: string | null;
+  dtInsert: string | null;
   nsu: string | null;
   id: string;
   merchantName: string | null;
@@ -34,6 +42,10 @@ export type TransactionsListRecord = {
   brand: string | null;
   transactionStatus: string | null;
   amount: number | null;
+  feeAdmin: number | null;
+  transactionMdr: number | null;
+  lucro: number | null;
+  repasse: number | null;
 };
 export type TransactionsList = {
   transactions: TransactionsListRecord[];
@@ -46,7 +58,7 @@ export type MerchantTotal = {
 
 export async function getTransactions(
   page: number = 1,
-  pageSize: number = 100,
+  pageSize: number = 10,
   status?: string,
   merchant?: string,
   dateFrom?: string,
@@ -65,163 +77,187 @@ export async function getTransactions(
 
   if (filterByUserMerchant) {
     const userMerchants = await getUserMerchantSlugs();
-    if (userMerchants.fullAccess) {
-    } else {
-      if (userMerchants.slugMerchants.length > 0) {
-        conditions.push(
-          inArray(transactions.slugMerchant, userMerchants.slugMerchants)
-        );
-      } else {
-        return {
-          transactions: [],
-          totalCount: 0,
-        };
-      }
+    if (!userMerchants.fullAccess && userMerchants.slugMerchants.length > 0) {
+      conditions.push(
+        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
+      );
+    } else if (!userMerchants.fullAccess) {
+      return { transactions: [], totalCount: 0 };
     }
   }
 
   if (status) {
-    console.log("status", status);
-    conditions.push(like(transactions.transactionStatus, `%${status}%`));
-    // Verificar se status contém múltiplos valores separados por vírgula
     const statusValues = status.split(",").map((s) => s.trim());
-    if (statusValues.length > 1) {
-      conditions.push(inArray(transactions.transactionStatus, statusValues));
-    } else {
-      conditions.push(eq(transactions.transactionStatus, status));
-    }
+    conditions.push(
+      statusValues.length > 1
+        ? inArray(transactions.transactionStatus, statusValues)
+        : eq(transactions.transactionStatus, status)
+    );
   }
 
   if (merchant) {
-    console.log("merchant", merchant);
     conditions.push(ilike(transactions.merchantName, `%${merchant}%`));
   }
 
   if (dateFrom) {
-    console.log(dateFrom);
+    console.log("dateFrom", dateFrom);
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
-    console.log(dateFromUTC);
-
-    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
+    if (dateFromUTC) conditions.push(gte(transactions.dtInsert, dateFromUTC));
   }
 
   if (dateTo) {
-    console.log(dateTo);
+    console.log("dateTo", dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
-    console.log(dateToUTC);
-    conditions.push(lte(transactions.dtInsert, dateToUTC!));
+    if (dateToUTC) conditions.push(lte(transactions.dtInsert, dateToUTC));
   }
 
   if (productType) {
-    console.log("productType", productType);
-
-    // Verificar se productType contém múltiplos valores separados por vírgula
-    const productTypeValues = productType.split(",").map((p) => p.trim());
-    if (productTypeValues.length > 1) {
-      conditions.push(inArray(transactions.productType, productTypeValues));
-    } else {
-      conditions.push(eq(transactions.productType, productType));
-    }
+    const values = productType.split(",").map((v) => v.trim());
+    conditions.push(
+      values.length > 1
+        ? inArray(transactions.productType, values)
+        : eq(transactions.productType, productType)
+    );
   }
 
-  // Adicionar novos filtros
   if (brand) {
-    // Verificar se brand contém múltiplos valores separados por vírgula
-    const brandValues = brand.split(",").map((b) => b.trim());
-    if (brandValues.length > 1) {
-      conditions.push(inArray(transactions.brand, brandValues));
-    } else {
-      conditions.push(eq(transactions.brand, brand));
-    }
+    const values = brand.split(",").map((v) => v.trim());
+    conditions.push(
+      values.length > 1
+        ? inArray(transactions.brand, values)
+        : eq(transactions.brand, brand)
+    );
   }
 
-  if (nsu) {
-    conditions.push(eq(transactions.muid, nsu));
-  }
-
+  if (nsu) conditions.push(eq(transactions.muid, nsu));
   if (method) {
-    // Verificar se method contém múltiplos valores separados por vírgula
-    const methodValues = method.split(",").map((m) => m.trim());
-    if (methodValues.length > 1) {
-      conditions.push(inArray(transactions.methodType, methodValues));
-    } else {
-      conditions.push(eq(transactions.methodType, method));
-    }
+    const values = method.split(",").map((v) => v.trim());
+    conditions.push(
+      values.length > 1
+        ? inArray(transactions.methodType, values)
+        : eq(transactions.methodType, method)
+    );
   }
 
   if (salesChannel) {
-    // Verificar se salesChannel contém múltiplos valores separados por vírgula
-    const salesChannelValues = salesChannel.split(",").map((s) => s.trim());
-    if (salesChannelValues.length > 1) {
-      conditions.push(inArray(transactions.salesChannel, salesChannelValues));
-    } else {
-      conditions.push(eq(transactions.salesChannel, salesChannel));
-    }
+    const values = salesChannel.split(",").map((v) => v.trim());
+    conditions.push(
+      values.length > 1
+        ? inArray(transactions.salesChannel, values)
+        : eq(transactions.salesChannel, salesChannel)
+    );
   }
 
-  if (terminal) {
-    conditions.push(like(terminals.logicalNumber, `%${terminal}%`));
-  }
+  if (terminal) conditions.push(like(terminals.logicalNumber, `%${terminal}%`));
+  if (valueMin) conditions.push(gte(transactions.totalAmount, valueMin));
+  if (valueMax) conditions.push(lte(transactions.totalAmount, valueMax));
 
-  // Adicionar filtros de valor
-  if (valueMin) {
-    conditions.push(gte(transactions.totalAmount, valueMin));
-  }
+  const whereClause = conditions.length ? and(...conditions) : undefined;
 
-  if (valueMax) {
-    conditions.push(lte(transactions.totalAmount, valueMax));
-  }
+  console.log("datas", dateFrom, dateTo);
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-  console.log("whereClause", whereClause);
+  const baseQuery = db
+    .select({
+      slug: transactions.slug,
+      dateInsert: transactions.dtInsert,
+      nsu: transactions.muid,
+      merchantName: merchants.name,
+      merchantCNPJ: merchants.idDocument,
+      terminalType: terminals.type,
+      terminalLogicalNumber: terminals.logicalNumber,
+      method: transactions.methodType,
+      salesChannel: transactions.salesChannel,
+      productType: transactions.productType,
+      brand: transactions.brand,
+      transactionStatus: transactions.transactionStatus,
+      amount: transactions.totalAmount,
+      feeAdmin: solicitationBrandProductType.feeAdmin,
+      transactionMdr: payout.transactionMdr,
+    })
+    .from(transactions)
+    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+    .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
+    .leftJoin(categories, eq(merchants.slugCategory, categories.slug))
+    .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
+    .leftJoin(
+      solicitationFeeBrand,
+      and(
+        eq(solicitationFeeBrand.solicitationFeeId, solicitationFee.id),
+        eq(solicitationFeeBrand.brand, transactions.brand)
+      )
+    )
+    .leftJoin(
+      solicitationBrandProductType,
+      and(
+        eq(
+          solicitationBrandProductType.solicitationFeeBrandId,
+          solicitationFeeBrand.id
+        ),
+        eq(
+          solicitationBrandProductType.productType,
+          sql`SPLIT_PART(${transactions.productType}, '_', 1)`
+        )
+      )
+    )
+    .leftJoin(payout, sql`${payout.payoutId}::uuid = ${transactions.slug}`)
+    .where(whereClause)
+    .orderBy(transactions.dtInsert);
 
-  let transactionList;
-  let totalCount;
-  if (page !== -1) {
-    transactionList = await db
-      .select()
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause)
-      .orderBy(desc(transactions.dtInsert))
-      .offset((page - 1) * pageSize)
-      .limit(pageSize);
-    totalCount = await db
-      .select({ count: count() })
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause);
-  } else {
-    console.log("page -1");
-    transactionList = await db
-      .select()
-      .from(transactions)
-      .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-      .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
-      .where(whereClause);
-  }
+  const transactionList =
+    page === -1
+      ? await baseQuery
+      : await baseQuery.limit(pageSize).offset((page - 1) * pageSize);
+
+  const totalCount =
+    page !== -1
+      ? (
+          await db
+            .select({ count: count() })
+            .from(transactions)
+            .where(whereClause)
+        )[0].count
+      : transactionList.length;
+
+  const result = transactionList.map((item) => {
+    const amount =
+      item.amount !== null ? parseFloat(item.amount.toString()) : null;
+    const feeAdmin =
+      item.feeAdmin !== null ? parseFloat(item.feeAdmin.toString()) : null;
+    const transactionMdr =
+      item.transactionMdr !== null ? parseFloat(item.transactionMdr) : null;
+
+    const lucro =
+      transactionMdr !== null && feeAdmin !== null
+        ? transactionMdr - feeAdmin
+        : null;
+
+    const repasse = lucro !== null && amount !== null ? lucro * amount : null;
+
+    return {
+      slug: item.slug,
+      dtInsert: item.dateInsert ?? null,
+      nsu: item.nsu ?? null,
+      id: item.nsu ?? "",
+      merchantName: item.merchantName ?? null,
+      merchantCNPJ: item.merchantCNPJ ?? null,
+      terminalType: item.terminalType ?? null,
+      terminalLogicalNumber: item.terminalLogicalNumber ?? null,
+      method: item.method ?? null,
+      salesChannel: item.salesChannel ?? null,
+      productType: item.productType ?? null,
+      brand: item.brand ?? null,
+      transactionStatus: item.transactionStatus ?? null,
+      amount,
+      feeAdmin,
+      transactionMdr,
+      lucro,
+      repasse,
+    };
+  });
+
   return {
-    transactions: transactionList.map((item) => ({
-      slug: item.transactions.slug,
-      dateInsert: item.transactions.dtInsert,
-      nsu: item.transactions.muid || "",
-      id: item.transactions.muid || "",
-      merchantName: item.merchants?.name || "",
-      merchantCNPJ: item.merchants?.idDocument || "",
-      terminalType: item.terminals?.type || "",
-      terminalLogicalNumber: item.terminals?.logicalNumber || "",
-      method: item.transactions.methodType || "",
-      salesChannel: item.transactions.salesChannel || "",
-      productType: item.transactions.productType || "",
-      brand: item.transactions.brand || "",
-      transactionStatus: item.transactions.transactionStatus || "",
-      amount: item.transactions.totalAmount
-        ? parseFloat(item.transactions.totalAmount)
-        : 0,
-    })),
-    totalCount: totalCount ? totalCount[0].count : 0,
+    transactions: result,
+    totalCount,
   };
 }
 
@@ -421,94 +457,105 @@ export async function getTotalTransactionsByMonth(
     ])
   );
 
-  const whereClause =
-    conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   const isHourlyView = viewMode === "today" || viewMode === "yesterday";
   const isWeeklyView = viewMode === "week";
   const isMonthlyView = viewMode === "month";
 
   const dateExpression = isHourlyView
-    ? sql`EXTRACT(HOUR FROM b.dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+    ? sql`EXTRACT(HOUR FROM ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
     : isWeeklyView
-      ? sql`EXTRACT(DOW FROM b.dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+      ? sql`EXTRACT(DOW FROM ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
       : isMonthlyView
-        ? sql`EXTRACT(DAY FROM b.dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
-        : sql`DATE_TRUNC('month', b.dt_insert AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`;
+        ? sql`EXTRACT(DAY FROM ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
+        : sql`DATE_TRUNC('month', ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`;
 
-  const result = await db.execute(sql`
-    WITH ranked_mtp AS (
-      SELECT *,
-        ROW_NUMBER() OVER (
-          PARTITION BY id_merchant_price_group
-          ORDER BY id
-        ) AS rn
-      FROM merchant_transaction_price
-      WHERE installment_transaction_fee_start = 1
-        AND installment_transaction_fee_end = 1
-    ),
-    filtered_mtp AS (
-      SELECT *
-      FROM ranked_mtp
-      WHERE rn = 1
-    ),
-    base AS (
-      SELECT
-        transactions.total_amount,
-        COALESCE(
-          filtered_mtp.card_transaction_mdr
-        ) AS applied_mdr,
-        transactions.product_type,
-        transactions.brand,
-        categories.mcc,
-        transactions.dt_insert
-      FROM transactions
-      LEFT JOIN merchants ON merchants.slug = transactions.slug_merchant
-      LEFT JOIN categories ON categories.id = merchants.id_category
-      LEFT JOIN merchant_price
-        ON merchant_price.slug_merchant = transactions.slug_merchant
-        AND merchant_price.active = TRUE
-      LEFT JOIN merchant_price_group
-        ON merchant_price_group.id_merchant_price = merchant_price.id
-        AND merchant_price_group.brand = transactions.brand
-        AND merchant_price_group.active = TRUE
-      LEFT JOIN filtered_mtp
-        ON filtered_mtp.id_merchant_price_group = merchant_price_group.id
-        AND filtered_mtp.producttype = transactions.product_type
-      ${whereClause}
-    ),
-    fee_lookup AS (
-      SELECT
-        sbpt.product_type,
-        sbpt.fee_admin AS fee_admin,
-        sbpt.no_card_fee_admin AS no_card_fee_admin,
-        sfb.brand,
-        sf.mcc
-      FROM solicitation_fee sf
-      JOIN solicitation_fee_brand sfb ON sfb.solicitation_fee_id = sf.id
-      JOIN solicitation_brand_product_type sbpt
-        ON sbpt.solicitation_fee_brand_id = sfb.id
-      WHERE sf.status = 'COMPLETED' AND sbpt.transaction_fee_start IS NULL AND sbpt.transaction_fee_end IS NULL
+  const result = await db
+    .select({
+      date: dateExpression,
+      sum: sql<string>`SUM(${transactions.totalAmount})`,
+      count: sql<number>`COUNT(1)`,
+      revenue: sql<string>`
+      SUM(
+        CASE
+          WHEN ${transactions.methodType} = 'CP' THEN
+            CASE
+              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              ELSE
+                ${transactions.totalAmount} *
+                (
+                  COALESCE(${payout.transactionMdr}, 0)
+                  -
+                  COALESCE(
+                    CASE
+                      WHEN ${transactions.productType} ILIKE 'PIX'
+                      THEN ${solicitationFee.cardPixMdrAdmin}
+                      ELSE ${solicitationBrandProductType.feeAdmin}
+                    END
+                  , 0)
+                )
+            END
+          WHEN ${transactions.methodType} = 'CNP' THEN
+            CASE
+              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              ELSE
+                ${transactions.totalAmount} *
+                (
+                  COALESCE(${payout.transactionMdr}, 0)
+                  -
+                  COALESCE(
+                    CASE
+                      WHEN ${transactions.productType} ILIKE 'PIX'
+                      THEN ${solicitationFee.nonCardPixMdrAdmin}
+                      ELSE ${solicitationBrandProductType.noCardFeeAdmin}
+                    END
+                  , 0)
+                )
+            END
+          ELSE 0
+        END
+      )
+    `,
+    })
+    .from(transactions)
+    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
+    .leftJoin(
+      solicitationFeeBrand,
+      and(
+        eq(solicitationFeeBrand.solicitationFeeId, solicitationFee.id),
+        eq(solicitationFeeBrand.brand, transactions.brand)
+      )
     )
-    SELECT
-      ${dateExpression} AS date,
-      SUM(b.total_amount) AS sum,
-      COUNT(1) AS count,
-      SUM(CASE
-      WHEN b.applied_mdr = 0 THEN 0
-      ELSE b.total_amount * (b.applied_mdr - 1.12)
-      END
-     )  AS revenue
-    FROM base b
-    LEFT JOIN fee_lookup fl
-      ON fl.product_type = b.product_type
-      AND fl.brand = b.brand
-      AND fl.mcc = b.mcc
-    GROUP BY date
-    ORDER BY date ASC
-  `);
+    .leftJoin(
+      sql`(
+      SELECT DISTINCT ON (payout_id::uuid) *
+      FROM payout
+      ORDER BY payout_id::uuid DESC
+    ) AS payout`,
+      sql`payout.payout_id::uuid = ${transactions.slug}`
+    )
+    .leftJoin(
+      solicitationBrandProductType,
+      and(
+        eq(
+          solicitationBrandProductType.solicitationFeeBrandId,
+          solicitationFeeBrand.id
+        ),
+        eq(
+          solicitationBrandProductType.productType,
+          sql`SPLIT_PART(${transactions.productType}, '_', 1)`
+        ),
+        sql`${payout.installments} >= ${solicitationBrandProductType.transactionFeeStart} AND ${payout.installments} <= ${solicitationBrandProductType.transactionFeeEnd} `
+      )
+    )
+    .where(whereClause)
+    .groupBy(dateExpression)
+    .orderBy(dateExpression);
 
-  const rows = result.rows as Array<{
+  const rows = result as Array<{
     date: string | number | Date;
     sum: string;
     count: number;
@@ -604,7 +651,7 @@ export async function getTotalTransactions(
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
     conditions.push(lte(transactions.dtInsert, dateToUTC));
     console.log(dateToUTC);
-  } 
+  }
 
   // ignorar transações inválidas
   conditions.push(
@@ -615,78 +662,91 @@ export async function getTotalTransactions(
     ])
   );
 
-  const whereClause =
-    conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const result = await db.execute(sql`
-  WITH ranked_mtp AS (
-  SELECT *,
-         ROW_NUMBER() OVER (
-           PARTITION BY id_merchant_price_group
-           ORDER BY id 
-         ) AS rn
-  FROM merchant_transaction_price
-  WHERE installment_transaction_fee_start = 1
-    AND installment_transaction_fee_end = 1
-),
-filtered_mtp AS (
-  SELECT *
-  FROM ranked_mtp
-  WHERE rn = 1
-),
-base AS (
-  SELECT
-    transactions.total_amount,
-    COALESCE(
-      filtered_mtp.card_transaction_mdr
-    ) AS applied_mdr,
-    transactions.product_type, 
-    transactions.brand,
-    categories.mcc AS mcc
-  FROM transactions 
-  LEFT JOIN merchants ON merchants.slug = transactions.slug_merchant
-  LEFT JOIN categories ON categories.id = merchants.id_category
-  LEFT JOIN merchant_price
-    ON merchant_price.slug_merchant = transactions.slug_merchant
-   AND merchant_price.active = TRUE
-  LEFT JOIN merchant_price_group
-    ON merchant_price_group.id_merchant_price = merchant_price.id
-   AND merchant_price_group.brand  = transactions.brand
-   AND merchant_price_group.active = TRUE
-  LEFT JOIN filtered_mtp 
-    ON filtered_mtp.id_merchant_price_group = merchant_price_group.id
-   AND filtered_mtp.producttype = transactions.product_type
-  ${whereClause}
-),
-fee_lookup AS (
-  SELECT
-    solicitation_brand_product_type.product_type,
-    solicitation_brand_product_type.fee_admin AS fee_admin,
-    solicitation_brand_product_type.no_card_fee_admin AS no_card_fee_admin,
-    solicitation_fee_brand.brand,
-    solicitation_fee.mcc
-  FROM solicitation_fee
-  JOIN solicitation_fee_brand
-    ON solicitation_fee_brand.solicitation_fee_id = solicitation_fee.id
-  JOIN solicitation_brand_product_type 
-    ON solicitation_brand_product_type.solicitation_fee_brand_id = solicitation_fee_brand.id
-    WHERE solicitation_fee.status = 'COMPLETED' 
-    AND  solicitation_brand_product_type.transaction_fee_start IS NULL
-    AND  solicitation_brand_product_type.transaction_fee_end IS NULL
-)
-SELECT
-  SUM(b.total_amount) AS sum,
-  COUNT(1) AS count,
-   SUM(CASE
-  WHEN b.applied_mdr = 0 THEN 0
-  ELSE b.total_amount * (b.applied_mdr - 1.12)
-  END
-  ) AS revenue
-FROM base b
-LEFT JOIN fee_lookup
-  ON fee_lookup.product_type = b.product_type
-  AND fee_lookup.brand = b.brand 
-  AND fee_lookup.mcc = b.mcc`);
+  const result = await db
+    .select({
+      sum: sql<number>`SUM(${transactions.totalAmount})`,
+      count: sql<number>`COUNT(1)`,
+      revenue: sql<number>`
+      SUM(
+        CASE
+          WHEN ${transactions.methodType} = 'CP' THEN
+            CASE
+              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              ELSE
+                ${transactions.totalAmount} *
+                (
+                  COALESCE(${payout.transactionMdr}, 0)
+                  -
+                  COALESCE(
+                    CASE
+                      WHEN ${transactions.productType} ILIKE 'PIX'
+                      THEN ${solicitationFee.cardPixMdrAdmin}
+                      ELSE ${solicitationBrandProductType.feeAdmin}
+                    END
+                  , 0)
+                )
+            END
+          WHEN ${transactions.methodType} = 'CNP' THEN
+            CASE
+              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              ELSE
+                ${transactions.totalAmount} *
+                (
+                  COALESCE(${payout.transactionMdr}, 0)
+                  -
+                  COALESCE(
+                    CASE
+                      WHEN ${transactions.productType} ILIKE 'PIX'
+                      THEN ${solicitationFee.nonCardPixMdrAdmin}
+                      ELSE ${solicitationBrandProductType.noCardFeeAdmin}
+                    END
+                  , 0)
+                )
+            END
+          ELSE 0
+        END
+      )
+    `,
+    })
+    .from(transactions)
+    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
+    .leftJoin(
+      solicitationFeeBrand,
+      and(
+        eq(solicitationFeeBrand.solicitationFeeId, solicitationFee.id),
+        eq(solicitationFeeBrand.brand, transactions.brand)
+      )
+    )
+    .leftJoin(
+      sql`(
+      SELECT DISTINCT ON (payout_id::uuid) *
+      FROM payout
+      ORDER BY payout_id::uuid DESC
+    ) AS payout`,
+      sql`payout.payout_id::uuid = ${transactions.slug}`
+    )
+    .leftJoin(
+      solicitationBrandProductType,
+      and(
+        eq(
+          solicitationBrandProductType.solicitationFeeBrandId,
+          solicitationFeeBrand.id
+        ),
+        eq(
+          solicitationBrandProductType.productType,
+          sql`SPLIT_PART(${transactions.productType}, '_', 1)`
+        ),
+        sql`${payout.installments} >= ${solicitationBrandProductType.transactionFeeStart}
+          AND ${payout.installments} <= ${solicitationBrandProductType.transactionFeeEnd}`
+      )
+    )
+    .where(whereClause);
 
-  return result.rows as GetTotalTransactionsResult[];
+  console.log(result as GetTotalTransactionsResult[]);
+
+  return result as GetTotalTransactionsResult[];
 }

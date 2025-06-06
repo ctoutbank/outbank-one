@@ -6,7 +6,7 @@ import {
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ne, sql } from "drizzle-orm";
 import {
   customers,
   file,
@@ -71,6 +71,7 @@ export async function getPricingSolicitations(
   const offset = (page - 1) * pageSize;
   const limit = pageSize;
   const conditions = [];
+  const user = await currentUser();
 
   if (cnae) {
     conditions.push(eq(solicitationFee.cnae, cnae));
@@ -78,6 +79,15 @@ export async function getPricingSolicitations(
   if (status) {
     conditions.push(eq(solicitationFee.status, status));
   }
+
+  const userDB = await db
+    .select({ customersId: users.idCustomer })
+    .from(users)
+    .where(eq(users.idClerk, user?.id || ""));
+
+  conditions.push(eq(solicitationFee.idCustomers, userDB[0].customersId || 0));
+  conditions.push(ne(solicitationFee.status, "SEND_DOCUMENTS"));
+  conditions.push(ne(solicitationFee.status, "SEND_SOLICITATION"));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -197,7 +207,8 @@ export async function insertPricingSolicitation(
     const { brands, ...solicitationData } = pricingSolicitation;
 
     // Remove the id field to let the database auto-generate it
-    const { ...dataToInsert } = solicitationData;
+    const { id, ...dataToInsert } = solicitationData;
+    console.log("dataToInsert", id);
 
     const [newSolicitation] = await db
       .insert(solicitationFee)
@@ -226,41 +237,93 @@ export async function insertPricingSolicitation(
       // 3. Create product type records for each product type in the brand
       for (const productType of brand.productTypes || []) {
         try {
-          // Tratar os valores para garantir que são números
+          // Verificar se está null/undefined primeiro, então converter adequadamente
+
+          // Campos decimais - verificar se é number ou string
           const feeValue =
-            typeof productType.fee === "number" ? productType.fee : 0;
+            productType.fee == null
+              ? 0
+              : typeof productType.fee === "number"
+                ? productType.fee
+                : typeof productType.fee === "string"
+                  ? parseFloat(productType.fee) || 0
+                  : 0;
+
           const feeAdminValue =
-            typeof productType.feeAdmin === "number" ? productType.feeAdmin : 0;
+            productType.feeAdmin == null
+              ? 0
+              : typeof productType.feeAdmin === "number"
+                ? productType.feeAdmin
+                : typeof productType.feeAdmin === "string"
+                  ? parseFloat(productType.feeAdmin) || 0
+                  : 0;
+
           const feeDockValue =
-            typeof productType.feeDock === "number" ? productType.feeDock : 0;
-          const transactionFeeStartValue =
-            typeof productType.transactionFeeStart === "number"
-              ? Math.floor(productType.transactionFeeStart)
-              : 0;
-          const transactionFeeEndValue =
-            typeof productType.transactionFeeEnd === "number"
-              ? Math.floor(productType.transactionFeeEnd)
-              : 0;
+            productType.feeDock == null
+              ? 0
+              : typeof productType.feeDock === "number"
+                ? productType.feeDock
+                : typeof productType.feeDock === "string"
+                  ? parseFloat(productType.feeDock) || 0
+                  : 0;
+
           const noCardFeeValue =
-            typeof productType.noCardFee === "number"
-              ? productType.noCardFee
-              : 0;
+            productType.noCardFee == null
+              ? 0
+              : typeof productType.noCardFee === "number"
+                ? productType.noCardFee
+                : typeof productType.noCardFee === "string"
+                  ? parseFloat(productType.noCardFee) || 0
+                  : 0;
+
           const noCardFeeAdminValue =
-            typeof productType.noCardFeeAdmin === "number"
-              ? productType.noCardFeeAdmin
-              : 0;
+            productType.noCardFeeAdmin == null
+              ? 0
+              : typeof productType.noCardFeeAdmin === "number"
+                ? productType.noCardFeeAdmin
+                : typeof productType.noCardFeeAdmin === "string"
+                  ? parseFloat(productType.noCardFeeAdmin) || 0
+                  : 0;
+
           const noCardFeeDockValue =
-            typeof productType.noCardFeeDock === "number"
-              ? productType.noCardFeeDock
-              : 0;
+            productType.noCardFeeDock == null
+              ? 0
+              : typeof productType.noCardFeeDock === "number"
+                ? productType.noCardFeeDock
+                : typeof productType.noCardFeeDock === "string"
+                  ? parseFloat(productType.noCardFeeDock) || 0
+                  : 0;
+
           const noCardTransactionAnticipationMdrValue =
-            typeof productType.noCardTransactionAnticipationMdr === "number"
-              ? productType.noCardTransactionAnticipationMdr
-              : 0;
+            productType.noCardTransactionAnticipationMdr == null
+              ? 0
+              : typeof productType.noCardTransactionAnticipationMdr === "number"
+                ? productType.noCardTransactionAnticipationMdr
+                : typeof productType.noCardTransactionAnticipationMdr ===
+                    "string"
+                  ? parseFloat(productType.noCardTransactionAnticipationMdr) ||
+                    0
+                  : 0;
+
           const transactionAnticipationMdrValue =
-            typeof productType.transactionAnticipationMdr === "number"
-              ? productType.transactionAnticipationMdr
-              : 0;
+            productType.transactionAnticipationMdr == null
+              ? 0
+              : typeof productType.transactionAnticipationMdr === "number"
+                ? productType.transactionAnticipationMdr
+                : typeof productType.transactionAnticipationMdr === "string"
+                  ? parseFloat(productType.transactionAnticipationMdr) || 0
+                  : 0;
+
+          // Campos inteiros - converter para number
+          const transactionFeeStartValue =
+            productType.transactionFeeStart == null
+              ? 0
+              : Number(productType.transactionFeeStart) || 0;
+
+          const transactionFeeEndValue =
+            productType.transactionFeeEnd == null
+              ? 0
+              : Number(productType.transactionFeeEnd) || 0;
 
           // Use SQL raw para fazer a inserção diretamente
           await db.execute(sql`
@@ -283,7 +346,7 @@ export async function insertPricingSolicitation(
             ) VALUES (
               ${generateSlug()}, 
               ${newBrand.id}, 
-              ${productType.name || "Produto Padrão"}, 
+              ${productType.name}, 
               ${feeValue}, 
               ${feeAdminValue}, 
               ${feeDockValue}, 
@@ -314,21 +377,21 @@ export async function insertPricingSolicitation(
 }
 
 export async function updatePricingSolicitation(
-  pricingSolicitation: PricingSolicitationForm
+  pricingSolicitation: PricingSolicitationForm,
 ) {
   if (!pricingSolicitation.id) {
     throw new Error("Solicitation ID is required for updates");
   }
 
   // Update the last modified date
-  if (pricingSolicitation.status === "SEND_SOLICITATION") {
+  if (pricingSolicitation.status === "SEND_DOCUMENTS") {
     pricingSolicitation.dtupdate = new Date().toISOString();
     pricingSolicitation.status = "PENDING";
   }
 
   try {
-    const { brands, id, ...solicitationData } = pricingSolicitation;
-
+    const { brands, id, slug, idCustomers, ...solicitationData } = pricingSolicitation;
+    console.log("solicitationData", slug, id, idCustomers);
     // 1. Update the main solicitation fee record
     await db
       .update(solicitationFee)
@@ -376,41 +439,93 @@ export async function updatePricingSolicitation(
       // 4. Create product type records for each product type in the brand
       for (const productType of brand.productTypes || []) {
         try {
-          // Tratar os valores para garantir que são números
+          // Verificar se está null/undefined primeiro, então converter adequadamente
+
+          // Campos decimais - verificar se é number ou string
           const feeValue =
-            typeof productType.fee === "number" ? productType.fee : 0;
+            productType.fee == null
+              ? 0
+              : typeof productType.fee === "number"
+                ? productType.fee
+                : typeof productType.fee === "string"
+                  ? parseFloat(productType.fee) || 0
+                  : 0;
+
           const feeAdminValue =
-            typeof productType.feeAdmin === "number" ? productType.feeAdmin : 0;
+            productType.feeAdmin == null
+              ? 0
+              : typeof productType.feeAdmin === "number"
+                ? productType.feeAdmin
+                : typeof productType.feeAdmin === "string"
+                  ? parseFloat(productType.feeAdmin) || 0
+                  : 0;
+
           const feeDockValue =
-            typeof productType.feeDock === "number" ? productType.feeDock : 0;
-          const transactionFeeStartValue =
-            typeof productType.transactionFeeStart === "number"
-              ? Math.floor(productType.transactionFeeStart)
-              : 0;
-          const transactionFeeEndValue =
-            typeof productType.transactionFeeEnd === "number"
-              ? Math.floor(productType.transactionFeeEnd)
-              : 0;
+            productType.feeDock == null
+              ? 0
+              : typeof productType.feeDock === "number"
+                ? productType.feeDock
+                : typeof productType.feeDock === "string"
+                  ? parseFloat(productType.feeDock) || 0
+                  : 0;
+
           const noCardFeeValue =
-            typeof productType.noCardFee === "number"
-              ? productType.noCardFee
-              : 0;
+            productType.noCardFee == null
+              ? 0
+              : typeof productType.noCardFee === "number"
+                ? productType.noCardFee
+                : typeof productType.noCardFee === "string"
+                  ? parseFloat(productType.noCardFee) || 0
+                  : 0;
+
           const noCardFeeAdminValue =
-            typeof productType.noCardFeeAdmin === "number"
-              ? productType.noCardFeeAdmin
-              : 0;
+            productType.noCardFeeAdmin == null
+              ? 0
+              : typeof productType.noCardFeeAdmin === "number"
+                ? productType.noCardFeeAdmin
+                : typeof productType.noCardFeeAdmin === "string"
+                  ? parseFloat(productType.noCardFeeAdmin) || 0
+                  : 0;
+
           const noCardFeeDockValue =
-            typeof productType.noCardFeeDock === "number"
-              ? productType.noCardFeeDock
-              : 0;
+            productType.noCardFeeDock == null
+              ? 0
+              : typeof productType.noCardFeeDock === "number"
+                ? productType.noCardFeeDock
+                : typeof productType.noCardFeeDock === "string"
+                  ? parseFloat(productType.noCardFeeDock) || 0
+                  : 0;
+
           const noCardTransactionAnticipationMdrValue =
-            typeof productType.noCardTransactionAnticipationMdr === "number"
-              ? productType.noCardTransactionAnticipationMdr
-              : 0;
+            productType.noCardTransactionAnticipationMdr == null
+              ? 0
+              : typeof productType.noCardTransactionAnticipationMdr === "number"
+                ? productType.noCardTransactionAnticipationMdr
+                : typeof productType.noCardTransactionAnticipationMdr ===
+                    "string"
+                  ? parseFloat(productType.noCardTransactionAnticipationMdr) ||
+                    0
+                  : 0;
+
           const transactionAnticipationMdrValue =
-            typeof productType.transactionAnticipationMdr === "number"
-              ? productType.transactionAnticipationMdr
-              : 0;
+            productType.transactionAnticipationMdr == null
+              ? 0
+              : typeof productType.transactionAnticipationMdr === "number"
+                ? productType.transactionAnticipationMdr
+                : typeof productType.transactionAnticipationMdr === "string"
+                  ? parseFloat(productType.transactionAnticipationMdr) || 0
+                  : 0;
+
+          // Campos inteiros - converter para number
+          const transactionFeeStartValue =
+            productType.transactionFeeStart == null
+              ? 0
+              : Number(productType.transactionFeeStart) || 0;
+
+          const transactionFeeEndValue =
+            productType.transactionFeeEnd == null
+              ? 0
+              : Number(productType.transactionFeeEnd) || 0;
 
           // Use SQL raw para fazer a inserção diretamente
           await db.execute(sql`
