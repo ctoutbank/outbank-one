@@ -39,8 +39,8 @@ interface Props {
 export function NavMain({ items }: Props) {
   const activeUrl = usePathname();
   return (
-    <SidebarGroup className="flex-1">
-      <SidebarMenu className="space-y-1">
+    <SidebarGroup>
+      <SidebarMenu>
         {items.map((item) => {
           // Verifica se qualquer submenu está ativo
           const isAnySubItemActive = item.items?.some(
