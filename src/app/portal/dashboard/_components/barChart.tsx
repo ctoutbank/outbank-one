@@ -201,7 +201,7 @@ export function BarChartCustom({
                   labelFormatter={(value) => {
                     if (isHourlyView) {
                       return `${value}:00`;
-                    }
+                    } 
                     if (isWeeklyView) {
                       return DAYS_OF_WEEK[value];
                     }
