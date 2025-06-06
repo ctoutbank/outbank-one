@@ -24,11 +24,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  SaveFeeform,
-  saveMerchantPricingAction,
-  updatePixConfigAction,
-} from "../_actions/pricing-formActions";
+import { saveOrUpdateFeeAction } from "../_actions/pricing-formActions";
 import { FeeNewSchema, schemaFee } from "../schema/fee-new-Schema";
 import { type FeeData } from "../server/fee-db";
 import { PaymentConfigFormCompulsory } from "./new-tax-form-compusory";
@@ -121,43 +117,23 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
       setIsPending(true);
       toast.loading("Salvando configurações...");
 
-      // Preparar dados com o tipo de antecipação selecionado
-      const dataToSubmit = {
-        ...data,
-        anticipationType: selectedAnticipationType,
-        // Remover feeBrand para evitar problemas de tipo
-        feeBrand: undefined,
-      };
+      // Coleta dados dos filhos
+      const pixConfig = pixFormRef.current?.getFormData().pixConfig;
+      const groups =
+        selectedAnticipationType === "COMPULSORY"
+          ? compulsoryFormRef.current?.getFormData().groups
+          : eventualFormRef.current?.getFormData().groups;
 
-      // Salvar dados básicos da taxa usando a action do servidor
-      const result = await SaveFeeform(dataToSubmit);
-      const feeId = result.feeId ? result.feeId.toString() : "";
-
-      if (!feeId) {
-        throw new Error("Falha ao obter ID da taxa após salvamento");
-      }
-
-      // Salvar dados de PIX
-      if (pixFormRef.current) {
-        const pixData = pixFormRef.current.getFormData();
-        await updatePixConfigAction(feeId, pixData.pixConfig);
-      }
-
-      // Salvar configurações específicas de acordo com o tipo de antecipação
-      if (
-        selectedAnticipationType === "COMPULSORY" &&
-        compulsoryFormRef.current
-      ) {
-        const compulsoryData = compulsoryFormRef.current.getFormData();
-        await saveMerchantPricingAction(feeId, compulsoryData.groups);
-      } else if (
-        (selectedAnticipationType === "EVENTUAL" ||
-          selectedAnticipationType === "NOANTECIPATION") &&
-        eventualFormRef.current
-      ) {
-        const eventualData = eventualFormRef.current.getFormData();
-        await saveMerchantPricingAction(feeId, eventualData.groups);
-      }
+      // Chama a action simplificada
+      await saveOrUpdateFeeAction({
+        fee: {
+          ...data,
+          anticipationType: selectedAnticipationType,
+          feeBrand: undefined,
+        },
+        pixConfig,
+        groups: groups || [],
+      });
 
       toast.success("Configuração de taxa salva com sucesso!");
       router.refresh();
@@ -281,7 +257,9 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
 
         <Card>
           <CardContent>
-            <h3 className="text-lg font-medium mb-4">Configuração de Pix</h3>
+            <h3 className="text-lg font-medium mb-4 mt-4">
+              Configuração de Pix
+            </h3>
             <NewTaxPixSession
               data={fee}
               ref={pixFormRef}
@@ -294,7 +272,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
         selectedAnticipationType === "NOANTECIPATION" ? (
           <Card>
             <CardContent>
-              <h3 className="text-lg font-medium mb-4">
+              <h3 className="text-lg font-medium mb-4 mt-4">
                 {selectedAnticipationType === "NOANTECIPATION"
                   ? "Taxas sem antecipação"
                   : "Taxas com Antecipação Eventual"}
@@ -309,7 +287,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
         ) : selectedAnticipationType === "COMPULSORY" ? (
           <Card>
             <CardContent>
-              <h3 className="text-lg font-medium mb-4">
+              <h3 className="text-lg font-medium mb-4 mt-4">
                 Taxas com Antecipação Compulsória
               </h3>
               <PaymentConfigFormCompulsory

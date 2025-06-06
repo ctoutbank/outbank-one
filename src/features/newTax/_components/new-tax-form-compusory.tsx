@@ -1,9 +1,9 @@
 "use client";
 
+import { PercentageInput } from "@/components/percentage-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   saveMerchantPricingAction,
   updatePixConfigAction,
@@ -321,7 +321,39 @@ export const PaymentConfigFormCompulsory = forwardRef<
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
       pixConfig,
-      groups,
+      groups: groups.map((group) => ({
+        ...group,
+        modes: Object.fromEntries(
+          Object.entries(group.modes).map(([modeId, mode]) => {
+            if (
+              mode.installments &&
+              (modeId === "CREDIT_INSTALLMENTS_2_TO_6" ||
+                modeId === "CREDIT_INSTALLMENTS_7_TO_12")
+            ) {
+              if (mode.expanded) {
+                // Se expandido, mantém installments
+                return [modeId, mode];
+              } else {
+                // Se não expandido, remove installments
+                // Criar um novo objeto com todas as propriedades exceto installments
+                return [
+                  modeId,
+                  {
+                    expanded: mode.expanded,
+                    presentIntermediation: mode.presentIntermediation,
+                    notPresentIntermediation: mode.notPresentIntermediation,
+                    presentAnticipation: mode.presentAnticipation,
+                    notPresentAnticipation: mode.notPresentAnticipation,
+                    presentTransaction: mode.presentTransaction,
+                    notPresentTransaction: mode.notPresentTransaction,
+                  },
+                ];
+              }
+            }
+            return [modeId, mode];
+          })
+        ),
+      })),
     }),
   }));
 
@@ -573,6 +605,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                           <span>{mode.label}</span>
                           {mode.hasInstallments && (
                             <button
+                              type="button"
                               onClick={() =>
                                 toggleModeExpansion(groupIndex, mode.value)
                               }
@@ -587,94 +620,124 @@ export const PaymentConfigFormCompulsory = forwardRef<
                           )}
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-16 text-right"
-                            value={`${group.modes[mode.value].presentIntermediation}%`}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "presentIntermediation",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value].presentIntermediation ||
+                                ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "presentIntermediation",
+                                  value
+                                )
+                              }
+                              placeholder="%"
+                              className="w-16 text-center"
+                            />
+                          </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-30 text-right"
-                            value={`${group.modes[mode.value].presentAnticipation}% a.m.`.toLowerCase()}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "presentAnticipation",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value].presentAnticipation ||
+                                ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "presentAnticipation",
+                                  value
+                                )
+                              }
+                              placeholder="% a.m."
+                              className="w-30 text-center"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="p-3 border-r flex items-center justify-center">
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value].presentTransaction || ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "presentTransaction",
+                                  value
+                                )
+                              }
+                              placeholder="%"
+                              className="w-16 text-center"
+                            />
+                          </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-16 text-right"
-                            value={`${group.modes[mode.value].presentTransaction}%`}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "presentTransaction",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value]
+                                  .notPresentIntermediation || ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "notPresentIntermediation",
+                                  value
+                                )
+                              }
+                              placeholder="%"
+                              className="w-16 text-center"
+                            />
+                          </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-16 text-right"
-                            value={`${group.modes[mode.value].notPresentIntermediation}%`}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "notPresentIntermediation",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="p-3 border-r flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-16 text-right"
-                            value={`${group.modes[mode.value].notPresentAnticipation}% a.m.`}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "notPresentAnticipation",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value]
+                                  .notPresentAnticipation || ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "notPresentAnticipation",
+                                  value
+                                )
+                              }
+                              placeholder="% a.m."
+                              className="w-16 text-center"
+                            />
+                          </div>
                         </div>
                         <div className="p-3 flex items-center justify-center">
-                          <Input
-                            type="text"
-                            className="w-16 text-right"
-                            value={`${group.modes[mode.value].notPresentTransaction}%`}
-                            onChange={(e) =>
-                              handleInputChange(
-                                groupIndex,
-                                mode.value,
-                                "notPresentTransaction",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <PercentageInput
+                              value={
+                                group.modes[mode.value].notPresentTransaction ||
+                                ""
+                              }
+                              onChange={(value) =>
+                                handleInputChange(
+                                  groupIndex,
+                                  mode.value,
+                                  "notPresentTransaction",
+                                  value
+                                )
+                              }
+                              placeholder="%"
+                              className="w-16 text-center"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -697,130 +760,124 @@ export const PaymentConfigFormCompulsory = forwardRef<
                           >
                             <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.presentIntermediation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "presentIntermediation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.presentAnticipation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "presentAnticipation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="% a.m."
+                                className="w-30 text-center"
                               />
-                              <span className="ml-1">% a.m.</span>
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.presentTransaction || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "presentTransaction",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.notPresentIntermediation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "notPresentIntermediation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.notPresentAnticipation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "notPresentAnticipation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="% a.m."
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">% a.m.</span>
                             </div>
                             <div className="p-3 flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
                                     installment
                                   ]?.notPresentTransaction || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     mode.value,
                                     "notPresentTransaction",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                           </div>
                         ))}

@@ -1,6 +1,8 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/currency-input";
+import { PercentageInput } from "@/components/percentage-input";
+
 import { FeeData } from "@/features/newTax/server/fee-db";
 import { forwardRef, useImperativeHandle, useState } from "react";
 
@@ -76,25 +78,25 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`R$ ${pixConfig.minCostPresent}`}
-                  onChange={(e) =>
-                    handlePixInputChange("minCostPresent", e.target.value)
+                <CurrencyInput
+                  value={pixConfig.minCostPresent || ""}
+                  onValueChange={(values) =>
+                    handlePixInputChange("minCostPresent", values.value)
                   }
+                  placeholder="R$"
+                  className="w-20 text-right bg-transparent border-none outline-none shadow-none focus:ring-0 focus:outline-none"
                 />
               </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`R$ ${pixConfig.minCostNotPresent}`}
-                  onChange={(e) =>
-                    handlePixInputChange("minCostNotPresent", e.target.value)
+                <CurrencyInput
+                  value={pixConfig.minCostNotPresent || ""}
+                  onValueChange={(values) =>
+                    handlePixInputChange("minCostNotPresent", values.value)
                   }
+                  placeholder="R$ "
+                  className="w-20 text-right bg-transparent border-none outline-none shadow-none focus:ring-0 focus:outline-none"
                 />
               </div>
             </td>
@@ -105,25 +107,25 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`R$  ${pixConfig.maxCostPresent}`}
-                  onChange={(e) =>
-                    handlePixInputChange("maxCostPresent", e.target.value)
+                <CurrencyInput
+                  value={pixConfig.maxCostPresent || ""}
+                  onValueChange={(values) =>
+                    handlePixInputChange("maxCostPresent", values.value)
                   }
+                  placeholder="R$ "
+                  className="w-20 text-right bg-transparent border-none outline-none shadow-none focus:ring-0 focus:outline-none"
                 />
               </div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`R$ ${pixConfig.maxCostNotPresent}`}
-                  onChange={(e) =>
-                    handlePixInputChange("maxCostNotPresent", e.target.value)
+                <CurrencyInput
+                  value={pixConfig.maxCostNotPresent || ""}
+                  onValueChange={(values) =>
+                    handlePixInputChange("maxCostNotPresent", values.value)
                   }
+                  placeholder="R$ "
+                  className="w-20 text-right bg-transparent border-none outline-none shadow-none focus:ring-0 focus:outline-none"
                 />
               </div>
             </td>
@@ -134,25 +136,25 @@ export const NewTaxPixSession = forwardRef<
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`${pixConfig.mdrPresent}%`}
-                  onChange={(e) =>
-                    handlePixInputChange("mdrPresent", e.target.value)
+                <PercentageInput
+                  value={pixConfig.mdrPresent || ""}
+                  onChange={(value) =>
+                    handlePixInputChange("mdrPresent", value)
                   }
+                  placeholder="%"
+                  className="w-20 text-right"
                 />
               </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
               <div className="flex items-center justify-center">
-                <Input
-                  type="text"
-                  className="w-20 text-right"
-                  value={`${pixConfig.mdrNotPresent}%`}
-                  onChange={(e) =>
-                    handlePixInputChange("mdrNotPresent", e.target.value)
+                <PercentageInput
+                  value={pixConfig.mdrNotPresent || ""}
+                  onChange={(value) =>
+                    handlePixInputChange("mdrNotPresent", value)
                   }
+                  placeholder="%"
+                  className="w-20 text-right"
                 />
               </div>
             </td>
@@ -164,34 +166,26 @@ export const NewTaxPixSession = forwardRef<
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700 border-r">
                 <div className="flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-20 text-right"
-                    value={pixConfig.anticipationRatePresent}
-                    onChange={(e) =>
-                      handlePixInputChange(
-                        "anticipationRatePresent",
-                        e.target.value
-                      )
+                  <PercentageInput
+                    value={pixConfig.anticipationRatePresent || ""}
+                    onChange={(value) =>
+                      handlePixInputChange("anticipationRatePresent", value)
                     }
+                    placeholder="% a.m."
+                    className="w-20 text-right"
                   />
-                  <span className="ml-1">% a.m.</span>
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
                 <div className="flex items-center justify-center">
-                  <Input
-                    type="text"
-                    className="w-20 text-right"
-                    value={pixConfig.anticipationRateNotPresent}
-                    onChange={(e) =>
-                      handlePixInputChange(
-                        "anticipationRateNotPresent",
-                        e.target.value
-                      )
+                  <PercentageInput
+                    value={pixConfig.anticipationRateNotPresent || ""}
+                    onChange={(value) =>
+                      handlePixInputChange("anticipationRateNotPresent", value)
                     }
+                    placeholder="% a.m."
+                    className="w-20 text-right"
                   />
-                  <span className="ml-1">% a.m.</span>
                 </div>
               </td>
             </tr>

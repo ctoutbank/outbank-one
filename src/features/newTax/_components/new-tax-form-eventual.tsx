@@ -1,9 +1,9 @@
 "use client";
 
+import { PercentageInput } from "@/components/percentage-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   saveMerchantPricingAction,
   updatePixConfigAction,
@@ -230,7 +230,35 @@ export const PaymentConfigFormWithCard = forwardRef<
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
       pixConfig,
-      groups,
+      groups: groups.map((group) => ({
+        ...group,
+        modes: Object.fromEntries(
+          Object.entries(group.modes).map(([modeId, mode]) => {
+            if (
+              mode.installments &&
+              (modeId === "CREDIT_INSTALLMENTS_2_TO_6" ||
+                modeId === "CREDIT_INSTALLMENTS_7_TO_12")
+            ) {
+              if (mode.expanded) {
+                // Se expandido, mantém installments
+                return [modeId, mode];
+              } else {
+                // Se não expandido, remove installments
+                // Criar um novo objeto com todas as propriedades exceto installments
+                return [
+                  modeId,
+                  {
+                    expanded: mode.expanded,
+                    presentIntermediation: mode.presentIntermediation,
+                    notPresentIntermediation: mode.notPresentIntermediation,
+                  },
+                ];
+              }
+            }
+            return [modeId, mode];
+          })
+        ),
+      })),
     }),
   }));
 
@@ -495,6 +523,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                         <span>{feeProductType.label}</span>
                         {hasInstallments(feeProductType.value) && (
                           <button
+                            type="button"
                             onClick={() =>
                               toggleModeExpansion(
                                 groupIndex,
@@ -512,42 +541,52 @@ export const PaymentConfigFormWithCard = forwardRef<
                         )}
                       </div>
                       <div className="p-3 border-r flex items-center justify-center">
-                        <Input
-                          type="text"
-                          className="w-16 text-right"
-                          value={`${group.modes[feeProductType.value].presentIntermediation}%`}
-                          onChange={(e) =>
-                            handleInputChange(
-                              groupIndex,
+                        <div className="flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .presentIntermediation || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "presentIntermediation",
+                                value
+                              )
+                            }
+                            placeholder="%"
+                            className="w-16 text-center"
+                            disabled={shouldDisableMainModeInput(
                               feeProductType.value,
-                              "presentIntermediation",
-                              e.target.value
-                            )
-                          }
-                          disabled={shouldDisableMainModeInput(
-                            feeProductType.value,
-                            group.modes[feeProductType.value].expanded
-                          )}
-                        />
+                              group.modes[feeProductType.value].expanded
+                            )}
+                          />
+                        </div>
                       </div>
                       <div className="p-3 flex items-center justify-center">
-                        <Input
-                          type="text"
-                          className="w-16 text-right"
-                          value={`${group.modes[feeProductType.value].notPresentIntermediation}%`}
-                          onChange={(e) =>
-                            handleInputChange(
-                              groupIndex,
+                        <div className="flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .notPresentIntermediation || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "notPresentIntermediation",
+                                value
+                              )
+                            }
+                            placeholder="%"
+                            className="w-16 text-center"
+                            disabled={shouldDisableMainModeInput(
                               feeProductType.value,
-                              "notPresentIntermediation",
-                              e.target.value
-                            )
-                          }
-                          disabled={shouldDisableMainModeInput(
-                            feeProductType.value,
-                            group.modes[feeProductType.value].expanded
-                          )}
-                        />
+                              group.modes[feeProductType.value].expanded
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -568,46 +607,44 @@ export const PaymentConfigFormWithCard = forwardRef<
                           >
                             <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[feeProductType.value]
                                     .installments?.[installment]
                                     ?.presentIntermediation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     feeProductType.value,
                                     "presentIntermediation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                             <div className="p-3 flex items-center justify-center">
-                              <Input
-                                type="text"
-                                className="w-16 text-right"
+                              <PercentageInput
                                 value={
                                   group.modes[feeProductType.value]
                                     .installments?.[installment]
                                     ?.notPresentIntermediation || ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
                                     feeProductType.value,
                                     "notPresentIntermediation",
-                                    e.target.value,
+                                    value,
                                     installment
                                   )
                                 }
+                                placeholder="%"
+                                className="w-16 text-center"
                               />
-                              <span className="ml-1">%</span>
                             </div>
                           </div>
                         ));

@@ -155,17 +155,28 @@ async function processCardBrandGroup(
 
         // Se tem parcelamento e installments
         if (installmentStart && installmentEnd && mode.installments) {
-          // Processar cada parcelamento
-          for (let i = installmentStart; i <= installmentEnd; i++) {
-            if (mode.installments[i]) {
-              await processProductType(
-                Number(brandId),
-                productType,
-                i,
-                i,
-                mode.installments[i]
-              );
+          if (mode.expanded) {
+            // Se expandido, salva cada parcela individualmente
+            for (let i = installmentStart; i <= installmentEnd; i++) {
+              if (mode.installments[i]) {
+                await processProductType(
+                  Number(brandId),
+                  productType,
+                  i,
+                  i,
+                  mode.installments[i]
+                );
+              }
             }
+          } else {
+            // Se NÃO expandido, salva uma linha única para o range
+            await processProductType(
+              Number(brandId),
+              productType,
+              installmentStart,
+              installmentEnd,
+              mode
+            );
           }
         } else {
           // Processar modo sem parcelamento
@@ -345,4 +356,25 @@ export async function SaveFeeform(data: FeeNewSchema) {
     console.error("Erro ao salvar taxa:", error);
     throw error;
   }
+}
+
+export interface SaveFeeFullInput {
+  fee: FeeNewSchema;
+  pixConfig: any;
+  groups: any[];
+}
+
+export async function saveOrUpdateFeeAction(data: SaveFeeFullInput) {
+  // 1. Salva ou atualiza a fee
+  const feeResult = await SaveFeeform(data.fee);
+  const feeId = feeResult.feeId?.toString();
+  if (!feeId) throw new Error("Falha ao obter ID da taxa");
+
+  // 2. Atualiza Pix
+  if (data.pixConfig) await updatePixConfigAction(feeId, data.pixConfig);
+
+  // 3. Salva/atualiza feeBrand e feeBrandProductType
+  if (data.groups) await saveMerchantPricingAction(feeId, data.groups);
+
+  return { success: true, feeId };
 }
