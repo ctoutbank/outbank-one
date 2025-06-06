@@ -149,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={menuData.teams} />
         <Separator orientation="horizontal" className="bg-[#d2d2d2]" />
       </SidebarHeader>
-      <SidebarContent className="flex-1">
+      <SidebarContent>
         <NavMain items={menuData.navMain} />
         {/* <a
           href="https://outbank-chart-ia.vercel.app/"
