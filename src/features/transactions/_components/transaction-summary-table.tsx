@@ -33,7 +33,8 @@ export function TransactionSummaryTable({
   headerbg,
   headersViews,
   onHeaderViewChange,
-  labelHeader }: TransactionSummaryTableProps) {
+  labelHeader,
+}: TransactionSummaryTableProps) {
   // Ordenar itens por valor total em ordem decrescente
   const sortedItems = [...items].sort((a, b) => b.totalAmount - a.totalAmount);
 
@@ -100,7 +101,7 @@ export function TransactionSummaryTable({
             </td>
             <td className="px-2 py-1 text-right">{total.quantidade}</td>
 
-            <td className="px-2 py-1 text-right">
+            <td className="px-2 py-1 text-right ">
               {formatCurrency(total.valorTotal)}
             </td>
           </tr>
@@ -122,7 +123,7 @@ export function TransactionSummaryTable({
                 {item.count}
               </td>
 
-              <td className="px-2 py-1 text-right">
+              <td className="px-2 py-1 text-right  whitespace-nowrap text-nowrap">
                 <span className="text-[8px] mr-1">
                   {total.valorTotal === 0
                     ? "0.0%"
