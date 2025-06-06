@@ -76,6 +76,7 @@ export function MerchantAdjustmentsDashboardContent({
                     year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "America/Sao_Paulo",
                   })}
                 </p>
               </CardHeader>
