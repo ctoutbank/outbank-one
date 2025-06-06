@@ -16,13 +16,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { useRef } from "react";
 
 import {
   PricingSolicitationSchema,
   schemaPricingSolicitation,
 } from "@/features/pricingSolicitation/schema/schema";
 import {
-  insertPricingSolicitation,
   updatePricingSolicitation,
   type PricingSolicitationForm,
 } from "@/features/pricingSolicitation/server/pricing-solicitation";
@@ -48,6 +49,7 @@ export default function PricingSolicitationForm({
   pricingSolicitation,
 }: PricingSolicitationFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [solicitationId, setSolicitationId] = useState<number | null>(
     pricingSolicitation?.id || null
@@ -56,13 +58,13 @@ export default function PricingSolicitationForm({
   const [uploadSuccessful, setUploadSuccessful] = useState(false);
 
   const [formStatus, setFormStatus] = useState<
-    "DRAFT" | "SEND_DOCUMENTS" | "PENDING" | "SEND_SOLICITATION"
+    "SEND_DOCUMENTS" | "PENDING" | null
   >(
     pricingSolicitation?.status === "PENDING"
       ? "PENDING"
-      : pricingSolicitation?.status === "SEND_SOLICITATION"
-        ? "SEND_SOLICITATION"
-        : "DRAFT"
+      : pricingSolicitation?.status === "SEND_DOCUMENTS"
+        ? "SEND_DOCUMENTS"
+        : null
   );
 
   // Simplified function to just open the dialog
@@ -75,7 +77,7 @@ export default function PricingSolicitationForm({
   const handleSolicitationCreated = (id: number) => {
     console.log(`Solicitação criada com ID: ${id}`);
     setSolicitationId(id);
-    setFormStatus("SEND_SOLICITATION");
+    setFormStatus("SEND_DOCUMENTS");
     setUploadSuccessful(true);
 
     // Atualizar a URL para incluir o ID da solicitação sem navegar
@@ -142,71 +144,13 @@ export default function PricingSolicitationForm({
     },
   });
 
-  function formatDataSolicitation(data: any): PricingSolicitationForm {
-    console.log("Dados antes da formatação:", data);
-
-    const formattedData = {
-      ...data,
-      cnae: data.cnae || null,
-      mcc: data.mcc || null,
-      cnpjQuantity: data.cnpjQuantity ? Number(data.cnpjQuantity) : null,
-      monthlyPosFee: data.monthlyPosFee || null,
-      averageTicket: data.averageTicket || null,
-      description: data.description || null,
-      cnaeInUse: data.cnaeInUse ?? null,
-      slug: data.slug || null,
-      dtinsert: data.dtinsert || new Date().toISOString(),
-      dtupdate: new Date().toISOString(),
-      idCustomers: data.idCustomers || null,
-      cardPixMdr: Number(data.cardPixMdr) || 0,
-      cardPixCeilingFee: Number(data.cardPixCeilingFee) || 0,
-      cardPixMinimumCostFee: Number(data.cardPixMinimumCostFee) || 0,
-      nonCardPixMdr: Number(data.nonCardPixMdr) || 0,
-      nonCardPixCeilingFee: Number(data.nonCardPixCeilingFee) || 0,
-      nonCardPixMinimumCostFee: Number(data.nonCardPixMinimumCostFee) || 0,
-      eventualAnticipationFee: Number(data.eventualAnticipationFee) || 0,
-      nonCardEventualAnticipationFee:
-        Number(data.nonCardEventualAnticipationFee) || 0,
-      status: data.status || "PENDING",
-      brands: (data.brands || []).map((brand: any) => ({
-        name: brand.name,
-        productTypes: (brand.productTypes || []).map((pt: any) => {
-          console.log(
-            `Formatando ${brand.name} - ${pt.name}: fee=${pt.fee}, noCardFee=${pt.noCardFee}`
-          );
-
-          return {
-            name: pt.name,
-            fee: Number(pt.fee) || 0,
-            feeAdmin: Number(pt.feeAdmin) || 0,
-            feeDock: Number(pt.feeDock) || 0,
-            noCardFee: Number(pt.noCardFee) || 0,
-            noCardFeeAdmin: Number(pt.noCardFeeAdmin) || 0,
-            noCardFeeDock: Number(pt.noCardFeeDock) || 0,
-            noCardTransactionAnticipationMdr:
-              Number(pt.noCardTransactionAnticipationMdr) || 0,
-            transactionFeeStart: Number(pt.transactionFeeStart) || 0,
-            transactionFeeEnd: Number(pt.transactionFeeEnd) || 0,
-            pixMinimumCostFee: Number(pt.pixMinimumCostFee) || 0,
-            pixCeilingFee: Number(pt.pixCeilingFee) || 0,
-            transactionAnticipationMdr:
-              Number(pt.transactionAnticipationMdr) || 0,
-          };
-        }),
-      })),
-    } as PricingSolicitationForm;
-
-    console.log("Dados após formatação:", formattedData);
-    return formattedData;
-  }
-
   // Map form data to solicitation structure
   function mapFormDataToSolicitation(data: PricingSolicitationSchema) {
     // Se não houver dados, retorna objeto vazio
     if (!data) return {};
 
     const mappedData: PricingSolicitationForm = {
-      id: 0,
+      id: solicitationId || 0,
       cnae: data.cnae || "",
       mcc: data.mcc || "",
       cnpjQuantity: data.cnpjsQuantity ? Number(data.cnpjsQuantity) : 0,
@@ -224,30 +168,29 @@ export default function PricingSolicitationForm({
       nonCardPixMdr: data.nonCardPixMdr || null,
       nonCardPixCeilingFee: data.nonCardPixCeilingFee || null,
       nonCardPixMinimumCostFee: data.nonCardPixMinimumCostFee || null,
-      compulsoryAnticipationConfig:
-        Number(data.eventualAnticipationFee) || null,
+      compulsoryAnticipationConfig: Number(data.eventualAnticipationFee) || 0,
       eventualAnticipationFee: data.eventualAnticipationFee || null,
       nonCardEventualAnticipationFee:
         data.nonCardEventualAnticipationFee || null,
-      cardPixMdrAdmin: "0",
-      cardPixCeilingFeeAdmin: "0",
-      cardPixMinimumCostFeeAdmin: "0",
-      nonCardPixMdrAdmin: "0",
-      nonCardPixCeilingFeeAdmin: "0",
-      nonCardPixMinimumCostFeeAdmin: "0",
+      cardPixMdrAdmin: null,
+      cardPixCeilingFeeAdmin: null,
+      cardPixMinimumCostFeeAdmin: null,
+      nonCardPixMdrAdmin: null,
+      nonCardPixCeilingFeeAdmin: null,
+      nonCardPixMinimumCostFeeAdmin: null,
       compulsoryAnticipationConfigAdmin: 0,
-      eventualAnticipationFeeAdmin: "0",
-      nonCardEventualAnticipationFeeAdmin: "0",
-      cardPixMdrDock: "0",
-      cardPixCeilingFeeDock: "0",
-      cardPixMinimumCostFeeDock: "0",
-      nonCardPixMdrDock: "0",
-      nonCardPixCeilingFeeDock: "0",
-      nonCardPixMinimumCostFeeDock: "0",
+      eventualAnticipationFeeAdmin: null,
+      nonCardEventualAnticipationFeeAdmin: null,
+      cardPixMdrDock: null,
+      cardPixCeilingFeeDock: null,
+      cardPixMinimumCostFeeDock: null,
+      nonCardPixMdrDock: null,
+      nonCardPixCeilingFeeDock: null,
+      nonCardPixMinimumCostFeeDock: null,
       compulsoryAnticipationConfigDock: 0,
-      eventualAnticipationFeeDock: "0",
-      nonCardEventualAnticipationFeeDock: "0",
-      status: "SEND_SOLICITATION", // Definir status padrão para upload
+      eventualAnticipationFeeDock: null,
+      nonCardEventualAnticipationFeeDock: null,
+      status: "SEND_DOCUMENTS", // Definir status padrão para upload
       brands: (data.brands || []).map((brand) => ({
         name: brand.name || "",
         productTypes: (brand.productTypes || []).map((productType) => ({
@@ -273,43 +216,18 @@ export default function PricingSolicitationForm({
   }
 
   // Create a new solicitation
-  async function createPricingSolicitation(
-    values: PricingSolicitationSchema,
-    status: string
-  ) {
-    const formattedData = formatDataSolicitation(
-      mapFormDataToSolicitation(values)
-    );
-    const result = await insertPricingSolicitation({
-      ...formattedData,
-      status: status,
-    });
-
-    return result;
-  }
 
   // Update an existing solicitation
-  async function updateExistingSolicitation(
-    values: PricingSolicitationSchema,
-    id: number,
-    status: string
-  ) {
-    const formattedData = formatDataSolicitation(
-      mapFormDataToSolicitation(values)
-    );
+  async function updateExistingSolicitation(values: PricingSolicitationSchema) {
+    const formattedData = mapFormDataToSolicitation(values);
+
     console.log("Dados formatados para atualização:", {
       ...formattedData,
-      id,
-      status,
     });
 
     try {
-      await updatePricingSolicitation({
-        ...formattedData,
-        id: id,
-        status: status,
-      });
-      return id;
+      await updatePricingSolicitation(formattedData as PricingSolicitationForm);
+      return formattedData as PricingSolicitationForm;
     } catch (error) {
       console.error("Erro na função updatePricingSolicitation:", error);
       throw error;
@@ -323,29 +241,12 @@ export default function PricingSolicitationForm({
       if (solicitationId) {
         let newStatus = "PENDING";
 
-        // Se o status for SEND_SOLICITATION e existir solicitation_fee.id,
-        // atualiza todas as tabelas e muda o status para PENDING
-        if (formStatus === "SEND_SOLICITATION" && solicitationId) {
-          newStatus = "PENDING";
-        }
-
         console.log("Valores antes de atualizar:", values);
         console.log("Status:", newStatus);
         console.log("ID da solicitação:", solicitationId);
 
         // Atualiza a solicitação existente para o novo status
-        await updateExistingSolicitation(values, solicitationId, newStatus);
-        setFormStatus(newStatus as any);
-        router.push(`/portal/pricingSolicitation/${solicitationId}`);
-      } else {
-        // Create new solicitation with PENDING status
-        const result = await createPricingSolicitation(values, "PENDING");
-
-        if (result && typeof result.id === "number") {
-          setSolicitationId(result.id);
-          setFormStatus("PENDING");
-          router.push(`/portal/pricingSolicitation/${result.id}`);
-        }
+        await updateExistingSolicitation(values);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -356,9 +257,13 @@ export default function PricingSolicitationForm({
         console.error("Stack:", error.stack);
       }
 
-      alert(`Erro ao enviar formulário: ${errorMessage}`);
+      toast({
+        variant: "destructive",
+        title: "Erro ao enviar formulário",
+      });
     } finally {
       setIsSubmitting(false);
+      router.push(`/portal/pricingSolicitation/${solicitationId}`);
     }
   }
 
@@ -373,7 +278,6 @@ export default function PricingSolicitationForm({
     }
   };
 
-  // If form is in PENDING status, show read-only view
   if (formStatus === "PENDING") {
     return (
       <div className="space-y-8">
@@ -386,6 +290,7 @@ export default function PricingSolicitationForm({
       </div>
     );
   }
+  const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <div>
@@ -394,6 +299,7 @@ export default function PricingSolicitationForm({
           <CardContent className="pt-6">
             <Form {...form}>
               <form
+                ref={formRef}
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
               >
@@ -409,33 +315,28 @@ export default function PricingSolicitationForm({
                 <FeesSection
                   control={form.control}
                   isNewSolicitation={solicitationId === null}
-                  hideFeeAdmin={formStatus === "SEND_SOLICITATION"}
+                  hideFeeAdmin={formStatus == "SEND_DOCUMENTS"}
                 />
-
-                <div className="flex justify-end items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleOpenDocumentUpload}
-                    className="flex items-center gap-2"
-                  >
-                    <UploadIcon className="h-4 w-4" />
-                    Importar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || !solicitationId}
-                    onClick={() => {
-                      if (!solicitationId) {
-                        alert("Envie os documentos");
-                      }
-                    }}
-                  >
-                    {isSubmitting ? "Enviando..." : "Enviar"}
-                  </Button>
-                </div>
               </form>
             </Form>
+            <div className="flex justify-end items-center gap-4 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleOpenDocumentUpload}
+                className="flex items-center gap-2"
+              >
+                <UploadIcon className="h-4 w-4" />
+                Importar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                disabled={isSubmitting || !solicitationId}
+              >
+                {isSubmitting ? "Enviando..." : "Enviar"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -454,7 +355,7 @@ export default function PricingSolicitationForm({
 
           <DocumentUploadContent
             solicitationId={solicitationId}
-            formData={
+            pricingSolicitationData={
               !solicitationId
                 ? mapFormDataToSolicitation(form.getValues())
                 : undefined

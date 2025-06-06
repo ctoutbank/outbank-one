@@ -707,7 +707,7 @@ export function FeesSection({
       <h3 className="font-semibold text-lg">Taxas</h3>
 
       {/* Legend for input colors - only show when not a new solicitation */}
-      {!isNewSolicitation && (
+      {!isNewSolicitation && !hideFeeAdmin && (
         <div className="flex flex-col gap-4 mb-2">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-gray-100"></div>

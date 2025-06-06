@@ -34,7 +34,7 @@ export default async function TerminalsPage({
   searchParams: TerminalsProps;
 }) {
   await checkPagePermission("Terminais");
-  console.log(searchParams)
+  console.log(searchParams);
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "20");
@@ -169,7 +169,7 @@ export default async function TerminalsPage({
               />
             </div>
 
-            <div>
+            <div className="w-full">
               <TerminalsDashboardContent
                 totalTerminals={totalRecords}
                 ativosTerminals={ativosTerminals}

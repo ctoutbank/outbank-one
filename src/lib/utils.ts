@@ -179,6 +179,22 @@ export function formatCurrency(number: number | undefined | null): string {
     .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
 
+export function formatPercentage(value: number): string {
+  return `${value}%`;
+}
+
+export function formatPercentagea(value: number | null) {
+  if (value === null) return null;
+  return `${Math.abs(value).toFixed(2).replace('.', ',')}%`;
+}
+
+export function formatCurrencya(value: number | null) {
+  if (value === null) return null;
+  return `R$ ${Math.abs(value).toFixed(2).replace('.', ',')}`;
+}
+
+
+
 export function generateSlug(): string {
   return crypto.randomBytes(16).toString("hex").toUpperCase();
 }
