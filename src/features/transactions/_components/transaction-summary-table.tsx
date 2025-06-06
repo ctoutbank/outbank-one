@@ -52,13 +52,13 @@ export function TransactionSummaryTable({
 
   return (
     <div className=" overflow-x-auto border rounded-md shadow-sm min-h-[180px] max-h-[180px]">
-      <table className="w-full text-[12px]">
+      <table className="w-full text-[9px]">
         <tbody className="">
           {/* Total Geral como primeira linha */}
           <tr
             className={`border-b ${headerbg} whitespace-nowrap text-nowrap font-medium`}
           >
-            <td className="px-2 py-1 flex items-center gap-2">
+            <td className="py-1 flex items-center gap-2">
               {!headersViews || headersViews.length <= 1 ? (
                 // Se houver apenas um item, mostrar apenas o label sem os ícones
                 <span>{labelHeader}</span>
@@ -99,21 +99,18 @@ export function TransactionSummaryTable({
                 </>
               )}
             </td>
-            <td className="px-2 py-1 text-right">{total.quantidade}</td>
+            <td className="py-1 text-right">{total.quantidade}</td>
 
-            <td className="px-2 py-1 text-right ">
+            <td className="py-1 text-right">
               {formatCurrency(total.valorTotal)}
             </td>
           </tr>
           {/* Linhas de itens */}
           {sortedItems.map((item) => (
-            <tr
-              key={item.id}
-              className="border-b hover:bg-muted/30 text-[11px]"
-            >
+            <tr key={item.id} className="border-b hover:bg-muted/30 text-[8px]">
               <td className="px-2 py-1">{item.label}</td>
               <td className="px-2 py-1 text-right">
-                <span className="text-[8px] mr-1">
+                <span className="text-[7px] mr-1">
                   {total.quantidade === 0
                     ? "(0.0%)"
                     : "(" +
@@ -123,8 +120,8 @@ export function TransactionSummaryTable({
                 {item.count}
               </td>
 
-              <td className="px-2 py-1 text-right  whitespace-nowrap text-nowrap">
-                <span className="text-[8px] mr-1">
+              <td className="px-2 py-1 text-right whitespace-nowrap text-nowrap">
+                <span className="text-[7px] mr-1">
                   {total.valorTotal === 0
                     ? "0.0%"
                     : "(" +
