@@ -13,14 +13,9 @@ import { CalendarIcon, FilterIcon, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-interface DashboardFiltersProps {
-  dateRange: {
-    from: string | undefined;
-    to?: string | undefined;
-  };
-}
 
-export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
+
+export default function DashboardFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

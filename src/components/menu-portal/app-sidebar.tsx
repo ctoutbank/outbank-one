@@ -145,23 +145,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="flex flex-col items-center">
-        <TeamSwitcher teams={menuData.teams} />
-        <Separator orientation="horizontal" className="bg-[#d2d2d2]" />
+      <SidebarHeader className="flex flex-col items-center p-1 space-y-1">
+        <div className="w-full scale-75 lg:scale-90 origin-center">
+          <TeamSwitcher teams={menuData.teams} />
+        </div>
+        <Separator orientation="horizontal" className="bg-[#d2d2d2] w-full" />
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={menuData.navMain} />
-        {/* <a
-          href="https://outbank-chart-ia.vercel.app/"
-          target="_blank"
-          className="flex items-center gap-2 p-4"
-        >
-          <ChartBar className="h-4 w-4" />
-          <p>Acessar IA de Gráficos</p>
-        </a>*/}
+      <SidebarContent className="flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-y-auto p-0">
+        <div className="flex-1 min-h-0">
+          <NavMain items={menuData.navMain} />
+        </div>
       </SidebarContent>
-      <SidebarFooter>
-        <UserMenu />
+      <SidebarFooter className="p-1">
+        <div className="scale-75 lg:scale-90 origin-center">
+          <UserMenu />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

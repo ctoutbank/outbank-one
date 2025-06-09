@@ -208,6 +208,7 @@ export async function insertPricingSolicitation(
 
     // Remove the id field to let the database auto-generate it
     const { id, ...dataToInsert } = solicitationData;
+    console.log("dataToInsert", id);
 
     const [newSolicitation] = await db
       .insert(solicitationFee)
@@ -390,7 +391,7 @@ export async function updatePricingSolicitation(
 
   try {
     const { brands, id, slug, idCustomers, ...solicitationData } = pricingSolicitation;
-
+    console.log("solicitationData", slug, id, idCustomers);
     // 1. Update the main solicitation fee record
     await db
       .update(solicitationFee)

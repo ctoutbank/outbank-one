@@ -67,6 +67,8 @@ export default function PricingSolicitationForm({
         : null
   );
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   // Simplified function to just open the dialog
   function handleOpenDocumentUpload() {
     setUploadSuccessful(false);
@@ -239,7 +241,7 @@ export default function PricingSolicitationForm({
     setIsSubmitting(true);
     try {
       if (solicitationId) {
-        let newStatus = "PENDING";
+        const newStatus = "PENDING";
 
         console.log("Valores antes de atualizar:", values);
         console.log("Status:", newStatus);
@@ -254,7 +256,7 @@ export default function PricingSolicitationForm({
 
       if (error instanceof Error) {
         errorMessage = error.message;
-        console.error("Stack:", error.stack);
+        console.error("Stack:", error.stack, errorMessage);
       }
 
       toast({
@@ -290,7 +292,6 @@ export default function PricingSolicitationForm({
       </div>
     );
   }
-  const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <div>

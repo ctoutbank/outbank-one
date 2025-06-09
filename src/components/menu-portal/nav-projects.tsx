@@ -39,8 +39,8 @@ interface Props {
 export function NavMain({ items }: Props) {
   const activeUrl = usePathname();
   return (
-    <SidebarGroup>
-      <SidebarMenu>
+    <SidebarGroup className="p-1">
+      <SidebarMenu className="gap-0.5">
         {items.map((item) => {
           // Verifica se qualquer submenu está ativo
           const isAnySubItemActive = item.items?.some(
@@ -58,19 +58,21 @@ export function NavMain({ items }: Props) {
                     <SidebarMenuButton
                       tooltip={item.title}
                       isActive={isAnySubItemActive}
+                      size="sm"
+                      className="h-5 lg:h-6 text-xs lg:text-sm py-0.5 px-1.5"
                     >
                       {item.icon && (
-                        <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6">
+                        <div className="relative flex items-center justify-center w-4 h-4 lg:w-5 lg:h-5 rounded-sm bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4 lg:group-data-[collapsible=icon]:w-5 lg:group-data-[collapsible=icon]:h-5">
                           <item.icon
-                            className="size-5 text-sidebar-foreground"
+                            className="size-3 lg:size-4 text-sidebar-foreground"
                             strokeWidth={2}
                           />
                         </div>
                       )}
-                      <span className="font-medium group-data-[collapsible=icon]:hidden">
+                      <span className="font-normal lg:font-medium text-xs lg:text-sm truncate group-data-[collapsible=icon]:hidden">
                         {item.title}
                       </span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden size-3" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent
@@ -79,15 +81,19 @@ export function NavMain({ items }: Props) {
                       "overflow-hidden transition-all duration-300"
                     )}
                   >
-                    <SidebarMenuSub>
+                    <SidebarMenuSub className="mx-2 px-1 py-0">
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton
                             asChild
                             isActive={activeUrl == subItem.url}
+                            size="sm"
+                            className="h-4 lg:h-5 text-xs py-0 px-1"
                           >
                             <a href={subItem.url}>
-                              <span>{subItem.title}</span>
+                              <span className="text-xs truncate">
+                                {subItem.title}
+                              </span>
                             </a>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -99,17 +105,19 @@ export function NavMain({ items }: Props) {
                 <SidebarMenuButton
                   asChild
                   isActive={item.url === activeUrl || item.isActive}
+                  size="sm"
+                  className="h-5 lg:h-6 text-xs lg:text-sm py-0.5 px-1.5"
                 >
                   <a href={item.url}>
                     {item.icon && (
-                      <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6">
+                      <div className="relative flex items-center justify-center w-4 h-4 lg:w-5 lg:h-5 rounded-sm bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4 lg:group-data-[collapsible=icon]:w-5 lg:group-data-[collapsible=icon]:h-5">
                         <item.icon
-                          className="size-5 text-sidebar-foreground"
+                          className="size-3 lg:size-4 text-sidebar-foreground"
                           strokeWidth={2}
                         />
                       </div>
                     )}
-                    <span className="font-medium group-data-[collapsible=icon]:hidden">
+                    <span className="font-normal lg:font-medium text-xs lg:text-sm truncate group-data-[collapsible=icon]:hidden">
                       {item.title}
                     </span>
                   </a>

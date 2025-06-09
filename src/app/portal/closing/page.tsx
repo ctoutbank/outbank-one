@@ -5,31 +5,32 @@ import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChartCustom } from "@/features/closing/components/barChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
-import { TransactionsDashboardTable } from "@/features/closing/components/transactions-dashboard-table";
-import { getTransactionsGroupedReport,} from "@/features/transactions/serverActions/transaction";
+
+import TransactionsExport from "@/features/closing/components/export-excel";
+import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import {
   getTotalMerchants,
   getTotalTransactions,
   getTotalTransactionsByMonth,
+  getTransactionsGroupedReport,
   normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction";
 import { gateDateByViewMode, getPreviousPeriodFromRange } from "@/lib/utils";
 import { Suspense } from "react";
-import TransactionsExport from "@/features/closing/components/export-excel";
 
 type ClosingSearchParams = {
-    viewMode?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    status?: string;
-    merchant?: string;
-    productType?: string;
-    brand?: string;
-    method?: string;
-    salesChannel?: string;
-    terminal?: string;
-    valueMin?: string;
-    valueMax?: string;
+  viewMode?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  merchant?: string;
+  productType?: string;
+  brand?: string;
+  method?: string;
+  salesChannel?: string;
+  terminal?: string;
+  valueMin?: string;
+  valueMax?: string;
 };
 
 export const dynamic = "force-dynamic";
@@ -38,12 +39,16 @@ export const revalidate = 0;
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: ClosingSearchParams & { viewMode: string; dateFrom: string; dateTo: string };
+  searchParams: ClosingSearchParams & {
+    viewMode: string;
+    dateFrom: string;
+    dateTo: string;
+  };
 }) {
   const viewMode = searchParams.viewMode || "month";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
-  let previousRange: { from: string; to: string; } = { from: "", to: "" };
+  let previousRange: { from: string; to: string } = { from: "", to: "" };
   if (searchParams.dateFrom || searchParams.dateTo) {
     previousRange = getPreviousPeriodFromRange(
       searchParams.dateFrom,
@@ -79,17 +84,16 @@ export default async function SalesDashboard({
   const transactionsGroupedReport = await getTransactionsGroupedReport(
     dateRange.start!,
     dateRange.end!,
-        searchParams.status,
-        searchParams.productType,
-        searchParams.brand,
-        searchParams.method,
-        searchParams.salesChannel,
-        searchParams.terminal,
-        searchParams.valueMin,
-        searchParams.valueMax,
-        searchParams.merchant
+    searchParams.status,
+    searchParams.productType,
+    searchParams.brand,
+    searchParams.method,
+    searchParams.salesChannel,
+    searchParams.terminal,
+    searchParams.valueMin,
+    searchParams.valueMax,
+    searchParams.merchant
   );
-
 
   return (
     <>
@@ -104,9 +108,9 @@ export default async function SalesDashboard({
               to: period.to,
             }}
           />
-            <div>
-                <TransactionsExport/>
-            </div>
+          <div>
+            <TransactionsExport />
+          </div>
         </div>
         <Suspense fallback={<div>Carregando...</div>}>
           <Card className="w-full border-l-8 border-black bg-sidebar">
@@ -120,6 +124,7 @@ export default async function SalesDashboard({
                     year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "America/Sao_Paulo",
                   })}
                 </p>
               </CardHeader>
@@ -149,7 +154,7 @@ export default async function SalesDashboard({
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"
-                    value={totalTransactions[0]?.revenue || 0}
+                    value={0}
                     percentage={
                       totalTransactions[0]?.revenue &&
                       totalTransactionsPreviousPeriod[0]?.revenue

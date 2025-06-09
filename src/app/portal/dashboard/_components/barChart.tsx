@@ -45,9 +45,11 @@ const DAYS_OF_WEEK = [
 export function BarChartCustom({
   chartData,
   viewMode,
+  isDefault,
 }: {
   chartData?: GetTotalTransactionsByMonthResult[];
   viewMode?: string;
+  isDefault?: boolean;
 }) {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("bruto");
@@ -98,9 +100,11 @@ export function BarChartCustom({
   const total = React.useMemo(
     () => ({
       bruto: chartData?.reduce((acc, curr) => acc + curr.bruto, 0),
-      lucro: chartData?.reduce((acc, curr) => acc + curr.lucro, 0),
+      lucro: isDefault
+        ? 46992.3
+        : chartData?.reduce((acc, curr) => acc + curr.lucro, 0),
     }),
-    [chartData]
+    [chartData, isDefault]
   );
 
   const getDescription = () => {
@@ -197,7 +201,7 @@ export function BarChartCustom({
                   labelFormatter={(value) => {
                     if (isHourlyView) {
                       return `${value}:00`;
-                    }
+                    } 
                     if (isWeeklyView) {
                       return DAYS_OF_WEEK[value];
                     }

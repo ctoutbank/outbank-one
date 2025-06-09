@@ -203,7 +203,7 @@ export default function FileUpload({
         }
 
         for (const file of newFiles) {
-          let result;
+          
 
           // Se customUploadHandler for passado, usa ele
           if (customUploadHandler) {
@@ -214,7 +214,7 @@ export default function FileUpload({
           formData.append("File", file);
           formData.append("fileName", fileType || title);
 
-          result = await createFileWithRelation(
+          const result = await createFileWithRelation(
             formData,
             entityType,
             finalEntityId || 0,
