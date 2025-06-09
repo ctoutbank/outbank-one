@@ -11,7 +11,6 @@ import {
   solicitationFeeDocument,
 } from "../../drizzle/schema";
 
-
 // Tipos para gerenciamento de arquivos
 export type FileEntityType =
   | "merchant"
@@ -49,6 +48,7 @@ interface CreateFileRelationParams {
   entityId: number;
   fileId: number;
   extension: string;
+  type?: string;
 }
 
 /**
@@ -75,8 +75,9 @@ export async function uploadFile(
   }
 
   try {
+    const fileExtension = getFileExtension(fileObject.name);
     console.log("Processando arquivo para upload:", {
-      name: fileObject.name,
+      name: fileObject.name + "." + fileExtension,
       type: fileObject.type,
       size: fileObject.size,
       fileType: uploadFileRequest.fileType,
@@ -84,17 +85,15 @@ export async function uploadFile(
 
     // Formatar o nome do arquivo usando o título fornecido
 
-    const fileExtension = getFileExtension(fileObject.name);
-
     // Preparar o upload para o S3
     const arrayBuffer = await fileObject.arrayBuffer();
     const fileBuffer = Buffer.from(arrayBuffer);
-    const key = `${uploadFileRequest.path}/${uploadFileRequest.fileName}`;
+    const key = `${uploadFileRequest.path}/${uploadFileRequest.fileName}.${fileExtension}`;
 
     console.log("Preparando upload para S3:", {
       bucket: process.env.AWS_BUCKET_NAME,
       key: key,
-      formattedFileName: uploadFileRequest.fileName,
+      formattedFileName: uploadFileRequest.fileName + "." + fileExtension,
     });
 
     // Enviar arquivo para o S3 primeiro
@@ -210,7 +209,7 @@ function getFileExtension(filename: string): string {
  * Cria uma relação entre uma entidade e um arquivo
  */
 export async function createFileRelation(params: CreateFileRelationParams) {
-  const { entityType, entityId, fileId, extension } = params;
+  const { entityType, entityId, fileId, extension, type } = params;
 
   try {
     // Implementação para merchant
@@ -236,7 +235,7 @@ export async function createFileRelation(params: CreateFileRelationParams) {
         .values({
           solicitationFeeId: entityId,
           idFile: fileId,
-          type: extension,
+          type: type,
           slug: null,
           dtinsert: new Date().toISOString(),
           dtupdate: new Date().toISOString(),
@@ -456,7 +455,8 @@ export async function createFileWithRelation(
   entityType: FileEntityType,
   entityId: number,
   path: string,
-  fileType: string
+  fileType: string,
+  type?: string
 ): Promise<UploadFileResponse> {
   try {
     // Obter o arquivo do FormData
@@ -471,6 +471,7 @@ export async function createFileWithRelation(
       fileType: fileType,
       fileSize: file.size,
       path: path,
+      type: type,
     });
 
     // Obter o nome do arquivo do FormData ou usar um padrão
@@ -509,6 +510,7 @@ export async function createFileWithRelation(
       entityId,
       fileId: uploadResult.fileId,
       extension: uploadResult.fileExtension,
+      type: type,
     });
 
     return uploadResult;
@@ -601,66 +603,5 @@ export async function getFilesByFileType(
   } catch (error) {
     console.error(`Erro ao buscar arquivos para ${entityType}:`, error);
     return [];
-  }
-}
-
-/**
- * Helper function for creating a file with pricing solicitation relation
- */
-export async function createFileWithPricingSolicitation(
-  formData: FormData,
-  solicitationId: number,
-  fileType: string
-): Promise<UploadFileResponse> {
-  try {
-    // Configure path for pricing solicitation files
-    const path = `pricingSolicitations/${solicitationId}`;
-
-    // Get file from FormData
-    const file = formData.get("File") as File;
-    if (!file) {
-      throw new Error("No file found in FormData");
-    }
-
-    console.log("Creating file for pricing solicitation:", {
-      solicitationId,
-      fileType,
-      fileName: file.name,
-    });
-
-    // Garantir que o fileType não exceda 20 caracteres
-    const truncatedFileType =
-      fileType.length > 20 ? fileType.substring(0, 20) : fileType;
-
-    // Upload file and create standard file record
-    const uploadResult = await uploadFile({
-      formData,
-      path,
-      fileName: `${truncatedFileType}-${Date.now()}`,
-      fileType: truncatedFileType,
-    });
-
-    if (!uploadResult) {
-      throw new Error("Failed to upload file");
-    }
-
-    // Create relation in solicitationFeeDocument
-    await db.insert(solicitationFeeDocument).values({
-      solicitationFeeId: solicitationId,
-      idFile: uploadResult.fileId,
-      type: truncatedFileType,
-      slug: null,
-      dtinsert: new Date().toISOString(),
-      dtupdate: new Date().toISOString(),
-    });
-
-    revalidatePath(`/pricingSolicitation/${solicitationId}`);
-    return uploadResult;
-  } catch (error) {
-    console.error(
-      "Error creating file with pricing solicitation relation:",
-      error
-    );
-    throw error;
   }
 }

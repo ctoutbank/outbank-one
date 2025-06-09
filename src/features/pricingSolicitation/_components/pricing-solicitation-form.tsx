@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -34,9 +34,10 @@ import {
 } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 
+import FileUpload from "@/components/fileUpload";
 import { DocumentUploadContent } from "@/features/pricingSolicitation/_components/document-upload-content";
-import { UploadIcon } from "lucide-react";
-import { PricingSolicitationReadOnlyView } from "./pricing-solicitation-readonly";
+import ListDocumentDownload from "@/features/pricingSolicitation/_components/list-document-download";
+import { UploadIcon, User } from "lucide-react";
 import { BusinessInfoSection } from "./sections/business-info-section";
 import { DetailsSection } from "./sections/details-section";
 import { FeesSection } from "./sections/fees-section";
@@ -50,12 +51,23 @@ export default function PricingSolicitationForm({
 }: PricingSolicitationFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [refreshDocsKey, setRefreshDocsKey] = useState(0);
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [solicitationId, setSolicitationId] = useState<number | null>(
     pricingSolicitation?.id || null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccessful, setUploadSuccessful] = useState(false);
+
+  const handleUploadComplete = (fileData: {
+    fileId: number;
+    fileURL: string;
+    fileName: string;
+    fileExtension: string;
+  }) => {
+    console.log("Arquivo enviado com sucesso:", fileData);
+    setRefreshDocsKey((k) => k + 1);
+  };
 
   const [formStatus, setFormStatus] = useState<
     "SEND_DOCUMENTS" | "PENDING" | null
@@ -280,19 +292,6 @@ export default function PricingSolicitationForm({
     }
   };
 
-  if (formStatus === "PENDING") {
-    return (
-      <div className="space-y-8">
-        <div className="bg-amber-50 p-4 rounded-md mb-6">
-          <p className="text-amber-800 font-medium">
-            Esta solicitação está em análise e não pode ser editada.
-          </p>
-        </div>
-        <PricingSolicitationReadOnlyView data={form.getValues()} />
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="">
@@ -318,18 +317,88 @@ export default function PricingSolicitationForm({
                   isNewSolicitation={solicitationId === null}
                   hideFeeAdmin={formStatus == "SEND_DOCUMENTS"}
                 />
+                {pricingSolicitation?.status === "SEND_DOCUMENTS" && (
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-xl flex items-center">
+                        <User className="h-5 w-5 mr-2 text-primary" />
+                        Documentos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-5 col-span-2">
+                      <div className="mt-4 ">
+                        {pricingSolicitation?.id && (
+                          <ListDocumentDownload
+                            solicitationId={pricingSolicitation.id}
+                            refreshKey={refreshDocsKey}
+                          />
+                        )}
+                      </div>
+
+                      {/* Adicionar botão para abrir o diálogo de upload quando status é PENDING */}
+
+                      <div className="flex justify-end ">
+                        <Button
+                          onClick={() => setOpenUploadDialog(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <UploadIcon className="w-4 h-4" />
+                          Importar Documentos
+                        </Button>
+                      </div>
+                    </CardContent>
+                    <CardContent>
+                      <Dialog
+                        open={openUploadDialog}
+                        onOpenChange={setOpenUploadDialog}
+                      >
+                        <DialogContent className="sm:max-w-[900px]">
+                          <DialogHeader>
+                            <DialogTitle>Importar Documentos</DialogTitle>
+                            <DialogDescription>
+                              Selecione os documentos que deseja anexar à
+                              solicitação.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <FileUpload
+                            title="Documentos"
+                            description="Selecione os documentos que deseja anexar à solicitação."
+                            entityType="solicitationFee"
+                            entityId={Number(pricingSolicitation?.id || 0)}
+                            fileType="DOCUMENTOS"
+                            maxSizeMB={5}
+                            acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
+                            onUploadComplete={handleUploadComplete}
+                          />
+
+                          <DialogFooter>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={handleCloseUploadDialog}
+                            >
+                              Concluir
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                )}
               </form>
             </Form>
             <div className="flex justify-end items-center gap-4 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleOpenDocumentUpload}
-                className="flex items-center gap-2"
-              >
-                <UploadIcon className="h-4 w-4" />
-                Importar
-              </Button>
+              {pricingSolicitation?.status != "SEND_DOCUMENTS" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleOpenDocumentUpload}
+                  className="flex items-center gap-2"
+                >
+                  <UploadIcon className="h-4 w-4" />
+                  Importar
+                </Button>
+              )}
               <Button
                 type="button"
                 onClick={() => formRef.current?.requestSubmit()}
@@ -342,7 +411,6 @@ export default function PricingSolicitationForm({
         </Card>
       </div>
 
-      {/* Document Upload Dialog */}
       <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
         <DialogContent className="sm:max-w-[900px]">
           <DialogHeader>
@@ -363,6 +431,7 @@ export default function PricingSolicitationForm({
             }
             onSolicitationCreated={handleSolicitationCreated}
           />
+
           <DialogFooter>
             <Button
               type="button"

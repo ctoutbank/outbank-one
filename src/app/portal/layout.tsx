@@ -8,6 +8,7 @@ export default function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
+  
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />

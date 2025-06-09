@@ -498,7 +498,7 @@ export function PricingSolicitationView({
                 <div className="space-y-2">
                   <FormLabel>Ticket Médio</FormLabel>
                   <div className="p-2 border rounded-md bg-gray-50">
-                    {averageTicket || "-"}
+                    {averageTicket ? `R$ ${averageTicket}` : "-"}
                   </div>
                 </div>
               </div>
@@ -506,7 +506,7 @@ export function PricingSolicitationView({
                 <div className="space-y-2">
                   <FormLabel>TPV Mensal</FormLabel>
                   <div className="p-2 border rounded-md bg-gray-50">
-                    {monthlyPosFee || "-"}
+                    {monthlyPosFee ? `R$ ${monthlyPosFee}` : "-"}
                   </div>
                 </div>
               </div>
@@ -536,6 +536,312 @@ export function PricingSolicitationView({
           </CardContent>
         </Card>
 
+        {/* Card: Taxas Transações POS */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Taxas Transações POS
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-col gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-100"></div>
+                <span className="text-sm text-gray-600">Solicitado</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-amber-100"></div>
+                <span className="text-sm text-gray-600">
+                  Oferecido pelo Outbank
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead key="brand" className="sticky left-0 z-10 bg-white">
+                      Bandeiras
+                    </TableHead>
+                    {SolicitationFeeProductTypeList.map((type, index) => (
+                      <>
+                        <TableHead
+                          key={`${type.value}-fee-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                        <TableHead
+                          key={`${type.value}-feeAdmin-${index}`}
+                          className="text-center min-w-[100px]"
+                        >
+                          {type.label}
+                        </TableHead>
+                      </>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feesData.map((item) => (
+                    <TableRow key={item.brand.value}>
+                      <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                        <div className="flex items-center gap-2">
+                          {getCardImage(item.brand.value) && (
+                            <img
+                              src={getCardImage(item.brand.value)}
+                              alt={item.brand.label}
+                              width={40}
+                              height={24}
+                              className="object-contain"
+                            />
+                          )}
+                          {item.brand.label}
+                        </div>
+                      </TableCell>
+                      {item.posTypes.map((productType, typeIndex) => (
+                        <>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                              {productType.fee ? `${productType.fee}%` : "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                              {productType.feeAdmin
+                                ? `${productType.feeAdmin}%`
+                                : "-"}
+                            </div>
+                          </TableCell>
+                        </>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 ">
+                      {`${cardPixMdr}%` || "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
+                      {cardPixMdrAdmin ? `${cardPixMdrAdmin}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 k">
+                      {cardPixMinimumCostFee
+                        ? `R$ ${cardPixMinimumCostFee}`
+                        : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
+                      {cardPixMinimumCostFeeAdmin
+                        ? `R$ ${cardPixMinimumCostFeeAdmin}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {cardPixCeilingFeeAdmin
+                        ? `R$ ${cardPixCeilingFeeAdmin}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {eventualAnticipationFee
+                        ? `${eventualAnticipationFee}%`
+                        : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {eventualAnticipationFeeAdmin
+                        ? `${eventualAnticipationFeeAdmin}%`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card: Taxas Transações Online */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
+              Taxas Transações Online
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-col gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-100"></div>
+                <span className="text-sm text-gray-600">Solicitado</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-amber-100"></div>
+                <span className="text-sm text-gray-600">
+                  Oferecido pelo Outbank
+                </span>
+              </div>
+            </div>
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="sticky left-0 z-10 bg-white">
+                    Bandeiras
+                  </TableHead>
+                  {SolicitationFeeProductTypeList.map((type, index) => (
+                    <>
+                      <TableHead
+                        key={`${type.value}-noCardFee-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                      <TableHead
+                        key={`${type.value}-noCardFeeAdmin-${index}`}
+                        className="text-center min-w-[100px]"
+                      >
+                        {type.label}
+                      </TableHead>
+                    </>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feesData.map((item) => (
+                  <TableRow key={item.brand.value}>
+                    <TableCell className="font-medium sticky left-0 z-10 bg-white">
+                      <div className="flex items-center gap-2">
+                        {getCardImage(item.brand.value) && (
+                          <img
+                            src={getCardImage(item.brand.value)}
+                            alt={item.brand.label}
+                            width={40}
+                            height={24}
+                            className="object-contain"
+                          />
+                        )}
+                        {item.brand.label}
+                      </div>
+                    </TableCell>
+                    {item.onlineTypes.map((productType, typeIndex) => (
+                      <>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                          className="p-1 text-center"
+                        >
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                            {productType.noCardFee
+                              ? `${productType.noCardFee}%`
+                              : "-"}
+                          </div>
+                        </TableCell>
+                        <TableCell
+                          key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                          className="p-1 text-center"
+                        >
+                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                            {productType.noCardFeeAdmin
+                              ? `${productType.noCardFeeAdmin}%`
+                              : "-"}
+                          </div>
+                        </TableCell>
+                      </>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div>
+              <h3 className="text-lg font-medium mb-4">PIX Online</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">MDR</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {nonCardPixMdrAdmin ? `${nonCardPixMdrAdmin}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {nonCardPixMinimumCostFee
+                        ? `R$ ${nonCardPixMinimumCostFee}`
+                        : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {nonCardPixMinimumCostFeeAdmin
+                        ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Custo Máximo</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {nonCardPixCeilingFee
+                        ? `R$ ${nonCardPixCeilingFee}`
+                        : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {nonCardPixCeilingFeeAdmin
+                        ? `R$ ${nonCardPixCeilingFeeAdmin}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Antecipação</h4>
+                  <div className="flex gap-2">
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
+                      {nonCardEventualAnticipationFee
+                        ? `${nonCardEventualAnticipationFee}%`
+                        : "-"}
+                    </div>
+                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                      {nonCardEventualAnticipationFeeAdmin
+                        ? `${nonCardEventualAnticipationFeeAdmin}%`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         {/* Card: Documentos */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
@@ -601,269 +907,9 @@ export function PricingSolicitationView({
             </Dialog>
           </CardContent>
         </Card>
-
-        {/* Card: Taxas Transações POS */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Taxas Transações POS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="w-full overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="sticky left-0 z-10 bg-white">
-                      Bandeiras
-                    </TableHead>
-                    {SolicitationFeeProductTypeList.map((type, index) => (
-                      <>
-                        <TableHead
-                          key={`${type.value}-fee-${index}`}
-                          className="text-center min-w-[100px]"
-                        >
-                          {type.label}
-                        </TableHead>
-                        <TableHead
-                          key={`${type.value}-feeAdmin-${index}`}
-                          className="text-center min-w-[100px]"
-                        >
-                          {type.label}
-                        </TableHead>
-                      </>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {feesData.map((item) => (
-                    <TableRow key={item.brand.value}>
-                      <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                        <div className="flex items-center gap-2">
-                          {getCardImage(item.brand.value) && (
-                            <img
-                              src={getCardImage(item.brand.value)}
-                              alt={item.brand.label}
-                              width={40}
-                              height={24}
-                              className="object-contain"
-                            />
-                          )}
-                          {item.brand.label}
-                        </div>
-                      </TableCell>
-                      {item.posTypes.map((productType, typeIndex) => (
-                        <>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
-                            className="p-1 text-center"
-                          >
-                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                              {productType.fee || "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
-                            className="p-1 text-center"
-                          >
-                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                              {productType.feeAdmin || "-"}
-                            </div>
-                          </TableCell>
-                        </>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-4">PIX </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <h4 className="font-medium mb-2">MDR</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {cardPixMdr || "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {cardPixMdrAdmin || "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {cardPixMinimumCostFee
-                      ? `R$ ${cardPixMinimumCostFee}`
-                      : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {cardPixMinimumCostFeeAdmin
-                      ? `R$ ${cardPixMinimumCostFeeAdmin}`
-                      : "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Máximo</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {cardPixCeilingFeeAdmin
-                      ? `R$ ${cardPixCeilingFeeAdmin}`
-                      : "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Antecipação</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {eventualAnticipationFee
-                      ? `${eventualAnticipationFee}%`
-                      : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {eventualAnticipationFeeAdmin
-                      ? `${eventualAnticipationFeeAdmin}%`
-                      : "-"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card: Taxas Transações Online */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Taxas Transações Online
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 z-10 bg-white">
-                    Bandeiras
-                  </TableHead>
-                  {SolicitationFeeProductTypeList.map((type, index) => (
-                    <>
-                      <TableHead
-                        key={`${type.value}-noCardFee-${index}`}
-                        className="text-center min-w-[100px]"
-                      >
-                        {type.label}
-                      </TableHead>
-                      <TableHead
-                        key={`${type.value}-noCardFeeAdmin-${index}`}
-                        className="text-center min-w-[100px]"
-                      >
-                        {type.label}
-                      </TableHead>
-                    </>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feesData.map((item) => (
-                  <TableRow key={item.brand.value}>
-                    <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                      <div className="flex items-center gap-2">
-                        {getCardImage(item.brand.value) && (
-                          <img
-                            src={getCardImage(item.brand.value)}
-                            alt={item.brand.label}
-                            width={40}
-                            height={24}
-                            className="object-contain"
-                          />
-                        )}
-                        {item.brand.label}
-                      </div>
-                    </TableCell>
-                    {item.onlineTypes.map((productType, typeIndex) => (
-                      <>
-                        <TableCell
-                          key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
-                          className="p-1 text-center"
-                        >
-                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                            {productType.noCardFee || "-"}
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
-                          className="p-1 text-center"
-                        >
-                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                            {productType.noCardFeeAdmin || "-"}
-                          </div>
-                        </TableCell>
-                      </>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div>
-              <h3 className="text-lg font-medium mb-4">PIX Online</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <h4 className="font-medium mb-2">MDR</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {nonCardPixMdr || "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {nonCardPixMdrAdmin || "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {nonCardPixMinimumCostFee
-                      ? `R$ ${nonCardPixMinimumCostFee}`
-                      : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {nonCardPixMinimumCostFeeAdmin
-                      ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
-                      : "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Máximo</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {nonCardPixCeilingFee ? `R$ ${nonCardPixCeilingFee}` : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {nonCardPixCeilingFeeAdmin
-                      ? `R$ ${nonCardPixCeilingFeeAdmin}`
-                      : "-"}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Antecipação</h4>
-                  <div className="rounded-full py-2 px-4 bg-blue-100 inline-block">
-                    {nonCardEventualAnticipationFee
-                      ? `${nonCardEventualAnticipationFee}%`
-                      : "-"}
-                  </div>
-                  <div className="rounded-full py-2 px-4 mt-2 bg-amber-100 inline-block">
-                    {nonCardEventualAnticipationFeeAdmin
-                      ? `${nonCardEventualAnticipationFeeAdmin}%`
-                      : "-"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {pricingSolicitation.id && (
           <div className="flex justify-end gap-4 mt-6">
-            {(pricingSolicitation.status === "REVIEWED" ||
-              pricingSolicitation.status === "SEND_DOCUMENTS") && (
+            {pricingSolicitation.status === "REVIEWED" && (
               <Button
                 variant="outline"
                 onClick={handleOpenRejectDialog}
@@ -887,15 +933,7 @@ export function PricingSolicitationView({
                 </Button>
               </>
             )}
-            {pricingSolicitation.status === "SEND_DOCUMENTS" && (
-              <Button
-                onClick={handleApprove}
-                disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isSubmitting ? "Processando..." : "Aceitar"}
-              </Button>
-            )}
+
             {pricingSolicitation.status === "APPROVED" && (
               <Button
                 variant="outline"

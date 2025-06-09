@@ -9,6 +9,10 @@ export interface SelectItemSolicitationFee extends SelectItem {
   transactionFeeEnd: string;
 }
 
+export interface SolicitationDocumentType {
+  fileType: string;
+}
+
 const timezones: SelectItem[] = [
   { value: "-1200", label: "(UTC-12:00) International Date Line West" },
   { value: "-1100", label: "(UTC-11:00) Coordinated Universal Time-11" },
@@ -261,5 +265,14 @@ export const FeeProductTypeList: SelectItemSolicitationFee[] = [
     label: "Pré-pago",
     transactionFeeStart: "0",
     transactionFeeEnd: "0",
+  },
+];
+
+export const solicitationDocumentTypes: SolicitationDocumentType[] = [
+  {
+    fileType: "SOLICITATION",
+  },
+  {
+    fileType: "ADDITIVE",
   },
 ];

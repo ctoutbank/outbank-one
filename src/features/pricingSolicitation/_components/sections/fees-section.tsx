@@ -206,7 +206,7 @@ function POSBrandTable({
                     className="p-1 text-center"
                   >
                     {isReadOnly ? (
-                      <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-gray-100">
+                      <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
                         <span>
                           {brandsValues?.[brandIndex]?.productTypes?.[typeIndex]
                             ?.fee

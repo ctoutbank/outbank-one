@@ -31,7 +31,7 @@ export function DocumentUploadContent({
       title: "Documento Principal",
       description:
         "Documento principal da solicitação (ex: contrato, proposta)",
-      fileType: "SOLICITATION_DOC", // Alterado para não exceder 20 caracteres
+      fileType: "SOLICITATION",
       acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
       maxSizeMB: 5,
     },
@@ -201,6 +201,7 @@ export function DocumentUploadContent({
                       maxSizeMB={doc.maxSizeMB}
                       acceptedFileTypes={doc.acceptedFileTypes}
                       customUploadHandler={createPricingSolicitation}
+                      type={doc.fileType}
                     />
                   ))}
                 </div>

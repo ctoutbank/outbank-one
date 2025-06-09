@@ -37,6 +37,7 @@ interface FileUploadProps {
   }) => void;
   customUploadHandler?: () => Promise<number>;
   preUploadHook?: () => Promise<number>;
+  type?: string;
 }
 
 interface FileWithCustomName extends File {
@@ -58,6 +59,7 @@ export default function FileUpload({
   onUploadComplete,
   customUploadHandler,
   preUploadHook,
+  type,
 }: FileUploadProps) {
   const [files, setFiles] = useState<FileWithCustomName[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -203,8 +205,6 @@ export default function FileUpload({
         }
 
         for (const file of newFiles) {
-          
-
           // Se customUploadHandler for passado, usa ele
           if (customUploadHandler) {
             const newId = await customUploadHandler();
@@ -219,7 +219,8 @@ export default function FileUpload({
             entityType,
             finalEntityId || 0,
             `${entityType}s/${finalEntityId}`,
-            fileType || title
+            fileType || title,
+            type
           );
 
           if (result && onUploadComplete) {
