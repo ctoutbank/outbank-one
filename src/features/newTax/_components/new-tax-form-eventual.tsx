@@ -26,10 +26,14 @@ interface PaymentGroup {
         [key: string]: {
           presentIntermediation: string;
           notPresentIntermediation: string;
+          presentTransaction: string;
+          notPresentTransaction: string;
         };
       };
       presentIntermediation: string;
       notPresentIntermediation: string;
+      presentTransaction: string;
+      notPresentTransaction: string;
     };
   };
 }
@@ -39,7 +43,11 @@ interface PaymentConfigFormProps {
   hideButtons?: boolean;
 }
 
-type ModeField = "presentIntermediation" | "notPresentIntermediation";
+type ModeField =
+  | "presentIntermediation"
+  | "notPresentIntermediation"
+  | "presentTransaction"
+  | "notPresentTransaction";
 type ModeId = string;
 
 export const PaymentConfigFormWithCard = forwardRef<
@@ -51,6 +59,7 @@ export const PaymentConfigFormWithCard = forwardRef<
   },
   PaymentConfigFormProps
 >(function PaymentConfigFormWithCard({ fee, hideButtons = false }, ref) {
+  console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO EVENTUAL:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [groups, setGroups] = useState<PaymentGroup[]>([
@@ -68,6 +77,11 @@ export const PaymentConfigFormWithCard = forwardRef<
     anticipationRateNotPresent: fee.eventualAnticipationFee || "",
   });
 
+  // Ajustar a constante de controle:
+  const isNoAnticipation = fee.anticipationType === "NOANTECIPATION";
+  const isEventualAnticipation = fee.anticipationType === "EVENTUAL";
+  const onlyIntermediation = isNoAnticipation || isEventualAnticipation;
+
   // Inicializar um grupo de pagamento
   function initializePaymentGroup(groupId: string): PaymentGroup {
     return {
@@ -78,6 +92,8 @@ export const PaymentConfigFormWithCard = forwardRef<
           expanded: false,
           presentIntermediation: "",
           notPresentIntermediation: "",
+          presentTransaction: "",
+          notPresentTransaction: "",
           ...(parseInt(mode.transactionFeeStart) > 0 && {
             installments: createInstallmentsObject(mode),
           }),
@@ -101,6 +117,8 @@ export const PaymentConfigFormWithCard = forwardRef<
       acc[installment] = {
         presentIntermediation: "",
         notPresentIntermediation: "",
+        presentTransaction: "",
+        notPresentTransaction: "",
       };
       return acc;
     }, {} as any);
@@ -130,6 +148,8 @@ export const PaymentConfigFormWithCard = forwardRef<
               expanded: false,
               presentIntermediation: "",
               notPresentIntermediation: "",
+              presentTransaction: "",
+              notPresentTransaction: "",
               ...(parseInt(mode.transactionFeeStart) > 0 && {
                 installments: createInstallmentsObject(mode),
               }),
@@ -155,12 +175,20 @@ export const PaymentConfigFormWithCard = forwardRef<
                         pt.cardTransactionMdr?.toString() || "",
                       notPresentIntermediation:
                         pt.nonCardTransactionMdr?.toString() || "",
+                      presentTransaction:
+                        pt.cardTransactionMdr?.toString() || "",
+                      notPresentTransaction:
+                        pt.nonCardTransactionMdr?.toString() || "",
                     };
                   } else if (initialModes[modeId]) {
                     // Para modo sem parcelamento
                     initialModes[modeId].presentIntermediation =
                       pt.cardTransactionMdr?.toString() || "";
                     initialModes[modeId].notPresentIntermediation =
+                      pt.nonCardTransactionMdr?.toString() || "";
+                    initialModes[modeId].presentTransaction =
+                      pt.cardTransactionMdr?.toString() || "";
+                    initialModes[modeId].notPresentTransaction =
                       pt.nonCardTransactionMdr?.toString() || "";
                   }
                 }
@@ -176,9 +204,9 @@ export const PaymentConfigFormWithCard = forwardRef<
         }
       );
 
-      if (newGroups.length > 0) {
-        setGroups(newGroups);
-      }
+      setGroups(newGroups);
+    } else {
+      setGroups([initializePaymentGroup("group-1")]);
     }
 
     // Atualizar configuração de PIX
@@ -204,18 +232,10 @@ export const PaymentConfigFormWithCard = forwardRef<
   ): { modeId: string; installment?: number } | null {
     if (productType === "Crédito à Vista") {
       return { modeId: "CREDIT" };
-    } else if (productType.includes("Crédito Parcelado (2 a 6")) {
-      const match = productType.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_2_TO_6",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
-    } else if (productType.includes("Crédito Parcelado (7 a 12")) {
-      const match = productType.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_7_TO_12",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
+    } else if (productType.startsWith("Crédito Parcelado (2 a 6")) {
+      return { modeId: "CREDIT_INSTALLMENTS_2_TO_6" };
+    } else if (productType.startsWith("Crédito Parcelado (7 a 12")) {
+      return { modeId: "CREDIT_INSTALLMENTS_7_TO_12" };
     } else if (productType === "Débito") {
       return { modeId: "DEBIT" };
     } else if (productType === "Voucher") {
@@ -229,7 +249,17 @@ export const PaymentConfigFormWithCard = forwardRef<
   // Expor o método getFormData via ref para o componente pai
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
-      pixConfig,
+      pixConfig: {
+        ...pixConfig,
+        anticipationRatePresent:
+          pixConfig.anticipationRatePresent !== ""
+            ? Number(pixConfig.anticipationRatePresent)
+            : undefined,
+        anticipationRateNotPresent:
+          pixConfig.anticipationRateNotPresent !== ""
+            ? Number(pixConfig.anticipationRateNotPresent)
+            : undefined,
+      },
       groups: groups.map((group) => ({
         ...group,
         modes: Object.fromEntries(
@@ -251,6 +281,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                     expanded: mode.expanded,
                     presentIntermediation: mode.presentIntermediation,
                     notPresentIntermediation: mode.notPresentIntermediation,
+                    presentTransaction: mode.presentTransaction,
+                    notPresentTransaction: mode.notPresentTransaction,
                   },
                 ];
               }
@@ -346,6 +378,13 @@ export const PaymentConfigFormWithCard = forwardRef<
 
   function handleSave() {
     setIsPending(true);
+
+    // Log detalhado dos valores antes de salvar
+    console.log(
+      "[DEBUG] Salvando grupos (eventual):",
+      JSON.stringify(groups, null, 2)
+    );
+    0;
 
     Promise.all([
       updatePixConfigAction(fee.id, pixConfig),
@@ -502,46 +541,108 @@ export const PaymentConfigFormWithCard = forwardRef<
                 </div>
 
                 {/* Cabeçalho da tabela de modos */}
-                <div className="grid grid-cols-3 border-b">
-                  <div className="p-3 font-medium border-r bg-gray-50">
-                    Modo
+                {onlyIntermediation ? (
+                  <div className="grid grid-cols-3 border-b">
+                    <div className="p-3 font-medium border-r bg-gray-50">
+                      Modo
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Não Presente
+                    </div>
                   </div>
-                  <div className="p-3 font-medium text-center border-r bg-gray-50">
-                    Taxa de Intermediação (%) - Cartão Presente
+                ) : (
+                  <div className="grid grid-cols-5 border-b">
+                    <div className="p-3 font-medium border-r bg-gray-50">
+                      Modo
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Transação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Não Presente
+                    </div>
+                    <div className="p-3 font-medium text-center bg-gray-50">
+                      Transação (%) - Cartão Não Presente
+                    </div>
                   </div>
-                  <div className="p-3 font-medium text-center bg-gray-50">
-                    Taxa de Intermediação (%) - Cartão Não Presente
-                  </div>
-                </div>
+                )}
 
                 {/* Modos de pagamento */}
                 {FeeProductTypeList.map((feeProductType) => (
                   <div key={`${group.id}-${feeProductType.value}`}>
                     {/* Linha principal do modo */}
-                    <div className="grid grid-cols-3 border-b">
-                      <div className="p-3 border-r flex items-center justify-between">
-                        <span>{feeProductType.label}</span>
-                        {hasInstallments(feeProductType.value) && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              toggleModeExpansion(
+                    {onlyIntermediation ? (
+                      <div className="grid grid-cols-3 border-b">
+                        <div className="p-3 border-r flex items-center justify-between">
+                          <span>{feeProductType.label}</span>
+                        </div>
+                        <div className="p-3 border-r flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .presentIntermediation || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
                                 groupIndex,
-                                feeProductType.value
+                                feeProductType.value,
+                                "presentIntermediation",
+                                value
                               )
                             }
-                            className="focus:outline-none"
-                          >
-                            {group.modes[feeProductType.value].expanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </button>
-                        )}
+                            placeholder="%"
+                            className="w-16 text-center"
+                          />
+                        </div>
+                        <div className="p-3 flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .notPresentIntermediation || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "notPresentIntermediation",
+                                value
+                              )
+                            }
+                            placeholder="%"
+                            className="w-16 text-center"
+                          />
+                        </div>
                       </div>
-                      <div className="p-3 border-r flex items-center justify-center">
-                        <div className="flex items-center justify-center">
+                    ) : (
+                      <div className="grid grid-cols-5 border-b">
+                        <div className="p-3 border-r flex items-center justify-between">
+                          <span>{feeProductType.label}</span>
+                          {hasInstallments(feeProductType.value) && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                toggleModeExpansion(
+                                  groupIndex,
+                                  feeProductType.value
+                                )
+                              }
+                              className="focus:outline-none"
+                            >
+                              {group.modes[feeProductType.value].expanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                        <div className="p-3 border-r flex items-center justify-center">
                           <PercentageInput
                             value={
                               group.modes[feeProductType.value]
@@ -563,9 +664,29 @@ export const PaymentConfigFormWithCard = forwardRef<
                             )}
                           />
                         </div>
-                      </div>
-                      <div className="p-3 flex items-center justify-center">
-                        <div className="flex items-center justify-center">
+                        <div className="p-3 border-r flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .presentTransaction || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "presentTransaction",
+                                value
+                              )
+                            }
+                            placeholder="%"
+                            className="w-16 text-center"
+                            disabled={shouldDisableMainModeInput(
+                              feeProductType.value,
+                              group.modes[feeProductType.value].expanded
+                            )}
+                          />
+                        </div>
+                        <div className="p-3 border-r flex items-center justify-center">
                           <PercentageInput
                             value={
                               group.modes[feeProductType.value]
@@ -587,11 +708,33 @@ export const PaymentConfigFormWithCard = forwardRef<
                             )}
                           />
                         </div>
+                        <div className="p-3 flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .notPresentTransaction || ""
+                            }
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "notPresentTransaction",
+                                value
+                              )
+                            }
+                            placeholder="%"
+                            className="w-16 text-center"
+                            disabled={shouldDisableMainModeInput(
+                              feeProductType.value,
+                              group.modes[feeProductType.value].expanded
+                            )}
+                          />
+                        </div>
                       </div>
-                    </div>
-
+                    )}
                     {/* Linhas de parcelamento se expandido */}
-                    {hasInstallments(feeProductType.value) &&
+                    {!onlyIntermediation &&
+                      hasInstallments(feeProductType.value) &&
                       group.modes[feeProductType.value].expanded &&
                       (() => {
                         const [start, end] = getInstallmentRange(
@@ -603,9 +746,11 @@ export const PaymentConfigFormWithCard = forwardRef<
                         ).map((installment) => (
                           <div
                             key={`${group.id}-${feeProductType.value}-${installment}`}
-                            className="grid grid-cols-3 border-b bg-gray-50"
+                            className="grid grid-cols-5 border-b bg-gray-50"
                           >
-                            <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
+                            <div className="p-3 border-r text-right pr-6">
+                              {installment}x
+                            </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
                                 value={
@@ -626,7 +771,27 @@ export const PaymentConfigFormWithCard = forwardRef<
                                 className="w-16 text-center"
                               />
                             </div>
-                            <div className="p-3 flex items-center justify-center">
+                            <div className="p-3 border-r flex items-center justify-center">
+                              <PercentageInput
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.presentTransaction || ""
+                                }
+                                onChange={(value) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "presentTransaction",
+                                    value,
+                                    installment
+                                  )
+                                }
+                                placeholder="%"
+                                className="w-16 text-center"
+                              />
+                            </div>
+                            <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
                                 value={
                                   group.modes[feeProductType.value]
@@ -638,6 +803,26 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     groupIndex,
                                     feeProductType.value,
                                     "notPresentIntermediation",
+                                    value,
+                                    installment
+                                  )
+                                }
+                                placeholder="%"
+                                className="w-16 text-center"
+                              />
+                            </div>
+                            <div className="p-3 flex items-center justify-center">
+                              <PercentageInput
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.notPresentTransaction || ""
+                                }
+                                onChange={(value) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "notPresentTransaction",
                                     value,
                                     installment
                                   )

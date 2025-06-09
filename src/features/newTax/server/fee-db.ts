@@ -66,6 +66,7 @@ export interface FeeData {
   nonCardPixMinimumCostFee: string;
   feeBrand: FeeBrand[];
   slug: string;
+  feeCredit?: FeeCredit[];
 }
 
 export interface FeeBrand {
@@ -282,7 +283,15 @@ export async function getFeeById(id: string): Promise<FeeData | null> {
       .from(feeBrandProductType)
       .where(inArray(feeBrandProductType.idFeeBrand, brandIds));
 
-    return mapDbDataToFeeData(feeData, brands, productTypes);
+    // Buscar os feeCredit relacionados aos feeBrandProductType
+    const feeBrandProductTypeIds = productTypes.map((pt) => pt.id);
+    const feeCredits = await getFeeCreditsByFeeBrandProductTypeIds(
+      feeBrandProductTypeIds
+    );
+
+    // Montar o objeto FeeData incluindo feeCredit
+    const feeDataObj = mapDbDataToFeeData(feeData, brands, productTypes);
+    return { ...feeDataObj, feeCredit: feeCredits };
   } catch (error) {
     console.error(`Erro ao buscar taxa com ID ${id}:`, error);
     return null;
@@ -296,7 +305,7 @@ function createEmptyFee(): FeeData {
     active: true,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
-    name: "Nova Taxa",
+    name: "",
     tableType: "SIMPLE",
     code: "",
     compulsoryAnticipationConfig: "0",
@@ -539,4 +548,35 @@ export async function saveFee(feeData: FeeNewSchema): Promise<FeeNewSchema> {
     console.error("Erro ao salvar taxa:", error);
     throw error;
   }
+}
+
+// Tipagem para feeCredit
+export interface FeeCredit {
+  id: number;
+  installmentNumber: number;
+  compulsoryAnticipation: string | null;
+  noCardCompulsoryAnticipation: string | null;
+  idFeeBrandProductType: number;
+}
+
+// Buscar feeCredit por ids de feeBrandProductType
+export async function getFeeCreditsByFeeBrandProductTypeIds(
+  ids: number[]
+): Promise<FeeCredit[]> {
+  if (!ids.length) return [];
+  const { feeCredit } = await import("../../../../drizzle/schema");
+  const { inArray } = await import("drizzle-orm");
+  const { db } = await import("@/server/db");
+  const result = await db
+    .select({
+      id: feeCredit.id,
+      installmentNumber: feeCredit.installmentNumber,
+      compulsoryAnticipation: feeCredit.compulsoryAnticipation,
+      noCardCompulsoryAnticipation: feeCredit.noCardCompulsoryAnticipation,
+      idFeeBrandProductType: feeCredit.idFeeBrandProductType,
+    })
+    .from(feeCredit)
+    .where(inArray(feeCredit.idFeeBrandProductType, ids));
+  // Filtrar para garantir que idFeeBrandProductType não é null
+  return result.filter((r): r is FeeCredit => r.idFeeBrandProductType !== null);
 }

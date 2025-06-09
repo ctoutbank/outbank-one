@@ -110,6 +110,15 @@ function getCardImage(cardName: string): string {
   return cardMap[cardName] || "";
 }
 
+// Função utilitária para saber se o campo de antecipação deve ser desabilitado
+function isAnticipationDisabled(modeValue: string) {
+  return (
+    modeValue === "DEBIT" ||
+    modeValue === "VOUCHER" ||
+    modeValue === "PREPAID_CREDIT"
+  );
+}
+
 export const PaymentConfigFormCompulsory = forwardRef<
   {
     getFormData: () => {
@@ -119,6 +128,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
   },
   PaymentConfigFormCompulsoryProps
 >(function PaymentConfigFormCompulsory({ fee, hideButtons = false }, ref) {
+  console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO COMPULSORY:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [groups, setGroups] = useState<PaymentGroup[]>([
@@ -199,8 +209,6 @@ export const PaymentConfigFormCompulsory = forwardRef<
       const newGroups = Object.entries(brandsByGroup).map(
         ([, brands], index) => {
           const selectedCards = brands.map((brand) => brand.brand);
-
-          // Inicializar modos de pagamento vazios
           const initialModes = FeeProductTypeList.reduce((acc, modeBase) => {
             const mode = getExtendedProductType(modeBase);
             acc[mode.value] = {
@@ -225,36 +233,58 @@ export const PaymentConfigFormCompulsory = forwardRef<
                 const modeMapping = getModeMapping(pt.producttype);
                 if (modeMapping) {
                   const { modeId, installment } = modeMapping;
-
+                  // Buscar feeCredit correspondente
+                  const feeCredit = fee.feeCredit?.find(
+                    (fc: any) => fc.idFeeBrandProductType === pt.id
+                  );
+                  const presentAnticipation =
+                    feeCredit?.compulsoryAnticipation || "";
+                  const notPresentAnticipation =
+                    feeCredit?.noCardCompulsoryAnticipation || "";
+                  const presentIntermediation =
+                    pt.cardTransactionMdr?.toString() || "";
+                  const notPresentIntermediation =
+                    pt.nonCardTransactionMdr?.toString() || "";
+                  // Taxa de Intermediação = transação + antecipação
+                  const presentTransaction = (
+                    (parseFloat(String(pt.cardTransactionMdr || "0")) || 0) +
+                    (parseFloat(
+                      String(feeCredit?.compulsoryAnticipation || "0")
+                    ) || 0)
+                  ).toFixed(2);
+                  const notPresentTransaction = (
+                    (parseFloat(String(pt.nonCardTransactionMdr || "0")) || 0) +
+                    (parseFloat(
+                      String(feeCredit?.noCardCompulsoryAnticipation || "0")
+                    ) || 0)
+                  ).toFixed(2);
                   if (
                     installment !== undefined &&
                     initialModes[modeId]?.installments?.[installment]
                   ) {
                     // Para parcelamento específico
                     initialModes[modeId].installments[installment] = {
-                      presentIntermediation:
-                        pt.cardTransactionMdr?.toString() || "",
-                      notPresentIntermediation:
-                        pt.nonCardTransactionMdr?.toString() || "",
-                      presentTransaction:
-                        pt.cardTransactionFee?.toString() || "",
-                      notPresentTransaction:
-                        pt.nonCardTransactionFee?.toString() || "",
-                      presentAnticipation: "0",
-                      notPresentAnticipation: "0",
+                      presentIntermediation,
+                      notPresentIntermediation,
+                      presentAnticipation,
+                      notPresentAnticipation,
+                      presentTransaction,
+                      notPresentTransaction,
                     };
                   } else if (initialModes[modeId]) {
                     // Para modo sem parcelamento
                     initialModes[modeId].presentIntermediation =
-                      pt.cardTransactionMdr?.toString() || "";
+                      presentIntermediation;
                     initialModes[modeId].notPresentIntermediation =
-                      pt.nonCardTransactionMdr?.toString() || "";
+                      notPresentIntermediation;
+                    initialModes[modeId].presentAnticipation =
+                      presentAnticipation;
+                    initialModes[modeId].notPresentAnticipation =
+                      notPresentAnticipation;
                     initialModes[modeId].presentTransaction =
-                      pt.cardTransactionFee?.toString() || "";
+                      presentTransaction;
                     initialModes[modeId].notPresentTransaction =
-                      pt.nonCardTransactionFee?.toString() || "";
-                    initialModes[modeId].presentAnticipation = "0";
-                    initialModes[modeId].notPresentAnticipation = "0";
+                      notPresentTransaction;
                   }
                 }
               });
@@ -269,9 +299,9 @@ export const PaymentConfigFormCompulsory = forwardRef<
         }
       );
 
-      if (newGroups.length > 0) {
-        setGroups(newGroups);
-      }
+      setGroups(newGroups);
+    } else {
+      setGroups([initializePaymentGroup("group-1")]);
     }
 
     // Atualizar configuração de PIX
@@ -295,18 +325,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
   ): { modeId: string; installment?: number } | null {
     if (producttype === "Crédito à Vista") {
       return { modeId: "CREDIT" };
-    } else if (producttype.includes("Crédito Parcelado (2 a 6")) {
-      const match = producttype.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_2_TO_6",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
-    } else if (producttype.includes("Crédito Parcelado (7 a 12")) {
-      const match = producttype.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_7_TO_12",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
+    } else if (producttype.startsWith("Crédito Parcelado (2 a 6")) {
+      return { modeId: "CREDIT_INSTALLMENTS_2_TO_6" };
+    } else if (producttype.startsWith("Crédito Parcelado (7 a 12")) {
+      return { modeId: "CREDIT_INSTALLMENTS_7_TO_12" };
     } else if (producttype === "Débito") {
       return { modeId: "DEBIT" };
     } else if (producttype === "Voucher") {
@@ -442,6 +464,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
   function handleSave() {
     setIsPending(true);
 
+    // Log detalhado dos valores antes de salvar
+    console.log(
+      "[DEBUG] Salvando grupos (compulsory):",
+      JSON.stringify(groups, null, 2)
+    );
+
     Promise.all([
       updatePixConfigAction(fee.id, pixConfig),
       saveMerchantPricingAction(fee.id, groups),
@@ -456,6 +484,13 @@ export const PaymentConfigFormCompulsory = forwardRef<
       .finally(() => {
         setIsPending(false);
       });
+  }
+
+  function shouldDisableMainModeInput() {
+    // Implemente a lógica para determinar se o input principal de um modo deve ser desabilitado
+    // Por exemplo, você pode verificar se o modo é um modo principal (não é um modo de parcelamento)
+    // e se o modo está expandido. Se for um modo principal e expandido, o input deve ser desabilitado.
+    return false; // Placeholder, implemente a lógica adequada
   }
 
   return (
@@ -575,22 +610,22 @@ export const PaymentConfigFormCompulsory = forwardRef<
                 <div className="grid grid-cols-7 border-b">
                   <div className="p-3 border-r"></div>
                   <div className="p-3 font-medium text-center border-r">
-                    Taxa de Intermediação (%)
+                    Transação (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
                     Taxa de Antecipação (% a.m.)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Transação (%)
+                    Taxa de Intermediação (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Taxa de Intermediação (%)
+                    Transação (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
                     Taxa de Antecipação (% a.m.)
                   </div>
                   <div className="p-3 font-medium text-center">
-                    Transação (%)
+                    Taxa de Intermediação (%)
                   </div>
                 </div>
 
@@ -656,6 +691,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-30 text-center"
+                              disabled={isAnticipationDisabled(mode.value)}
                             />
                           </div>
                         </div>
@@ -676,6 +712,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
+                              disabled={shouldDisableMainModeInput()}
                             />
                           </div>
                         </div>
@@ -716,6 +753,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-16 text-center"
+                              disabled={isAnticipationDisabled(mode.value)}
                             />
                           </div>
                         </div>
@@ -736,6 +774,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
+                              disabled={shouldDisableMainModeInput()}
                             />
                           </div>
                         </div>

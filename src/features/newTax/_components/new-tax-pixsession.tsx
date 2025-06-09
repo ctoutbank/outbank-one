@@ -142,7 +142,7 @@ export const NewTaxPixSession = forwardRef<
                     handlePixInputChange("mdrPresent", value)
                   }
                   placeholder="%"
-                  className="w-20 text-right"
+                  className="w-20 text-center"
                 />
               </div>
             </td>
@@ -154,7 +154,7 @@ export const NewTaxPixSession = forwardRef<
                     handlePixInputChange("mdrNotPresent", value)
                   }
                   placeholder="%"
-                  className="w-20 text-right"
+                  className="w-20 text-center"
                 />
               </div>
             </td>

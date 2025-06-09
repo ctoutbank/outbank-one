@@ -36,6 +36,7 @@ interface FeeFormProps {
 }
 
 export function NewTaxForm1({ fee }: FeeFormProps) {
+  console.log("DADOS RECEBIDOS NO FORMULÁRIO:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
@@ -46,6 +47,10 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
       groups: any[];
     };
   }>(null);
+  console.log(
+    "DADOS RECEBIDOS NO SUBFORMULÁRIO COMPULSÓRIO:",
+    compulsoryFormRef
+  );
 
   const eventualFormRef = useRef<{
     getFormData: () => {
@@ -53,6 +58,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
       groups: any[];
     };
   }>(null);
+  console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO EVENTUAL:", eventualFormRef);
 
   const pixFormRef = useRef<{
     getFormData: () => {
@@ -244,6 +250,14 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                         <Input
                           {...field}
                           value={field.value?.toString() || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(
+                              value === "" ? undefined : Number(value)
+                            );
+                          }}
+                          type="number"
+                          min={0}
                         />
                       </FormControl>
                       <FormMessage />
