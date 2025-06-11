@@ -65,7 +65,7 @@ export function MerchantDashboardContent({
   return (
     <div className="w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-sidebar">
+        <Card className="w-full border-l-8 border-black bg-background ">
           <CardHeader className="-mb-6">
             <CardTitle className="text-lg font-bold">Visão geral</CardTitle>
             <p className="text-sm text-muted-foreground">

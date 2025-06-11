@@ -254,79 +254,53 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
       }
 
       if (groups) {
+        let hasEmptyGroup = false;
         for (const group of groups) {
-          // Se não tem cartões selecionados, pula este grupo
+          // Se não tem cartões selecionados, marca erro
           if (!group.selectedCards || group.selectedCards.length === 0) {
-            console.log("Grupo sem cartões selecionados:", group.id);
+            hasEmptyGroup = true;
             continue;
           }
-
-          console.log(
-            "Validando grupo:",
-            group.id,
-            "com cartões:",
-            group.selectedCards
-          );
 
           for (const brand of group.selectedCards) {
             // Verificar se temos valores de referência para esta marca
             if (!feeAdminMap[brand]) {
-              console.log(
-                `Sem valores mínimos para marca ${brand}. Pulando validação.`
-              );
               continue;
             }
 
             for (const [productType, modeRaw] of Object.entries(group.modes)) {
-              // Garantir tipagem correta
               const mode = modeRaw as any;
-
-              // Valores mínimos para transações com cartão (present)
               const minPresent = feeAdminMap?.[brand]?.[productType];
-
-              // Valores mínimos para transações sem cartão (notPresent)
-              // Tentamos usar o valor específico de nocard, ou recorremos ao valor padrão
               const nocardKey = `nocard_${productType}`;
               const minNotPresent =
                 feeAdminMap?.[brand]?.[nocardKey] || minPresent;
 
-              console.log(
-                `Validando ${brand}-${productType}: minPresent=${minPresent}, minNotPresent=${minNotPresent}`
-              );
-
-              // Se não temos valores mínimos para este tipo de produto, pulamos
               if (minPresent === undefined) {
-                console.log(`Sem valor mínimo para ${brand}-${productType}`);
                 continue;
               }
 
-              // Converte os valores para números para comparação adequada
               const presentIntermediationValue = mode.presentIntermediation
                 ? parseFloat(
                     mode.presentIntermediation.toString().replace(",", ".")
                   )
                 : null;
-
               const notPresentIntermediationValue =
                 mode.notPresentIntermediation
                   ? parseFloat(
                       mode.notPresentIntermediation.toString().replace(",", ".")
                     )
                   : null;
-
               const presentTransactionValue = mode.presentTransaction
                 ? parseFloat(
                     mode.presentTransaction.toString().replace(",", ".")
                   )
                 : null;
-
               const notPresentTransactionValue = mode.notPresentTransaction
                 ? parseFloat(
                     mode.notPresentTransaction.toString().replace(",", ".")
                   )
                 : null;
 
-              // Validação de presentIntermediation
               if (
                 minPresent !== undefined &&
                 presentIntermediationValue !== null &&
@@ -335,12 +309,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 hasError = true;
                 errors[`${brand}-${productType}-presentIntermediation`] =
                   `Mínimo permitido: ${minPresent}%`;
-                console.log(
-                  `Erro: ${brand}-${productType}-presentIntermediation (${presentIntermediationValue}) < ${minPresent}`
-                );
               }
-
-              // Validação de notPresentIntermediation
               if (
                 minNotPresent !== undefined &&
                 notPresentIntermediationValue !== null &&
@@ -349,12 +318,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 hasError = true;
                 errors[`${brand}-${productType}-notPresentIntermediation`] =
                   `Mínimo permitido: ${minNotPresent}%`;
-                console.log(
-                  `Erro: ${brand}-${productType}-notPresentIntermediation (${notPresentIntermediationValue}) < ${minNotPresent}`
-                );
               }
-
-              // Validação de presentTransaction
               if (
                 minPresent !== undefined &&
                 presentTransactionValue !== null &&
@@ -363,12 +327,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 hasError = true;
                 errors[`${brand}-${productType}-presentTransaction`] =
                   `Mínimo permitido: ${minPresent}%`;
-                console.log(
-                  `Erro: ${brand}-${productType}-presentTransaction (${presentTransactionValue}) < ${minPresent}`
-                );
               }
-
-              // Validação de notPresentTransaction
               if (
                 minNotPresent !== undefined &&
                 notPresentTransactionValue !== null &&
@@ -377,9 +336,6 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 hasError = true;
                 errors[`${brand}-${productType}-notPresentTransaction`] =
                   `Mínimo permitido: ${minNotPresent}%`;
-                console.log(
-                  `Erro: ${brand}-${productType}-notPresentTransaction (${notPresentTransactionValue}) < ${minNotPresent}`
-                );
               }
 
               // Parcelas (se existirem)
@@ -388,8 +344,6 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                   mode.installments
                 )) {
                   const inst = instRaw as any;
-
-                  // Converte os valores para números para comparação adequada
                   const instPresentIntermediationValue =
                     inst.presentIntermediation
                       ? parseFloat(
@@ -398,7 +352,6 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                             .replace(",", ".")
                         )
                       : null;
-
                   const instNotPresentIntermediationValue =
                     inst.notPresentIntermediation
                       ? parseFloat(
@@ -407,13 +360,11 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                             .replace(",", ".")
                         )
                       : null;
-
                   const instPresentTransactionValue = inst.presentTransaction
                     ? parseFloat(
                         inst.presentTransaction.toString().replace(",", ".")
                       )
                     : null;
-
                   const instNotPresentTransactionValue =
                     inst.notPresentTransaction
                       ? parseFloat(
@@ -423,7 +374,6 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                         )
                       : null;
 
-                  // Validação de presentIntermediation para parcela
                   if (
                     minPresent !== undefined &&
                     instPresentIntermediationValue !== null &&
@@ -433,12 +383,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                     errors[
                       `${brand}-${productType}-presentIntermediation-${installment}`
                     ] = `Mínimo permitido: ${minPresent}%`;
-                    console.log(
-                      `Erro: ${brand}-${productType}-presentIntermediation-${installment} (${instPresentIntermediationValue}) < ${minPresent}`
-                    );
                   }
-
-                  // Validação de notPresentIntermediation para parcela
                   if (
                     minNotPresent !== undefined &&
                     instNotPresentIntermediationValue !== null &&
@@ -448,12 +393,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                     errors[
                       `${brand}-${productType}-notPresentIntermediation-${installment}`
                     ] = `Mínimo permitido: ${minNotPresent}%`;
-                    console.log(
-                      `Erro: ${brand}-${productType}-notPresentIntermediation-${installment} (${instNotPresentIntermediationValue}) < ${minNotPresent}`
-                    );
                   }
-
-                  // Validação de presentTransaction para parcela
                   if (
                     minPresent !== undefined &&
                     instPresentTransactionValue !== null &&
@@ -463,12 +403,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                     errors[
                       `${brand}-${productType}-presentTransaction-${installment}`
                     ] = `Mínimo permitido: ${minPresent}%`;
-                    console.log(
-                      `Erro: ${brand}-${productType}-presentTransaction-${installment} (${instPresentTransactionValue}) < ${minPresent}`
-                    );
                   }
-
-                  // Validação de notPresentTransaction para parcela
                   if (
                     minNotPresent !== undefined &&
                     instNotPresentTransactionValue !== null &&
@@ -478,14 +413,15 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                     errors[
                       `${brand}-${productType}-notPresentTransaction-${installment}`
                     ] = `Mínimo permitido: ${minNotPresent}%`;
-                    console.log(
-                      `Erro: ${brand}-${productType}-notPresentTransaction-${installment} (${instNotPresentTransactionValue}) < ${minNotPresent}`
-                    );
                   }
                 }
               }
             }
           }
+        }
+        if (hasEmptyGroup) {
+          hasError = true;
+          toast.error("Selecione pelo menos uma bandeira em cada grupo.");
         }
       }
 
@@ -515,8 +451,8 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
       });
 
       toast.success("Configuração de taxa salva com sucesso!");
-      router.refresh();
       router.push("/portal/pricing");
+      router.refresh();
     } catch (error) {
       console.error("Erro ao salvar configuração:", error);
       toast.error("Erro ao salvar configuração da taxa");

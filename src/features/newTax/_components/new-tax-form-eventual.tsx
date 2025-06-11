@@ -478,74 +478,6 @@ export const PaymentConfigFormWithCard = forwardRef<
     return hasInstallments(modeId) && isExpanded;
   };
 
-  // Renderizar um campo de entrada com rótulo e mensagem de erro
-  const renderInputField = (
-    groupIndex: number,
-    modeId: string,
-    field: ModeField,
-    label: string,
-    installment?: number
-  ) => {
-    // Construir a chave de erro
-    const brand = groups[groupIndex].selectedCards[0] || "";
-    const errorKey = installment
-      ? `${brand}-${modeId}-${field}-${installment}`
-      : `${brand}-${modeId}-${field}`;
-
-    const hasError = !!feeFieldErrors[errorKey];
-    const errorMessage = feeFieldErrors[errorKey];
-
-    // Obter o valor atual
-    const currentValue =
-      installment !== undefined
-        ? groups[groupIndex].modes[modeId].installments?.[installment]?.[
-            field
-          ] || ""
-        : groups[groupIndex].modes[modeId][field] || "";
-
-    // Desabilitar o campo principal se o modo tiver instalações e estiver expandido
-    const isDisabled =
-      !installment &&
-      shouldDisableMainModeInput(
-        modeId,
-        groups[groupIndex].modes[modeId].expanded
-      );
-
-    return (
-      <div className="mb-1">
-        <div className="text-xs text-gray-500 mb-1">{label}</div>
-        <div className="relative">
-          <PercentageInput
-            value={currentValue}
-            disabled={isDisabled}
-            onChange={(value) =>
-              handleInputChange(groupIndex, modeId, field, value, installment)
-            }
-            className={`w-full h-8 text-sm rounded border ${hasError ? "border-red-500" : "border-gray-300"}`}
-          />
-          <div className="flex items-center">
-            {hasError && (
-              <div className="text-red-500 text-xs mt-1 mr-2">
-                {errorMessage}
-              </div>
-            )}
-            {feeFieldErrors?.[errorKey] && (
-              <span className="ml-2 text-xs text-red-500">
-                mínimo permitido (
-                {(() => {
-                  const err = feeFieldErrors[errorKey];
-                  const match = err.match(/([\d.,]+)%/);
-                  return match ? match[1] + "%" : "";
-                })()}
-                )
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <Card className="rounded-xl shadow-sm">
@@ -723,43 +655,155 @@ export const PaymentConfigFormWithCard = forwardRef<
                           </button>
                         )}
                       </div>
-                      <div className="p-3 border-r flex items-center justify-center">
-                        {renderInputField(
-                          groupIndex,
-                          feeProductType.value,
-                          "presentIntermediation",
-                          "",
-                          undefined
-                        )}
-                      </div>
-                      {!onlyIntermediation && (
-                        <div className="p-3 border-r flex items-center justify-center">
-                          {renderInputField(
-                            groupIndex,
+                      <div className="p-3 flex items-center justify-center">
+                        <PercentageInput
+                          value={
+                            group.modes[feeProductType.value]
+                              .presentIntermediation || ""
+                          }
+                          disabled={shouldDisableMainModeInput(
                             feeProductType.value,
-                            "presentTransaction",
-                            "",
-                            undefined
+                            group.modes[feeProductType.value].expanded
                           )}
-                        </div>
-                      )}
-                      <div className="p-3 border-r flex items-center justify-center">
-                        {renderInputField(
-                          groupIndex,
-                          feeProductType.value,
-                          "notPresentIntermediation",
-                          "",
-                          undefined
+                          onChange={(value) =>
+                            handleInputChange(
+                              groupIndex,
+                              feeProductType.value,
+                              "presentIntermediation",
+                              value
+                            )
+                          }
+                          className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentIntermediation`] ? "border-red-500" : "border-gray-300"}`}
+                        />
+                        {feeFieldErrors?.[
+                          `${group.id}-${feeProductType.value}-presentIntermediation`
+                        ] && (
+                          <span className="ml-2 text-xs text-red-500">
+                            mínimo permitido (
+                            {(() => {
+                              const err =
+                                feeFieldErrors[
+                                  `${group.id}-${feeProductType.value}-presentIntermediation`
+                                ];
+                              const match = err.match(/([\d.,]+)%/);
+                              return match ? match[1] + "%" : "";
+                            })()}
+                            )
+                          </span>
                         )}
                       </div>
                       {!onlyIntermediation && (
                         <div className="p-3 flex items-center justify-center">
-                          {renderInputField(
-                            groupIndex,
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .presentTransaction || ""
+                            }
+                            disabled={shouldDisableMainModeInput(
+                              feeProductType.value,
+                              group.modes[feeProductType.value].expanded
+                            )}
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "presentTransaction",
+                                value
+                              )
+                            }
+                            className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentTransaction`] ? "border-red-500" : "border-gray-300"}`}
+                          />
+                          {feeFieldErrors?.[
+                            `${group.id}-${feeProductType.value}-presentTransaction`
+                          ] && (
+                            <span className="ml-2 text-xs text-red-500">
+                              mínimo permitido (
+                              {(() => {
+                                const err =
+                                  feeFieldErrors[
+                                    `${group.id}-${feeProductType.value}-presentTransaction`
+                                  ];
+                                const match = err.match(/([\d.,]+)%/);
+                                return match ? match[1] + "%" : "";
+                              })()}
+                              )
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div className="p-3 border-r flex items-center justify-center">
+                        <PercentageInput
+                          value={
+                            group.modes[feeProductType.value]
+                              .notPresentIntermediation || ""
+                          }
+                          disabled={shouldDisableMainModeInput(
                             feeProductType.value,
-                            "notPresentTransaction",
-                            "",
-                            undefined
+                            group.modes[feeProductType.value].expanded
+                          )}
+                          onChange={(value) =>
+                            handleInputChange(
+                              groupIndex,
+                              feeProductType.value,
+                              "notPresentIntermediation",
+                              value
+                            )
+                          }
+                          className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentIntermediation`] ? "border-red-500" : "border-gray-300"}`}
+                        />
+                        {feeFieldErrors?.[
+                          `${group.id}-${feeProductType.value}-notPresentIntermediation`
+                        ] && (
+                          <span className="ml-2 text-xs text-red-500">
+                            mínimo permitido (
+                            {(() => {
+                              const err =
+                                feeFieldErrors[
+                                  `${group.id}-${feeProductType.value}-notPresentIntermediation`
+                                ];
+                              const match = err.match(/([\d.,]+)%/);
+                              return match ? match[1] + "%" : "";
+                            })()}
+                            )
+                          </span>
+                        )}
+                      </div>
+                      {!onlyIntermediation && (
+                        <div className="p-3 flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .notPresentTransaction || ""
+                            }
+                            disabled={shouldDisableMainModeInput(
+                              feeProductType.value,
+                              group.modes[feeProductType.value].expanded
+                            )}
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "notPresentTransaction",
+                                value
+                              )
+                            }
+                            className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentTransaction`] ? "border-red-500" : "border-gray-300"}`}
+                          />
+                          {feeFieldErrors?.[
+                            `${group.id}-${feeProductType.value}-notPresentTransaction`
+                          ] && (
+                            <span className="ml-2 text-xs text-red-500">
+                              mínimo permitido (
+                              {(() => {
+                                const err =
+                                  feeFieldErrors[
+                                    `${group.id}-${feeProductType.value}-notPresentTransaction`
+                                  ];
+                                const match = err.match(/([\d.,]+)%/);
+                                return match ? match[1] + "%" : "";
+                              })()}
+                              )
+                            </span>
                           )}
                         </div>
                       )}
@@ -787,42 +831,162 @@ export const PaymentConfigFormWithCard = forwardRef<
                               {`Crédito Parcelado (${installment} ${installment === 1 ? "vez" : "vezes"})`}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
-                              {renderInputField(
-                                groupIndex,
-                                feeProductType.value,
-                                "presentIntermediation",
-                                "",
-                                installment
+                              <PercentageInput
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.presentIntermediation || ""
+                                }
+                                disabled={shouldDisableMainModeInput(
+                                  feeProductType.value,
+                                  group.modes[feeProductType.value].expanded
+                                )}
+                                onChange={(value) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "presentIntermediation",
+                                    value,
+                                    installment
+                                  )
+                                }
+                                className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentIntermediation-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                              />
+                              {feeFieldErrors?.[
+                                `${group.id}-${feeProductType.value}-presentIntermediation-${installment}`
+                              ] && (
+                                <span className="ml-2 text-xs text-red-500">
+                                  mínimo permitido (
+                                  {(() => {
+                                    const err =
+                                      feeFieldErrors[
+                                        `${group.id}-${feeProductType.value}-presentIntermediation-${installment}`
+                                      ];
+                                    const match = err.match(/([\d.,]+)%/);
+                                    return match ? match[1] + "%" : "";
+                                  })()}
+                                  )
+                                </span>
                               )}
                             </div>
                             {!onlyIntermediation && (
                               <div className="p-3 border-r flex items-center justify-center">
-                                {renderInputField(
-                                  groupIndex,
-                                  feeProductType.value,
-                                  "presentTransaction",
-                                  "",
-                                  installment
+                                <PercentageInput
+                                  value={
+                                    group.modes[feeProductType.value]
+                                      .installments?.[installment]
+                                      ?.presentTransaction || ""
+                                  }
+                                  disabled={shouldDisableMainModeInput(
+                                    feeProductType.value,
+                                    group.modes[feeProductType.value].expanded
+                                  )}
+                                  onChange={(value) =>
+                                    handleInputChange(
+                                      groupIndex,
+                                      feeProductType.value,
+                                      "presentTransaction",
+                                      value,
+                                      installment
+                                    )
+                                  }
+                                  className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentTransaction-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                />
+                                {feeFieldErrors?.[
+                                  `${group.id}-${feeProductType.value}-presentTransaction-${installment}`
+                                ] && (
+                                  <span className="ml-2 text-xs text-red-500">
+                                    mínimo permitido (
+                                    {(() => {
+                                      const err =
+                                        feeFieldErrors[
+                                          `${group.id}-${feeProductType.value}-presentTransaction-${installment}`
+                                        ];
+                                      const match = err.match(/([\d.,]+)%/);
+                                      return match ? match[1] + "%" : "";
+                                    })()}
+                                    )
+                                  </span>
                                 )}
                               </div>
                             )}
                             <div className="p-3 border-r flex items-center justify-center">
-                              {renderInputField(
-                                groupIndex,
-                                feeProductType.value,
-                                "notPresentIntermediation",
-                                "",
-                                installment
+                              <PercentageInput
+                                value={
+                                  group.modes[feeProductType.value]
+                                    .installments?.[installment]
+                                    ?.notPresentIntermediation || ""
+                                }
+                                disabled={shouldDisableMainModeInput(
+                                  feeProductType.value,
+                                  group.modes[feeProductType.value].expanded
+                                )}
+                                onChange={(value) =>
+                                  handleInputChange(
+                                    groupIndex,
+                                    feeProductType.value,
+                                    "notPresentIntermediation",
+                                    value,
+                                    installment
+                                  )
+                                }
+                                className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                              />
+                              {feeFieldErrors?.[
+                                `${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`
+                              ] && (
+                                <span className="ml-2 text-xs text-red-500">
+                                  mínimo permitido (
+                                  {(() => {
+                                    const err =
+                                      feeFieldErrors[
+                                        `${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`
+                                      ];
+                                    const match = err.match(/([\d.,]+)%/);
+                                    return match ? match[1] + "%" : "";
+                                  })()}
+                                  )
+                                </span>
                               )}
                             </div>
                             {!onlyIntermediation && (
                               <div className="p-3 flex items-center justify-center">
-                                {renderInputField(
-                                  groupIndex,
-                                  feeProductType.value,
-                                  "notPresentTransaction",
-                                  "",
-                                  installment
+                                <PercentageInput
+                                  value={
+                                    group.modes[feeProductType.value]
+                                      .installments?.[installment]
+                                      ?.notPresentTransaction || ""
+                                  }
+                                  disabled={shouldDisableMainModeInput(
+                                    feeProductType.value,
+                                    group.modes[feeProductType.value].expanded
+                                  )}
+                                  onChange={(value) =>
+                                    handleInputChange(
+                                      groupIndex,
+                                      feeProductType.value,
+                                      "notPresentTransaction",
+                                      value,
+                                      installment
+                                    )
+                                  }
+                                  className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                />
+                                {feeFieldErrors?.[
+                                  `${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`
+                                ] && (
+                                  <span className="ml-2 text-xs text-red-500">
+                                    mínimo permitido (
+                                    {(() => {
+                                      const err =
+                                        feeFieldErrors[
+                                          `${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`
+                                        ];
+                                      const match = err.match(/([\d.,]+)%/);
+                                      return match ? match[1] + "%" : "";
+                                    })()}
+                                    )
+                                  </span>
                                 )}
                               </div>
                             )}
