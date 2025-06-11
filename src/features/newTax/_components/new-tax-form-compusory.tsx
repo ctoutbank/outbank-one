@@ -56,6 +56,8 @@ interface PaymentGroup {
 interface PaymentConfigFormCompulsoryProps {
   fee: FeeData;
   hideButtons?: boolean;
+  feeFieldErrors?: Record<string, string>;
+  minValuesMap?: Record<string, any>;
 }
 
 type ModeField =
@@ -127,7 +129,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
     };
   },
   PaymentConfigFormCompulsoryProps
->(function PaymentConfigFormCompulsory({ fee, hideButtons = false }, ref) {
+>(function PaymentConfigFormCompulsory(
+  { fee, hideButtons = false, feeFieldErrors = {} },
+  ref
+) {
   console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO COMPULSORY:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
@@ -271,6 +276,17 @@ export const PaymentConfigFormCompulsory = forwardRef<
                       presentTransaction,
                       notPresentTransaction,
                     };
+                    // Se qualquer campo da parcela estiver preenchido, expandir
+                    if (
+                      presentIntermediation ||
+                      notPresentIntermediation ||
+                      presentAnticipation ||
+                      notPresentAnticipation ||
+                      presentTransaction ||
+                      notPresentTransaction
+                    ) {
+                      initialModes[modeId].expanded = true;
+                    }
                   } else if (initialModes[modeId]) {
                     // Para modo sem parcelamento
                     initialModes[modeId].presentIntermediation =
@@ -329,6 +345,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
       return { modeId: "CREDIT_INSTALLMENTS_2_TO_6" };
     } else if (producttype.startsWith("Crédito Parcelado (7 a 12")) {
       return { modeId: "CREDIT_INSTALLMENTS_7_TO_12" };
+    } else if (/Crédito Parcelado \((\d+) a \1 vezes\)/.test(producttype)) {
+      // Match "Crédito Parcelado (N a N vezes)"
+      const match = producttype.match(/Crédito Parcelado \((\d+) a \1 vezes\)/);
+      if (match) {
+        const installment = parseInt(match[1], 10);
+        if (installment >= 2 && installment <= 6) {
+          return { modeId: "CREDIT_INSTALLMENTS_2_TO_6", installment };
+        }
+        if (installment >= 7 && installment <= 12) {
+          return { modeId: "CREDIT_INSTALLMENTS_7_TO_12", installment };
+        }
+      }
     } else if (producttype === "Débito") {
       return { modeId: "DEBIT" };
     } else if (producttype === "Voucher") {
@@ -418,8 +446,8 @@ export const PaymentConfigFormCompulsory = forwardRef<
   function toggleModeExpansion(groupIndex: number, modeId: string) {
     setGroups((prevGroups) => {
       const newGroups = [...prevGroups];
-      newGroups[groupIndex].modes[modeId].expanded =
-        !newGroups[groupIndex].modes[modeId].expanded;
+      const group = newGroups[groupIndex];
+      group.modes[modeId].expanded = !group.modes[modeId].expanded;
       return newGroups;
     });
   }
@@ -486,23 +514,19 @@ export const PaymentConfigFormCompulsory = forwardRef<
       });
   }
 
-  function shouldDisableMainModeInput() {
-    // Implemente a lógica para determinar se o input principal de um modo deve ser desabilitado
-    // Por exemplo, você pode verificar se o modo é um modo principal (não é um modo de parcelamento)
-    // e se o modo está expandido. Se for um modo principal e expandido, o input deve ser desabilitado.
-    return false; // Placeholder, implemente a lógica adequada
-  }
-
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="rounded-xl shadow-sm">
         <CardContent className="p-0">
           {/* Grupos de Pagamento */}
           {groups.map((group, groupIndex) => (
-            <Card key={group.id} className="mb-6">
+            <Card
+              key={group.id}
+              className="mb-6 rounded-lg border border-gray-200 shadow-sm"
+            >
               <CardContent className="p-0">
                 {/* Cabeçalho do grupo com seleção de bandeiras */}
-                <div className="p-3 border-b flex items-center justify-between bg-gray-50">
+                <div className="p-3 border-b flex items-center justify-between bg-gray-50 rounded-t-lg">
                   <div className="flex items-center">
                     <span className="font-medium mr-2">Bandeiras:</span>
                     <div className="flex gap-2">
@@ -671,7 +695,29 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
+                              disabled={
+                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
+                                  group.modes[mode.value].expanded) ||
+                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-presentIntermediation`
+                            ] && (
+                              <span className="ml-2 text-xs text-red-500">
+                                mínimo permitido (
+                                {(() => {
+                                  const err =
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-presentIntermediation`
+                                    ];
+                                  const match = err.match(/([\d.,]+)%/);
+                                  return match ? match[1] + "%" : "";
+                                })()}
+                                )
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
@@ -691,8 +737,25 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-30 text-center"
-                              disabled={isAnticipationDisabled(mode.value)}
+                              disabled={
+                                isAnticipationDisabled(mode.value) ||
+                                ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
+                                  mode.value ===
+                                    "CREDIT_INSTALLMENTS_7_TO_12") &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-presentAnticipation`
+                            ] && (
+                              <span className="text-xs text-red-500">
+                                {
+                                  feeFieldErrors[
+                                    `${group.id}-${mode.value}-presentAnticipation`
+                                  ]
+                                }
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -712,8 +775,29 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
-                              disabled={shouldDisableMainModeInput()}
+                              disabled={
+                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
+                                  group.modes[mode.value].expanded) ||
+                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-presentTransaction`
+                            ] && (
+                              <span className="ml-2 text-xs text-red-500">
+                                mínimo permitido (
+                                {(() => {
+                                  const err =
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-presentTransaction`
+                                    ];
+                                  const match = err.match(/([\d.,]+)%/);
+                                  return match ? match[1] + "%" : "";
+                                })()}
+                                )
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
@@ -733,7 +817,29 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
+                              disabled={
+                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
+                                  group.modes[mode.value].expanded) ||
+                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-notPresentIntermediation`
+                            ] && (
+                              <span className="ml-2 text-xs text-red-500">
+                                mínimo permitido (
+                                {(() => {
+                                  const err =
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-notPresentIntermediation`
+                                    ];
+                                  const match = err.match(/([\d.,]+)%/);
+                                  return match ? match[1] + "%" : "";
+                                })()}
+                                )
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="p-3 border-r flex items-center justify-center">
@@ -753,8 +859,25 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-16 text-center"
-                              disabled={isAnticipationDisabled(mode.value)}
+                              disabled={
+                                isAnticipationDisabled(mode.value) ||
+                                ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
+                                  mode.value ===
+                                    "CREDIT_INSTALLMENTS_7_TO_12") &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-notPresentAnticipation`
+                            ] && (
+                              <span className="text-xs text-red-500">
+                                {
+                                  feeFieldErrors[
+                                    `${group.id}-${mode.value}-notPresentAnticipation`
+                                  ]
+                                }
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="p-3 flex items-center justify-center">
@@ -774,8 +897,29 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-16 text-center"
-                              disabled={shouldDisableMainModeInput()}
+                              disabled={
+                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
+                                  group.modes[mode.value].expanded) ||
+                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
+                                  group.modes[mode.value].expanded)
+                              }
                             />
+                            {feeFieldErrors?.[
+                              `${group.id}-${mode.value}-notPresentTransaction`
+                            ] && (
+                              <span className="ml-2 text-xs text-red-500">
+                                mínimo permitido (
+                                {(() => {
+                                  const err =
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-notPresentTransaction`
+                                    ];
+                                  const match = err.match(/([\d.,]+)%/);
+                                  return match ? match[1] + "%" : "";
+                                })()}
+                                )
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -815,8 +959,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
-                                className="w-16 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-presentIntermediation-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-presentIntermediation-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
@@ -835,8 +989,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="% a.m."
-                                className="w-30 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-presentAnticipation-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-presentAnticipation-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
@@ -855,8 +1019,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
-                                className="w-16 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-presentTransaction-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-presentTransaction-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
@@ -875,8 +1049,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
-                                className="w-16 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-notPresentIntermediation-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-notPresentIntermediation-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
@@ -895,8 +1079,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="% a.m."
-                                className="w-16 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-notPresentAnticipation-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-notPresentAnticipation-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                             <div className="p-3 flex items-center justify-center">
                               <PercentageInput
@@ -915,8 +1109,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
-                                className="w-16 text-center"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${mode.value}-notPresentTransaction-${installment}`
+                              ] && (
+                                <span className="text-xs text-red-500">
+                                  {
+                                    feeFieldErrors[
+                                      `${group.id}-${mode.value}-notPresentTransaction-${installment}`
+                                    ]
+                                  }
+                                </span>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -932,10 +1136,15 @@ export const PaymentConfigFormCompulsory = forwardRef<
               <Button
                 variant="outline"
                 onClick={() => router.push("/portal/pricing")}
+                className="rounded-lg px-6 py-2"
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={isPending}>
+              <Button
+                onClick={handleSave}
+                disabled={isPending}
+                className="rounded-lg px-6 py-2"
+              >
                 {isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>

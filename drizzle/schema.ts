@@ -1435,6 +1435,7 @@ export const feeCredit = pgTable("fee_credit", {
 	dtupdate: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	idFeeBrandProductType: bigint("id_fee_brand_product_type", { mode: "number" }),
+	noFee: numeric("no_fee", { precision: 10, scale:  2 }),
 }, (table) => {
 	return {
 		feeCreditIdFeeBrandProductTypeFkey: foreignKey({
@@ -1442,6 +1443,20 @@ export const feeCredit = pgTable("fee_credit", {
 			foreignColumns: [feeBrandProductType.id],
 			name: "fee_credit_id_fee_brand_product_type_fkey"
 		}).onDelete("cascade"),
+	}
+});
+
+export const tenants = pgTable("tenants", {
+	id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+	slug: text().notNull(),
+	name: text().notNull(),
+	primaryColor: text("primary_color"),
+	secondaryColor: text("secondary_color"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => {
+	return {
+		tenantsSlugKey: unique("tenants_slug_key").on(table.slug),
 	}
 });
 
@@ -1464,4 +1479,6 @@ export const fee = pgTable("fee", {
 	nonCardPixCeilingFee: numeric("non_card_pix_ceiling_fee"),
 	nonCardPixMinimumCostFee: numeric("non_card_pix_minimum_cost_fee"),
 	code: varchar({ length: 50 }),
+	cnae: varchar({ length: 20 }),
+	mcc: varchar({ length: 20 }),
 });

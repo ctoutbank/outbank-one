@@ -21,24 +21,36 @@ import {
 import { FeeType } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { saveOrUpdateFeeAction } from "../_actions/pricing-formActions";
 import { FeeNewSchema, schemaFee } from "../schema/fee-new-Schema";
-import { type FeeData } from "../server/fee-db";
+import { getFeeAdminByCnaeMccAction, type FeeData } from "../server/fee-db";
 import { PaymentConfigFormCompulsory } from "./new-tax-form-compusory";
 import { PaymentConfigFormWithCard } from "./new-tax-form-eventual";
 import { NewTaxPixSession } from "./new-tax-pixsession";
 
-interface FeeFormProps {
-  fee: FeeData;
+interface Category {
+  mcc: string;
+  cnae: string;
 }
 
-export function NewTaxForm1({ fee }: FeeFormProps) {
+interface FeeFormProps {
+  fee: FeeData;
+  categories: Category[];
+}
+
+export function NewTaxForm1({ fee, categories }: FeeFormProps) {
   console.log("DADOS RECEBIDOS NO FORMULÁRIO:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+  const [feeFieldErrors, setFeeFieldErrors] = useState<Record<string, string>>(
+    {}
+  );
+
+  // Novo estado para armazenar os valores mínimos
+  const [minValuesMap, setMinValuesMap] = useState<Record<string, any>>({});
 
   // Referências para acessar os dados dos formulários filhos
   const compulsoryFormRef = useRef<{
@@ -75,6 +87,8 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
     active: fee.active !== undefined ? fee.active : true,
     dtinsert: fee.dtinsert ? new Date(fee.dtinsert) : undefined,
     dtupdate: fee.dtupdate ? new Date(fee.dtupdate) : undefined,
+    mcc: fee.mcc || "",
+    cnae: fee.cnae || "",
     anticipationType:
       (fee.anticipationType as "NOANTECIPATION" | "EVENTUAL" | "COMPULSORY") ||
       "NOANTECIPATION",
@@ -117,11 +131,90 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
       "NOANTECIPATION"
   );
 
+  // Buscar os valores mínimos ao carregar o formulário ou quando MCC/CNAE mudarem
+  useEffect(() => {
+    async function fetchMinValues() {
+      const mcc = form.getValues("mcc");
+      const cnae = form.getValues("cnae");
+      if (mcc && cnae) {
+        const feeAdminMap = await getFeeAdminByCnaeMccAction(
+          String(cnae),
+          String(mcc)
+        );
+        setMinValuesMap(feeAdminMap);
+      } else {
+        setMinValuesMap({});
+      }
+    }
+    fetchMinValues();
+  }, [form, form.watch("mcc"), form.watch("cnae")]);
+
+  // Sincroniza CNAE quando MCC muda
+  useEffect(() => {
+    const subscription = form.watch((values, { name }) => {
+      if (name === "mcc" && values.mcc) {
+        const found = categories.find((cat) => cat.mcc === values.mcc);
+        if (found && form.getValues("cnae") !== found.cnae) {
+          console.log("MCC alterado, atualizando CNAE:", found.cnae);
+          form.setValue("cnae", found.cnae, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      }
+      if (name === "cnae" && values.cnae) {
+        const found = categories.find((cat) => cat.cnae === values.cnae);
+        if (found && form.getValues("mcc") !== found.mcc) {
+          console.log("CNAE alterado, atualizando MCC:", found.mcc);
+          form.setValue("mcc", found.mcc, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, categories]);
+
   // Função de submissão do formulário
   const onSubmit = async (data: FeeNewSchema) => {
     try {
       setIsPending(true);
-      toast.loading("Salvando configurações...");
+      setFeeFieldErrors({});
+
+      // Garante que os campos estejam atualizados e validados
+      await form.trigger(["mcc", "cnae"]);
+
+      // Obter os valores mais recentes do formulário
+      const mccValue = form.getValues("mcc");
+      const cnaeValue = form.getValues("cnae");
+
+      // Atualiza os valores no objeto data que será enviado
+      data.mcc = mccValue;
+      data.cnae = cnaeValue;
+
+      console.log("VALORES ANTES DE ENVIAR:", {
+        mcc: data.mcc,
+        cnae: data.cnae,
+        formMcc: mccValue,
+        formCnae: cnaeValue,
+      });
+
+      // Sincroniza MCC e CNAE se um deles estiver vazio mas o outro estiver preenchido
+      if (!data.cnae && data.mcc) {
+        const found = categories.find((cat) => cat.mcc === data.mcc);
+        if (found) {
+          data.cnae = found.cnae;
+          console.log("CNAE sincronizado a partir do MCC:", data.cnae);
+        }
+      }
+      if (!data.mcc && data.cnae) {
+        const found = categories.find((cat) => cat.cnae === data.cnae);
+        if (found) {
+          data.mcc = found.mcc;
+          console.log("MCC sincronizado a partir do CNAE:", data.mcc);
+        }
+      }
 
       // Coleta dados dos filhos
       const pixConfig = pixFormRef.current?.getFormData().pixConfig;
@@ -129,6 +222,286 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
         selectedAnticipationType === "COMPULSORY"
           ? compulsoryFormRef.current?.getFormData().groups
           : eventualFormRef.current?.getFormData().groups;
+
+      // Se não temos grupos, não precisamos validar
+      if (!groups || groups.length === 0) {
+        console.log("Sem grupos para validar");
+      } else {
+        console.log("Grupos para validação:", groups);
+      }
+
+      // Validação dos campos de taxa com base no feeAdmin
+      console.log(
+        "Buscando valores mínimos para CNAE:",
+        data.cnae,
+        "e MCC:",
+        data.mcc
+      );
+      const feeAdminMap = await getFeeAdminByCnaeMccAction(
+        String(data.cnae ?? ""),
+        String(data.mcc ?? "")
+      );
+
+      console.log("Validando taxas com feeAdminMap:", feeAdminMap);
+
+      let hasError = false;
+      const errors: Record<string, string> = {};
+
+      if (Object.keys(feeAdminMap).length === 0) {
+        console.log(
+          "Nenhum valor mínimo encontrado para validação. Verificar se existe solicitação COMPLETED para este CNAE/MCC."
+        );
+      }
+
+      if (groups) {
+        for (const group of groups) {
+          // Se não tem cartões selecionados, pula este grupo
+          if (!group.selectedCards || group.selectedCards.length === 0) {
+            console.log("Grupo sem cartões selecionados:", group.id);
+            continue;
+          }
+
+          console.log(
+            "Validando grupo:",
+            group.id,
+            "com cartões:",
+            group.selectedCards
+          );
+
+          for (const brand of group.selectedCards) {
+            // Verificar se temos valores de referência para esta marca
+            if (!feeAdminMap[brand]) {
+              console.log(
+                `Sem valores mínimos para marca ${brand}. Pulando validação.`
+              );
+              continue;
+            }
+
+            for (const [productType, modeRaw] of Object.entries(group.modes)) {
+              // Garantir tipagem correta
+              const mode = modeRaw as any;
+
+              // Valores mínimos para transações com cartão (present)
+              const minPresent = feeAdminMap?.[brand]?.[productType];
+
+              // Valores mínimos para transações sem cartão (notPresent)
+              // Tentamos usar o valor específico de nocard, ou recorremos ao valor padrão
+              const nocardKey = `nocard_${productType}`;
+              const minNotPresent =
+                feeAdminMap?.[brand]?.[nocardKey] || minPresent;
+
+              console.log(
+                `Validando ${brand}-${productType}: minPresent=${minPresent}, minNotPresent=${minNotPresent}`
+              );
+
+              // Se não temos valores mínimos para este tipo de produto, pulamos
+              if (minPresent === undefined) {
+                console.log(`Sem valor mínimo para ${brand}-${productType}`);
+                continue;
+              }
+
+              // Converte os valores para números para comparação adequada
+              const presentIntermediationValue = mode.presentIntermediation
+                ? parseFloat(
+                    mode.presentIntermediation.toString().replace(",", ".")
+                  )
+                : null;
+
+              const notPresentIntermediationValue =
+                mode.notPresentIntermediation
+                  ? parseFloat(
+                      mode.notPresentIntermediation.toString().replace(",", ".")
+                    )
+                  : null;
+
+              const presentTransactionValue = mode.presentTransaction
+                ? parseFloat(
+                    mode.presentTransaction.toString().replace(",", ".")
+                  )
+                : null;
+
+              const notPresentTransactionValue = mode.notPresentTransaction
+                ? parseFloat(
+                    mode.notPresentTransaction.toString().replace(",", ".")
+                  )
+                : null;
+
+              // Validação de presentIntermediation
+              if (
+                minPresent !== undefined &&
+                presentIntermediationValue !== null &&
+                presentIntermediationValue < minPresent
+              ) {
+                hasError = true;
+                errors[`${brand}-${productType}-presentIntermediation`] =
+                  `Mínimo permitido: ${minPresent}%`;
+                console.log(
+                  `Erro: ${brand}-${productType}-presentIntermediation (${presentIntermediationValue}) < ${minPresent}`
+                );
+              }
+
+              // Validação de notPresentIntermediation
+              if (
+                minNotPresent !== undefined &&
+                notPresentIntermediationValue !== null &&
+                notPresentIntermediationValue < minNotPresent
+              ) {
+                hasError = true;
+                errors[`${brand}-${productType}-notPresentIntermediation`] =
+                  `Mínimo permitido: ${minNotPresent}%`;
+                console.log(
+                  `Erro: ${brand}-${productType}-notPresentIntermediation (${notPresentIntermediationValue}) < ${minNotPresent}`
+                );
+              }
+
+              // Validação de presentTransaction
+              if (
+                minPresent !== undefined &&
+                presentTransactionValue !== null &&
+                presentTransactionValue < minPresent
+              ) {
+                hasError = true;
+                errors[`${brand}-${productType}-presentTransaction`] =
+                  `Mínimo permitido: ${minPresent}%`;
+                console.log(
+                  `Erro: ${brand}-${productType}-presentTransaction (${presentTransactionValue}) < ${minPresent}`
+                );
+              }
+
+              // Validação de notPresentTransaction
+              if (
+                minNotPresent !== undefined &&
+                notPresentTransactionValue !== null &&
+                notPresentTransactionValue < minNotPresent
+              ) {
+                hasError = true;
+                errors[`${brand}-${productType}-notPresentTransaction`] =
+                  `Mínimo permitido: ${minNotPresent}%`;
+                console.log(
+                  `Erro: ${brand}-${productType}-notPresentTransaction (${notPresentTransactionValue}) < ${minNotPresent}`
+                );
+              }
+
+              // Parcelas (se existirem)
+              if (mode.installments) {
+                for (const [installment, instRaw] of Object.entries(
+                  mode.installments
+                )) {
+                  const inst = instRaw as any;
+
+                  // Converte os valores para números para comparação adequada
+                  const instPresentIntermediationValue =
+                    inst.presentIntermediation
+                      ? parseFloat(
+                          inst.presentIntermediation
+                            .toString()
+                            .replace(",", ".")
+                        )
+                      : null;
+
+                  const instNotPresentIntermediationValue =
+                    inst.notPresentIntermediation
+                      ? parseFloat(
+                          inst.notPresentIntermediation
+                            .toString()
+                            .replace(",", ".")
+                        )
+                      : null;
+
+                  const instPresentTransactionValue = inst.presentTransaction
+                    ? parseFloat(
+                        inst.presentTransaction.toString().replace(",", ".")
+                      )
+                    : null;
+
+                  const instNotPresentTransactionValue =
+                    inst.notPresentTransaction
+                      ? parseFloat(
+                          inst.notPresentTransaction
+                            .toString()
+                            .replace(",", ".")
+                        )
+                      : null;
+
+                  // Validação de presentIntermediation para parcela
+                  if (
+                    minPresent !== undefined &&
+                    instPresentIntermediationValue !== null &&
+                    instPresentIntermediationValue < minPresent
+                  ) {
+                    hasError = true;
+                    errors[
+                      `${brand}-${productType}-presentIntermediation-${installment}`
+                    ] = `Mínimo permitido: ${minPresent}%`;
+                    console.log(
+                      `Erro: ${brand}-${productType}-presentIntermediation-${installment} (${instPresentIntermediationValue}) < ${minPresent}`
+                    );
+                  }
+
+                  // Validação de notPresentIntermediation para parcela
+                  if (
+                    minNotPresent !== undefined &&
+                    instNotPresentIntermediationValue !== null &&
+                    instNotPresentIntermediationValue < minNotPresent
+                  ) {
+                    hasError = true;
+                    errors[
+                      `${brand}-${productType}-notPresentIntermediation-${installment}`
+                    ] = `Mínimo permitido: ${minNotPresent}%`;
+                    console.log(
+                      `Erro: ${brand}-${productType}-notPresentIntermediation-${installment} (${instNotPresentIntermediationValue}) < ${minNotPresent}`
+                    );
+                  }
+
+                  // Validação de presentTransaction para parcela
+                  if (
+                    minPresent !== undefined &&
+                    instPresentTransactionValue !== null &&
+                    instPresentTransactionValue < minPresent
+                  ) {
+                    hasError = true;
+                    errors[
+                      `${brand}-${productType}-presentTransaction-${installment}`
+                    ] = `Mínimo permitido: ${minPresent}%`;
+                    console.log(
+                      `Erro: ${brand}-${productType}-presentTransaction-${installment} (${instPresentTransactionValue}) < ${minPresent}`
+                    );
+                  }
+
+                  // Validação de notPresentTransaction para parcela
+                  if (
+                    minNotPresent !== undefined &&
+                    instNotPresentTransactionValue !== null &&
+                    instNotPresentTransactionValue < minNotPresent
+                  ) {
+                    hasError = true;
+                    errors[
+                      `${brand}-${productType}-notPresentTransaction-${installment}`
+                    ] = `Mínimo permitido: ${minNotPresent}%`;
+                    console.log(
+                      `Erro: ${brand}-${productType}-notPresentTransaction-${installment} (${instNotPresentTransactionValue}) < ${minNotPresent}`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (hasError) {
+        console.log("Erros de validação encontrados:", errors);
+        setFeeFieldErrors(errors);
+        toast.error("Algumas taxas estão abaixo do mínimo permitido.");
+        setIsPending(false);
+        return;
+      }
+
+      // Registra os valores finais antes de enviar
+      console.log("VALORES FINAIS PARA ENVIO:", {
+        mcc: data.mcc,
+        cnae: data.cnae,
+      });
 
       // Chama a action simplificada
       await saveOrUpdateFeeAction({
@@ -143,6 +516,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
 
       toast.success("Configuração de taxa salva com sucesso!");
       router.refresh();
+      router.push("/portal/pricing");
     } catch (error) {
       console.error("Erro ao salvar configuração:", error);
       toast.error("Erro ao salvar configuração da taxa");
@@ -176,17 +550,21 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
-        <Card>
+        <Card className="rounded-xl shadow-sm">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
                     <FormLabel>Nome da Tabela</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="rounded-lg"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,10 +575,14 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                 control={form.control}
                 name="code"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
                     <FormLabel>Código da Tabela</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="rounded-lg"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,7 +593,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                 control={form.control}
                 name="anticipationType"
                 render={() => (
-                  <FormItem>
+                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
                     <FormLabel>Tipo de Antecipação</FormLabel>
                     <Select
                       value={selectedAnticipationType}
@@ -239,12 +621,74 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                 )}
               />
 
+              <div>
+                <FormField
+                  control={form.control}
+                  name="mcc"
+                  render={({ field }) => (
+                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                      <FormLabel>MCC</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          className="rounded-lg"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value);
+                            const found = categories.find(
+                              (cat) => cat.mcc === value
+                            );
+                            if (found) {
+                              form.setValue("cnae", found.cnae);
+                              form.trigger("cnae");
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div>
+                <FormField
+                  control={form.control}
+                  name="cnae"
+                  render={({ field }) => (
+                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                      <FormLabel>CNAE</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          className="rounded-lg"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value);
+                            const found = categories.find(
+                              (cat) => cat.cnae === value
+                            );
+                            if (found) {
+                              form.setValue("mcc", found.mcc);
+                              form.trigger("mcc");
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               {selectedAnticipationType === "COMPULSORY" && (
                 <FormField
                   control={form.control}
                   name="compulsoryAnticipationConfig"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
                       <FormLabel>Dias úteis para antecipar(d+)</FormLabel>
                       <FormControl>
                         <Input
@@ -258,6 +702,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                           }}
                           type="number"
                           min={0}
+                          className="rounded-lg"
                         />
                       </FormControl>
                       <FormMessage />
@@ -269,7 +714,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl shadow-sm">
           <CardContent>
             <h3 className="text-lg font-medium mb-4 mt-4">
               Configuração de Pix
@@ -284,7 +729,7 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
 
         {selectedAnticipationType === "EVENTUAL" ||
         selectedAnticipationType === "NOANTECIPATION" ? (
-          <Card>
+          <Card className="rounded-xl shadow-sm">
             <CardContent>
               <h3 className="text-lg font-medium mb-4 mt-4">
                 {selectedAnticipationType === "NOANTECIPATION"
@@ -295,11 +740,12 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                 fee={fee}
                 ref={eventualFormRef}
                 hideButtons={true}
+                feeFieldErrors={feeFieldErrors}
               />
             </CardContent>
           </Card>
         ) : selectedAnticipationType === "COMPULSORY" ? (
-          <Card>
+          <Card className="rounded-xl shadow-sm">
             <CardContent>
               <h3 className="text-lg font-medium mb-4 mt-4">
                 Taxas com Antecipação Compulsória
@@ -308,20 +754,26 @@ export function NewTaxForm1({ fee }: FeeFormProps) {
                 fee={fee}
                 ref={compulsoryFormRef}
                 hideButtons={true}
+                feeFieldErrors={feeFieldErrors}
+                minValuesMap={minValuesMap}
               />
             </CardContent>
           </Card>
         ) : null}
 
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-4 gap-2">
           <Button
             variant="outline"
             onClick={() => router.push("/portal/pricing")}
-            className="mr-2"
+            className="rounded-lg px-6 py-2"
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="rounded-lg px-6 py-2"
+          >
             {isPending ? "Salvando..." : "Salvar"}
           </Button>
         </div>

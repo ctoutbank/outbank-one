@@ -285,6 +285,36 @@ async function processProductType(
         )
       );
 
+    // Função para converter valores com vírgula para float
+    const parseDecimalValue = (value: string | number | undefined): number => {
+      if (value === undefined || value === "") return 0;
+
+      // Se já for um número, retorna
+      if (typeof value === "number") return value;
+
+      // Converte string para número, substituindo vírgula por ponto
+      return parseFloat(value.toString().replace(",", "."));
+    };
+
+    // Extrair e converter valores das taxas
+    const presentIntermediation = parseDecimalValue(
+      modeData.presentIntermediation
+    );
+    const notPresentIntermediation = parseDecimalValue(
+      modeData.notPresentIntermediation
+    );
+    const presentTransaction = parseDecimalValue(modeData.presentTransaction);
+    const notPresentTransaction = parseDecimalValue(
+      modeData.notPresentTransaction
+    );
+
+    console.log("[DEBUG] Valores convertidos:", {
+      presentIntermediation,
+      notPresentIntermediation,
+      presentTransaction,
+      notPresentTransaction,
+    });
+
     // Preparar dados para inserção/atualização
     const productTypeData = {
       slug: `${productType}-${Date.now()}`,
@@ -293,12 +323,17 @@ async function processProductType(
       producttype: productType,
       installmentTransactionFeeStart: installmentStart || 0,
       installmentTransactionFeeEnd: installmentEnd || 0,
-      cardTransactionFee: sql`${parseFloat((modeData.presentTransaction || "0").replace(",", "."))}`,
-      cardTransactionMdr: sql`${parseFloat((modeData.presentIntermediation || "0").replace(",", ".")).toFixed(2)}`,
-      nonCardTransactionFee: sql`${parseFloat((modeData.notPresentTransaction || "0").replace(",", "."))}`,
-      nonCardTransactionMdr: sql`${parseFloat((modeData.notPresentIntermediation || "0").replace(",", ".")).toFixed(2)}`,
+      cardTransactionFee: presentTransaction || 0,
+      cardTransactionMdr: sql`${presentIntermediation.toFixed(2)}`,
+      nonCardTransactionFee: notPresentTransaction || 0,
+      nonCardTransactionMdr: sql`${notPresentIntermediation.toFixed(2)}`,
       idFeeBrand: brandId,
     };
+
+    console.log(
+      "[DEBUG] Dados preparados para inserção/atualização:",
+      productTypeData
+    );
 
     let productTypeId: number | undefined;
     if (existingProductTypes.length > 0) {
@@ -331,13 +366,12 @@ async function processProductType(
           )
         );
 
+      // Converte para string ou null
       const compulsoryAnticipation = modeData.presentAnticipation
-        ? parseFloat(modeData.presentAnticipation.replace(",", ".")).toFixed(2)
+        ? parseDecimalValue(modeData.presentAnticipation).toFixed(2)
         : null;
       const noCardCompulsoryAnticipation = modeData.notPresentAnticipation
-        ? parseFloat(modeData.notPresentAnticipation.replace(",", ".")).toFixed(
-            2
-          )
+        ? parseDecimalValue(modeData.notPresentAnticipation).toFixed(2)
         : null;
 
       if (existingFeeCredit.length > 0) {

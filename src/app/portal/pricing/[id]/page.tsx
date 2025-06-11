@@ -2,7 +2,10 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
 import { NewTaxForm1 } from "@/features/newTax/_components/new-tax-form1";
-import { getFeeByIdAction } from "@/features/newTax/server/fee-db";
+import {
+  getCategories,
+  getFeeByIdAction,
+} from "@/features/newTax/server/fee-db";
 
 export const revalidate = 0;
 
@@ -15,6 +18,8 @@ export default async function FeeDetail({
 
   // Buscar dados da taxa pelo ID usando as actions
   const feeById = await getFeeByIdAction(params.id);
+  // Buscar categorias MCC/CNAE
+  const categories = await getCategories();
   console.log("Dados da taxa:", feeById ? "Encontrados" : "Não encontrados");
   console.log("Dados completos da taxa:", JSON.stringify(feeById, null, 2));
 
@@ -35,7 +40,7 @@ export default async function FeeDetail({
             : "Adicionar Nova Taxa"
         }
       >
-        {feeById && <NewTaxForm1 fee={feeById} />}
+        {feeById && <NewTaxForm1 fee={feeById} categories={categories} />}
       </BaseBody>
     </>
   );
