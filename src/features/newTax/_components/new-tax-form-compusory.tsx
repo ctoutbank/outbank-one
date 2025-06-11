@@ -694,7 +694,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="%"
-                              className="w-16 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
                                   group.modes[mode.value].expanded) ||
@@ -736,7 +736,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="% a.m."
-                              className="w-30 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 isAnticipationDisabled(mode.value) ||
                                 ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
@@ -774,7 +774,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="%"
-                              className="w-16 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
                                   group.modes[mode.value].expanded) ||
@@ -816,7 +816,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="%"
-                              className="w-16 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
                                   group.modes[mode.value].expanded) ||
@@ -858,7 +858,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="% a.m."
-                              className="w-16 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 isAnticipationDisabled(mode.value) ||
                                 ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
@@ -896,7 +896,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 )
                               }
                               placeholder="%"
-                              className="w-16 text-center"
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               disabled={
                                 (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
                                   group.modes[mode.value].expanded) ||
@@ -959,6 +959,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-presentIntermediation-${installment}`
@@ -989,6 +990,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="% a.m."
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-presentAnticipation-${installment}`
@@ -1019,6 +1021,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-presentTransaction-${installment}`
@@ -1049,6 +1052,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-notPresentIntermediation-${installment}`
@@ -1079,6 +1083,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="% a.m."
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-notPresentAnticipation-${installment}`
@@ -1109,6 +1114,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   )
                                 }
                                 placeholder="%"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-notPresentTransaction-${installment}`

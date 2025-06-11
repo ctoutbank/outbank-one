@@ -493,7 +493,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                  <FormItem className="">
                     <FormLabel>Nome da Tabela</FormLabel>
                     <FormControl>
                       <Input
@@ -511,7 +511,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 control={form.control}
                 name="code"
                 render={({ field }) => (
-                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                  <FormItem className="">
                     <FormLabel>Código da Tabela</FormLabel>
                     <FormControl>
                       <Input
@@ -529,7 +529,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                 control={form.control}
                 name="anticipationType"
                 render={() => (
-                  <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                  <FormItem className="">
                     <FormLabel>Tipo de Antecipação</FormLabel>
                     <Select
                       value={selectedAnticipationType}
@@ -562,7 +562,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                   control={form.control}
                   name="mcc"
                   render={({ field }) => (
-                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                    <FormItem className="">
                       <FormLabel>MCC</FormLabel>
                       <FormControl>
                         <Input
@@ -593,7 +593,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                   control={form.control}
                   name="cnae"
                   render={({ field }) => (
-                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                    <FormItem className="">
                       <FormLabel>CNAE</FormLabel>
                       <FormControl>
                         <Input
@@ -624,7 +624,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                   control={form.control}
                   name="compulsoryAnticipationConfig"
                   render={({ field }) => (
-                    <FormItem className="rounded-lg bg-white p-2 shadow-sm border border-gray-200">
+                    <FormItem className="">
                       <FormLabel>Dias úteis para antecipar(d+)</FormLabel>
                       <FormControl>
                         <Input

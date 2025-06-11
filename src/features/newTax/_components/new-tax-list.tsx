@@ -162,7 +162,7 @@ export default function FeeList({ fees }: FeeListProps) {
                         </div>
                       </div>
                     )}
-                    <NewTaxPixSession data={fee} />
+                    <NewTaxPixSession data={fee} readOnly={true} />
                     <div className="mt-1">
                       <div className="rounded-lg bg-white shadow-sm border border-gray-300">
                         {fee.feeBrand.length > 0 ? (

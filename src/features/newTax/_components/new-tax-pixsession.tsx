@@ -9,6 +9,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 interface NewTaxPixSessionProps {
   data: FeeData;
   tableType?: string;
+  readOnly?: boolean;
 }
 
 export const NewTaxPixSession = forwardRef<
@@ -27,7 +28,7 @@ export const NewTaxPixSession = forwardRef<
     };
   },
   NewTaxPixSessionProps
->(function NewTaxPixSession({ data, tableType }, ref) {
+>(function NewTaxPixSession({ data, tableType, readOnly }, ref) {
   const [pixConfig, setPixConfig] = useState({
     mdrPresent: data?.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
     mdrNotPresent:
@@ -85,7 +86,8 @@ export const NewTaxPixSession = forwardRef<
                       handlePixInputChange("minCostPresent", values.value)
                     }
                     placeholder="R$"
-                    className="w-24 text-right bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    className="w-24 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -97,7 +99,8 @@ export const NewTaxPixSession = forwardRef<
                       handlePixInputChange("minCostNotPresent", values.value)
                     }
                     placeholder="R$ "
-                    className="w-24 text-right bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    className="w-24 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -114,7 +117,8 @@ export const NewTaxPixSession = forwardRef<
                       handlePixInputChange("maxCostPresent", values.value)
                     }
                     placeholder="R$ "
-                    className="w-24 text-right bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    className="w-24 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -126,7 +130,8 @@ export const NewTaxPixSession = forwardRef<
                       handlePixInputChange("maxCostNotPresent", values.value)
                     }
                     placeholder="R$ "
-                    className="w-24 text-right bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    className="w-24 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -144,6 +149,7 @@ export const NewTaxPixSession = forwardRef<
                     }
                     placeholder="%"
                     className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -156,6 +162,7 @@ export const NewTaxPixSession = forwardRef<
                     }
                     placeholder="%"
                     className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                    disabled={readOnly}
                   />
                 </div>
               </td>
@@ -174,6 +181,7 @@ export const NewTaxPixSession = forwardRef<
                       }
                       placeholder="% a.m."
                       className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                      disabled={readOnly}
                     />
                   </div>
                 </td>
@@ -189,6 +197,7 @@ export const NewTaxPixSession = forwardRef<
                       }
                       placeholder="% a.m."
                       className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                      disabled={readOnly}
                     />
                   </div>
                 </td>

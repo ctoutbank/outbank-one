@@ -673,7 +673,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                               value
                             )
                           }
-                          className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentIntermediation`] ? "border-red-500" : "border-gray-300"}`}
+                          className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                         />
                         {feeFieldErrors?.[
                           `${group.id}-${feeProductType.value}-presentIntermediation`
@@ -711,7 +711,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                 value
                               )
                             }
-                            className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentTransaction`] ? "border-red-500" : "border-gray-300"}`}
+                            className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                           />
                           {feeFieldErrors?.[
                             `${group.id}-${feeProductType.value}-presentTransaction`
@@ -749,7 +749,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                               value
                             )
                           }
-                          className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentIntermediation`] ? "border-red-500" : "border-gray-300"}`}
+                          className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                         />
                         {feeFieldErrors?.[
                           `${group.id}-${feeProductType.value}-notPresentIntermediation`
@@ -787,7 +787,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                 value
                               )
                             }
-                            className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentTransaction`] ? "border-red-500" : "border-gray-300"}`}
+                            className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                           />
                           {feeFieldErrors?.[
                             `${group.id}-${feeProductType.value}-notPresentTransaction`
@@ -850,7 +850,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     installment
                                   )
                                 }
-                                className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentIntermediation-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${feeProductType.value}-presentIntermediation-${installment}`
@@ -890,7 +890,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                       installment
                                     )
                                   }
-                                  className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-presentTransaction-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                  className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                                 />
                                 {feeFieldErrors?.[
                                   `${group.id}-${feeProductType.value}-presentTransaction-${installment}`
@@ -930,7 +930,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     installment
                                   )
                                 }
-                                className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`
@@ -970,7 +970,7 @@ export const PaymentConfigFormWithCard = forwardRef<
                                       installment
                                     )
                                   }
-                                  className={`w-16 text-center h-8 text-sm rounded border ${feeFieldErrors?.[`${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`] ? "border-red-500" : "border-gray-300"}`}
+                                  className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                                 />
                                 {feeFieldErrors?.[
                                   `${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`
