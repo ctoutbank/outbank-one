@@ -1,9 +1,16 @@
 import { getUserEmail } from "@/app/utils/send-email-adtivo";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import PricingSolicitationForm from "@/features/pricingSolicitation/_components/pricing-solicitation-form";
 import { PricingSolicitationView } from "@/features/pricingSolicitation/_components/pricing-solicitation-view";
 import { getPricingSolicitationById } from "@/features/pricingSolicitation/server/pricing-solicitation";
+import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
 
 export const revalidate = 0;
 
@@ -45,18 +52,58 @@ export default async function PricingSolicitationDetail({
           { title: "Solicitação de Taxas", url: "/portal/pricingSolicitation" },
         ]}
       />
-      <BaseBody title="Solicitação de Taxas" subtitle={pageSubtitle}>
-        {isReadOnly && pricingSolicitationById ? (
-          <PricingSolicitationView
-            pricingSolicitation={pricingSolicitationById}
-            userEmail={userEmail}
-          />
-        ) : (
-          <PricingSolicitationForm
-            pricingSolicitation={pricingSolicitationById}
-          />
-        )}
-      </BaseBody>
+      <div className="relative">
+        <BaseBody title="Solicitação de Taxas" subtitle={pageSubtitle}>
+          {isReadOnly && pricingSolicitationById ? (
+            <div>
+              <div className="absolute top-10 right-10">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge
+                      variant="default"
+                      className={`${
+                        PricingSolicitationStatus.find(
+                          (status) =>
+                            status.value === pricingSolicitationById.status
+                        )?.color
+                      } text-sm`}
+                    >
+                      {
+                        PricingSolicitationStatus.find(
+                          (status) =>
+                            status.value === pricingSolicitationById.status
+                        )?.label
+                      }
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {pricingSolicitationById.status == "PENDING"
+                        ? "Solicitação em análise"
+                        : pricingSolicitationById.status == "REVIEWED"
+                          ? "Solicitação revisada pelo Outbank, aprove ou rejeite abaixo"
+                          : pricingSolicitationById.status == "APPROVED"
+                            ? "Solicitação aprovada"
+                            : pricingSolicitationById.status == "COMPLETED"
+                              ? "Solicitação concluída"
+                              : ""}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              <PricingSolicitationView
+                pricingSolicitation={pricingSolicitationById}
+                userEmail={userEmail}
+              />
+            </div>
+          ) : (
+            <PricingSolicitationForm
+              pricingSolicitation={pricingSolicitationById}
+            />
+          )}
+        </BaseBody>
+      </div>
     </>
   );
 }

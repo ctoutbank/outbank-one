@@ -103,12 +103,14 @@ export async function getTransactions(
     console.log("dateFrom", dateFrom);
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
     if (dateFromUTC) conditions.push(gte(transactions.dtInsert, dateFromUTC));
+    console.log("dateFromUTC", dateFromUTC);
   }
 
   if (dateTo) {
     console.log("dateTo", dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
     if (dateToUTC) conditions.push(lte(transactions.dtInsert, dateToUTC));
+    console.log("dateToUTC", dateToUTC);
   }
 
   if (productType) {
