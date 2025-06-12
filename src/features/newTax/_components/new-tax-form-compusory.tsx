@@ -121,6 +121,20 @@ function isAnticipationDisabled(modeValue: string) {
   );
 }
 
+// Criar função shouldDisableMainModeInput para desabilitar apenas o campo principal quando expandido
+function shouldDisableMainModeInput(
+  modeId: string,
+  isExpanded: boolean,
+  isInstallmentField?: boolean
+) {
+  if (isInstallmentField) return false;
+  return (
+    (modeId === "CREDIT_INSTALLMENTS_2_TO_6" ||
+      modeId === "CREDIT_INSTALLMENTS_7_TO_12") &&
+    isExpanded
+  );
+}
+
 export const PaymentConfigFormCompulsory = forwardRef<
   {
     getFormData: () => {
@@ -446,8 +460,16 @@ export const PaymentConfigFormCompulsory = forwardRef<
   function toggleModeExpansion(groupIndex: number, modeId: string) {
     setGroups((prevGroups) => {
       const newGroups = [...prevGroups];
-      const group = newGroups[groupIndex];
-      group.modes[modeId].expanded = !group.modes[modeId].expanded;
+      // Cópia profunda do grupo e do modo para garantir reatividade
+      const group = {
+        ...newGroups[groupIndex],
+        modes: { ...newGroups[groupIndex].modes },
+      };
+      group.modes[modeId] = {
+        ...group.modes[modeId],
+        expanded: !group.modes[modeId].expanded,
+      };
+      newGroups[groupIndex] = group;
       return newGroups;
     });
   }
@@ -634,22 +656,22 @@ export const PaymentConfigFormCompulsory = forwardRef<
                 <div className="grid grid-cols-7 border-b">
                   <div className="p-3 border-r"></div>
                   <div className="p-3 font-medium text-center border-r">
-                    Transação (%)
+                    Transação presente (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Taxa de Antecipação (% a.m.)
+                    Taxa de Antecipação presente (% a.m.)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Taxa de Intermediação (%)
+                    Taxa de Intermediação presente (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Transação (%)
+                    Transação não presente (%)
                   </div>
                   <div className="p-3 font-medium text-center border-r">
-                    Taxa de Antecipação (% a.m.)
+                    Taxa de Antecipação não presente (% a.m.)
                   </div>
                   <div className="p-3 font-medium text-center">
-                    Taxa de Intermediação (%)
+                    Taxa de Intermediação não presente (%)
                   </div>
                 </div>
 
@@ -695,12 +717,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
-                                  group.modes[mode.value].expanded) ||
-                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
-                                  group.modes[mode.value].expanded)
-                              }
+                              disabled={shouldDisableMainModeInput(
+                                mode.value,
+                                group.modes[mode.value].expanded
+                              )}
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-presentIntermediation`
@@ -737,13 +757,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                isAnticipationDisabled(mode.value) ||
-                                ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
-                                  mode.value ===
-                                    "CREDIT_INSTALLMENTS_7_TO_12") &&
-                                  group.modes[mode.value].expanded)
-                              }
+                              disabled={shouldDisableMainModeInput(
+                                mode.value,
+                                group.modes[mode.value].expanded
+                              )}
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-presentAnticipation`
@@ -775,12 +792,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
-                                  group.modes[mode.value].expanded) ||
-                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
-                                  group.modes[mode.value].expanded)
-                              }
+                              disabled={shouldDisableMainModeInput(
+                                mode.value,
+                                group.modes[mode.value].expanded
+                              )}
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-presentTransaction`
@@ -817,12 +832,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="%"
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
-                                  group.modes[mode.value].expanded) ||
-                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
-                                  group.modes[mode.value].expanded)
-                              }
+                              disabled={shouldDisableMainModeInput(
+                                mode.value,
+                                group.modes[mode.value].expanded
+                              )}
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-notPresentIntermediation`
@@ -859,13 +872,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                isAnticipationDisabled(mode.value) ||
-                                ((mode.value === "CREDIT_INSTALLMENTS_2_TO_6" ||
-                                  mode.value ===
-                                    "CREDIT_INSTALLMENTS_7_TO_12") &&
-                                  group.modes[mode.value].expanded)
-                              }
+                              disabled={shouldDisableMainModeInput(
+                                mode.value,
+                                group.modes[mode.value].expanded
+                              )}
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-notPresentAnticipation`
@@ -881,46 +891,25 @@ export const PaymentConfigFormCompulsory = forwardRef<
                           </div>
                         </div>
                         <div className="p-3 flex items-center justify-center">
-                          <div className="flex items-center justify-center">
-                            <PercentageInput
-                              value={
-                                group.modes[mode.value].notPresentTransaction ||
-                                ""
-                              }
-                              onChange={(value) =>
-                                handleInputChange(
-                                  groupIndex,
-                                  mode.value,
-                                  "notPresentTransaction",
-                                  value
-                                )
-                              }
-                              placeholder="%"
-                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={
-                                (mode.value === "CREDIT_INSTALLMENTS_2_TO_6" &&
-                                  group.modes[mode.value].expanded) ||
-                                (mode.value === "CREDIT_INSTALLMENTS_7_TO_12" &&
-                                  group.modes[mode.value].expanded)
-                              }
-                            />
-                            {feeFieldErrors?.[
-                              `${group.id}-${mode.value}-notPresentTransaction`
-                            ] && (
-                              <span className="ml-2 text-xs text-red-500">
-                                mínimo permitido (
-                                {(() => {
-                                  const err =
-                                    feeFieldErrors[
-                                      `${group.id}-${mode.value}-notPresentTransaction`
-                                    ];
-                                  const match = err.match(/([\d.,]+)%/);
-                                  return match ? match[1] + "%" : "";
-                                })()}
-                                )
-                              </span>
-                            )}
-                          </div>
+                          <PercentageInput
+                            value={(() => {
+                              const transPresente = parseFloat(
+                                group.modes[mode.value].presentTransaction ||
+                                  "0"
+                              );
+                              const antecPresente = parseFloat(
+                                group.modes[mode.value].presentAnticipation ||
+                                  "0"
+                              );
+                              return transPresente + antecPresente > 0
+                                ? (transPresente + antecPresente).toFixed(2)
+                                : "";
+                            })()}
+                            disabled
+                            onChange={() => {}}
+                            placeholder="%"
+                            className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition opacity-70 cursor-default"
+                          />
                         </div>
                       </div>
 
@@ -939,10 +928,10 @@ export const PaymentConfigFormCompulsory = forwardRef<
                         ).map((installment) => (
                           <div
                             key={`${group.id}-${mode.value}-${installment}`}
-                            className="grid grid-cols-7 border-b bg-orange-50"
+                            className="grid grid-cols-7 border-b"
                           >
-                            <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
-                            <div className="p-3 border-r flex items-center justify-center">
+                            <div className="p-3 border-r flex items-center justify-between">{`Crédito Parcelado (${installment} vezes)`}</div>
+                            <div className=" p-3 border-r flex items-center justify-center">
                               <PercentageInput
                                 value={
                                   group.modes[mode.value].installments?.[
@@ -1006,34 +995,26 @@ export const PaymentConfigFormCompulsory = forwardRef<
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
-                                value={
-                                  group.modes[mode.value].installments?.[
-                                    installment
-                                  ]?.presentTransaction || ""
-                                }
-                                onChange={(value) =>
-                                  handleInputChange(
-                                    groupIndex,
-                                    mode.value,
-                                    "presentTransaction",
-                                    value,
-                                    installment
-                                  )
-                                }
+                                value={(() => {
+                                  const transPresente = parseFloat(
+                                    group.modes[mode.value].installments?.[
+                                      installment
+                                    ]?.presentTransaction || "0"
+                                  );
+                                  const antecPresente = parseFloat(
+                                    group.modes[mode.value].installments?.[
+                                      installment
+                                    ]?.presentAnticipation || "0"
+                                  );
+                                  return transPresente + antecPresente > 0
+                                    ? (transPresente + antecPresente).toFixed(2)
+                                    : "";
+                                })()}
+                                disabled
+                                onChange={() => {}}
                                 placeholder="%"
-                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition opacity-70 cursor-default"
                               />
-                              {feeFieldErrors?.[
-                                `${group.id}-${mode.value}-presentTransaction-${installment}`
-                              ] && (
-                                <span className="text-xs text-red-500">
-                                  {
-                                    feeFieldErrors[
-                                      `${group.id}-${mode.value}-presentTransaction-${installment}`
-                                    ]
-                                  }
-                                </span>
-                              )}
                             </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
@@ -1099,34 +1080,28 @@ export const PaymentConfigFormCompulsory = forwardRef<
                             </div>
                             <div className="p-3 flex items-center justify-center">
                               <PercentageInput
-                                value={
-                                  group.modes[mode.value].installments?.[
-                                    installment
-                                  ]?.notPresentTransaction || ""
-                                }
-                                onChange={(value) =>
-                                  handleInputChange(
-                                    groupIndex,
-                                    mode.value,
-                                    "notPresentTransaction",
-                                    value,
-                                    installment
-                                  )
-                                }
+                                value={(() => {
+                                  const transNaoPresente = parseFloat(
+                                    group.modes[mode.value].installments?.[
+                                      installment
+                                    ]?.notPresentTransaction || "0"
+                                  );
+                                  const antecNaoPresente = parseFloat(
+                                    group.modes[mode.value].installments?.[
+                                      installment
+                                    ]?.notPresentAnticipation || "0"
+                                  );
+                                  return transNaoPresente + antecNaoPresente > 0
+                                    ? (
+                                        transNaoPresente + antecNaoPresente
+                                      ).toFixed(2)
+                                    : "";
+                                })()}
+                                disabled
+                                onChange={() => {}}
                                 placeholder="%"
-                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition opacity-70 cursor-default"
                               />
-                              {feeFieldErrors?.[
-                                `${group.id}-${mode.value}-notPresentTransaction-${installment}`
-                              ] && (
-                                <span className="text-xs text-red-500">
-                                  {
-                                    feeFieldErrors[
-                                      `${group.id}-${mode.value}-notPresentTransaction-${installment}`
-                                    ]
-                                  }
-                                </span>
-                              )}
                             </div>
                           </div>
                         ))}

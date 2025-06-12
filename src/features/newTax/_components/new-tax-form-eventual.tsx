@@ -473,8 +473,12 @@ export const PaymentConfigFormWithCard = forwardRef<
 
   const shouldDisableMainModeInput = (
     modeId: string,
-    isExpanded: boolean
+    isExpanded: boolean,
+    isInstallmentField?: boolean
   ): boolean => {
+    // Se for campo de parcela, nunca desabilita
+    if (isInstallmentField) return false;
+    // Se for campo principal de modo parcelado e expandido, desabilita
     return hasInstallments(modeId) && isExpanded;
   };
 
@@ -839,7 +843,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                                 }
                                 disabled={shouldDisableMainModeInput(
                                   feeProductType.value,
-                                  group.modes[feeProductType.value].expanded
+                                  group.modes[feeProductType.value].expanded,
+                                  true
                                 )}
                                 onChange={(value) =>
                                   handleInputChange(
@@ -879,7 +884,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                                   }
                                   disabled={shouldDisableMainModeInput(
                                     feeProductType.value,
-                                    group.modes[feeProductType.value].expanded
+                                    group.modes[feeProductType.value].expanded,
+                                    true
                                   )}
                                   onChange={(value) =>
                                     handleInputChange(
@@ -919,7 +925,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                                 }
                                 disabled={shouldDisableMainModeInput(
                                   feeProductType.value,
-                                  group.modes[feeProductType.value].expanded
+                                  group.modes[feeProductType.value].expanded,
+                                  true
                                 )}
                                 onChange={(value) =>
                                   handleInputChange(
@@ -959,7 +966,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                                   }
                                   disabled={shouldDisableMainModeInput(
                                     feeProductType.value,
-                                    group.modes[feeProductType.value].expanded
+                                    group.modes[feeProductType.value].expanded,
+                                    true
                                   )}
                                   onChange={(value) =>
                                     handleInputChange(
