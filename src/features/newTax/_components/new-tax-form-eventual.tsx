@@ -1,9 +1,22 @@
 "use client";
 
 import { PercentageInput } from "@/components/percentage-input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   saveMerchantPricingAction,
   updatePixConfigAction,
@@ -11,7 +24,8 @@ import {
 import type { FeeData } from "@/features/newTax/server/fee-db";
 import { FeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
@@ -98,7 +112,7 @@ export const PaymentConfigFormWithCard = forwardRef<
           notPresentIntermediation: "",
           presentTransaction: "",
           notPresentTransaction: "",
-          ...(parseInt(mode.transactionFeeStart) > 0 && {
+          ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
             installments: createInstallmentsObject(mode),
           }),
         };
@@ -112,11 +126,11 @@ export const PaymentConfigFormWithCard = forwardRef<
     return Array.from(
       {
         length:
-          parseInt(mode.transactionFeeEnd) -
-          parseInt(mode.transactionFeeStart) +
+          Number.parseInt(mode.transactionFeeEnd) -
+          Number.parseInt(mode.transactionFeeStart) +
           1,
       },
-      (_, i) => i + parseInt(mode.transactionFeeStart)
+      (_, i) => i + Number.parseInt(mode.transactionFeeStart)
     ).reduce((acc, installment) => {
       acc[installment] = {
         presentIntermediation: "",
@@ -154,7 +168,7 @@ export const PaymentConfigFormWithCard = forwardRef<
               notPresentIntermediation: "",
               presentTransaction: "",
               notPresentTransaction: "",
-              ...(parseInt(mode.transactionFeeStart) > 0 && {
+              ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
                 installments: createInstallmentsObject(mode),
               }),
             };
@@ -266,11 +280,11 @@ export const PaymentConfigFormWithCard = forwardRef<
       return { modeId: "CREDIT_INSTALLMENTS_2_TO_6" };
     } else if (productType.startsWith("Crédito Parcelado (7 a 12")) {
       return { modeId: "CREDIT_INSTALLMENTS_7_TO_12" };
-    } else if (/Crédito Parcelado \((\d+) a \1 vezes\)/.test(productType)) {
+    } else if (/Crédito Parcelado $$(\d+) a \1 vezes$$/.test(productType)) {
       // Match "Crédito Parcelado (N a N vezes)"
-      const match = productType.match(/Crédito Parcelado \((\d+) a \1 vezes\)/);
+      const match = productType.match(/Crédito Parcelado $$(\d+) a \1 vezes$$/);
       if (match) {
-        const installment = parseInt(match[1], 10);
+        const installment = Number.parseInt(match[1], 10);
         if (installment >= 2 && installment <= 6) {
           return { modeId: "CREDIT_INSTALLMENTS_2_TO_6", installment };
         }
@@ -461,13 +475,16 @@ export const PaymentConfigFormWithCard = forwardRef<
 
   const hasInstallments = (modeId: string): boolean => {
     const mode = FeeProductTypeList.find((item) => item.value === modeId);
-    return mode ? parseInt(mode.transactionFeeStart) > 0 : false;
+    return mode ? Number.parseInt(mode.transactionFeeStart) > 0 : false;
   };
 
   const getInstallmentRange = (modeId: string): [number, number] => {
     const mode = FeeProductTypeList.find((item) => item.value === modeId);
     return mode
-      ? [parseInt(mode.transactionFeeStart), parseInt(mode.transactionFeeEnd)]
+      ? [
+          Number.parseInt(mode.transactionFeeStart),
+          Number.parseInt(mode.transactionFeeEnd),
+        ]
       : [0, 0];
   };
 
@@ -495,79 +512,129 @@ export const PaymentConfigFormWithCard = forwardRef<
               <CardContent className="p-0">
                 {/* Cabeçalho do grupo com seleção de bandeiras */}
                 <div className="p-3 border-b flex items-center justify-between bg-gray-50 rounded-t-lg">
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-wrap gap-2">
                     <span className="font-medium mr-2">Bandeiras:</span>
-                    <div className="flex gap-2">
-                      {brandList.map((card) => {
-                        // Verificar se a bandeira já está selecionada em algum outro grupo
-                        const isSelectedInOtherGroup = groups.some(
-                          (g, idx) =>
-                            idx !== groupIndex &&
-                            g.selectedCards.includes(card.value)
-                        );
-
-                        if (
-                          isSelectedInOtherGroup &&
-                          !group.selectedCards.includes(card.value)
-                        ) {
-                          // Se estiver selecionada em outro grupo e não neste, mostrar desabilitada
-                          return (
-                            <div
-                              key={card.value}
-                              className="flex items-center opacity-50"
-                            >
-                              <Checkbox
-                                id={`${group.id}-${card.value}`}
-                                checked={false}
-                                disabled={true}
-                                className="mr-1 rounded-md"
-                              />
-                              <label
-                                htmlFor={`${group.id}-${card.value}`}
-                                className="flex items-center cursor-not-allowed"
-                              >
-                                <img
-                                  src={getCardImage(card.value)}
-                                  alt={card.label}
-                                  className="h-5 w-5 mr-1 grayscale rounded"
-                                />
-                                {card.label}
-                              </label>
-                            </div>
-                          );
-                        }
-
-                        // Caso contrário, mostrar normalmente
-                        return (
-                          <div key={card.value} className="flex items-center">
-                            <Checkbox
-                              id={`${group.id}-${card.value}`}
-                              checked={group.selectedCards.includes(card.value)}
-                              onCheckedChange={(checked) => {
-                                toggleCardSelection(
-                                  groupIndex,
-                                  card.value,
-                                  checked === true
-                                    ? true
-                                    : checked === false
-                                      ? false
-                                      : undefined
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="justify-between min-w-[200px]"
+                        >
+                          {group.selectedCards.length > 0
+                            ? `${group.selectedCards.length} bandeira(s) selecionada(s)`
+                            : "Selecionar bandeiras"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar bandeira..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              Nenhuma bandeira encontrada.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {brandList.map((card) => {
+                                // Verificar se a bandeira já está selecionada em algum outro grupo
+                                const isSelectedInOtherGroup = groups.some(
+                                  (g, idx) =>
+                                    idx !== groupIndex &&
+                                    g.selectedCards.includes(card.value)
                                 );
-                              }}
-                              className="mr-1 rounded-md"
+
+                                if (
+                                  isSelectedInOtherGroup &&
+                                  !group.selectedCards.includes(card.value)
+                                ) {
+                                  // Se estiver selecionada em outro grupo, desabilitar
+                                  return (
+                                    <CommandItem
+                                      key={card.value}
+                                      disabled
+                                      className="opacity-50"
+                                    >
+                                      <div className="flex items-center">
+                                        <img
+                                          src={
+                                            getCardImage(card.value) ||
+                                            "/placeholder.svg"
+                                          }
+                                          alt={card.label}
+                                          className="h-5 w-5 mr-2 grayscale rounded"
+                                        />
+                                        {card.label}
+                                      </div>
+                                    </CommandItem>
+                                  );
+                                }
+
+                                return (
+                                  <CommandItem
+                                    key={card.value}
+                                    value={card.value}
+                                    onSelect={() => {
+                                      toggleCardSelection(
+                                        groupIndex,
+                                        card.value,
+                                        !group.selectedCards.includes(
+                                          card.value
+                                        )
+                                      );
+                                    }}
+                                  >
+                                    <div className="flex items-center">
+                                      <img
+                                        src={
+                                          getCardImage(card.value) ||
+                                          "/placeholder.svg"
+                                        }
+                                        alt={card.label}
+                                        className="h-5 w-5 mr-2 rounded"
+                                      />
+                                      {card.label}
+                                    </div>
+                                    <Check
+                                      className={cn(
+                                        "ml-auto",
+                                        group.selectedCards.includes(card.value)
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {group.selectedCards.map((cardId) => {
+                        const card = brandList.find((c) => c.value === cardId);
+                        return (
+                          <Badge
+                            key={cardId}
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                          >
+                            <img
+                              src={getCardImage(cardId) || "/placeholder.svg"}
+                              alt={card?.label || cardId}
+                              className="h-4 w-4 rounded"
                             />
-                            <label
-                              htmlFor={`${group.id}-${card.value}`}
-                              className="flex items-center cursor-pointer"
+                            {card?.label || cardId}
+                            <button
+                              type="button"
+                              className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+                              onClick={() =>
+                                toggleCardSelection(groupIndex, cardId, false)
+                              }
                             >
-                              <img
-                                src={getCardImage(card.value)}
-                                alt={card.label}
-                                className="h-5 w-5 mr-1 rounded"
-                              />
-                              {card.label}
-                            </label>
-                          </div>
+                              ×
+                            </button>
+                          </Badge>
                         );
                       })}
                     </div>

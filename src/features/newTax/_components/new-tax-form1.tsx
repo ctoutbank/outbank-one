@@ -25,7 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { saveOrUpdateFeeAction } from "../_actions/pricing-formActions";
-import { FeeNewSchema, schemaFee } from "../schema/fee-new-Schema";
+import { schemaFee, type FeeNewSchema } from "../schema/fee-new-Schema";
 import { getFeeAdminByCnaeMccAction, type FeeData } from "../server/fee-db";
 import { PaymentConfigFormCompulsory } from "./new-tax-form-compusory";
 import { PaymentConfigFormWithCard } from "./new-tax-form-eventual";
@@ -280,23 +280,23 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
               }
 
               const presentIntermediationValue = mode.presentIntermediation
-                ? parseFloat(
+                ? Number.parseFloat(
                     mode.presentIntermediation.toString().replace(",", ".")
                   )
                 : null;
               const notPresentIntermediationValue =
                 mode.notPresentIntermediation
-                  ? parseFloat(
+                  ? Number.parseFloat(
                       mode.notPresentIntermediation.toString().replace(",", ".")
                     )
                   : null;
               const presentTransactionValue = mode.presentTransaction
-                ? parseFloat(
+                ? Number.parseFloat(
                     mode.presentTransaction.toString().replace(",", ".")
                   )
                 : null;
               const notPresentTransactionValue = mode.notPresentTransaction
-                ? parseFloat(
+                ? Number.parseFloat(
                     mode.notPresentTransaction.toString().replace(",", ".")
                   )
                 : null;
@@ -346,7 +346,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                   const inst = instRaw as any;
                   const instPresentIntermediationValue =
                     inst.presentIntermediation
-                      ? parseFloat(
+                      ? Number.parseFloat(
                           inst.presentIntermediation
                             .toString()
                             .replace(",", ".")
@@ -354,20 +354,20 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
                       : null;
                   const instNotPresentIntermediationValue =
                     inst.notPresentIntermediation
-                      ? parseFloat(
+                      ? Number.parseFloat(
                           inst.notPresentIntermediation
                             .toString()
                             .replace(",", ".")
                         )
                       : null;
                   const instPresentTransactionValue = inst.presentTransaction
-                    ? parseFloat(
+                    ? Number.parseFloat(
                         inst.presentTransaction.toString().replace(",", ".")
                       )
                     : null;
                   const instNotPresentTransactionValue =
                     inst.notPresentTransaction
-                      ? parseFloat(
+                      ? Number.parseFloat(
                           inst.notPresentTransaction
                             .toString()
                             .replace(",", ".")
