@@ -757,10 +757,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={shouldDisableMainModeInput(
-                                mode.value,
-                                group.modes[mode.value].expanded
-                              )}
+                              disabled={
+                                shouldDisableMainModeInput(
+                                  mode.value,
+                                  group.modes[mode.value].expanded
+                                ) || isAnticipationDisabled(mode.value)
+                              }
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-presentAnticipation`
@@ -779,23 +781,23 @@ export const PaymentConfigFormCompulsory = forwardRef<
                         <div className="p-3 border-r flex items-center justify-center">
                           <div className="flex items-center justify-center">
                             <PercentageInput
-                              value={
-                                group.modes[mode.value].presentTransaction || ""
-                              }
-                              onChange={(value) =>
-                                handleInputChange(
-                                  groupIndex,
-                                  mode.value,
-                                  "presentTransaction",
-                                  value
-                                )
-                              }
+                              value={(() => {
+                                const transPresente = parseFloat(
+                                  group.modes[mode.value]
+                                    .presentIntermediation || "0"
+                                );
+                                const antecPresente = parseFloat(
+                                  group.modes[mode.value].presentAnticipation ||
+                                    "0"
+                                );
+                                return transPresente + antecPresente > 0
+                                  ? (transPresente + antecPresente).toFixed(2)
+                                  : "";
+                              })()}
+                              disabled
+                              onChange={() => {}}
                               placeholder="%"
-                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={shouldDisableMainModeInput(
-                                mode.value,
-                                group.modes[mode.value].expanded
-                              )}
+                              className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition opacity-70 cursor-default"
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-presentTransaction`
@@ -872,10 +874,12 @@ export const PaymentConfigFormCompulsory = forwardRef<
                               }
                               placeholder="% a.m."
                               className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
-                              disabled={shouldDisableMainModeInput(
-                                mode.value,
-                                group.modes[mode.value].expanded
-                              )}
+                              disabled={
+                                shouldDisableMainModeInput(
+                                  mode.value,
+                                  group.modes[mode.value].expanded
+                                ) || isAnticipationDisabled(mode.value)
+                              }
                             />
                             {feeFieldErrors?.[
                               `${group.id}-${mode.value}-notPresentAnticipation`
@@ -893,16 +897,18 @@ export const PaymentConfigFormCompulsory = forwardRef<
                         <div className="p-3 flex items-center justify-center">
                           <PercentageInput
                             value={(() => {
-                              const transPresente = parseFloat(
-                                group.modes[mode.value].presentTransaction ||
-                                  "0"
+                              const transNaoPresente = parseFloat(
+                                group.modes[mode.value]
+                                  .notPresentIntermediation || "0"
                               );
-                              const antecPresente = parseFloat(
-                                group.modes[mode.value].presentAnticipation ||
-                                  "0"
+                              const antecNaoPresente = parseFloat(
+                                group.modes[mode.value]
+                                  .notPresentAnticipation || "0"
                               );
-                              return transPresente + antecPresente > 0
-                                ? (transPresente + antecPresente).toFixed(2)
+                              return transNaoPresente + antecNaoPresente > 0
+                                ? (transNaoPresente + antecNaoPresente).toFixed(
+                                    2
+                                  )
                                 : "";
                             })()}
                             disabled
@@ -980,6 +986,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 }
                                 placeholder="% a.m."
                                 className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                disabled={isAnticipationDisabled(mode.value)}
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-presentAnticipation-${installment}`
@@ -999,7 +1006,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   const transPresente = parseFloat(
                                     group.modes[mode.value].installments?.[
                                       installment
-                                    ]?.presentTransaction || "0"
+                                    ]?.presentIntermediation || "0"
                                   );
                                   const antecPresente = parseFloat(
                                     group.modes[mode.value].installments?.[
@@ -1065,6 +1072,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                 }
                                 placeholder="% a.m."
                                 className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                disabled={isAnticipationDisabled(mode.value)}
                               />
                               {feeFieldErrors?.[
                                 `${group.id}-${mode.value}-notPresentAnticipation-${installment}`
@@ -1084,7 +1092,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
                                   const transNaoPresente = parseFloat(
                                     group.modes[mode.value].installments?.[
                                       installment
-                                    ]?.notPresentTransaction || "0"
+                                    ]?.notPresentIntermediation || "0"
                                   );
                                   const antecNaoPresente = parseFloat(
                                     group.modes[mode.value].installments?.[
