@@ -24,7 +24,7 @@ const getGroupFromUrl = (url: string): string => {
     legalNatures: "Natureza Juridica",
     history: "Liquidação",
     reports: "Relatório",
-    financialReleases: "Lançamentos Financeiros",
+    financialAdjustment: "Lançamentos Financeiros",
     pricingSolicitation: "Solicitação de Taxas",
     pricing: "Taxas",
     closing: "Fechamento",
@@ -111,7 +111,7 @@ const menuData = {
     },
     {
       title: "Lançamentos Financeiros",
-      url: "/portal/financialReleases",
+      url: "/portal/financialAdjustment",
       icon: "CalendarDays",
     },
 
