@@ -1,8 +1,15 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -12,6 +19,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -28,8 +40,9 @@ import {
   adjustmentTypes,
 } from "@/lib/lookuptables/lookuptables-adjustment";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Building2, FileText, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -37,7 +50,7 @@ import {
   updateFinancialAdjustmentFormAction,
 } from "../_actions/financialAdjustments-formActions";
 import {
-  FinancialAdjustmentSchema,
+  type FinancialAdjustmentSchema,
   SchemaFinancialAdjustment,
 } from "../schema/schema";
 import type { MerchantInfo } from "../server/financialAdjustments";
@@ -54,6 +67,8 @@ export default function FinancialAdjustmentForm({
   isNew,
 }: FinancialAdjustmentFormProps) {
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const form = useForm<FinancialAdjustmentSchema>({
     resolver: zodResolver(SchemaFinancialAdjustment),
@@ -97,6 +112,46 @@ export default function FinancialAdjustmentForm({
   );
 
   const selectedMerchants = form.watch("merchants") || [];
+
+  // Filtrar merchants baseado na busca
+  const filteredMerchants = useMemo(() => {
+    if (!searchTerm) return merchants;
+
+    return merchants.filter((merchant) => {
+      const searchLower = searchTerm.toLowerCase();
+      const nameMatch = merchant.name?.toLowerCase().includes(searchLower);
+      const documentMatch = merchant.idDocument
+        ?.toLowerCase()
+        .includes(searchLower);
+      return nameMatch || documentMatch;
+    });
+  }, [merchants, searchTerm]);
+
+  // Obter merchants selecionados com detalhes
+  const selectedMerchantsDetails = useMemo(() => {
+    return merchants.filter((merchant) =>
+      selectedMerchants.includes(merchant.id)
+    );
+  }, [merchants, selectedMerchants]);
+
+  // Adicionar merchant
+  const addMerchant = (merchantId: number) => {
+    const currentMerchants = form.getValues("merchants") || [];
+    if (!currentMerchants.includes(merchantId)) {
+      form.setValue("merchants", [...currentMerchants, merchantId]);
+    }
+    setSearchTerm("");
+    setIsSearchOpen(false);
+  };
+
+  // Remover merchant
+  const removeMerchant = (merchantId: number) => {
+    const currentMerchants = form.getValues("merchants") || [];
+    form.setValue(
+      "merchants",
+      currentMerchants.filter((id) => id !== merchantId)
+    );
+  };
 
   return (
     <Form {...form}>
@@ -336,67 +391,140 @@ export default function FinancialAdjustmentForm({
           </CardContent>
         </Card>
 
-        {/* Merchants */}
+        {/* Merchants - Nova Interface */}
         <Card>
           <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">
-              Merchants Associados ({selectedMerchants.length} selecionados)
-            </h3>
-            <FormField
-              control={form.control}
-              name="merchants"
-              render={() => (
-                <FormItem>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-60 overflow-y-auto">
-                    {merchants.map((merchant) => (
-                      <FormField
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Estabelecimentos</h3>
+                <Badge variant="secondary" className="text-sm">
+                  {selectedMerchants.length} selecionados
+                </Badge>
+              </div>
+
+              {/* Campo de Busca */}
+              <FormField
+                control={form.control}
+                name="merchants"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Buscar Estabelecimento</FormLabel>
+                    <div className="relative">
+                      <Popover
+                        open={isSearchOpen}
+                        onOpenChange={setIsSearchOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                              <Input
+                                placeholder="Busque por nome ou CNPJ..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                  setSearchTerm(e.target.value);
+                                  setIsSearchOpen(true);
+                                }}
+                                onFocus={() => setIsSearchOpen(true)}
+                                className="pl-10"
+                              />
+                            </div>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandList>
+                              <CommandEmpty>
+                                {searchTerm
+                                  ? "Nenhum estabelecimento encontrado."
+                                  : "Digite para buscar estabelecimentos..."}
+                              </CommandEmpty>
+                              {filteredMerchants.length > 0 && (
+                                <CommandGroup>
+                                  {filteredMerchants
+                                    .filter(
+                                      (merchant) =>
+                                        !selectedMerchants.includes(merchant.id)
+                                    )
+                                    .slice(0, 10)
+                                    .map((merchant) => (
+                                      <CommandItem
+                                        key={merchant.id}
+                                        onSelect={() =>
+                                          addMerchant(merchant.id)
+                                        }
+                                        className="flex items-center gap-3 p-3"
+                                      >
+                                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-medium truncate">
+                                            {merchant.name}
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            CNPJ: {merchant.idDocument}
+                                          </p>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              )}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Merchants Selecionados */}
+              {selectedMerchantsDetails.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Estabelecimentos Selecionados
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {selectedMerchantsDetails.map((merchant) => (
+                      <Card
                         key={merchant.id}
-                        control={form.control}
-                        name="merchants"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={merchant.id}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(merchant.id)}
-                                  onCheckedChange={(checked) => {
-                                    const currentValue = field.value || [];
-                                    if (checked) {
-                                      field.onChange([
-                                        ...currentValue,
-                                        merchant.id,
-                                      ]);
-                                    } else {
-                                      field.onChange(
-                                        currentValue.filter(
-                                          (value) => value !== merchant.id
-                                        )
-                                      );
-                                    }
-                                  }}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-normal">
-                                  {merchant.name}
-                                </FormLabel>
-                                <p className="text-xs text-muted-foreground">
-                                  Documento: {merchant.idDocument}
+                        className="relative group hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="p-4">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeMerchant(merchant.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Building2 className="h-4 w-4 text-primary" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium text-sm truncate">
+                                {merchant.name}
+                              </h5>
+                              <div className="flex items-center gap-1 mt-1">
+                                <FileText className="h-3 w-3 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {merchant.idDocument}
                                 </p>
                               </div>
-                            </FormItem>
-                          );
-                        }}
-                      />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
-                  <FormMessage />
-                </FormItem>
+                </div>
               )}
-            />
+            </div>
           </CardContent>
         </Card>
 
