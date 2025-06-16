@@ -1,8 +1,8 @@
+// Start of Selection
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, DollarSign, FileText, TrendingUp } from "lucide-react";
+import { Activity, DollarSign, FileText } from "lucide-react";
 
 interface FinancialAdjustmentsDashboardContentProps {
   totalAdjustments: number;
@@ -16,8 +16,6 @@ export function FinancialAdjustmentsDashboardContent({
   totalAdjustments,
   activeAdjustments,
   totalValue,
-  typeStats,
-  reasonStats,
 }: FinancialAdjustmentsDashboardContentProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -26,130 +24,94 @@ export function FinancialAdjustmentsDashboardContent({
     }).format(value);
   };
 
-  const getTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
-      CREDIT: "Crédito",
-      DEBIT: "Débito",
-      ADJUSTMENT: "Ajuste",
-      REFUND: "Reembolso",
-    };
-    return labels[type] || type;
-  };
-
-  const getReasonLabel = (reason: string) => {
-    const labels: { [key: string]: string } = {
-      CHARGEBACK: "Chargeback",
-      DISPUTE: "Disputa",
-      REFUND: "Reembolso",
-      FEE_ADJUSTMENT: "Ajuste de Taxa",
-      TECHNICAL_ERROR: "Erro Técnico",
-      OTHER: "Outros",
-    };
-    return labels[reason] || reason;
-  };
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Total de Ajustes
-          </CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalAdjustments}</div>
-          <p className="text-xs text-muted-foreground">
-            Todos os ajustes cadastrados
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Ajustes Ativos</CardTitle>
-          <Activity className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{activeAdjustments}</div>
-          <p className="text-xs text-muted-foreground">
-            Ajustes atualmente ativos
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-          <p className="text-xs text-muted-foreground">
-            Soma dos ajustes ativos
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Taxa de Ativação
-          </CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {totalAdjustments > 0
-              ? Math.round((activeAdjustments / totalAdjustments) * 100)
-              : 0}
-            %
+    <div className="w-full max-w-full">
+      <div className="w-full mt-2 mb-2">
+        <Card className="w-full border-l-8 border-black bg-background">
+          <div className="flex items-center justify-between">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {new Date().toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "America/Sao_Paulo",
+                })}
+              </p>
+            </CardHeader>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Percentual de ajustes ativos
-          </p>
-        </CardContent>
-      </Card>
 
-      {/* Estatísticas por Tipo */}
-      {Object.keys(typeStats).length > 0 && (
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Distribuição por Tipo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(typeStats).map(([type, count]) => (
-                <Badge key={type} variant="outline" className="text-xs">
-                  {getTypeLabel(type)}: {count}
-                </Badge>
-              ))}
+          <CardContent className="p-6">
+            <div className="flex flex-col xl:flex-row gap-4 w-full">
+              <div className="flex-1 min-w-0">
+                <Card className="bg-background border h-[180px] rounded-lg">
+                  <CardContent className="p-4">
+                    <div className="text-center mb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-base font-medium">
+                          Total de Ajustes
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-zinc-900">
+                        {totalAdjustments}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Todos os ajustes cadastrados
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <Card className="bg-background border h-[180px] rounded-lg">
+                  <CardContent className="p-4">
+                    <div className="text-center mb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-base font-medium">
+                          Ajustes Ativos
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-zinc-900">
+                        {activeAdjustments}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Ajustes atualmente ativos
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <Card className="bg-background border h-[180px] rounded-lg">
+                  <CardContent className="p-4">
+                    <div className="text-center mb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-base font-medium">
+                          Valor Total
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-zinc-900">
+                        {formatCurrency(totalValue)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Soma dos ajustes ativos
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Estatísticas por Motivo */}
-      {Object.keys(reasonStats).length > 0 && (
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Distribuição por Motivo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(reasonStats).map(([reason, count]) => (
-                <Badge key={reason} variant="secondary" className="text-xs">
-                  {getReasonLabel(reason)}: {count}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      </div>
     </div>
   );
 }

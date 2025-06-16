@@ -4,13 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   Form,
   FormControl,
   FormField,
@@ -19,11 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -95,9 +83,9 @@ export default function FinancialAdjustmentForm({
 
       try {
         if (isNew) {
-          const newId = await insertFinancialAdjustmentFormAction(data);
+          await insertFinancialAdjustmentFormAction(data);
           toast.success("Ajuste financeiro criado com sucesso");
-          router.push(`/portal/financialAdjustment/${newId}`);
+          router.push(`/portal/financialAdjustment`);
         } else {
           await updateFinancialAdjustmentFormAction(data);
           toast.success("Ajuste financeiro atualizado com sucesso");
@@ -139,9 +127,9 @@ export default function FinancialAdjustmentForm({
     const currentMerchants = form.getValues("merchants") || [];
     if (!currentMerchants.includes(merchantId)) {
       form.setValue("merchants", [...currentMerchants, merchantId]);
+      setSearchTerm("");
+      setIsSearchOpen(false);
     }
-    setSearchTerm("");
-    setIsSearchOpen(false);
   };
 
   // Remover merchant
@@ -157,18 +145,18 @@ export default function FinancialAdjustmentForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Informações Básicas */}
-        <Card>
+        <Card className="shadow-md rounded-lg overflow-hidden">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Razão *</FormLabel>
+                    <FormLabel className="text-gray-700">Razão *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="border-gray-300">
                           <SelectValue placeholder="Selecione a razão" />
                         </SelectTrigger>
                       </FormControl>
@@ -190,13 +178,13 @@ export default function FinancialAdjustmentForm({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título *</FormLabel>
+                    <FormLabel className="text-gray-700">Título *</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="border-gray-300">
                           <SelectValue placeholder="Selecione o título" />
                         </SelectTrigger>
                         <SelectContent>
@@ -221,18 +209,19 @@ export default function FinancialAdjustmentForm({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Motivo</FormLabel>
+                    <FormLabel className="text-gray-700">Motivo</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
                         placeholder="Descrição detalhada do ajuste"
                         rows={3}
+                        className="border-gray-300"
                       />
                     </FormControl>
                     <FormMessage />
@@ -245,13 +234,15 @@ export default function FinancialAdjustmentForm({
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de ajuste</FormLabel>
+                      <FormLabel className="text-gray-700">
+                        Tipo de ajuste
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="border-gray-300">
                             <SelectValue placeholder="Nenhuma recorrência" />
                           </SelectTrigger>
                         </FormControl>
@@ -271,7 +262,7 @@ export default function FinancialAdjustmentForm({
             </div>
           </CardContent>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {form.watch("type") === "SINGLE" && (
                 <>
                   <FormField
@@ -279,9 +270,15 @@ export default function FinancialAdjustmentForm({
                     name="expectedSettlementDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Data de Liquidação Esperada</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Data de Liquidação Esperada
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} type="date" />
+                          <Input
+                            {...field}
+                            type="date"
+                            className="border-gray-300"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -292,13 +289,16 @@ export default function FinancialAdjustmentForm({
                     name="grossValue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor Bruto *</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Valor Bruto *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             type="number"
                             step="0.01"
                             placeholder="0.00"
+                            className="border-gray-300"
                           />
                         </FormControl>
                         <FormMessage />
@@ -314,14 +314,16 @@ export default function FinancialAdjustmentForm({
                     name="recurrence"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recorrência</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Recorrência
+                        </FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || ""}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="border-gray-300">
                                 <SelectValue placeholder="Nenhuma recorrência" />
                               </SelectTrigger>
                             </FormControl>
@@ -346,9 +348,15 @@ export default function FinancialAdjustmentForm({
                     name="startDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Data de Início</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Data de Início
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} type="date" />
+                          <Input
+                            {...field}
+                            type="date"
+                            className="border-gray-300"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -359,9 +367,15 @@ export default function FinancialAdjustmentForm({
                     name="endDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Data de Fim</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Data de Fim
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} type="date" />
+                          <Input
+                            {...field}
+                            type="date"
+                            className="border-gray-300"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -372,13 +386,16 @@ export default function FinancialAdjustmentForm({
                     name="grossValue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor Bruto *</FormLabel>
+                        <FormLabel className="text-gray-700">
+                          Valor Bruto *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             type="number"
                             step="0.01"
                             placeholder="0.00"
+                            className="border-gray-300"
                           />
                         </FormControl>
                         <FormMessage />
@@ -410,68 +427,64 @@ export default function FinancialAdjustmentForm({
                   <FormItem>
                     <FormLabel>Buscar Estabelecimento</FormLabel>
                     <div className="relative">
-                      <Popover
-                        open={isSearchOpen}
-                        onOpenChange={setIsSearchOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                              <Input
-                                placeholder="Busque por nome ou CNPJ..."
-                                value={searchTerm}
-                                onChange={(e) => {
-                                  setSearchTerm(e.target.value);
-                                  setIsSearchOpen(true);
-                                }}
-                                onFocus={() => setIsSearchOpen(true)}
-                                className="pl-10"
-                              />
+                      <div className="relative w-1/2">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Busque por nome ou CNPJ..."
+                          value={searchTerm}
+                          onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setIsSearchOpen(e.target.value.length > 0);
+                          }}
+                          onFocus={() => {
+                            if (searchTerm.length > 0) {
+                              setIsSearchOpen(true);
+                            }
+                          }}
+                          onBlur={() => {
+                            // Delay para permitir clique nos itens
+                            setTimeout(() => setIsSearchOpen(false), 200);
+                          }}
+                          className="pl-10"
+                        />
+                      </div>
+
+                      {isSearchOpen && searchTerm.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {filteredMerchants.length === 0 ? (
+                            <div className="p-3 text-sm text-muted-foreground text-center">
+                              Nenhum estabelecimento encontrado.
                             </div>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0" align="start">
-                          <Command>
-                            <CommandList>
-                              <CommandEmpty>
-                                {searchTerm
-                                  ? "Nenhum estabelecimento encontrado."
-                                  : "Digite para buscar estabelecimentos..."}
-                              </CommandEmpty>
-                              {filteredMerchants.length > 0 && (
-                                <CommandGroup>
-                                  {filteredMerchants
-                                    .filter(
-                                      (merchant) =>
-                                        !selectedMerchants.includes(merchant.id)
-                                    )
-                                    .slice(0, 10)
-                                    .map((merchant) => (
-                                      <CommandItem
-                                        key={merchant.id}
-                                        onSelect={() =>
-                                          addMerchant(merchant.id)
-                                        }
-                                        className="flex items-center gap-3 p-3"
-                                      >
-                                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                                        <div className="flex-1 min-w-0">
-                                          <p className="font-medium truncate">
-                                            {merchant.name}
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            CNPJ: {merchant.idDocument}
-                                          </p>
-                                        </div>
-                                      </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                              )}
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                          ) : (
+                            <div className="py-1">
+                              {filteredMerchants
+                                .filter(
+                                  (merchant) =>
+                                    !selectedMerchants.includes(merchant.id)
+                                )
+                                .slice(0, 10)
+                                .map((merchant) => (
+                                  <button
+                                    key={merchant.id}
+                                    type="button"
+                                    onClick={() => addMerchant(merchant.id)}
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
+                                  >
+                                    <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium truncate text-sm">
+                                        {merchant.name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        CNPJ: {merchant.idDocument}
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <FormMessage />
                   </FormItem>

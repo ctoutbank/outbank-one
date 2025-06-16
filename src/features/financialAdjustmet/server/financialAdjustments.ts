@@ -21,12 +21,11 @@ export type FinancialAdjustmentFull = {
   grossValue: string | null;
   recurrence: string | null;
   type: string | null;
-  startDate: string | null;
+  startDate: Date | null;
   endDate: string | null;
   dtinsert: Date | null;
   dtupdate: Date | null;
-  merchantsName: string | null;
-  merchantsIdDocument: string | null;
+  merchants: MerchantInfo[];
 };
 
 export type MerchantInfo = {
@@ -79,7 +78,8 @@ export async function getFinancialAdjustments(
     conditions.push(eq(financialAdjustments.active, active === "true"));
   }
 
-  const result = await db
+  // Primeiro, buscar os ajustes financeiros únicos
+  const adjustmentsResult = await db
     .select({
       id: financialAdjustments.id,
       externalId: financialAdjustments.externalId,
@@ -97,25 +97,54 @@ export async function getFinancialAdjustments(
       endDate: financialAdjustments.endDate,
       dtinsert: financialAdjustments.dtinsert,
       dtupdate: financialAdjustments.dtupdate,
-      merchantsName: merchants.name,
-      merchantsIdDocument: merchants.idDocument,
     })
     .from(financialAdjustments)
-    .innerJoin(
-      financialAdjustmentMerchants,
-      eq(
-        financialAdjustmentMerchants.idFinancialAdjustment,
-        financialAdjustments.id
-      )
-    )
-    .innerJoin(
-      merchants,
-      eq(financialAdjustmentMerchants.idMerchant, merchants.id)
-    )
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(financialAdjustments.id))
     .limit(pageSize)
     .offset(offset);
+
+  // Para cada ajuste, buscar os merchants associados
+  const adjustmentsWithMerchants = await Promise.all(
+    adjustmentsResult.map(async (adjustment) => {
+      const merchantsResult = await db
+        .select({
+          id: merchants.id,
+          name: merchants.name,
+          idDocument: merchants.idDocument,
+        })
+        .from(financialAdjustmentMerchants)
+        .innerJoin(
+          merchants,
+          eq(financialAdjustmentMerchants.idMerchant, merchants.id)
+        )
+        .where(
+          eq(financialAdjustmentMerchants.idFinancialAdjustment, adjustment.id)
+        );
+
+      return {
+        id: adjustment.id,
+        externalId: adjustment.externalId,
+        slug: adjustment.slug,
+        active: adjustment.active,
+        expectedSettlementDate: adjustment.expectedSettlementDate
+          ? new Date(adjustment.expectedSettlementDate)
+          : null,
+        reason: adjustment.reason,
+        title: adjustment.title,
+        description: adjustment.description,
+        rrn: adjustment.rrn,
+        grossValue: adjustment.grossValue,
+        recurrence: adjustment.recurrence,
+        type: adjustment.type,
+        startDate: adjustment.startDate ? new Date(adjustment.startDate) : null,
+        endDate: adjustment.endDate,
+        dtinsert: adjustment.dtinsert ? new Date(adjustment.dtinsert) : null,
+        dtupdate: adjustment.dtupdate ? new Date(adjustment.dtupdate) : null,
+        merchants: merchantsResult,
+      };
+    })
+  );
 
   const totalCountResult = await db
     .select({ count: count() })
@@ -125,28 +154,7 @@ export async function getFinancialAdjustments(
   const totalCount = totalCountResult[0]?.count || 0;
 
   return {
-    financialAdjustments: result.map((adjustment) => ({
-      id: adjustment.id,
-      externalId: adjustment.externalId,
-      slug: adjustment.slug,
-      active: adjustment.active,
-      expectedSettlementDate: adjustment.expectedSettlementDate
-        ? new Date(adjustment.expectedSettlementDate)
-        : null,
-      reason: adjustment.reason,
-      title: adjustment.title,
-      description: adjustment.description,
-      rrn: adjustment.rrn,
-      grossValue: adjustment.grossValue,
-      recurrence: adjustment.recurrence,
-      type: adjustment.type,
-      startDate: adjustment.startDate,
-      endDate: adjustment.endDate,
-      dtinsert: adjustment.dtinsert ? new Date(adjustment.dtinsert) : null,
-      dtupdate: adjustment.dtupdate ? new Date(adjustment.dtupdate) : null,
-      merchantsName: adjustment.merchantsName,
-      merchantsIdDocument: adjustment.merchantsIdDocument,
-    })),
+    financialAdjustments: adjustmentsWithMerchants,
     totalCount,
   };
 }
@@ -180,11 +188,11 @@ export async function getFinancialAdjustmentById(
     ...result[0],
     dtinsert: result[0].dtinsert ? new Date(result[0].dtinsert) : null,
     dtupdate: result[0].dtupdate ? new Date(result[0].dtupdate) : null,
-    merchantsName: merchantsResult[0].name,
-    merchantsIdDocument: merchantsResult[0].idDocument,
+    merchants: merchantsResult,
     expectedSettlementDate: result[0].expectedSettlementDate
       ? new Date(result[0].expectedSettlementDate)
       : null,
+    startDate: result[0].startDate ? new Date(result[0].startDate) : null,
   };
 }
 

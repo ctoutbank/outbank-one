@@ -14,19 +14,20 @@ import {
   adjustmentADE,
   adjustmentAJT,
   adjustmentReasons,
+  adjustmentRecurrence,
 } from "@/lib/lookuptables/lookuptables-adjustment";
 import { formatCNPJ } from "@/lib/utils";
 import { Edit, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { FinancialAdjustmentsList } from "../server/financialAdjustments";
 
-interface FinancialAdjustmentsListProps {
+interface FinancialAdjustmentsListRecurrenceProps {
   adjustments: FinancialAdjustmentsList;
 }
 
-export default function FinancialAdjustmentsList({
+export default function FinancialAdjustmentsListRecurrence({
   adjustments,
-}: FinancialAdjustmentsListProps) {
+}: FinancialAdjustmentsListRecurrenceProps) {
   const formatCurrency = (value: string | null) => {
     if (!value) return "R$ 0,00";
     const numValue = parseFloat(value);
@@ -49,12 +50,13 @@ export default function FinancialAdjustmentsList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Previsao de Liquidação</TableHead>
             <TableHead>Razao</TableHead>
             <TableHead>Título</TableHead>
+
             <TableHead>Motivo</TableHead>
-            <TableHead>NSU</TableHead>
+            <TableHead>Previsao de Liquidação</TableHead>
+
+            <TableHead>Recorrência</TableHead>
             <TableHead>Valor</TableHead>
             <TableHead>Estabelecimento</TableHead>
             <TableHead>Status</TableHead>
@@ -71,10 +73,6 @@ export default function FinancialAdjustmentsList({
           ) : (
             adjustments.financialAdjustments.map((adjustment) => (
               <TableRow key={adjustment.id}>
-                <TableCell className="font-medium">{adjustment.id}</TableCell>
-                <TableCell>
-                  {adjustment.expectedSettlementDate?.toLocaleDateString()}
-                </TableCell>
                 <TableCell>
                   {adjustment.reason
                     ? getLabel(adjustment.reason, adjustmentReasons)
@@ -85,8 +83,17 @@ export default function FinancialAdjustmentsList({
                     ? getLabel(adjustment.title || "", adjustmentADE)
                     : getLabel(adjustment.title || "", adjustmentAJT)}
                 </TableCell>
+
                 <TableCell>{adjustment.description || "-"}</TableCell>
-                <TableCell>{adjustment.rrn || "-"}</TableCell>
+                <TableCell>
+                  {adjustment.startDate?.toLocaleDateString()}
+                </TableCell>
+
+                <TableCell>
+                  {adjustment.recurrence
+                    ? getLabel(adjustment.recurrence, adjustmentRecurrence)
+                    : "-"}
+                </TableCell>
 
                 <TableCell className="font-mono">
                   {formatCurrency(adjustment.grossValue)}

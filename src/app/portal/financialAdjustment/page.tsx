@@ -2,8 +2,10 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FinancialAdjustmentsListRecurrence from "@/features/financialAdjustmet/_components/financial-adjustements-list-recurrence";
+import { FinancialAdjustmentsClientWrapper } from "@/features/financialAdjustmet/_components/financial-adjustments-client-wrapper";
 import { FinancialAdjustmentsDashboardContent } from "@/features/financialAdjustmet/_components/financial-adjustments-dashboard-content";
-import { FinancialAdjustmentsFilter } from "@/features/financialAdjustmet/_components/financial-adjustments-filter";
 import FinancialAdjustmentsList from "@/features/financialAdjustmet/_components/financial-adjustments-list";
 import {
   getFinancialAdjustments,
@@ -21,6 +23,7 @@ type FinancialAdjustmentsProps = {
   type?: string;
   reason?: string;
   active?: string;
+  creationDate?: string;
 };
 
 export default async function FinancialAdjustmentsPage({
@@ -45,6 +48,25 @@ export default async function FinancialAdjustmentsPage({
   // Obter estatísticas para o dashboard
   const adjustmentStats = await getFinancialAdjustmentStats();
 
+  // Filtrar ajustes por tipo
+  const singleAdjustments = {
+    financialAdjustments: adjustments.financialAdjustments.filter(
+      (adjustment) => adjustment.type === "SINGLE"
+    ),
+    totalCount: adjustments.financialAdjustments.filter(
+      (adjustment) => adjustment.type === "SINGLE"
+    ).length,
+  };
+
+  const recurringAdjustments = {
+    financialAdjustments: adjustments.financialAdjustments.filter(
+      (adjustment) => adjustment.type === "RECURRING"
+    ),
+    totalCount: adjustments.financialAdjustments.filter(
+      (adjustment) => adjustment.type === "RECURRING"
+    ).length,
+  };
+
   return (
     <>
       <BaseHeader
@@ -60,11 +82,12 @@ export default async function FinancialAdjustmentsPage({
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
-              <FinancialAdjustmentsFilter
+              <FinancialAdjustmentsClientWrapper
                 searchIn={searchParams.search}
                 typeIn={searchParams.type}
                 reasonIn={searchParams.reason}
                 activeIn={searchParams.active}
+                creationDateIn={searchParams.creationDate}
               />
             </div>
             <Button asChild className="ml-2">
@@ -87,7 +110,23 @@ export default async function FinancialAdjustmentsPage({
             </div>
           </div>
 
-          <FinancialAdjustmentsList adjustments={adjustments} />
+          <Tabs defaultValue="lancamentos" className="w-full">
+            <TabsList className="grid w-1/2 grid-cols-2">
+              <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
+              <TabsTrigger value="recorrencia">Recorrência</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="lancamentos" className="mt-4">
+              <FinancialAdjustmentsList adjustments={singleAdjustments} />
+            </TabsContent>
+
+            <TabsContent value="recorrencia" className="mt-4">
+              <FinancialAdjustmentsListRecurrence
+                adjustments={recurringAdjustments}
+              />
+            </TabsContent>
+          </Tabs>
+
           {totalRecords > 0 && (
             <PaginationWithSizeSelector
               totalRecords={totalRecords}

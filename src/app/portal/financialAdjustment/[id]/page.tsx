@@ -56,7 +56,9 @@ export default async function FinancialAdjustmentDetailPage({
       grossValue: adjustmentData.grossValue || "",
       recurrence: adjustmentData.recurrence || undefined,
       type: adjustmentData.type || "",
-      startDate: adjustmentData.startDate || undefined,
+      startDate: adjustmentData.startDate
+        ? adjustmentData.startDate.toISOString()
+        : undefined,
       endDate: adjustmentData.endDate || undefined,
       merchants: associatedMerchants.map((merchant) => merchant.id) || [],
     };
