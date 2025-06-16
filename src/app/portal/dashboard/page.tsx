@@ -118,7 +118,7 @@ export default async function SalesDashboard({
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"
-                    value={/*totalTransactions[0]?.revenue*/ 46992.3}
+                    value={totalTransactions[0]?.revenue || 0}
                     percentage={
                       defaultDateFrom == "2024-09-01T00:00:00"
                         ? "0"
@@ -184,7 +184,6 @@ export default async function SalesDashboard({
             <BarChartCustom
               chartData={totalTransactionsByMonth}
               viewMode="custom"
-              isDefault={defaultDateFrom == "2024-09-01T00:00:00"}
             />
           </div>
 

@@ -92,7 +92,7 @@ export default function ListDocumentDownload({
 
       const items: DownloadItem[] = files.map((file) => ({
         id: file.id,
-        name: file.fileName,
+        name: file.fileName + "." + file.extension,
         description: `Documento da solicitação`,
         fileType: getFileTypeFromExtension(file.extension),
         downloadUrl: file.fileUrl,

@@ -93,3 +93,47 @@ export const endOfDay = getEndOfDay();
 export function currentDateTimeSP() {
   return DateTime.now().toUTC().setZone("America/Sao_Paulo").toISO();
 }
+
+
+
+
+//UTC
+
+
+/**
+ * Converte uma string ISO (ou Date) para DateTime em UTC
+ */
+export function parseToUTC(date: string | Date): DateTime {
+  return typeof date === "string"
+    ? DateTime.fromISO(date, { zone: "utc" })
+    : DateTime.fromJSDate(date, { zone: "utc" });
+}
+
+/**
+ * Formata um DateTime (ou string ISO) para filtro YYYY-MM-DD em UTC
+ */
+export function toAPIFilterUTC(date: string | Date | DateTime): string {
+  const dt = date instanceof DateTime ? date : parseToUTC(date as string);
+  return dt.toUTC().toFormat("yyyy-MM-dd");
+}
+
+/**
+ * Retorna o início do dia atual em UTC (00:00:00)
+ */
+export function startOfTodayUTC(): string {
+  return DateTime.utc().startOf("day").toISO();
+}
+
+/**
+ * Retorna o final do dia atual em UTC (23:59:59)
+ */
+export function endOfTodayUTC(): string {
+  return DateTime.utc().endOf("day").toISO();
+}
+
+/**
+ * Retorna a data/hora atual em UTC, no formato ISO 8601
+ */
+export function currentDateTimeUTC(): string {
+  return DateTime.utc().toISO();
+}

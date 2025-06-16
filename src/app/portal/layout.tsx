@@ -1,3 +1,4 @@
+import IdleLogout from "@/components/IdleLogout";
 import { AppSidebar } from "@/components/menu-portal/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 
@@ -12,6 +13,7 @@ export default function PortalLayout({
     <SidebarProvider>
       <AppSidebar variant="inset" />
       <SidebarInset className="bg-card rounded-lg shadow">
+        <IdleLogout />
         {children}
       </SidebarInset>
     </SidebarProvider>

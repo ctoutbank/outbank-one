@@ -32,7 +32,7 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
   }
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex items-center justify-center">
       <input
         type="text"
         value={value ? `${value}%` : ""}

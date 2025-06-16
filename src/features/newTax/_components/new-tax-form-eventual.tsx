@@ -1,9 +1,22 @@
 "use client";
 
 import { PercentageInput } from "@/components/percentage-input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   saveMerchantPricingAction,
   updatePixConfigAction,
@@ -11,7 +24,8 @@ import {
 import type { FeeData } from "@/features/newTax/server/fee-db";
 import { FeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
@@ -26,10 +40,14 @@ interface PaymentGroup {
         [key: string]: {
           presentIntermediation: string;
           notPresentIntermediation: string;
+          presentTransaction: string;
+          notPresentTransaction: string;
         };
       };
       presentIntermediation: string;
       notPresentIntermediation: string;
+      presentTransaction: string;
+      notPresentTransaction: string;
     };
   };
 }
@@ -37,9 +55,14 @@ interface PaymentGroup {
 interface PaymentConfigFormProps {
   fee: FeeData;
   hideButtons?: boolean;
+  feeFieldErrors?: Record<string, string>;
 }
 
-type ModeField = "presentIntermediation" | "notPresentIntermediation";
+type ModeField =
+  | "presentIntermediation"
+  | "notPresentIntermediation"
+  | "presentTransaction"
+  | "notPresentTransaction";
 type ModeId = string;
 
 export const PaymentConfigFormWithCard = forwardRef<
@@ -50,7 +73,11 @@ export const PaymentConfigFormWithCard = forwardRef<
     };
   },
   PaymentConfigFormProps
->(function PaymentConfigFormWithCard({ fee, hideButtons = false }, ref) {
+>(function PaymentConfigFormWithCard(
+  { fee, hideButtons = false, feeFieldErrors = {} },
+  ref
+) {
+  console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO EVENTUAL:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [groups, setGroups] = useState<PaymentGroup[]>([
@@ -68,6 +95,11 @@ export const PaymentConfigFormWithCard = forwardRef<
     anticipationRateNotPresent: fee.eventualAnticipationFee || "",
   });
 
+  // Ajustar a constante de controle:
+  const isNoAnticipation = fee.anticipationType === "NOANTECIPATION";
+  const isEventualAnticipation = fee.anticipationType === "EVENTUAL";
+  const onlyIntermediation = isNoAnticipation || isEventualAnticipation;
+
   // Inicializar um grupo de pagamento
   function initializePaymentGroup(groupId: string): PaymentGroup {
     return {
@@ -78,7 +110,9 @@ export const PaymentConfigFormWithCard = forwardRef<
           expanded: false,
           presentIntermediation: "",
           notPresentIntermediation: "",
-          ...(parseInt(mode.transactionFeeStart) > 0 && {
+          presentTransaction: "",
+          notPresentTransaction: "",
+          ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
             installments: createInstallmentsObject(mode),
           }),
         };
@@ -92,15 +126,17 @@ export const PaymentConfigFormWithCard = forwardRef<
     return Array.from(
       {
         length:
-          parseInt(mode.transactionFeeEnd) -
-          parseInt(mode.transactionFeeStart) +
+          Number.parseInt(mode.transactionFeeEnd) -
+          Number.parseInt(mode.transactionFeeStart) +
           1,
       },
-      (_, i) => i + parseInt(mode.transactionFeeStart)
+      (_, i) => i + Number.parseInt(mode.transactionFeeStart)
     ).reduce((acc, installment) => {
       acc[installment] = {
         presentIntermediation: "",
         notPresentIntermediation: "",
+        presentTransaction: "",
+        notPresentTransaction: "",
       };
       return acc;
     }, {} as any);
@@ -130,7 +166,9 @@ export const PaymentConfigFormWithCard = forwardRef<
               expanded: false,
               presentIntermediation: "",
               notPresentIntermediation: "",
-              ...(parseInt(mode.transactionFeeStart) > 0 && {
+              presentTransaction: "",
+              notPresentTransaction: "",
+              ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
                 installments: createInstallmentsObject(mode),
               }),
             };
@@ -155,16 +193,50 @@ export const PaymentConfigFormWithCard = forwardRef<
                         pt.cardTransactionMdr?.toString() || "",
                       notPresentIntermediation:
                         pt.nonCardTransactionMdr?.toString() || "",
+                      presentTransaction:
+                        pt.cardTransactionMdr?.toString() || "",
+                      notPresentTransaction:
+                        pt.nonCardTransactionMdr?.toString() || "",
                     };
+                    // Se qualquer campo da parcela estiver preenchido, expandir
+                    const inst = initialModes[modeId].installments[installment];
+                    if (
+                      inst.presentIntermediation ||
+                      inst.notPresentIntermediation ||
+                      inst.presentTransaction ||
+                      inst.notPresentTransaction
+                    ) {
+                      initialModes[modeId].expanded = true;
+                    }
                   } else if (initialModes[modeId]) {
                     // Para modo sem parcelamento
                     initialModes[modeId].presentIntermediation =
                       pt.cardTransactionMdr?.toString() || "";
                     initialModes[modeId].notPresentIntermediation =
                       pt.nonCardTransactionMdr?.toString() || "";
+                    initialModes[modeId].presentTransaction =
+                      pt.cardTransactionMdr?.toString() || "";
+                    initialModes[modeId].notPresentTransaction =
+                      pt.nonCardTransactionMdr?.toString() || "";
                   }
                 }
               });
+            }
+          });
+
+          // Após preencher todas as parcelas, expandir se houver alguma preenchida
+          Object.entries(initialModes).forEach(([mode]: any) => {
+            if (mode.installments) {
+              const hasAnyFilled = Object.values(mode.installments).some(
+                (inst: any) =>
+                  inst.presentIntermediation ||
+                  inst.notPresentIntermediation ||
+                  inst.presentTransaction ||
+                  inst.notPresentTransaction
+              );
+              if (hasAnyFilled) {
+                mode.expanded = true;
+              }
             }
           });
 
@@ -176,9 +248,9 @@ export const PaymentConfigFormWithCard = forwardRef<
         }
       );
 
-      if (newGroups.length > 0) {
-        setGroups(newGroups);
-      }
+      setGroups(newGroups);
+    } else {
+      setGroups([initializePaymentGroup("group-1")]);
     }
 
     // Atualizar configuração de PIX
@@ -204,18 +276,22 @@ export const PaymentConfigFormWithCard = forwardRef<
   ): { modeId: string; installment?: number } | null {
     if (productType === "Crédito à Vista") {
       return { modeId: "CREDIT" };
-    } else if (productType.includes("Crédito Parcelado (2 a 6")) {
-      const match = productType.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_2_TO_6",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
-    } else if (productType.includes("Crédito Parcelado (7 a 12")) {
-      const match = productType.match(/\((\d+)/);
-      return {
-        modeId: "CREDIT_INSTALLMENTS_7_TO_12",
-        installment: match ? parseInt(match[1]) : undefined,
-      };
+    } else if (productType.startsWith("Crédito Parcelado (2 a 6")) {
+      return { modeId: "CREDIT_INSTALLMENTS_2_TO_6" };
+    } else if (productType.startsWith("Crédito Parcelado (7 a 12")) {
+      return { modeId: "CREDIT_INSTALLMENTS_7_TO_12" };
+    } else if (/Crédito Parcelado $$(\d+) a \1 vezes$$/.test(productType)) {
+      // Match "Crédito Parcelado (N a N vezes)"
+      const match = productType.match(/Crédito Parcelado $$(\d+) a \1 vezes$$/);
+      if (match) {
+        const installment = Number.parseInt(match[1], 10);
+        if (installment >= 2 && installment <= 6) {
+          return { modeId: "CREDIT_INSTALLMENTS_2_TO_6", installment };
+        }
+        if (installment >= 7 && installment <= 12) {
+          return { modeId: "CREDIT_INSTALLMENTS_7_TO_12", installment };
+        }
+      }
     } else if (productType === "Débito") {
       return { modeId: "DEBIT" };
     } else if (productType === "Voucher") {
@@ -229,7 +305,17 @@ export const PaymentConfigFormWithCard = forwardRef<
   // Expor o método getFormData via ref para o componente pai
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
-      pixConfig,
+      pixConfig: {
+        ...pixConfig,
+        anticipationRatePresent:
+          pixConfig.anticipationRatePresent !== ""
+            ? Number(pixConfig.anticipationRatePresent)
+            : undefined,
+        anticipationRateNotPresent:
+          pixConfig.anticipationRateNotPresent !== ""
+            ? Number(pixConfig.anticipationRateNotPresent)
+            : undefined,
+      },
       groups: groups.map((group) => ({
         ...group,
         modes: Object.fromEntries(
@@ -251,6 +337,8 @@ export const PaymentConfigFormWithCard = forwardRef<
                     expanded: mode.expanded,
                     presentIntermediation: mode.presentIntermediation,
                     notPresentIntermediation: mode.notPresentIntermediation,
+                    presentTransaction: mode.presentTransaction,
+                    notPresentTransaction: mode.notPresentTransaction,
                   },
                 ];
               }
@@ -301,8 +389,16 @@ export const PaymentConfigFormWithCard = forwardRef<
   function toggleModeExpansion(groupIndex: number, modeId: string) {
     setGroups((prevGroups) => {
       const newGroups = [...prevGroups];
-      newGroups[groupIndex].modes[modeId].expanded =
-        !newGroups[groupIndex].modes[modeId].expanded;
+      // Cópia profunda do grupo e do modo para garantir reatividade
+      const group = {
+        ...newGroups[groupIndex],
+        modes: { ...newGroups[groupIndex].modes },
+      };
+      group.modes[modeId] = {
+        ...group.modes[modeId],
+        expanded: !group.modes[modeId].expanded,
+      };
+      newGroups[groupIndex] = group;
       return newGroups;
     });
   }
@@ -379,106 +475,166 @@ export const PaymentConfigFormWithCard = forwardRef<
 
   const hasInstallments = (modeId: string): boolean => {
     const mode = FeeProductTypeList.find((item) => item.value === modeId);
-    return mode ? parseInt(mode.transactionFeeStart) > 0 : false;
+    return mode ? Number.parseInt(mode.transactionFeeStart) > 0 : false;
   };
 
   const getInstallmentRange = (modeId: string): [number, number] => {
     const mode = FeeProductTypeList.find((item) => item.value === modeId);
     return mode
-      ? [parseInt(mode.transactionFeeStart), parseInt(mode.transactionFeeEnd)]
+      ? [
+          Number.parseInt(mode.transactionFeeStart),
+          Number.parseInt(mode.transactionFeeEnd),
+        ]
       : [0, 0];
   };
 
   const shouldDisableMainModeInput = (
     modeId: string,
-    isExpanded: boolean
+    isExpanded: boolean,
+    isInstallmentField?: boolean
   ): boolean => {
+    // Se for campo de parcela, nunca desabilita
+    if (isInstallmentField) return false;
+    // Se for campo principal de modo parcelado e expandido, desabilita
     return hasInstallments(modeId) && isExpanded;
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="rounded-xl shadow-sm">
         <CardContent className="p-0">
           {/* Grupos de Pagamento */}
           {groups.map((group, groupIndex) => (
-            <Card key={group.id} className="mb-6">
+            <Card
+              key={group.id}
+              className="mb-6 rounded-lg border border-gray-200 shadow-sm"
+            >
               <CardContent className="p-0">
                 {/* Cabeçalho do grupo com seleção de bandeiras */}
-                <div className="p-3 border-b flex items-center justify-between bg-gray-50">
-                  <div className="flex items-center">
+                <div className="p-3 border-b flex items-center justify-between bg-gray-50 rounded-t-lg">
+                  <div className="flex items-center flex-wrap gap-2">
                     <span className="font-medium mr-2">Bandeiras:</span>
-                    <div className="flex gap-2">
-                      {brandList.map((card) => {
-                        // Verificar se a bandeira já está selecionada em algum outro grupo
-                        const isSelectedInOtherGroup = groups.some(
-                          (g, idx) =>
-                            idx !== groupIndex &&
-                            g.selectedCards.includes(card.value)
-                        );
-
-                        if (
-                          isSelectedInOtherGroup &&
-                          !group.selectedCards.includes(card.value)
-                        ) {
-                          // Se estiver selecionada em outro grupo e não neste, mostrar desabilitada
-                          return (
-                            <div
-                              key={card.value}
-                              className="flex items-center opacity-50"
-                            >
-                              <Checkbox
-                                id={`${group.id}-${card.value}`}
-                                checked={false}
-                                disabled={true}
-                                className="mr-1"
-                              />
-                              <label
-                                htmlFor={`${group.id}-${card.value}`}
-                                className="flex items-center cursor-not-allowed"
-                              >
-                                <img
-                                  src={getCardImage(card.value)}
-                                  alt={card.label}
-                                  className="h-5 w-5 mr-1 grayscale"
-                                />
-                                {card.label}
-                              </label>
-                            </div>
-                          );
-                        }
-
-                        // Caso contrário, mostrar normalmente
-                        return (
-                          <div key={card.value} className="flex items-center">
-                            <Checkbox
-                              id={`${group.id}-${card.value}`}
-                              checked={group.selectedCards.includes(card.value)}
-                              onCheckedChange={(checked) => {
-                                toggleCardSelection(
-                                  groupIndex,
-                                  card.value,
-                                  checked === true
-                                    ? true
-                                    : checked === false
-                                      ? false
-                                      : undefined
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="justify-between min-w-[200px]"
+                        >
+                          {group.selectedCards.length > 0
+                            ? `${group.selectedCards.length} bandeira(s) selecionada(s)`
+                            : "Selecionar bandeiras"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar bandeira..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              Nenhuma bandeira encontrada.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {brandList.map((card) => {
+                                // Verificar se a bandeira já está selecionada em algum outro grupo
+                                const isSelectedInOtherGroup = groups.some(
+                                  (g, idx) =>
+                                    idx !== groupIndex &&
+                                    g.selectedCards.includes(card.value)
                                 );
-                              }}
-                              className="mr-1"
+
+                                if (
+                                  isSelectedInOtherGroup &&
+                                  !group.selectedCards.includes(card.value)
+                                ) {
+                                  // Se estiver selecionada em outro grupo, desabilitar
+                                  return (
+                                    <CommandItem
+                                      key={card.value}
+                                      disabled
+                                      className="opacity-50"
+                                    >
+                                      <div className="flex items-center">
+                                        <img
+                                          src={
+                                            getCardImage(card.value) ||
+                                            "/placeholder.svg"
+                                          }
+                                          alt={card.label}
+                                          className="h-5 w-5 mr-2 grayscale rounded"
+                                        />
+                                        {card.label}
+                                      </div>
+                                    </CommandItem>
+                                  );
+                                }
+
+                                return (
+                                  <CommandItem
+                                    key={card.value}
+                                    value={card.value}
+                                    onSelect={() => {
+                                      toggleCardSelection(
+                                        groupIndex,
+                                        card.value,
+                                        !group.selectedCards.includes(
+                                          card.value
+                                        )
+                                      );
+                                    }}
+                                  >
+                                    <div className="flex items-center">
+                                      <img
+                                        src={
+                                          getCardImage(card.value) ||
+                                          "/placeholder.svg"
+                                        }
+                                        alt={card.label}
+                                        className="h-5 w-5 mr-2 rounded"
+                                      />
+                                      {card.label}
+                                    </div>
+                                    <Check
+                                      className={cn(
+                                        "ml-auto",
+                                        group.selectedCards.includes(card.value)
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {group.selectedCards.map((cardId) => {
+                        const card = brandList.find((c) => c.value === cardId);
+                        return (
+                          <Badge
+                            key={cardId}
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                          >
+                            <img
+                              src={getCardImage(cardId) || "/placeholder.svg"}
+                              alt={card?.label || cardId}
+                              className="h-4 w-4 rounded"
                             />
-                            <label
-                              htmlFor={`${group.id}-${card.value}`}
-                              className="flex items-center cursor-pointer"
+                            {card?.label || cardId}
+                            <button
+                              type="button"
+                              className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+                              onClick={() =>
+                                toggleCardSelection(groupIndex, cardId, false)
+                              }
                             >
-                              <img
-                                src={getCardImage(card.value)}
-                                alt={card.label}
-                                className="h-5 w-5 mr-1"
-                              />
-                              {card.label}
-                            </label>
-                          </div>
+                              ×
+                            </button>
+                          </Badge>
                         );
                       })}
                     </div>
@@ -489,36 +645,66 @@ export const PaymentConfigFormWithCard = forwardRef<
                         variant="outline"
                         size="sm"
                         onClick={() => removeGroup(groupIndex)}
+                        className="rounded-lg"
                       >
                         Remover
                       </Button>
                     )}
                     {groupIndex === groups.length - 1 && (
-                      <Button variant="outline" size="sm" onClick={addNewGroup}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={addNewGroup}
+                        className="rounded-lg"
+                      >
                         Novo Grupo
                       </Button>
                     )}
                   </div>
                 </div>
-
                 {/* Cabeçalho da tabela de modos */}
-                <div className="grid grid-cols-3 border-b">
-                  <div className="p-3 font-medium border-r bg-gray-50">
-                    Modo
+                {onlyIntermediation ? (
+                  <div className="grid grid-cols-3 border-b rounded-t-lg overflow-hidden">
+                    <div className="p-3 font-medium border-r bg-gray-50 rounded-tl-lg">
+                      Modo
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center bg-gray-50 rounded-tr-lg">
+                      Taxa de Intermediação (%) - Cartão Não Presente
+                    </div>
                   </div>
-                  <div className="p-3 font-medium text-center border-r bg-gray-50">
-                    Taxa de Intermediação (%) - Cartão Presente
+                ) : (
+                  <div className="grid grid-cols-5 border-b rounded-t-lg overflow-hidden">
+                    <div className="p-3 font-medium border-r bg-gray-50 rounded-tl-lg">
+                      Modo
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Transação (%) - Cartão Presente
+                    </div>
+                    <div className="p-3 font-medium text-center border-r bg-gray-50">
+                      Taxa de Intermediação (%) - Cartão Não Presente
+                    </div>
+                    <div className="p-3 font-medium text-center bg-gray-50 rounded-tr-lg">
+                      Transação (%) - Cartão Não Presente
+                    </div>
                   </div>
-                  <div className="p-3 font-medium text-center bg-gray-50">
-                    Taxa de Intermediação (%) - Cartão Não Presente
-                  </div>
-                </div>
-
+                )}
                 {/* Modos de pagamento */}
                 {FeeProductTypeList.map((feeProductType) => (
                   <div key={`${group.id}-${feeProductType.value}`}>
                     {/* Linha principal do modo */}
-                    <div className="grid grid-cols-3 border-b">
+                    <div
+                      className={
+                        onlyIntermediation
+                          ? "grid grid-cols-3 border-b"
+                          : "grid grid-cols-5 border-b"
+                      }
+                    >
                       <div className="p-3 border-r flex items-center justify-between">
                         <span>{feeProductType.label}</span>
                         {hasInstallments(feeProductType.value) && (
@@ -540,56 +726,159 @@ export const PaymentConfigFormWithCard = forwardRef<
                           </button>
                         )}
                       </div>
-                      <div className="p-3 border-r flex items-center justify-center">
-                        <div className="flex items-center justify-center">
-                          <PercentageInput
-                            value={
-                              group.modes[feeProductType.value]
-                                .presentIntermediation || ""
-                            }
-                            onChange={(value) =>
-                              handleInputChange(
-                                groupIndex,
-                                feeProductType.value,
-                                "presentIntermediation",
-                                value
-                              )
-                            }
-                            placeholder="%"
-                            className="w-16 text-center"
-                            disabled={shouldDisableMainModeInput(
-                              feeProductType.value,
-                              group.modes[feeProductType.value].expanded
-                            )}
-                          />
-                        </div>
-                      </div>
                       <div className="p-3 flex items-center justify-center">
-                        <div className="flex items-center justify-center">
+                        <PercentageInput
+                          value={
+                            group.modes[feeProductType.value]
+                              .presentIntermediation || ""
+                          }
+                          disabled={shouldDisableMainModeInput(
+                            feeProductType.value,
+                            group.modes[feeProductType.value].expanded
+                          )}
+                          onChange={(value) =>
+                            handleInputChange(
+                              groupIndex,
+                              feeProductType.value,
+                              "presentIntermediation",
+                              value
+                            )
+                          }
+                          className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                        />
+                        {feeFieldErrors?.[
+                          `${group.id}-${feeProductType.value}-presentIntermediation`
+                        ] && (
+                          <span className="ml-2 text-xs text-red-500">
+                            mínimo permitido (
+                            {(() => {
+                              const err =
+                                feeFieldErrors[
+                                  `${group.id}-${feeProductType.value}-presentIntermediation`
+                                ];
+                              const match = err.match(/([\d.,]+)%/);
+                              return match ? match[1] + "%" : "";
+                            })()}
+                            )
+                          </span>
+                        )}
+                      </div>
+                      {!onlyIntermediation && (
+                        <div className="p-3 flex items-center justify-center">
                           <PercentageInput
                             value={
                               group.modes[feeProductType.value]
-                                .notPresentIntermediation || ""
+                                .presentTransaction || ""
                             }
-                            onChange={(value) =>
-                              handleInputChange(
-                                groupIndex,
-                                feeProductType.value,
-                                "notPresentIntermediation",
-                                value
-                              )
-                            }
-                            placeholder="%"
-                            className="w-16 text-center"
                             disabled={shouldDisableMainModeInput(
                               feeProductType.value,
                               group.modes[feeProductType.value].expanded
                             )}
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "presentTransaction",
+                                value
+                              )
+                            }
+                            className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                           />
+                          {feeFieldErrors?.[
+                            `${group.id}-${feeProductType.value}-presentTransaction`
+                          ] && (
+                            <span className="ml-2 text-xs text-red-500">
+                              mínimo permitido (
+                              {(() => {
+                                const err =
+                                  feeFieldErrors[
+                                    `${group.id}-${feeProductType.value}-presentTransaction`
+                                  ];
+                                const match = err.match(/([\d.,]+)%/);
+                                return match ? match[1] + "%" : "";
+                              })()}
+                              )
+                            </span>
+                          )}
                         </div>
+                      )}
+                      <div className="p-3 border-r flex items-center justify-center">
+                        <PercentageInput
+                          value={
+                            group.modes[feeProductType.value]
+                              .notPresentIntermediation || ""
+                          }
+                          disabled={shouldDisableMainModeInput(
+                            feeProductType.value,
+                            group.modes[feeProductType.value].expanded
+                          )}
+                          onChange={(value) =>
+                            handleInputChange(
+                              groupIndex,
+                              feeProductType.value,
+                              "notPresentIntermediation",
+                              value
+                            )
+                          }
+                          className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                        />
+                        {feeFieldErrors?.[
+                          `${group.id}-${feeProductType.value}-notPresentIntermediation`
+                        ] && (
+                          <span className="ml-2 text-xs text-red-500">
+                            mínimo permitido (
+                            {(() => {
+                              const err =
+                                feeFieldErrors[
+                                  `${group.id}-${feeProductType.value}-notPresentIntermediation`
+                                ];
+                              const match = err.match(/([\d.,]+)%/);
+                              return match ? match[1] + "%" : "";
+                            })()}
+                            )
+                          </span>
+                        )}
                       </div>
+                      {!onlyIntermediation && (
+                        <div className="p-3 flex items-center justify-center">
+                          <PercentageInput
+                            value={
+                              group.modes[feeProductType.value]
+                                .notPresentTransaction || ""
+                            }
+                            disabled={shouldDisableMainModeInput(
+                              feeProductType.value,
+                              group.modes[feeProductType.value].expanded
+                            )}
+                            onChange={(value) =>
+                              handleInputChange(
+                                groupIndex,
+                                feeProductType.value,
+                                "notPresentTransaction",
+                                value
+                              )
+                            }
+                            className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                          />
+                          {feeFieldErrors?.[
+                            `${group.id}-${feeProductType.value}-notPresentTransaction`
+                          ] && (
+                            <span className="ml-2 text-xs text-red-500">
+                              mínimo permitido (
+                              {(() => {
+                                const err =
+                                  feeFieldErrors[
+                                    `${group.id}-${feeProductType.value}-notPresentTransaction`
+                                  ];
+                                const match = err.match(/([\d.,]+)%/);
+                                return match ? match[1] + "%" : "";
+                              })()}
+                              )
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-
                     {/* Linhas de parcelamento se expandido */}
                     {hasInstallments(feeProductType.value) &&
                       group.modes[feeProductType.value].expanded &&
@@ -603,9 +892,15 @@ export const PaymentConfigFormWithCard = forwardRef<
                         ).map((installment) => (
                           <div
                             key={`${group.id}-${feeProductType.value}-${installment}`}
-                            className="grid grid-cols-3 border-b bg-gray-50"
+                            className={
+                              onlyIntermediation
+                                ? "grid grid-cols-3 border-b bg-gray-50"
+                                : "grid grid-cols-5 border-b bg-gray-50"
+                            }
                           >
-                            <div className="p-3 border-r pl-8">{`Crédito Parcelado (${installment} vezes)`}</div>
+                            <div className="p-3 border-r text-left pr-6">
+                              {`Crédito Parcelado (${installment} ${installment === 1 ? "vez" : "vezes"})`}
+                            </div>
                             <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
                                 value={
@@ -613,6 +908,11 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     .installments?.[installment]
                                     ?.presentIntermediation || ""
                                 }
+                                disabled={shouldDisableMainModeInput(
+                                  feeProductType.value,
+                                  group.modes[feeProductType.value].expanded,
+                                  true
+                                )}
                                 onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
@@ -622,17 +922,79 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     installment
                                   )
                                 }
-                                placeholder="%"
-                                className="w-16 text-center"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${feeProductType.value}-presentIntermediation-${installment}`
+                              ] && (
+                                <span className="ml-2 text-xs text-red-500">
+                                  mínimo permitido (
+                                  {(() => {
+                                    const err =
+                                      feeFieldErrors[
+                                        `${group.id}-${feeProductType.value}-presentIntermediation-${installment}`
+                                      ];
+                                    const match = err.match(/([\d.,]+)%/);
+                                    return match ? match[1] + "%" : "";
+                                  })()}
+                                  )
+                                </span>
+                              )}
                             </div>
-                            <div className="p-3 flex items-center justify-center">
+                            {!onlyIntermediation && (
+                              <div className="p-3 border-r flex items-center justify-center">
+                                <PercentageInput
+                                  value={
+                                    group.modes[feeProductType.value]
+                                      .installments?.[installment]
+                                      ?.presentTransaction || ""
+                                  }
+                                  disabled={shouldDisableMainModeInput(
+                                    feeProductType.value,
+                                    group.modes[feeProductType.value].expanded,
+                                    true
+                                  )}
+                                  onChange={(value) =>
+                                    handleInputChange(
+                                      groupIndex,
+                                      feeProductType.value,
+                                      "presentTransaction",
+                                      value,
+                                      installment
+                                    )
+                                  }
+                                  className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                />
+                                {feeFieldErrors?.[
+                                  `${group.id}-${feeProductType.value}-presentTransaction-${installment}`
+                                ] && (
+                                  <span className="ml-2 text-xs text-red-500">
+                                    mínimo permitido (
+                                    {(() => {
+                                      const err =
+                                        feeFieldErrors[
+                                          `${group.id}-${feeProductType.value}-presentTransaction-${installment}`
+                                        ];
+                                      const match = err.match(/([\d.,]+)%/);
+                                      return match ? match[1] + "%" : "";
+                                    })()}
+                                    )
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <div className="p-3 border-r flex items-center justify-center">
                               <PercentageInput
                                 value={
                                   group.modes[feeProductType.value]
                                     .installments?.[installment]
                                     ?.notPresentIntermediation || ""
                                 }
+                                disabled={shouldDisableMainModeInput(
+                                  feeProductType.value,
+                                  group.modes[feeProductType.value].expanded,
+                                  true
+                                )}
                                 onChange={(value) =>
                                   handleInputChange(
                                     groupIndex,
@@ -642,10 +1004,67 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     installment
                                   )
                                 }
-                                placeholder="%"
-                                className="w-16 text-center"
+                                className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
                               />
+                              {feeFieldErrors?.[
+                                `${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`
+                              ] && (
+                                <span className="ml-2 text-xs text-red-500">
+                                  mínimo permitido (
+                                  {(() => {
+                                    const err =
+                                      feeFieldErrors[
+                                        `${group.id}-${feeProductType.value}-notPresentIntermediation-${installment}`
+                                      ];
+                                    const match = err.match(/([\d.,]+)%/);
+                                    return match ? match[1] + "%" : "";
+                                  })()}
+                                  )
+                                </span>
+                              )}
                             </div>
+                            {!onlyIntermediation && (
+                              <div className="p-3 flex items-center justify-center">
+                                <PercentageInput
+                                  value={
+                                    group.modes[feeProductType.value]
+                                      .installments?.[installment]
+                                      ?.notPresentTransaction || ""
+                                  }
+                                  disabled={shouldDisableMainModeInput(
+                                    feeProductType.value,
+                                    group.modes[feeProductType.value].expanded,
+                                    true
+                                  )}
+                                  onChange={(value) =>
+                                    handleInputChange(
+                                      groupIndex,
+                                      feeProductType.value,
+                                      "notPresentTransaction",
+                                      value,
+                                      installment
+                                    )
+                                  }
+                                  className="w-20 text-center bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition"
+                                />
+                                {feeFieldErrors?.[
+                                  `${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`
+                                ] && (
+                                  <span className="ml-2 text-xs text-red-500">
+                                    mínimo permitido (
+                                    {(() => {
+                                      const err =
+                                        feeFieldErrors[
+                                          `${group.id}-${feeProductType.value}-notPresentTransaction-${installment}`
+                                        ];
+                                      const match = err.match(/([\d.,]+)%/);
+                                      return match ? match[1] + "%" : "";
+                                    })()}
+                                    )
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ));
                       })()}
@@ -654,16 +1073,20 @@ export const PaymentConfigFormWithCard = forwardRef<
               </CardContent>
             </Card>
           ))}
-
           {!hideButtons && (
             <div className="flex justify-between mt-6">
               <Button
                 variant="outline"
                 onClick={() => router.push("/portal/pricing")}
+                className="rounded-lg px-6 py-2"
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={isPending}>
+              <Button
+                onClick={handleSave}
+                disabled={isPending}
+                className="rounded-lg px-6 py-2"
+              >
                 {isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>

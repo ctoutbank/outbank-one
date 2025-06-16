@@ -33,7 +33,7 @@ export function TerminalsDashboardContent({
   return (
     <div className="w-full mt-2 mb-2">
       <div className="grid grid-cols-1 gap-4">
-        <Card className="w-full border-l-8 border-black bg-sidebar">
+        <Card className="w-full border-l-8 border-black bg-background">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
             <p className="text-sm text-muted-foreground">

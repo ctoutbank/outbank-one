@@ -2,13 +2,12 @@
 
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
-import { cronJobMonitoring, merchants } from "../../../../../drizzle/schema";
+import { merchants } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { Merchant } from "./types";
 
 async function insertMerchant(
-  merchantList: Merchant[],
-  tableName: string
+  merchantList: Merchant[]
 ): Promise<{ id: number; slug: string | null }[] | null> {
   try {
     const uniqueMerchants = Array.from(
@@ -34,20 +33,7 @@ async function insertMerchant(
         if (inserted && inserted[0]) results.push(inserted[0]);
       }
     }
-    await db.insert(cronJobMonitoring).values({
-      jobName: "Insert merchants to table " + tableName,
-      status: "finalizado",
-      startTime: new Date().toISOString(),
-      logMessage:
-        "Insert merchants to table " +
-        tableName +
-        " quantity created: " +
-        countCreated +
-        " quantity checked: " +
-        countChecked +
-        " date time: " +
-        new Date().toISOString(),
-    });
+  
     return results;
   } catch (error) {
     console.error("Error inserting merchant:", error);
@@ -56,8 +42,7 @@ async function insertMerchant(
 }
 
 export async function getOrCreateMerchants(
-  merchants: Merchant[],
-  tableName: string
+  merchants: Merchant[]
 ) {
   try {
     const slugs = merchants.map((merchant) => merchant.slug);
@@ -71,7 +56,7 @@ export async function getOrCreateMerchants(
     );
 
     if (filteredList.length > 0) {
-      const insertedIds = await insertMerchant(filteredList, tableName);
+      const insertedIds = await insertMerchant(filteredList);
       const nonNullInsertedIds =
         insertedIds
           ?.filter((id) => id.slug !== null)
