@@ -49,7 +49,7 @@ export async function syncPayouts() {
 
     const lastSyncedISO = (await getPayoutSyncConfig()) ?? "2024-08-14";
 
-    let lastSynced = parseToUTC(lastSyncedISO).startOf("day");
+    const lastSynced = parseToUTC(lastSyncedISO).startOf("day");
 
     const nextDate = lastSynced.plus({ days: 1 });
     const today = DateTime.utc().startOf("day");

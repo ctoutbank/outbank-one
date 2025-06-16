@@ -1,98 +1,87 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Bell, Check, X } from "lucide-react"
+import { useUser } from "@clerk/nextjs";
+import { Bell, Check, X } from "lucide-react";
+import * as React from "react";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface Notification {
-  id: string
-  title: string
-  message: string
-  time: string
-  read: boolean
-  type: "info" | "success" | "warning" | "error"
+  id: number;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  type: "info" | "success" | "warning" | "error";
+  link?: string | null;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "Nova mensagem",
-    message: "Você recebeu uma nova mensagem de João Silva",
-    time: "2 min atrás",
-    read: false,
-    type: "info",
-  },
-  {
-    id: "2",
-    title: "Tarefa concluída",
-    message: "A tarefa 'Revisar documentos' foi marcada como concluída",
-    time: "5 min atrás",
-    read: false,
-    type: "success",
-  },
-  {
-    id: "3",
-    title: "Reunião em breve",
-    message: "Reunião de equipe começará em 15 minutos",
-    time: "10 min atrás",
-    read: true,
-    type: "warning",
-  },
-  {
-    id: "4",
-    title: "Sistema atualizado",
-    message: "O sistema foi atualizado para a versão 2.1.0",
-    time: "1 hora atrás",
-    read: true,
-    type: "info",
-  },
-  {
-    id: "5",
-    title: "Backup realizado",
-    message: "Backup automático realizado com sucesso",
-    time: "2 horas atrás",
-    read: true,
-    type: "success",
-  },
-]
-
 export function NotificationIcon() {
-  const [notifications, setNotifications] = React.useState<Notification[]>(mockNotifications)
-  const [isOpen, setIsOpen] = React.useState(false)
+  const { user } = useUser();
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  React.useEffect(() => {
+    async function fetchNotifications() {
+      if (!user) return;
+      setLoading(true);
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data.notifications || []);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNotifications();
+  }, [user]);
 
-  const markAsRead = (id: string) => {
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markAsRead = (id: number) => {
     setNotifications((prev) =>
-      prev.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)),
-    )
-  }
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+    // TODO: Chamar API para marcar como lida
+  };
 
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })))
-  }
+    setNotifications((prev) =>
+      prev.map((notification) => ({ ...notification, read: true }))
+    );
+    // TODO: Chamar API para marcar todas como lidas
+  };
 
-  const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
-  }
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    // TODO: Chamar API para remover notificação se necessário
+  };
 
   const getTypeColor = (type: Notification["type"]) => {
     switch (type) {
       case "success":
-        return "text-green-600"
+        return "text-green-600";
       case "warning":
-        return "text-yellow-600"
+        return "text-yellow-600";
       case "error":
-        return "text-red-600"
+        return "text-red-600";
       default:
-        return "text-blue-600"
+        return "text-blue-600";
     }
-  }
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -114,15 +103,26 @@ export function NotificationIcon() {
         <div className="flex items-center justify-between p-4 pb-2">
           <h4 className="font-semibold">Notificações</h4>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="text-xs"
+            >
               Marcar todas como lidas
             </Button>
           )}
         </div>
         <Separator />
         <ScrollArea className="h-[400px]">
-          {notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">Nenhuma notificação</div>
+          {loading ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Carregando...
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Nenhuma notificação
+            </div>
           ) : (
             <div className="space-y-1 p-2">
               {notifications.map((notification) => (
@@ -135,12 +135,16 @@ export function NotificationIcon() {
                   <div className="flex items-start gap-3">
                     <div
                       className={`mt-1 h-2 w-2 rounded-full ${getTypeColor(notification.type)} ${
-                        !notification.read ? "bg-current" : "bg-current opacity-30"
+                        !notification.read
+                          ? "bg-current"
+                          : "bg-current opacity-30"
                       }`}
                     />
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium leading-none">{notification.title}</p>
+                        <p className="text-sm font-medium leading-none">
+                          {notification.title}
+                        </p>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -150,9 +154,13 @@ export function NotificationIcon() {
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {notification.message}
+                      </p>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">{notification.time}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {notification.time}
+                        </p>
                         {!notification.read && (
                           <Button
                             variant="ghost"
@@ -174,5 +182,5 @@ export function NotificationIcon() {
         </ScrollArea>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

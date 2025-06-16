@@ -154,7 +154,7 @@ export default async function SalesDashboard({
                   <CardValue
                     title="Lucro total"
                     description="Total de lucro realizado"
-                    value={0}
+                    value={totalTransactions[0]?.revenue || 0}
                     percentage={
                       totalTransactions[0]?.revenue &&
                       totalTransactionsPreviousPeriod[0]?.revenue
