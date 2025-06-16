@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UserMenu } from "@/components/user-menu";
 import { getAuthorizedMenu } from "@/features/menu/actions";
+import { NotificationIcon } from "@/components/notification";
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -146,8 +147,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex flex-col items-center p-1 space-y-1">
-        <div className="w-full scale-75 lg:scale-90 origin-center">
+        <div className="w-full scale-75 lg:scale-90 origin-center flex justify-between items-center">
           <TeamSwitcher teams={menuData.teams} />
+          <NotificationIcon />
         </div>
         <Separator orientation="horizontal" className="bg-[#d2d2d2] w-full" />
       </SidebarHeader>

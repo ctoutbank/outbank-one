@@ -1,39 +1,22 @@
 "use server";
 
 import { db } from "@/server/db";
-import { eq, max } from "drizzle-orm";
+import { and, eq, isNotNull, max, ne } from "drizzle-orm";
 import { cronJobMonitoring, payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
 import { getOrCreateMerchants } from "../sync-settlements/merchant";
 import { InsertPayout, Payout } from "./types";
 
-export async function insertPayoutAndRelations(payoutList: Payout[]) {
-  const jobName = "Sincronização de Payouts";
-  const startTime = new Date().toISOString();
-  let monitoringId: number | undefined;
-
+export async function insertPayoutAndRelations(payoutList: Payout[], lastSyncDate: Date, monitoringId: number) {
   try {
-    // Create monitoring record
-    const [monitoring] = await db
-      .insert(cronJobMonitoring)
-      .values({
-        jobName,
-        startTime,
-        status: "RUNNING",
-        logMessage: `Starting sync for ${payoutList.length} payouts`,
-      })
-      .returning({ id: cronJobMonitoring.id });
-
-    monitoringId = monitoring?.id;
     const uniqueCustomerPayout = Array.from(
       new Map(
         payoutList.map((item) => [item.customer.slug, item.customer])
       ).values()
     );
     const customerids = await getOrCreateCustomer(
-      uniqueCustomerPayout,
-      "payout"
+      uniqueCustomerPayout
     );
     const uniqueMerchantsPayout = Array.from(
       new Map(
@@ -41,8 +24,7 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
       ).values()
     );
     const merchantids = await getOrCreateMerchants(
-      uniqueMerchantsPayout,
-      "payout"
+      uniqueMerchantsPayout
     );
 
     const insertPayoutVar: InsertPayout[] = payoutList.map((payouts) => ({
@@ -119,18 +101,7 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
     }));
 
     await insertPayout(insertPayoutVar);
-
-    // Update monitoring record on success
-    if (monitoringId) {
-      await db
-        .update(cronJobMonitoring)
-        .set({
-          endTime: new Date().toISOString(),
-          status: "SUCCESS",
-          logMessage: `Successfully processed ${payoutList.length} payouts`,
-        })
-        .where(eq(cronJobMonitoring.id, monitoringId));
-    }
+   
   } catch (error) {
     console.error(`Erro ao processar payout:`, error);
 
@@ -150,7 +121,7 @@ export async function insertPayoutAndRelations(payoutList: Payout[]) {
 }
 
 export async function insertPayout(payoutList: InsertPayout[]) {
-  const jobName = "Sincronização de Payouts";
+  const jobName = "Sincronização de Payout";
   const startTime = new Date().toISOString();
   let monitoringId: number | undefined;
 
@@ -236,8 +207,14 @@ export async function insertPayout(payoutList: InsertPayout[]) {
 export async function getPayoutSyncConfig() {
   try {
     const maxDateResult = await db
-      .select({ maxDate: max(payout.transactionDate) })
-      .from(payout);
+      .select({ maxDate: max(cronJobMonitoring.lastSync) })
+      .from(cronJobMonitoring)
+      .where(
+        and(
+          eq(cronJobMonitoring.jobName, "Sincronização de Payouts"),
+          isNotNull(cronJobMonitoring.lastSync)
+        )
+      );
 
     console.log(maxDateResult[0]?.maxDate);
 

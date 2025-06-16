@@ -189,8 +189,7 @@ export async function syncSettlements() {
       uniqueMerchantsMerchantSettlement
     );
     const merchantsSettlements = await getOrCreateMerchants(
-      uniqueMerchantsMerchantSettlement,
-      "merchantSettlements"
+      uniqueMerchantsMerchantSettlement
     );
     console.log("criados e obtidos aqui settlement", merchantSettlements);
     for (const chunk of chunkedMerchantSettlement) {
@@ -227,8 +226,7 @@ export async function syncSettlements() {
         )
     );
     const merchantsPix = await getOrCreateMerchants(
-      uniqueMerchantPix,
-      "merchantSettlementPix"
+      uniqueMerchantPix
     );
     console.log("criados e obtidos aqui pix", merchantsPix);
     const merchantsUnion =

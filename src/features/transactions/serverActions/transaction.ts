@@ -2,6 +2,7 @@
 
 import { getUserMerchantSlugs } from "@/features/users/server/users";
 import { getDateUTC } from "@/lib/datetime-utils";
+import { GetTransactionsResponse } from "@/server/integrations/dock/dock-transactions-type";
 import {
   and,
   count,
@@ -103,14 +104,12 @@ export async function getTransactions(
     console.log("dateFrom", dateFrom);
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
     if (dateFromUTC) conditions.push(gte(transactions.dtInsert, dateFromUTC));
-    console.log("dateFromUTC", dateFromUTC);
   }
 
   if (dateTo) {
     console.log("dateTo", dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
     if (dateToUTC) conditions.push(lte(transactions.dtInsert, dateToUTC));
-    console.log("dateToUTC", dateToUTC);
   }
 
   if (productType) {
@@ -459,6 +458,8 @@ export async function getTotalTransactionsByMonth(
     ])
   );
 
+  conditions.push(eq(solicitationFee.status, "COMPLETED"));
+
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   const isHourlyView = viewMode === "today" || viewMode === "yesterday";
@@ -473,144 +474,83 @@ export async function getTotalTransactionsByMonth(
         ? sql`EXTRACT(DAY FROM ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`
         : sql`DATE_TRUNC('month', ${transactions.dtInsert} AT TIME ZONE 'utc' AT TIME ZONE 'America/Sao_Paulo')`;
 
-  const result = await db
-    .select({
-      date: dateExpression,
-      sum: sql<string>`SUM(${transactions.totalAmount})`,
-      count: sql<number>`COUNT(1)`,
-      revenue: sql<string>`
+  const result = await db.execute(sql`
+   SELECT
+      ${dateExpression}                       AS date,
+      SUM(transactions.total_amount)::TEXT    AS sum,
+      COUNT(1)::INT                           AS count,
       SUM(
         CASE
-          WHEN ${transactions.methodType} = 'CP' THEN
+          WHEN transactions.method_type = 'CP' THEN
             CASE
-              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              WHEN COALESCE(payout.transaction_mdr, 0) = 0 THEN 0
+              ELSE 
+              CASE 
+                WHEN transactions.brand = 'PIX'
+                THEN (transactions.total_amount * 
+                (COALESCE(payout.transaction_mdr, 0)/100)) - solicitation_fee.card_pix_mdr_admin 
               ELSE
-                ${transactions.totalAmount} *
-                (
-                  COALESCE(${payout.transactionMdr}, 0)
-                  -
-                  COALESCE(
-                    CASE
-                      WHEN ${transactions.productType} ILIKE 'PIX'
-                      THEN ${solicitationFee.cardPixMdrAdmin}
-                      ELSE ${solicitationBrandProductType.feeAdmin}
-                    END
-                  , 0)
-                )
+              transactions.total_amount *
+                (COALESCE(payout.transaction_mdr, 0)/100 - COALESCE(solicitation_bp.fee_admin, 0)/100)
             END
-          WHEN ${transactions.methodType} = 'CNP' THEN
+            END
+          WHEN transactions.method_type = 'CNP' THEN
             CASE
-              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
-              ELSE
-                ${transactions.totalAmount} *
+              WHEN COALESCE(payout.transaction_mdr, 0) = 0 THEN 0
+              ELSE transactions.total_amount *
                 (
-                  COALESCE(${payout.transactionMdr}, 0)
-                  -
-                  COALESCE(
-                    CASE
-                      WHEN ${transactions.productType} ILIKE 'PIX'
-                      THEN ${solicitationFee.nonCardPixMdrAdmin}
-                      ELSE ${solicitationBrandProductType.noCardFeeAdmin}
-                    END
-                  , 0)
+                  COALESCE(payout.transaction_mdr, 0)/100
+                  - COALESCE(
+                      CASE
+                        WHEN transactions.brand = 'PIX'
+                        THEN solicitation_fee.non_card_pix_mdr_admin
+                        ELSE solicitation_bp.no_card_fee_admin
+                      END
+                    , 0)/100
                 )
             END
           ELSE 0
         END
-      )
-    `,
-    })
-    .from(transactions)
-    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-    .leftJoin(categories, eq(merchants.idCategory, categories.id))
-    .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
-    .leftJoin(
-      solicitationFeeBrand,
-      and(
-        eq(solicitationFeeBrand.solicitationFeeId, solicitationFee.id),
-        eq(solicitationFeeBrand.brand, transactions.brand)
-      )
-    )
-    .leftJoin(
-      sql`(
-      SELECT DISTINCT ON (payout_id::uuid) *
-      FROM payout
-      ORDER BY payout_id::uuid DESC
-    ) AS payout`,
-      sql`payout.payout_id::uuid = ${transactions.slug}`
-    )
-    .leftJoin(
-      solicitationBrandProductType,
-      and(
-        eq(
-          solicitationBrandProductType.solicitationFeeBrandId,
-          solicitationFeeBrand.id
-        ),
-        eq(
-          solicitationBrandProductType.productType,
-          sql`SPLIT_PART(${transactions.productType}, '_', 1)`
-        ),
-        sql`${payout.installments} >= ${solicitationBrandProductType.transactionFeeStart} AND ${payout.installments} <= ${solicitationBrandProductType.transactionFeeEnd} `
-      )
-    )
-    .where(whereClause)
-    .groupBy(dateExpression)
-    .orderBy(dateExpression);
+      )::TEXT AS revenue
+    FROM transactions
+    LEFT JOIN merchants
+      ON transactions.slug_merchant = merchants.slug
+    LEFT JOIN categories
+      ON merchants.id_category = categories.id
+    LEFT JOIN solicitation_fee
+      ON categories.mcc = solicitation_fee.mcc
+    LEFT JOIN solicitation_fee_brand AS sfb
+      ON sfb.solicitation_fee_id = solicitation_fee.id
+      AND sfb.brand = transactions.brand
+    LEFT JOIN ${payout} AS payout
+      ON payout.payout_id::uuid = transactions.slug
+    LEFT JOIN solicitation_brand_product_type AS solicitation_bp
+      ON solicitation_bp.solicitation_fee_brand_id = sfb.id
+      AND solicitation_bp.product_type = SPLIT_PART(transactions.product_type, '_', 1)
+      AND payout.installments BETWEEN solicitation_bp.transaction_fee_start
+                                  AND solicitation_bp.transaction_fee_end
+    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+    GROUP BY ${dateExpression}
+    ORDER BY ${dateExpression};
+  `);
 
-  const rows = result as Array<{
+  const rows = result.rows as Array<{
     date: string | number | Date;
     sum: string;
     count: number;
     revenue: string;
   }>;
 
-  const totals: GetTotalTransactionsByMonthResult[] = rows.map((item) => {
-    //const revenue = parseFloat(item.revenue || "0");
-    const currentDate = isHourlyView ? new Date(dateFrom) : (item.date as Date);
-
-    const fromDate = new Date(currentDate);
-    let month = 0;
-    if (!isMonthlyView) {
-      month = fromDate.getMonth() + 1;
-    } else {
-      month = 0;
-    }
-
-    return {
-      bruto: parseFloat(item.sum || "0"),
-      count: item.count,
-      lucro:
-        month == 1
-          ? 6396.58
-          : month == 2
-            ? 5227.65
-            : month == 3
-              ? 11262.01
-              : month == 4
-                ? 9024.76
-                : month == 5
-                  ? 0
-                  : month == 6
-                    ? 0
-                    : month == 7
-                      ? 0
-                      : month == 8
-                        ? 0
-                        : month == 9
-                          ? 2140.32
-                          : month == 10
-                            ? 4752.5
-                            : month == 11
-                              ? 4897.57
-                              : month == 12
-                                ? 8188.48
-                                : 0,
-      date: currentDate,
-      hour: isHourlyView ? Number(item.date) : undefined,
-      dayOfWeek: isWeeklyView ? Number(item.date) : undefined,
-      dayOfMonth: isMonthlyView ? Number(item.date) : undefined,
-    };
-  });
+  const totals: GetTotalTransactionsByMonthResult[] = rows.map((item) => ({
+    bruto: parseFloat(item.sum || "0"),
+    count: item.count,
+    lucro: parseFloat(item.revenue || "0"),
+    date: isHourlyView ? new Date(dateFrom) : (item.date as Date),
+    hour: isHourlyView ? Number(item.date) : undefined,
+    dayOfWeek: isWeeklyView ? Number(item.date) : undefined,
+    dayOfMonth: isMonthlyView ? Number(item.date) : undefined,
+  }));
+  console.log(totals);
 
   if (isHourlyView) {
     const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -649,7 +589,6 @@ export async function getTotalTransactionsByMonth(
     ).getDate();
     const days = Array.from({ length: lastDay }, (_, i) => i + 1);
     const [year, month] = dateFrom.split("T")[0].split("-").map(Number);
-    console.log(totals);
     return days.map(
       (day) =>
         totals.find((t) => t.dayOfMonth === day) || {
@@ -661,7 +600,7 @@ export async function getTotalTransactionsByMonth(
         }
     );
   }
-  console.log(totals);
+
   return totals;
 }
 
@@ -681,113 +620,150 @@ export async function getTotalTransactions(
   dateFrom: string,
   dateTo: string
 ): Promise<GetTotalTransactionsResult[]> {
-  const conditions = [];
+  const whereConditions = [];
 
   if (dateFrom) {
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
-    conditions.push(gte(transactions.dtInsert, dateFromUTC));
+    whereConditions.push(sql`t.dt_insert >= ${dateFromUTC}`);
     console.log(dateFromUTC);
   }
   if (dateTo) {
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
-    conditions.push(lte(transactions.dtInsert, dateToUTC));
+    whereConditions.push(sql`t.dt_insert <= ${dateToUTC}`);
     console.log(dateToUTC);
   }
 
   // ignorar transações inválidas
-  conditions.push(
-    notInArray(transactions.transactionStatus, [
-      "CANCELED",
-      "DENIED",
-      "PROCESSING",
-    ])
+  whereConditions.push(
+    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING')`
   );
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const whereClause =
+    whereConditions.length > 0
+      ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}`
+      : sql``;
 
-  const result = await db
-    .select({
-      sum: sql<number>`SUM(${transactions.totalAmount})`,
-      count: sql<number>`COUNT(1)`,
-      revenue: sql<number>`
+  const result = await db.execute(sql`
+    SELECT
+      SUM(t.total_amount) AS sum,
+      COUNT(*)          AS count,
       SUM(
         CASE
-          WHEN ${transactions.methodType} = 'CP' THEN
+          WHEN t.method_type = 'CP' THEN
             CASE
-              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              WHEN COALESCE(p.transaction_mdr, 0) = 0 THEN 0
               ELSE
-                ${transactions.totalAmount} *
-                (
-                  COALESCE(${payout.transactionMdr}, 0)
-                  -
-                  COALESCE(
-                    CASE
-                      WHEN ${transactions.productType} ILIKE 'PIX'
-                      THEN ${solicitationFee.cardPixMdrAdmin}
-                      ELSE ${solicitationBrandProductType.feeAdmin}
-                    END
-                  , 0)
-                )
+                t.total_amount
+                * (
+                    COALESCE(p.transaction_mdr, 0) / 100
+                    - COALESCE(
+                        CASE
+                          WHEN t.product_type ILIKE 'PIX'
+                          THEN sf.card_pix_mdr_admin
+                          ELSE sbpt.fee_admin
+                        END
+                      , 0) / 100
+                  )
             END
-          WHEN ${transactions.methodType} = 'CNP' THEN
+          WHEN t.method_type = 'CNP' THEN
             CASE
-              WHEN COALESCE(${payout.transactionMdr}, 0) = 0 THEN 0
+              WHEN COALESCE(p.transaction_mdr, 0) = 0 THEN 0
               ELSE
-                ${transactions.totalAmount} *
-                (
-                  COALESCE(${payout.transactionMdr}, 0)
-                  -
-                  COALESCE(
-                    CASE
-                      WHEN ${transactions.productType} ILIKE 'PIX'
-                      THEN ${solicitationFee.nonCardPixMdrAdmin}
-                      ELSE ${solicitationBrandProductType.noCardFeeAdmin}
-                    END
-                  , 0)
-                )
+                t.total_amount
+                * (
+                    COALESCE(p.transaction_mdr, 0) / 100
+                    - COALESCE(
+                        CASE
+                          WHEN t.product_type ILIKE 'PIX'
+                          THEN sf.non_card_pix_mdr_admin
+                          ELSE sbpt.no_card_fee_admin
+                        END
+                      , 0) / 100
+                  )
             END
           ELSE 0
         END
-      )
-    `,
-    })
-    .from(transactions)
-    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
-    .leftJoin(categories, eq(merchants.idCategory, categories.id))
-    .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
-    .leftJoin(
-      solicitationFeeBrand,
-      and(
-        eq(solicitationFeeBrand.solicitationFeeId, solicitationFee.id),
-        eq(solicitationFeeBrand.brand, transactions.brand)
-      )
-    )
-    .leftJoin(
-      sql`(
-      SELECT DISTINCT ON (payout_id::uuid) *
-      FROM payout
-      ORDER BY payout_id::uuid DESC
-    ) AS payout`,
-      sql`payout.payout_id::uuid = ${transactions.slug}`
-    )
-    .leftJoin(
-      solicitationBrandProductType,
-      and(
-        eq(
-          solicitationBrandProductType.solicitationFeeBrandId,
-          solicitationFeeBrand.id
-        ),
-        eq(
-          solicitationBrandProductType.productType,
-          sql`SPLIT_PART(${transactions.productType}, '_', 1)`
-        ),
-        sql`${payout.installments} >= ${solicitationBrandProductType.transactionFeeStart}
-          AND ${payout.installments} <= ${solicitationBrandProductType.transactionFeeEnd}`
-      )
-    )
-    .where(whereClause);
+      ) AS revenue
+    FROM ${transactions} AS t
+    LEFT JOIN ${merchants}  AS m  ON t.slug_merchant = m.slug
+    LEFT JOIN ${categories} AS c  ON m.id_category   = c.id
+    LEFT JOIN ${solicitationFee}       AS sf ON c.mcc = sf.mcc
+    LEFT JOIN ${solicitationFeeBrand}  AS sfb
+      ON sfb.solicitation_fee_id = sf.id
+     AND sfb.brand               = t.brand
+    LEFT JOIN ${payout} AS p
+      ON p.payout_id::uuid = t.slug
+    LEFT JOIN ${solicitationBrandProductType} AS sbpt
+      ON sbpt.solicitation_fee_brand_id = sfb.id
+     AND sbpt.product_type = SPLIT_PART(t.product_type, '_', 1)
+     AND p.installments BETWEEN sbpt.transaction_fee_start AND sbpt.transaction_fee_end
+    ${whereClause}
+  `);
 
-  console.log(result as GetTotalTransactionsResult[]);
+  console.log(dateFrom, dateTo, result.rows as GetTotalTransactionsResult[]);
 
-  return result as GetTotalTransactionsResult[];
+  return result.rows as GetTotalTransactionsResult[];
+}
+
+async function fetchData(slug: string) {
+  try {
+    const response = await fetch(
+      `${process.env.DOCK_API_URL_TRANSACTIONS}/v1/financial_transactions?slug=${slug}`,
+      {
+        headers: {
+          Authorization: process.env.DOCK_API_KEY || "", // Replace with your actual token
+        },
+      }
+    ); // Replace with your API URL
+
+    const data: GetTransactionsResponse = await response.json();
+    console.log(data);
+    return data.objects;
+  } catch (error: any) {
+    console.error("Error fetching API data:", error.message);
+    throw error;
+  }
+}
+
+function removeHifensDoUUID(uuid: string): string {
+  return uuid.replace(/-/g, "");
+}
+
+export async function correctTransactions() {
+  try {
+    const result = await db.execute(sql`
+      SELECT slug FROM transactions
+      WHERE brand IS NULL
+    `);
+
+    const resultRows = result.rows as { slug: string }[];
+    console.log(resultRows);
+    for (const row of resultRows) {
+      try {
+        const data = await fetchData(removeHifensDoUUID(row.slug));
+        console.log(data);
+        if (data.length > 0) {
+          const transaction = data[0];
+          console.log(transaction);
+          if (transaction.brand) {
+            console.log("Atualizando brand");
+            await db
+              .update(transactions)
+              .set({ brand: transaction.brand })
+              .where(eq(transactions.slug, row.slug));
+          }
+          else{
+            console.log("Não atualizando brand");
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing transaction ${row.slug}:`, error);
+        console.log("Interrompendo o loop devido a erro.");
+        break; // Interrompe o loop em caso de erro
+      }
+    }
+  } catch (error) {
+    console.error("Error in correctTransactions:", error);
+    throw error; // Re-throw to handle at caller level
+  }
 }
