@@ -3,7 +3,12 @@
 import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
 import { db } from "@/server/db";
 import { eq, inArray, sql } from "drizzle-orm";
-import { fee, feeBrand, feeBrandProductType } from "../../../../drizzle/schema";
+import {
+  categories,
+  fee,
+  feeBrand,
+  feeBrandProductType,
+} from "../../../../drizzle/schema";
 
 export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
   try {
@@ -52,6 +57,8 @@ export interface FeeData {
   active: boolean;
   dtinsert: string;
   dtupdate: string;
+  mcc: string;
+  cnae: string;
   code: string;
   name: string;
   tableType: string;
@@ -66,6 +73,7 @@ export interface FeeData {
   nonCardPixMinimumCostFee: string;
   feeBrand: FeeBrand[];
   slug: string;
+  feeCredit?: FeeCredit[];
 }
 
 export interface FeeBrand {
@@ -152,6 +160,8 @@ function mapDbDataToFeeData(
     name: feeData.name || "",
     tableType: feeData.tableType || "",
     code: feeData.code || "",
+    mcc: feeData.mcc || "",
+    cnae: feeData.cnae || "",
     compulsoryAnticipationConfig:
       feeData.compulsoryAnticipationConfig?.toString() || "0",
     eventualAnticipationFee: feeData.eventualAnticipationFee?.toString() || "0",
@@ -282,7 +292,15 @@ export async function getFeeById(id: string): Promise<FeeData | null> {
       .from(feeBrandProductType)
       .where(inArray(feeBrandProductType.idFeeBrand, brandIds));
 
-    return mapDbDataToFeeData(feeData, brands, productTypes);
+    // Buscar os feeCredit relacionados aos feeBrandProductType
+    const feeBrandProductTypeIds = productTypes.map((pt) => pt.id);
+    const feeCredits = await getFeeCreditsByFeeBrandProductTypeIds(
+      feeBrandProductTypeIds
+    );
+
+    // Montar o objeto FeeData incluindo feeCredit
+    const feeDataObj = mapDbDataToFeeData(feeData, brands, productTypes);
+    return { ...feeDataObj, feeCredit: feeCredits };
   } catch (error) {
     console.error(`Erro ao buscar taxa com ID ${id}:`, error);
     return null;
@@ -296,7 +314,7 @@ function createEmptyFee(): FeeData {
     active: true,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
-    name: "Nova Taxa",
+    name: "",
     tableType: "SIMPLE",
     code: "",
     compulsoryAnticipationConfig: "0",
@@ -310,6 +328,8 @@ function createEmptyFee(): FeeData {
     nonCardPixMinimumCostFee: "0",
     feeBrand: [],
     slug: "",
+    mcc: "",
+    cnae: "",
   };
 }
 
@@ -339,6 +359,11 @@ export async function getModosPagamento(): Promise<string[]> {
 // Função para inserir uma nova taxa
 export async function insertFee(feeData: FeeNewSchema): Promise<number> {
   try {
+    console.log("Inserindo nova taxa com dados:", {
+      mcc: feeData.mcc,
+      cnae: feeData.cnae,
+    });
+
     // Converter datas para ISO string
     const now = new Date().toISOString();
 
@@ -360,7 +385,15 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
       nonCardPixMdr: sql`${feeData.nonCardPixMdr || 0}`,
       nonCardPixCeilingFee: sql`${feeData.nonCardPixCeilingFee || 0}`,
       nonCardPixMinimumCostFee: sql`${feeData.nonCardPixMinimumCostFee || 0}`,
+      mcc: feeData.mcc || "",
+      cnae: feeData.cnae || "",
     };
+
+    // Verificar explicitamente se os valores de mcc e cnae estão presentes
+    console.log("Valores finais para inserção:", {
+      mcc: insertData.mcc,
+      cnae: insertData.cnae,
+    });
 
     // Inserir a nova taxa
     const result = await db
@@ -373,6 +406,7 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
     }
 
     const newFeeId = result[0].id;
+    console.log(`Taxa inserida com sucesso. ID: ${newFeeId}`);
 
     // Inserir as marcas (feeBrand) se fornecidas
     if (feeData.feeBrand && feeData.feeBrand.length > 0) {
@@ -454,6 +488,11 @@ export async function updateFee(feeData: FeeNewSchema): Promise<void> {
       throw new Error("ID da taxa não fornecido para atualização");
     }
 
+    console.log("Atualizando taxa ID", feeData.id, "com dados:", {
+      mcc: feeData.mcc,
+      cnae: feeData.cnae,
+    });
+
     // Converter datas para ISO string
     const now = new Date().toISOString();
 
@@ -473,13 +512,23 @@ export async function updateFee(feeData: FeeNewSchema): Promise<void> {
       nonCardPixMdr: sql`${feeData.nonCardPixMdr || 0}`,
       nonCardPixCeilingFee: sql`${feeData.nonCardPixCeilingFee || 0}`,
       nonCardPixMinimumCostFee: sql`${feeData.nonCardPixMinimumCostFee || 0}`,
+      mcc: feeData.mcc || "",
+      cnae: feeData.cnae || "",
     };
+
+    // Verificar explicitamente se os valores de mcc e cnae estão presentes
+    console.log("Valores finais para atualização:", {
+      mcc: updateData.mcc,
+      cnae: updateData.cnae,
+    });
 
     // Atualizar a taxa
     await db
       .update(fee)
       .set(updateData)
       .where(eq(fee.id, Number(feeData.id)));
+
+    console.log(`Taxa ID ${feeData.id} atualizada com sucesso`);
 
     // Atualizar as marcas (feeBrand) - estratégia de remover e recriar
     if (feeData.feeBrand && feeData.feeBrand.length > 0) {
@@ -522,21 +571,183 @@ async function updateBrandsAndProductTypes(
 // Função para salvar uma taxa (inserir nova ou atualizar existente)
 export async function saveFee(feeData: FeeNewSchema): Promise<FeeNewSchema> {
   try {
+    console.log("Iniciando saveFee com dados:", {
+      id: feeData.id?.toString(),
+      mcc: feeData.mcc,
+      cnae: feeData.cnae,
+    });
+
     // Verificar se é uma atualização ou inserção nova
     if (feeData.id) {
       // Atualizar taxa existente
       await updateFee(feeData);
+      console.log("Taxa atualizada com sucesso:", {
+        id: feeData.id.toString(),
+        mcc: feeData.mcc,
+        cnae: feeData.cnae,
+      });
       return feeData;
     } else {
       // Inserir nova taxa
       const newId = await insertFee(feeData);
-      return {
+      const result = {
         ...feeData,
         id: BigInt(newId),
       };
+      console.log("Nova taxa inserida com sucesso:", {
+        id: newId.toString(),
+        mcc: result.mcc,
+        cnae: result.cnae,
+      });
+      return result;
     }
   } catch (error) {
     console.error("Erro ao salvar taxa:", error);
     throw error;
+  }
+}
+
+// Tipagem para feeCredit
+export interface FeeCredit {
+  id: number;
+  installmentNumber: number;
+  compulsoryAnticipation: string | null;
+  noCardCompulsoryAnticipation: string | null;
+  idFeeBrandProductType: number;
+}
+
+// Buscar feeCredit por ids de feeBrandProductType
+export async function getFeeCreditsByFeeBrandProductTypeIds(
+  ids: number[]
+): Promise<FeeCredit[]> {
+  if (!ids.length) return [];
+  const { feeCredit } = await import("../../../../drizzle/schema");
+  const { inArray } = await import("drizzle-orm");
+  const { db } = await import("@/server/db");
+  const result = await db
+    .select({
+      id: feeCredit.id,
+      installmentNumber: feeCredit.installmentNumber,
+      compulsoryAnticipation: feeCredit.compulsoryAnticipation,
+      noCardCompulsoryAnticipation: feeCredit.noCardCompulsoryAnticipation,
+      idFeeBrandProductType: feeCredit.idFeeBrandProductType,
+    })
+    .from(feeCredit)
+    .where(inArray(feeCredit.idFeeBrandProductType, ids));
+  // Filtrar para garantir que idFeeBrandProductType não é null
+  return result.filter((r): r is FeeCredit => r.idFeeBrandProductType !== null);
+}
+
+// Função para buscar categorias (MCC/CNAE) da tabela categories
+export async function getCategories(): Promise<
+  { mcc: string; cnae: string }[]
+> {
+  try {
+    // Busca apenas os campos necessários
+    const result = await db
+      .select({ mcc: categories.mcc, cnae: categories.cnae })
+      .from(categories);
+    // Garante que não haja null
+    return result.map((r) => ({ mcc: r.mcc ?? "", cnae: r.cnae ?? "" }));
+  } catch (error) {
+    console.error("Erro ao buscar categorias:", error);
+    return [];
+  }
+}
+
+// Server action para buscar feeAdmin por cnae e mcc
+export async function getFeeAdminByCnaeMccAction(cnae: string, mcc: string) {
+  console.log("Buscando feeAdmin com CNAE:", cnae, "e MCC:", mcc);
+
+  // Verifica se algum dos parâmetros está vazio
+  if (!cnae || !mcc) {
+    console.log("CNAE ou MCC vazios, não é possível buscar feeAdmin");
+    return {};
+  }
+
+  try {
+    // Busca a solicitationfee mais recente para o par cnae/mcc com status COMPLETED
+    const result = await db.execute(sql`
+      WITH latest_solicitation AS (
+        SELECT id
+        FROM solicitation_fee
+        WHERE cnae = ${cnae} 
+        AND mcc = ${mcc}
+        AND status = 'COMPLETED'
+        ORDER BY dtinsert DESC
+        LIMIT 1
+      )
+      SELECT
+        sf.id,
+        sf.status,
+        sf.cnae,
+        sf.mcc,
+        sf.dtinsert,
+        sfb.id as brand_id,
+        sfb.brand,
+        sbpt.id as product_type_id,
+        sbpt.product_type,
+        sbpt.fee_admin,
+        sbpt.no_card_fee_admin
+      FROM solicitation_fee sf
+      JOIN latest_solicitation ls ON sf.id = ls.id
+      LEFT JOIN solicitation_fee_brand sfb ON sf.id = sfb.solicitation_fee_id
+      LEFT JOIN solicitation_brand_product_type sbpt ON sfb.id = sbpt.solicitation_fee_brand_id
+    `);
+
+    console.log(
+      "Resultado da busca de feeAdmin:",
+      result.rows.length,
+      "linhas encontradas",
+      "para CNAE:",
+      cnae,
+      "e MCC:",
+      mcc
+    );
+
+    // Se não houver resultados, registra isso no log
+    if (result.rows.length === 0) {
+      console.log(
+        "Nenhuma solicitação COMPLETED encontrada para este CNAE/MCC"
+      );
+      return {};
+    }
+
+    // Exibe os primeiros resultados para depuração
+    if (result.rows.length > 0) {
+      console.log(
+        "Solicitação encontrada com ID:",
+        result.rows[0].id,
+        "inserida em:",
+        result.rows[0].dtinsert
+      );
+      console.log("Amostra de resultados:", result.rows.slice(0, 2));
+    }
+
+    // Retorna um map: { [brand]: { [productType]: feeAdmin } }
+    const feeAdminMap: Record<string, Record<string, number>> = {};
+    for (const row of result.rows) {
+      const brand = row.brand as string;
+      const productType = row.product_type as string;
+      if (!brand || !productType) continue;
+
+      if (!feeAdminMap[brand]) feeAdminMap[brand] = {};
+
+      // Usamos fee_admin para validações de campos card
+      feeAdminMap[brand][productType] = Number(row.fee_admin);
+
+      // Para nocard, usamos no_card_fee_admin se disponível, ou recorremos ao fee_admin
+      if (row.no_card_fee_admin !== null) {
+        const nocardKey = `nocard_${productType}`;
+        feeAdminMap[brand][nocardKey] = Number(row.no_card_fee_admin);
+      }
+    }
+
+    console.log("FeeAdmin mapeado:", feeAdminMap);
+    return feeAdminMap;
+  } catch (error) {
+    console.error("Erro ao buscar fee_admin:", error);
+    console.error("Erro detalhado:", error);
+    return {};
   }
 }

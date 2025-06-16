@@ -4,7 +4,12 @@ import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
 import { saveFee } from "@/features/newTax/server/fee-db";
 import { db } from "@/server/db";
 import { and, eq, sql } from "drizzle-orm";
-import { fee, feeBrand, feeBrandProductType } from "../../../../drizzle/schema";
+import {
+  fee,
+  feeBrand,
+  feeBrandProductType,
+  feeCredit,
+} from "../../../../drizzle/schema";
 
 /**
  * Salva as configurações de pricing para uma taxa
@@ -27,12 +32,14 @@ export async function saveMerchantPricingAction(
     const feeIdNumber = parseInt(feeId);
 
     // Processar cada grupo de bandeiras
-    for (const group of groups) {
+    for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+      const group = groups[groupIndex];
       if (group.selectedCards.length > 0) {
         await processCardBrandGroup(
           feeIdNumber,
           group.selectedCards,
-          group.modes
+          group.modes,
+          groupIndex + 1 // idGroup correto
         );
       }
     }
@@ -111,7 +118,8 @@ export async function updatePixConfigAction(
 async function processCardBrandGroup(
   feeId: number,
   selectedBrands: string[],
-  modeData: Record<string, any>
+  modeData: Record<string, any>,
+  idGroup: number
 ) {
   try {
     // Para cada bandeira selecionada, processar os dados
@@ -124,7 +132,8 @@ async function processCardBrandGroup(
         .where(
           and(
             eq(feeBrand.idFee, feeId),
-            eq(feeBrand.brand, brandName.toUpperCase())
+            eq(feeBrand.brand, brandName.toUpperCase()),
+            eq(feeBrand.idGroup, idGroup)
           )
         );
 
@@ -140,7 +149,7 @@ async function processCardBrandGroup(
             dtinsert: new Date().toISOString(),
             dtupdate: new Date().toISOString(),
             brand: brandName.toUpperCase(),
-            idGroup: 1, // Valor padrão
+            idGroup,
             idFee: feeId,
           })
           .returning({ id: feeBrand.id });
@@ -237,6 +246,22 @@ async function processProductType(
   try {
     if (!modeData) return { success: false };
 
+    // Log detalhado dos valores recebidos
+    console.log(
+      "[DEBUG] processProductType - modeData recebido:",
+      JSON.stringify(
+        {
+          brandId,
+          productType,
+          installmentStart,
+          installmentEnd,
+          modeData,
+        },
+        null,
+        2
+      )
+    );
+
     // Buscar tipo de produto existente
     const existingProductTypes = await db
       .select()
@@ -260,6 +285,36 @@ async function processProductType(
         )
       );
 
+    // Função para converter valores com vírgula para float
+    const parseDecimalValue = (value: string | number | undefined): number => {
+      if (value === undefined || value === "") return 0;
+
+      // Se já for um número, retorna
+      if (typeof value === "number") return value;
+
+      // Converte string para número, substituindo vírgula por ponto
+      return parseFloat(value.toString().replace(",", "."));
+    };
+
+    // Extrair e converter valores das taxas
+    const presentIntermediation = parseDecimalValue(
+      modeData.presentIntermediation
+    );
+    const notPresentIntermediation = parseDecimalValue(
+      modeData.notPresentIntermediation
+    );
+    const presentTransaction = parseDecimalValue(modeData.presentTransaction);
+    const notPresentTransaction = parseDecimalValue(
+      modeData.notPresentTransaction
+    );
+
+    console.log("[DEBUG] Valores convertidos:", {
+      presentIntermediation,
+      notPresentIntermediation,
+      presentTransaction,
+      notPresentTransaction,
+    });
+
     // Preparar dados para inserção/atualização
     const productTypeData = {
       slug: `${productType}-${Date.now()}`,
@@ -268,25 +323,76 @@ async function processProductType(
       producttype: productType,
       installmentTransactionFeeStart: installmentStart || 0,
       installmentTransactionFeeEnd: installmentEnd || 0,
-      cardTransactionFee: sql`${parseFloat(modeData.presentTransaction || "0")}`,
-      cardTransactionMdr: sql`${parseFloat(modeData.presentIntermediation || "0")}`,
-      nonCardTransactionFee: sql`${parseFloat(modeData.notPresentTransaction || "0")}`,
-      nonCardTransactionMdr: sql`${parseFloat(modeData.notPresentIntermediation || "0")}`,
+      cardTransactionFee: presentTransaction || 0,
+      cardTransactionMdr: sql`${presentIntermediation.toFixed(2)}`,
+      nonCardTransactionFee: notPresentTransaction || 0,
+      nonCardTransactionMdr: sql`${notPresentIntermediation.toFixed(2)}`,
       idFeeBrand: brandId,
     };
 
-    // Se existe, atualizar; senão, criar
+    console.log(
+      "[DEBUG] Dados preparados para inserção/atualização:",
+      productTypeData
+    );
+
+    let productTypeId: number | undefined;
     if (existingProductTypes.length > 0) {
-      const productTypeId = existingProductTypes[0].id;
+      productTypeId = existingProductTypes[0].id;
       await db
         .update(feeBrandProductType)
         .set(productTypeData)
         .where(eq(feeBrandProductType.id, productTypeId));
     } else {
-      await db.insert(feeBrandProductType).values({
-        ...productTypeData,
-        dtinsert: new Date().toISOString(),
-      });
+      const inserted = await db
+        .insert(feeBrandProductType)
+        .values({
+          ...productTypeData,
+          dtinsert: new Date().toISOString(),
+        })
+        .returning({ id: feeBrandProductType.id });
+      productTypeId = inserted[0]?.id;
+    }
+
+    // Salvar/atualizar feeCredit para antecipação compulsória
+    if (productTypeId) {
+      // Buscar se já existe feeCredit para este feeBrandProductType e installment
+      const existingFeeCredit = await db
+        .select()
+        .from(feeCredit)
+        .where(
+          and(
+            eq(feeCredit.idFeeBrandProductType, productTypeId),
+            eq(feeCredit.installmentNumber, installmentStart || 0)
+          )
+        );
+
+      // Converte para string ou null
+      const compulsoryAnticipation = modeData.presentAnticipation
+        ? parseDecimalValue(modeData.presentAnticipation).toFixed(2)
+        : null;
+      const noCardCompulsoryAnticipation = modeData.notPresentAnticipation
+        ? parseDecimalValue(modeData.notPresentAnticipation).toFixed(2)
+        : null;
+
+      if (existingFeeCredit.length > 0) {
+        await db
+          .update(feeCredit)
+          .set({
+            compulsoryAnticipation,
+            noCardCompulsoryAnticipation,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(feeCredit.id, existingFeeCredit[0].id));
+      } else {
+        await db.insert(feeCredit).values({
+          installmentNumber: installmentStart || 0,
+          compulsoryAnticipation,
+          noCardCompulsoryAnticipation,
+          idFeeBrandProductType: productTypeId,
+          dtinsert: new Date().toISOString(),
+          dtupdate: new Date().toISOString(),
+        });
+      }
     }
 
     return { success: true };

@@ -47,6 +47,8 @@ export const schemaFee = z.object({
   nonCardPixMinimumCostFee: z.number().optional(),
   code: z.string().max(50).optional(),
   feeBrand: z.array(schemaFeeBrand).optional(),
+  mcc: z.string().optional(),
+  cnae: z.string().optional(),
 });
 
 export type FeeNewSchema = z.infer<typeof schemaFee>;
