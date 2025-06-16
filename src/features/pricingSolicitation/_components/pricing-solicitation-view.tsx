@@ -512,14 +512,14 @@ export function PricingSolicitationView({
               </div>
               <div>
                 <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                  <div className="h-4 w-4 rounded border flex items-center justify-center">
-                    {cnaeInUse && (
+                  {cnaeInUse && (
+                    <div className="h-4 w-4 rounded border flex items-center justify-center">
                       <span className="h-2 w-2 bg-black rounded-sm" />
-                    )}
-                  </div>
-                  <div className="space-y-1 leading-none">
+                    </div>
+                  )}
+                  {/*<div className="space-y-1 leading-none">
                     <FormLabel>CNAE em uso?</FormLabel>
-                  </div>
+                  </div>*/}
                 </div>
               </div>
             </div>
