@@ -75,7 +75,7 @@ interface MenuItem {
 interface MenuData {
   teams: {
     name: string;
-    logo: LucideIcon;
+    logo: string;
     plan: string;
   }[];
   navMain: MenuItem[];
@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         const transformedData = {
           teams: data.teams.map((team: any) => ({
             ...team,
-            logo: iconMap[team.logo] || DollarSignIcon,
+            logoUrl: team.logo || HomeIcon,
           })),
           navMain: data.navMain.map((item: any) => ({
             ...item,

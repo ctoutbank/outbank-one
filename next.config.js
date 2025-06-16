@@ -3,6 +3,14 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'file-upload-outbank.s3.amazonaws.com',
+      },
+    ],
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { validateUserAccessBySubdomain } from "@/app/actions/validateSubdomain";
+
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +41,9 @@ export function SignInForm() {
     return "Ocorreu um erro. Por favor, tente novamente";
   };
 
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -46,6 +51,17 @@ export function SignInForm() {
     try {
       setError("");
       setIsLoading(true);
+
+      const host = window.location.hostname;
+      const subdomain = host.split(".")[0];
+
+      const validation = await validateUserAccessBySubdomain(email, subdomain);
+
+      if (!validation.authorized) {
+        setError(validation.reason || "Credenciais inválidas");
+        return;
+      }
+
 
       // Passo 1: Verificar se é o primeiro login
       const checkResponse = await fetch("/api/check-user", {
@@ -57,7 +73,7 @@ export function SignInForm() {
       const checkData = await checkResponse.json();
 
       if (!checkResponse.ok) {
-        setError(checkData.error || "Erro ao verificar usuário");
+        setError(checkData.error || "Credenciais inválidas");
         return;
       }
 
@@ -72,7 +88,7 @@ export function SignInForm() {
         const bancoLogin = await bancoLoginResponse.json();
 
         if (!bancoLoginResponse.ok) {
-          setError(bancoLogin.error || "Erro ao logar via banco");
+          setError(bancoLogin.error || "Credenciais inválidas");
           return;
         }
 
