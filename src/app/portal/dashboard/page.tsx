@@ -75,7 +75,7 @@ export default async function SalesDashboard({
         <div className="mb-6">{/* <DashboardFilters /> */}</div>
 
         <Suspense fallback={<div>Carregando...</div>}>
-          <Card className="w-full border-l-8 border-black bg-sidebar">
+          <Card className="w-full border-l-8 border-black bg-white">
             <div className="flex items-center justify-between">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
