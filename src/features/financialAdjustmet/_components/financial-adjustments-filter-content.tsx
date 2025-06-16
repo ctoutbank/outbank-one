@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { adjustmentTypes } from "@/lib/lookuptables/lookuptables-adjustment";
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
@@ -97,7 +98,7 @@ export function FinancialAdjustmentsFilterContent({
     >
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <div className="text-xs font-medium mb-1.5">Buscar</div>
+          <div className="text-xs font-medium mb-1.5">Título</div>
           <Input
             placeholder="Título ou descrição..."
             value={search}
@@ -118,33 +119,26 @@ export function FinancialAdjustmentsFilterContent({
             </SelectTrigger>
             <SelectContent onMouseDown={(e) => e.stopPropagation()}>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="CREDIT">Crédito</SelectItem>
-              <SelectItem value="DEBIT">Débito</SelectItem>
-              <SelectItem value="ADJUSTMENT">Ajuste</SelectItem>
-              <SelectItem value="REFUND">Reembolso</SelectItem>
+              {adjustmentTypes.map((adjustmentType) => (
+                <SelectItem
+                  key={adjustmentType.value}
+                  value={adjustmentType.value}
+                >
+                  {adjustmentType.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div>
           <div className="text-xs font-medium mb-1.5">Motivo</div>
-          <Select
-            value={reason || "all"}
-            onValueChange={(value) => setReason(value === "all" ? "" : value)}
-          >
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Selecione o motivo" />
-            </SelectTrigger>
-            <SelectContent onMouseDown={(e) => e.stopPropagation()}>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="CHARGEBACK">Chargeback</SelectItem>
-              <SelectItem value="DISPUTE">Disputa</SelectItem>
-              <SelectItem value="REFUND">Reembolso</SelectItem>
-              <SelectItem value="FEE_ADJUSTMENT">Ajuste de Taxa</SelectItem>
-              <SelectItem value="TECHNICAL_ERROR">Erro Técnico</SelectItem>
-              <SelectItem value="OTHER">Outros</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            placeholder="Digite o motivo..."
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="h-9"
+          />
         </div>
 
         <div>
