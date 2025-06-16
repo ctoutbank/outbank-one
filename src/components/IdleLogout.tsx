@@ -1,6 +1,6 @@
-'use client';
-import { useClerk } from '@clerk/nextjs';
-import { useIdleTimer } from 'react-idle-timer';
+"use client";
+import { useClerk } from "@clerk/nextjs";
+import { useIdleTimer } from "react-idle-timer";
 
 export default function IdleLogout() {
   const { signOut } = useClerk();
@@ -8,7 +8,7 @@ export default function IdleLogout() {
   useIdleTimer({
     timeout: 5 * 60 * 1000,
     onIdle: () => {
-      signOut({ redirectUrl: '/sign-in' });
+      signOut({ redirectUrl: "/auth/sign-in" });
     },
     debounce: 500,
   });

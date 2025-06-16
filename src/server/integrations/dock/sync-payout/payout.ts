@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
-import { and, eq, isNotNull, max, ne } from "drizzle-orm";
+import { and, eq, isNotNull, max } from "drizzle-orm";
 import { cronJobMonitoring, payout } from "../../../../../drizzle/schema";
 import { getOrCreateCustomer } from "../sync-settlements/customer";
 import { getIdBySlugs } from "../sync-settlements/getIdBySlugs";
