@@ -2,13 +2,12 @@
 
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
-import { cronJobMonitoring, customers } from "../../../../../drizzle/schema";
+import { customers } from "../../../../../drizzle/schema";
 import { getIdBySlugs } from "./getIdBySlugs";
 import { Customer } from "./types";
 
 async function insertCustomer(
   customer: Customer[],
-  tableName: string
 ): Promise<{ id: number; slug: string | null }[] | null> {
   try {
     const uniqueCustomers = Array.from(
@@ -37,21 +36,6 @@ async function insertCustomer(
       }
     }
 
-    await db.insert(cronJobMonitoring).values({
-      jobName: "Insert customers to table " + tableName,
-      status: "finalizado",
-      startTime: new Date().toISOString(),
-      logMessage:
-        "Insert customers to table " +
-        tableName +
-        " quantity created: " +
-        countCreated +
-        " quantity checked: " +
-        countChecked +
-        " date time: " +
-        new Date().toISOString(),
-    });
-
     return results;
   } catch (error) {
     console.error("Error inserting customer:", error);
@@ -60,8 +44,7 @@ async function insertCustomer(
 }
 
 export async function getOrCreateCustomer(
-  customer: Customer[],
-  tableName: string
+  customer: Customer[]
 ) {
   try {
     const slugs = customer.map((customer) => customer.slug);
@@ -74,7 +57,7 @@ export async function getOrCreateCustomer(
         )
     );
     if (filteredList.length > 0) {
-      const insertedIds = await insertCustomer(filteredList, tableName);
+      const insertedIds = await insertCustomer(filteredList);
       const nonNullInsertedIds =
         insertedIds
           ?.filter((id) => id.slug !== null)

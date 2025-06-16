@@ -1,0 +1,275 @@
+Documentação das Páginas Públicas - Outbank One
+
+Sumário
+* Landing Page (/)
+* Banking (/banking)
+* Cards (/cards)
+* Acquiring (/acquiring)
+* Componentes Compartilhados
+* Notas Técnicas
+
+----
+
+1. Landing Page (/)
+
+Hero Section
+* Badge: OUTBANK CLOUD
+* Título Principal: The most complete financial services infrastructure for your business
+* Descrição: Offer digital accounts, branded cards, and innovate in payment services with Pix and acquiring solutions. All with security and fraud prevention.
+* Botões:
+  * Button CTA
+  * Learn More
+
+Customer Carousel
+* Carousel de logos de clientes/parceiros (exibe marcas relevantes, responsivo, rotação automática)
+
+Products Section
+* Badge: PRODUCTS
+* Título: Spread financial power
+* Descrição: Be part of the greatest transformation ever seen in financial services and boost your business by spreading financial power around the world.
+* Produtos:
+  * Dock One Platform: Plataforma cloud-native, soluções completas para o mercado latino-americano.
+  * Banking: Soluções financeiras integradas ao core do negócio.
+  * Cards & Credit: Cartões personalizados com sua marca, operação completa.
+  * Acquiring: Solução white-label para adquirência, simplicidade e agilidade.
+  * Fraud Prevention: Redução de riscos ponta a ponta, soluções abrangentes.
+
+Numbers Section
+* Seção com estatísticas e números da empresa (ex: clientes atendidos, transações processadas, presença internacional).
+
+Services Section
+* Badge: SERVICES
+* Título: Reliability and security for your transactions
+* Serviços:
+  * Regulated Pix Participant
+  * VISA, MasterCard, Elo Licenses
+  * Adaptable Global Payment Platform
+  * Comprehensive Infrastructure
+  * Recognized Certifications
+  * Fraud Prevention Security
+
+Success Stories
+*Estrutura sugerida:*
+|| Cliente || Desafio || Solução || Resultados ||
+| Empresa X | Redução de custos | Integração da plataforma Dock | Custos reduzidos em 30% |
+
+Presence
+*Estrutura sugerida:*
+* Lista de países/estados de atuação
+* Destaques de presença internacional
+*Exemplo:* Presente em 10 países da América Latina e Europa.
+
+Depoiments
+*Estrutura sugerida:*
+bq. "A Dock transformou nosso negócio." – João Silva, CEO, Fintech Y
+
+Dock Section
+* Título: Dock Platform
+* Descrição: A Dock é a principal plataforma de infraestrutura financeira da América Latina, oferecendo soluções completas para bancos, fintechs e empresas inovadoras.
+* Missão: Democratizar o acesso a serviços financeiros por meio de tecnologia de ponta.
+* Diferenciais:
+  * Plataforma cloud-native
+  * Certificações internacionais de segurança
+  * Integração rápida via APIs
+  * Suporte especializado
+  * Escalabilidade para grandes volumes
+* Tecnologias:
+  * Microserviços
+  * APIs RESTful
+  * Monitoramento em tempo real
+  * Compliance regulatório
+
+Contact Form
+* Badge: CONTACT US
+* Título: Contact us to schedule a completely free personalized virtual consultation
+* Descrição: Let us understand your business needs and help you transform your digital presence.
+* Campos:
+|| Campo || Obrigatório || Tipo ||
+| Full Name | Sim | Texto |
+| Corporate Email | Sim | Email |
+| Industry | Não | Lista suspensa |
+| Company Name | Sim | Texto |
+| Phone number | Não | Telefone |
+| How can we help? | Sim | Texto livre |
+| Newsletter | Não | Checkbox |
+| Terms & Conditions | Sim | Checkbox |
+* Botão: Schedule Consultation
+* Validação: Campos obrigatórios, consentimento LGPD, feedback de erro
+
+Footer
+* Informações institucionais, links úteis, redes sociais, copyright
+
+----
+
+2. Banking (/banking)
+
+Hero Banking
+* Badge: BANKING
+* Título: BAAS - Banking as a Service
+* Descrição: Security and innovation in 100% compliance with sector regulatory requirements
+* Botões:
+  * Button CTA
+  * Learn More
+* Texto adicional: Boost your business with Outbank
+
+Customer Carousel
+* Carousel de logos de clientes/parceiros
+
+Reasons Section
+* Lista de razões para escolher a plataforma banking (ex: compliance, inovação, suporte, escalabilidade)
+
+CTA Section
+* Chamada para ação específica do segmento banking
+
+Product Features
+* Badge: PRODUCTS
+* Título: Your digital bank, plug & play
+* Descrição: Plataforma bancária completa para criar e oferecer serviços financeiros inovadores.
+* Funcionalidades por Categoria:
+  * Digital Account:
+    * Abertura de conta PF e PJ
+    * Biometria, KYC, AIM, antifraude
+    * Transferências TED, P2P
+    * Pagamento e cobrança de boletos
+    * PIX (chaves, pagamento, cobrança, QR Code)
+    * Segurança: Código, OTP, TOPT
+  * Backoffice & CRM:
+    * Gestão completa de contas e transações
+    * Dashboards de onboarding e transações
+    * Gestão de tarifas, feature flags, parametrização
+  * PJ Module:
+    * Gestão de pagamentos, cobranças, limites
+    * CNAB 240, workflow de pagamentos, conciliação
+  * Cards:
+    * Cartão pré-pago, gestão de transações, dashboards
+    * Gestão de tarifas, feature flags, parametrização
+  * mPOS:
+    * Abertura de conta, biometria, KYC, transferências, PIX, segurança
+  * Cashback & Loyalty:
+    * Gestão de contas, transações, dashboards, tarifas, feature flags
+
+Boost Section
+* Seção sobre como impulsionar o negócio com a plataforma
+
+Why Choose Section
+* Motivos para escolher a solução banking (ex: flexibilidade, segurança, inovação)
+
+Sectors Section
+* Setores atendidos (ex: fintechs, varejo, marketplaces)
+
+Footer
+* Informações institucionais, links úteis
+
+----
+
+3. Cards (/cards)
+
+Hero Cards
+* Badge: CARDS & CREDIT
+* Título: Launch your operation with the largest card processor in Latin America
+* Descrição: Plataforma robusta para criar experiências de pagamento flexíveis, usando licenças Dock ou próprias.
+* Botões:
+  * Button CTA
+  * Learn More
+
+Customer Carousel
+* Carousel de logos de clientes/parceiros
+
+Product Cards
+* Badge: PRODUCTS
+* Título: For all moments, security from end to end. Only with Outbank!
+* Descrição: Cartões personalizados com marcas confiáveis, foco no relacionamento, operação sob responsabilidade da Dock.
+* Texto adicional: Exemplo institucional ou placeholder para customização.
+* Botão: Check the comparison
+
+Card Processing
+* Descrição dos processos de emissão, gestão e processamento de cartões
+
+Flag License
+* Licenças das bandeiras de cartão (VISA, MasterCard, Elo)
+
+Card Sections
+* Credit Card: Operação personalizada, cores e características únicas
+* Private Label Card: Cartão para uso em ecossistemas fechados
+* Multibenefits Card: Cartão multiuso, white label
+* Global Card: Operação internacional, personalização
+
+Dual Card Section
+* Cartões duplos, múltiplas funções em um só produto
+
+Consigned Card Section
+* Cartões consignados, benefícios e diferenciais
+
+Card Benefits Carousel
+* Carousel com benefícios dos cartões (ex: cashback, descontos, aceitação internacional)
+
+Contact Form
+* Mesmo componente da landing page (ver campos e validação acima)
+
+Footer
+* Informações institucionais, links úteis
+
+----
+
+4. Acquiring (/acquiring)
+
+Hero Acquiring
+* Badge: ACQUIRING
+* Título: Become an acquirer and explore new revenue opportunities
+* Descrição: Infraestrutura completa para plataforma de adquirência white-label.
+* Botões:
+  * Button CTA
+  * Learn More
+
+Customer Carousel
+* Carousel de logos de clientes/parceiros
+
+Acquiring Service
+* Descrição dos serviços de adquirência oferecidos
+
+Benefits Section
+* Benefícios da solução de acquiring (ex: agilidade, segurança, integração)
+
+Connect With Us Section
+* Chamada para contato e integração
+
+Capture Models Section
+* Modelos de captura suportados (ex: TEF, POS, e-commerce)
+
+Contact Form
+* Mesmo componente da landing page (ver campos e validação acima)
+
+Footer
+* Informações institucionais, links úteis
+
+----
+
+5. Componentes Compartilhados
+
+Navbar
+* Barra de navegação presente em todas as páginas públicas
+* Links principais, logo, menu mobile, responsividade
+
+Customer Carousel
+* Exibe logos de clientes/parceiros
+* Rotação automática, responsivo
+
+Contact Form
+* Formulário padrão, campos detalhados acima
+* Validação, consentimento LGPD, integração backend
+
+Footer
+* Informações institucionais, links úteis, redes sociais
+
+----
+
+6. Notas Técnicas
+
+* Todas as páginas seguem padrão visual com fundo preto
+* Uso consistente de badges em cinza
+* Botões padrão: "Button CTA" (branco), "Learn More" (transparente com borda)
+* Responsividade mobile-first com Tailwind CSS
+* Animações com Framer Motion
+* Componentes Shadcn UI para interface
+* Componentização e reutilização de elementos
+* Otimização de performance e acessibilidade 

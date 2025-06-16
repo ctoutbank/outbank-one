@@ -15,8 +15,7 @@ export async function insertAntecipationAndRelations(
       ).values()
     );
     const customerids = await getOrCreateCustomer(
-      uniqueCustomersPayout,
-      "payoutAntecipations"
+      uniqueCustomersPayout
     );
     const uniqueMerchantsPayout = Array.from(
       new Map(
@@ -24,8 +23,7 @@ export async function insertAntecipationAndRelations(
       ).values()
     );
     const merchantids = await getOrCreateMerchants(
-      uniqueMerchantsPayout,
-      "payoutAntecipations"
+      uniqueMerchantsPayout
     );
 
     const insertAntecipationVar: InsertAntecipation[] = antecipations.map(

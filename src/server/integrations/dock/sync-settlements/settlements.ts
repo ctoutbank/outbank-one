@@ -22,8 +22,7 @@ export async function insertSettlementAndRelations(settlement: Settlement[]) {
       ).values()
     );
     const customerids = await getOrCreateCustomer(
-      uniqueCustomerPayout,
-      "settlements"
+      uniqueCustomerPayout
     );
 
     const insertSettlement: InsertSettlement[] = settlement.map(
