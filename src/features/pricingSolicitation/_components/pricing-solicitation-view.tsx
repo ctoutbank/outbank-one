@@ -558,13 +558,13 @@ export function PricingSolicitationView({
               </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
+            <div className="w-full overflow-x-auto ">
               <Table className="w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead
                       key="brand"
-                      className="sticky left-0 z-10 bg-white"
+                      className="sticky left-0 z-10 bg-white w-96 "
                     >
                       Bandeiras
                     </TableHead>
@@ -589,8 +589,8 @@ export function PricingSolicitationView({
                 <TableBody>
                   {feesData.map((item) => (
                     <TableRow key={item.brand.value}>
-                      <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                        <div className="flex items-center gap-2">
+                      <TableCell className="font-medium sticky left-0 z-10 bg-white ">
+                        <div className="flex items-center gap-2 w-28">
                           {getCardImage(item.brand.value) && (
                             <img
                               src={getCardImage(item.brand.value)}
@@ -603,28 +603,52 @@ export function PricingSolicitationView({
                           {item.brand.label}
                         </div>
                       </TableCell>
-                      {item.posTypes.map((productType, typeIndex) => (
-                        <>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
-                            className="p-1 text-center"
-                          >
-                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                              {productType.feeAdmin
-                                ? `${productType.feeAdmin}%`
-                                : "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
-                            className="p-1 text-center"
-                          >
-                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                              {productType.fee ? `${productType.fee}%` : "-"}
-                            </div>
-                          </TableCell>
-                        </>
-                      ))}
+                      {item.posTypes.map((productType, typeIndex) => {
+                        const feeAdmin =
+                          typeof productType.feeAdmin === "number"
+                            ? productType.feeAdmin
+                            : typeof productType.feeAdmin === "string"
+                              ? parseFloat(productType.feeAdmin)
+                              : 0;
+                        const fee =
+                          typeof productType.fee === "number"
+                            ? productType.fee
+                            : typeof productType.fee === "string"
+                              ? parseFloat(productType.fee)
+                              : 0;
+                        const difference =
+                          feeAdmin && fee ? (feeAdmin - fee).toFixed(2) : "-";
+
+                        return (
+                          <>
+                            <TableCell
+                              key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                              className="p-1 text-center"
+                            >
+                              <div className="flex items-center justify-center gap-1 relative w-[150px] ">
+                                <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                                  {productType.feeAdmin
+                                    ? `${productType.feeAdmin}%`
+                                    : "-"}
+                                </div>
+                                {difference !== "-" && (
+                                  <div className="text-[9px] text-gray-500  absolute bottom-1 right-0">
+                                    {difference}%
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell
+                              key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                              className="p-1 text-center"
+                            >
+                              <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                                {productType.fee ? `${productType.fee}%` : "-"}
+                              </div>
+                            </TableCell>
+                          </>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -636,8 +660,18 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">MDR</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
-                      {cardPixMdrAdmin ? `${cardPixMdrAdmin}%` : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
+                        {cardPixMdrAdmin ? `${cardPixMdrAdmin}%` : "-"}
+                      </div>
+                      {cardPixMdrAdmin && cardPixMdr && (
+                        <div className="text-[9px] text-gray-500">
+                          {(
+                            parseFloat(cardPixMdrAdmin) - parseFloat(cardPixMdr)
+                          ).toFixed(2)}
+                          %
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 ">
                       {`${cardPixMdr}%` || "-"}
@@ -647,10 +681,21 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Custo Mínimo</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
-                      {cardPixMinimumCostFeeAdmin
-                        ? `R$ ${cardPixMinimumCostFeeAdmin}`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
+                        {cardPixMinimumCostFeeAdmin
+                          ? `R$ ${cardPixMinimumCostFeeAdmin}`
+                          : "-"}
+                      </div>
+                      {cardPixMinimumCostFeeAdmin && cardPixMinimumCostFee && (
+                        <div className="text-[9px] text-gray-500">
+                          R${" "}
+                          {(
+                            parseFloat(cardPixMinimumCostFeeAdmin) -
+                            parseFloat(cardPixMinimumCostFee)
+                          ).toFixed(2)}
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 k">
                       {cardPixMinimumCostFee
@@ -662,10 +707,21 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Custo Máximo</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {cardPixCeilingFeeAdmin
-                        ? `R$ ${cardPixCeilingFeeAdmin}`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {cardPixCeilingFeeAdmin
+                          ? `R$ ${cardPixCeilingFeeAdmin}`
+                          : "-"}
+                      </div>
+                      {cardPixCeilingFeeAdmin && cardPixCeilingFee && (
+                        <div className="text-[9px] text-gray-500">
+                          R${" "}
+                          {(
+                            parseFloat(cardPixCeilingFeeAdmin) -
+                            parseFloat(cardPixCeilingFee)
+                          ).toFixed(2)}
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
@@ -675,10 +731,22 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Antecipação</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {eventualAnticipationFeeAdmin
-                        ? `${eventualAnticipationFeeAdmin}%`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {eventualAnticipationFeeAdmin
+                          ? `${eventualAnticipationFeeAdmin}%`
+                          : "-"}
+                      </div>
+                      {eventualAnticipationFeeAdmin &&
+                        eventualAnticipationFee && (
+                          <div className="text-[9px] text-gray-500">
+                            {(
+                              parseFloat(eventualAnticipationFeeAdmin) -
+                              parseFloat(eventualAnticipationFee)
+                            ).toFixed(2)}
+                            %
+                          </div>
+                        )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {eventualAnticipationFee
@@ -741,7 +809,7 @@ export function PricingSolicitationView({
                 {feesData.map((item) => (
                   <TableRow key={item.brand.value}>
                     <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-28">
                         {getCardImage(item.brand.value) && (
                           <img
                             src={getCardImage(item.brand.value)}
@@ -754,30 +822,56 @@ export function PricingSolicitationView({
                         {item.brand.label}
                       </div>
                     </TableCell>
-                    {item.onlineTypes.map((productType, typeIndex) => (
-                      <>
-                        <TableCell
-                          key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
-                          className="p-1 text-center"
-                        >
-                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                            {productType.noCardFeeAdmin
-                              ? `${productType.noCardFeeAdmin}%`
-                              : "-"}
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
-                          className="p-1 text-center"
-                        >
-                          <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                            {productType.noCardFee
-                              ? `${productType.noCardFee}%`
-                              : "-"}
-                          </div>
-                        </TableCell>
-                      </>
-                    ))}
+                    {item.onlineTypes.map((productType, typeIndex) => {
+                      const noCardFeeAdmin =
+                        typeof productType.noCardFeeAdmin === "number"
+                          ? productType.noCardFeeAdmin
+                          : typeof productType.noCardFeeAdmin === "string"
+                            ? parseFloat(productType.noCardFeeAdmin)
+                            : 0;
+                      const noCardFee =
+                        typeof productType.noCardFee === "number"
+                          ? productType.noCardFee
+                          : typeof productType.noCardFee === "string"
+                            ? parseFloat(productType.noCardFee)
+                            : 0;
+                      const difference =
+                        noCardFeeAdmin && noCardFee
+                          ? (noCardFeeAdmin - noCardFee).toFixed(2)
+                          : "-";
+
+                      return (
+                        <>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="flex items-center justify-center gap-1 relative w-[150px] ">
+                              <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
+                                {productType.noCardFeeAdmin
+                                  ? `${productType.noCardFeeAdmin}%`
+                                  : "-"}
+                              </div>
+                              {difference !== "-" && (
+                                <div className="text-[9px] text-gray-500  absolute bottom-1 right-0">
+                                  {difference}%
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
+                              {productType.noCardFee
+                                ? `${productType.noCardFee}%`
+                                : "-"}
+                            </div>
+                          </TableCell>
+                        </>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
@@ -788,8 +882,19 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">MDR</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {nonCardPixMdrAdmin ? `${nonCardPixMdrAdmin}%` : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {nonCardPixMdrAdmin ? `${nonCardPixMdrAdmin}%` : "-"}
+                      </div>
+                      {nonCardPixMdrAdmin && nonCardPixMdr && (
+                        <div className="text-[9px] text-gray-500">
+                          {(
+                            parseFloat(nonCardPixMdrAdmin) -
+                            parseFloat(nonCardPixMdr)
+                          ).toFixed(2)}
+                          %
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}
@@ -799,10 +904,22 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Custo Mínimo</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {nonCardPixMinimumCostFeeAdmin
-                        ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {nonCardPixMinimumCostFeeAdmin
+                          ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
+                          : "-"}
+                      </div>
+                      {nonCardPixMinimumCostFeeAdmin &&
+                        nonCardPixMinimumCostFee && (
+                          <div className="text-[9px] text-gray-500">
+                            R${" "}
+                            {(
+                              parseFloat(nonCardPixMinimumCostFeeAdmin) -
+                              parseFloat(nonCardPixMinimumCostFee)
+                            ).toFixed(2)}
+                          </div>
+                        )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {nonCardPixMinimumCostFee
@@ -814,10 +931,21 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Custo Máximo</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {nonCardPixCeilingFeeAdmin
-                        ? `R$ ${nonCardPixCeilingFeeAdmin}`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {nonCardPixCeilingFeeAdmin
+                          ? `R$ ${nonCardPixCeilingFeeAdmin}`
+                          : "-"}
+                      </div>
+                      {nonCardPixCeilingFeeAdmin && nonCardPixCeilingFee && (
+                        <div className="text-[9px] text-gray-500">
+                          R${" "}
+                          {(
+                            parseFloat(nonCardPixCeilingFeeAdmin) -
+                            parseFloat(nonCardPixCeilingFee)
+                          ).toFixed(2)}
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {nonCardPixCeilingFee
@@ -829,10 +957,22 @@ export function PricingSolicitationView({
                 <div>
                   <h4 className="font-medium mb-2">Antecipação</h4>
                   <div className="flex gap-2">
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                      {nonCardEventualAnticipationFeeAdmin
-                        ? `${nonCardEventualAnticipationFeeAdmin}%`
-                        : "-"}
+                    <div className="flex items-center gap-1">
+                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
+                        {nonCardEventualAnticipationFeeAdmin
+                          ? `${nonCardEventualAnticipationFeeAdmin}%`
+                          : "-"}
+                      </div>
+                      {nonCardEventualAnticipationFeeAdmin &&
+                        nonCardEventualAnticipationFee && (
+                          <div className="text-[9px] text-gray-500">
+                            {(
+                              parseFloat(nonCardEventualAnticipationFeeAdmin) -
+                              parseFloat(nonCardEventualAnticipationFee)
+                            ).toFixed(2)}
+                            %
+                          </div>
+                        )}
                     </div>
                     <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
                       {nonCardEventualAnticipationFee

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FeeType } from "@/lib/lookuptables/lookuptables";
+import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -222,6 +223,36 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
         selectedAnticipationType === "COMPULSORY"
           ? compulsoryFormRef.current?.getFormData().groups
           : eventualFormRef.current?.getFormData().groups;
+
+      // Lista de todas as bandeiras disponíveis
+      const allBrands = brandList.map((brand) => brand.value);
+
+      // Conjunto de bandeiras selecionadas em todos os grupos
+      const selectedBrands = new Set<string>();
+
+      // Verifica se há grupos e coleta todas as bandeiras selecionadas
+      if (groups && groups.length > 0) {
+        groups.forEach((group) => {
+          if (group.selectedCards && group.selectedCards.length > 0) {
+            group.selectedCards.forEach((brand: string) =>
+              selectedBrands.add(brand)
+            );
+          }
+        });
+      }
+
+      // Verifica se todas as bandeiras foram selecionadas
+      const missingBrands = allBrands.filter(
+        (brand) => !selectedBrands.has(brand)
+      );
+
+      if (missingBrands.length > 0) {
+        toast.error(
+          `Preecha as taxas para todas as bandeiras. Bandeiras faltando: ${missingBrands.join(", ")}`
+        );
+        setIsPending(false);
+        return;
+      }
 
       // Se não temos grupos, não precisamos validar
       if (!groups || groups.length === 0) {
