@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -129,7 +128,7 @@ export function BusinessInfoSection({ control }: BusinessInfoSectionProps) {
             )}
           />
         </div>
-        <div>
+        {/* <div>
           <FormField
             control={control}
             name="cnaeInUse"
@@ -148,7 +147,7 @@ export function BusinessInfoSection({ control }: BusinessInfoSectionProps) {
               </FormItem>
             )}
           />
-        </div>
+        </div>*/}
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
+// Define as rotas públicas que não exigem autenticação
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -23,17 +26,33 @@ const isPublicRoute = createRouteMatcher([
   "/password-create",
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
+export default clerkMiddleware(async (auth, request: NextRequest) => {
+  const hostname = request.headers.get("host") || "";
+
+  // Pega subdomínio, ex: tenant2.lvh.me → tenant2
+  const parts = hostname.split(".");
+  const subdomain = parts.length >= 3 ? parts[0] : null;
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
+
+  const response = NextResponse.next();
+
+  // Define cookie "tenant" se tiver subdomínio válido
+  if (subdomain && !["www", "lvh", "localhost"].includes(subdomain)) {
+    response.cookies.set("tenant", subdomain, {
+      path: "/",
+      httpOnly: false,
+    });
+  }
+
+  return response;
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

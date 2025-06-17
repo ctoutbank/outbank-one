@@ -56,9 +56,9 @@ export function PricingSolicitationReadOnlyView({
                 <span className="h-2 w-2 bg-black rounded-sm" />
               )}
             </div>
-            <div className="space-y-1 leading-none">
+            {/*<div className="space-y-1 leading-none">
               <div className="text-sm font-medium">CNAE em uso?</div>
-            </div>
+            </div>*/}
           </div>
         </div>
 
