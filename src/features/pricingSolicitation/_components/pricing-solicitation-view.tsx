@@ -458,612 +458,647 @@ export function PricingSolicitationView({
   };
 
   return (
-    <Form {...form}>
-      <div className="space-y-8">
-        {/* Card: Dados da Solicitação */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Solicitação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <div className="space-y-2">
-                  <FormLabel>CNAE</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {pricingSolicitation.cnae || "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <FormLabel>MCC</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {pricingSolicitation.mcc || "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <FormLabel>Quantidade de CNPJs</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {cnpjQuantity || "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <FormLabel>Ticket Médio</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {averageTicket ? `R$ ${averageTicket}` : "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <FormLabel>TPV Mensal</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {monthlyPosFee ? `R$ ${monthlyPosFee}` : "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                  {cnaeInUse && (
-                    <div className="h-4 w-4 rounded border flex items-center justify-center">
-                      <span className="h-2 w-2 bg-black rounded-sm" />
+    <div className="w-full min-h-screen box-border relative overflow-x-hidden">
+      <Form {...form}>
+        <div className="space-y-8 w-full max-w-full box-border overflow-x-hidden">
+          {/* Card: Dados da Solicitação */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Solicitação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                  <div className="space-y-2">
+                    <FormLabel>CNAE</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50">
+                      {pricingSolicitation.cnae || "-"}
                     </div>
-                  )}
-                  {/*<div className="space-y-1 leading-none">
+                  </div>
+                </div>
+                <div>
+                  <div className="space-y-2">
+                    <FormLabel>MCC</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50">
+                      {pricingSolicitation.mcc || "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="space-y-2">
+                    <FormLabel>Quantidade de CNPJs</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50">
+                      {cnpjQuantity || "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="space-y-2">
+                    <FormLabel>Ticket Médio</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50">
+                      {averageTicket ? `R$ ${averageTicket}` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="space-y-2">
+                    <FormLabel>TPV Mensal</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50">
+                      {monthlyPosFee ? `R$ ${monthlyPosFee}` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                    {cnaeInUse && (
+                      <div className="h-4 w-4 rounded border flex items-center justify-center">
+                        <span className="h-2 w-2 bg-black rounded-sm" />
+                      </div>
+                    )}
+                    {/*<div className="space-y-1 leading-none">
                     <FormLabel>CNAE em uso?</FormLabel>
                   </div>*/}
-                </div>
-              </div>
-            </div>
-            {cnaeInUse && pricingSolicitation.description && (
-              <div className="mb-6">
-                <div className="space-y-2">
-                  <FormLabel>Descrição</FormLabel>
-                  <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
-                    {pricingSolicitation.description}
                   </div>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              {cnaeInUse && pricingSolicitation.description && (
+                <div className="mb-6">
+                  <div className="space-y-2">
+                    <FormLabel>Descrição</FormLabel>
+                    <div className="p-2 border rounded-md bg-gray-50 min-h-[100px]">
+                      {pricingSolicitation.description}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Card: Taxas Transações POS */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Taxas Transações POS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-amber-100"></div>
-              <span className="text-sm text-gray-600">
-                Oferecido pelo Outbank
-              </span>
-            </div>
-            <div className="flex flex-col gap-4 mb-2">
+          {/* Card: Taxas Transações POS */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Taxas Transações POS
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-blue-100"></div>
-                <span className="text-sm text-gray-600">Solicitado</span>
-              </div>
-            </div>
-
-            <div className="w-full overflow-x-auto ">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead
-                      key="brand"
-                      className="sticky left-0 z-10 bg-white w-96 "
-                    >
-                      Bandeiras
-                    </TableHead>
-                    {SolicitationFeeProductTypeList.map((type, index) => (
-                      <>
-                        <TableHead
-                          key={`${type.value}-feeAdmin-${index}`}
-                          className="text-center min-w-[100px]"
-                        >
-                          {type.label}
-                        </TableHead>
-                        <TableHead
-                          key={`${type.value}-fee-${index}`}
-                          className="text-center min-w-[100px]"
-                        >
-                          {type.label}
-                        </TableHead>
-                      </>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {feesData.map((item) => (
-                    <TableRow key={item.brand.value}>
-                      <TableCell className="font-medium sticky left-0 z-10 bg-white ">
-                        <div className="flex items-center gap-2 w-28">
-                          {getCardImage(item.brand.value) && (
-                            <img
-                              src={getCardImage(item.brand.value)}
-                              alt={item.brand.label}
-                              width={40}
-                              height={24}
-                              className="object-contain"
-                            />
-                          )}
-                          {item.brand.label}
-                        </div>
-                      </TableCell>
-                      {item.posTypes.map((productType, typeIndex) => {
-                        const feeAdmin =
-                          typeof productType.feeAdmin === "number"
-                            ? productType.feeAdmin
-                            : typeof productType.feeAdmin === "string"
-                              ? parseFloat(productType.feeAdmin)
-                              : 0;
-                        const fee =
-                          typeof productType.fee === "number"
-                            ? productType.fee
-                            : typeof productType.fee === "string"
-                              ? parseFloat(productType.fee)
-                              : 0;
-                        const difference =
-                          feeAdmin && fee ? (feeAdmin - fee).toFixed(2) : "-";
-
-                        return (
-                          <>
-                            <TableCell
-                              key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
-                              className="p-1 text-center"
-                            >
-                              <div className="flex items-center justify-center gap-1 relative w-[150px] ">
-                                <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                                  {productType.feeAdmin
-                                    ? `${productType.feeAdmin}%`
-                                    : "-"}
-                                </div>
-                                {difference !== "-" && (
-                                  <div className="text-[9px] text-gray-500  absolute bottom-1 right-0">
-                                    {difference}%
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell
-                              key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
-                              className="p-1 text-center"
-                            >
-                              <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                                {productType.fee ? `${productType.fee}%` : "-"}
-                              </div>
-                            </TableCell>
-                          </>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-4">PIX </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <h4 className="font-medium mb-2">MDR</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
-                        {cardPixMdrAdmin ? `${cardPixMdrAdmin}%` : "-"}
-                      </div>
-                      {cardPixMdrAdmin && cardPixMdr && (
-                        <div className="text-[9px] text-gray-500">
-                          {(
-                            parseFloat(cardPixMdrAdmin) - parseFloat(cardPixMdr)
-                          ).toFixed(2)}
-                          %
-                        </div>
-                      )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 ">
-                      {`${cardPixMdr}%` || "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100 ">
-                        {cardPixMinimumCostFeeAdmin
-                          ? `R$ ${cardPixMinimumCostFeeAdmin}`
-                          : "-"}
-                      </div>
-                      {cardPixMinimumCostFeeAdmin && cardPixMinimumCostFee && (
-                        <div className="text-[9px] text-gray-500">
-                          R${" "}
-                          {(
-                            parseFloat(cardPixMinimumCostFeeAdmin) -
-                            parseFloat(cardPixMinimumCostFee)
-                          ).toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100 k">
-                      {cardPixMinimumCostFee
-                        ? `R$ ${cardPixMinimumCostFee}`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Máximo</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {cardPixCeilingFeeAdmin
-                          ? `R$ ${cardPixCeilingFeeAdmin}`
-                          : "-"}
-                      </div>
-                      {cardPixCeilingFeeAdmin && cardPixCeilingFee && (
-                        <div className="text-[9px] text-gray-500">
-                          R${" "}
-                          {(
-                            parseFloat(cardPixCeilingFeeAdmin) -
-                            parseFloat(cardPixCeilingFee)
-                          ).toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Antecipação</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {eventualAnticipationFeeAdmin
-                          ? `${eventualAnticipationFeeAdmin}%`
-                          : "-"}
-                      </div>
-                      {eventualAnticipationFeeAdmin &&
-                        eventualAnticipationFee && (
-                          <div className="text-[9px] text-gray-500">
-                            {(
-                              parseFloat(eventualAnticipationFeeAdmin) -
-                              parseFloat(eventualAnticipationFee)
-                            ).toFixed(2)}
-                            %
-                          </div>
-                        )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {eventualAnticipationFee
-                        ? `${eventualAnticipationFee}%`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card: Taxas Transações Online */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Taxas Transações Online
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex flex-col gap-4 mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-amber-100"></div>
+                <div className="w-4 h-4 rounded-full bg-amber-100" />
                 <span className="text-sm text-gray-600">
                   Oferecido pelo Outbank
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-blue-100"></div>
-                <span className="text-sm text-gray-600">Solicitado</span>
+              <div className="flex flex-col gap-4 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-100" />
+                  <span className="text-sm text-gray-600">Solicitado</span>
+                </div>
               </div>
-            </div>
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 z-10 bg-white">
-                    Bandeiras
-                  </TableHead>
-                  {SolicitationFeeProductTypeList.map((type, index) => (
-                    <>
+              <div className="w-full overflow-x-auto overflow-y-visible max-w-full">
+                <Table className="w-full text-xs min-w-[900px] table-fixed">
+                  <TableHeader>
+                    <TableRow>
                       <TableHead
-                        key={`${type.value}-noCardFeeAdmin-${index}`}
-                        className="text-center min-w-[100px]"
+                        key="brand"
+                        className="sticky left-0 z-20 bg-white w-20"
+                        style={{ width: "20%", minWidth: "120px" }}
                       >
-                        {type.label}
+                        Bandeiras
                       </TableHead>
-                      <TableHead
-                        key={`${type.value}-noCardFee-${index}`}
-                        className="text-center min-w-[100px]"
-                      >
-                        {type.label}
-                      </TableHead>
-                    </>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feesData.map((item) => (
-                  <TableRow key={item.brand.value}>
-                    <TableCell className="font-medium sticky left-0 z-10 bg-white">
-                      <div className="flex items-center gap-2 w-28">
-                        {getCardImage(item.brand.value) && (
-                          <img
-                            src={getCardImage(item.brand.value)}
-                            alt={item.brand.label}
-                            width={40}
-                            height={24}
-                            className="object-contain"
-                          />
-                        )}
-                        {item.brand.label}
-                      </div>
-                    </TableCell>
-                    {item.onlineTypes.map((productType, typeIndex) => {
-                      const noCardFeeAdmin =
-                        typeof productType.noCardFeeAdmin === "number"
-                          ? productType.noCardFeeAdmin
-                          : typeof productType.noCardFeeAdmin === "string"
-                            ? parseFloat(productType.noCardFeeAdmin)
-                            : 0;
-                      const noCardFee =
-                        typeof productType.noCardFee === "number"
-                          ? productType.noCardFee
-                          : typeof productType.noCardFee === "string"
-                            ? parseFloat(productType.noCardFee)
-                            : 0;
-                      const difference =
-                        noCardFeeAdmin && noCardFee
-                          ? (noCardFeeAdmin - noCardFee).toFixed(2)
-                          : "-";
-
-                      return (
+                      {SolicitationFeeProductTypeList.map((type, index) => (
                         <>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
-                            className="p-1 text-center"
+                          <TableHead
+                            key={`${type.value}-feeAdmin-${index}`}
+                            className="text-center"
+                            style={{ width: "9%" }}
                           >
-                            <div className="flex items-center justify-center gap-1 relative w-[150px] ">
-                              <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-amber-100">
-                                {productType.noCardFeeAdmin
-                                  ? `${productType.noCardFeeAdmin}%`
-                                  : "-"}
-                              </div>
-                              {difference !== "-" && (
-                                <div className="text-[9px] text-gray-500  absolute bottom-1 right-0">
-                                  {difference}%
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell
-                            key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
-                            className="p-1 text-center"
+                            {type.label}
+                          </TableHead>
+                          <TableHead
+                            key={`${type.value}-diff-${index}`}
+                            className="text-center text-xs"
+                            style={{ width: "7%" }}
+                          ></TableHead>
+                          <TableHead
+                            key={`${type.value}-fee-${index}`}
+                            className="text-center"
+                            style={{ width: "9%" }}
                           >
-                            <div className="rounded-full py-1 px-3 inline-block w-[70px] text-center bg-blue-100">
-                              {productType.noCardFee
-                                ? `${productType.noCardFee}%`
-                                : "-"}
-                            </div>
-                          </TableCell>
+                            {type.label}
+                          </TableHead>
                         </>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div>
-              <h3 className="text-lg font-medium mb-4">PIX Online</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <h4 className="font-medium mb-2">MDR</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {nonCardPixMdrAdmin ? `${nonCardPixMdrAdmin}%` : "-"}
-                      </div>
-                      {nonCardPixMdrAdmin && nonCardPixMdr && (
-                        <div className="text-[9px] text-gray-500">
-                          {(
-                            parseFloat(nonCardPixMdrAdmin) -
-                            parseFloat(nonCardPixMdr)
-                          ).toFixed(2)}
-                          %
-                        </div>
-                      )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Mínimo</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {nonCardPixMinimumCostFeeAdmin
-                          ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
-                          : "-"}
-                      </div>
-                      {nonCardPixMinimumCostFeeAdmin &&
-                        nonCardPixMinimumCostFee && (
-                          <div className="text-[9px] text-gray-500">
-                            R${" "}
-                            {(
-                              parseFloat(nonCardPixMinimumCostFeeAdmin) -
-                              parseFloat(nonCardPixMinimumCostFee)
-                            ).toFixed(2)}
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {feesData.map((item) => (
+                      <TableRow key={item.brand.value}>
+                        <TableCell
+                          className="font-medium sticky left-0 z-20 bg-white"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                            {getCardImage(item.brand.value) && (
+                              <img
+                                src={getCardImage(item.brand.value)}
+                                alt={item.brand.label}
+                                width={40}
+                                height={24}
+                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                              />
+                            )}
+                            <span className="truncate">{item.brand.label}</span>
                           </div>
-                        )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {nonCardPixMinimumCostFee
-                        ? `R$ ${nonCardPixMinimumCostFee}`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Custo Máximo</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {nonCardPixCeilingFeeAdmin
-                          ? `R$ ${nonCardPixCeilingFeeAdmin}`
-                          : "-"}
-                      </div>
-                      {nonCardPixCeilingFeeAdmin && nonCardPixCeilingFee && (
-                        <div className="text-[9px] text-gray-500">
-                          R${" "}
-                          {(
-                            parseFloat(nonCardPixCeilingFeeAdmin) -
-                            parseFloat(nonCardPixCeilingFee)
-                          ).toFixed(2)}
+                        </TableCell>
+                        {item.posTypes.map((productType, typeIndex) => {
+                          const feeAdmin =
+                            typeof productType.feeAdmin === "number"
+                              ? productType.feeAdmin
+                              : typeof productType.feeAdmin === "string"
+                                ? parseFloat(productType.feeAdmin)
+                                : 0;
+                          const fee =
+                            typeof productType.fee === "number"
+                              ? productType.fee
+                              : typeof productType.fee === "string"
+                                ? parseFloat(productType.fee)
+                                : 0;
+                          const difference =
+                            feeAdmin && fee ? (feeAdmin - fee).toFixed(2) : "-";
+
+                          return (
+                            <>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="flex items-center justify-center">
+                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
+                                    {productType.feeAdmin
+                                      ? `${productType.feeAdmin}%`
+                                      : "-"}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="text-[10px] text-gray-600 font-medium">
+                                  {difference !== "-" ? `${difference}%` : "-"}
+                                </div>
+                              </TableCell>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                                  {productType.fee
+                                    ? `${productType.fee}%`
+                                    : "-"}
+                                </div>
+                              </TableCell>
+                            </>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="w-full overflow-hidden">
+                <h3 className="text-lg font-medium mb-2">PIX </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">MDR</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {cardPixMdrAdmin ? `${cardPixMdrAdmin}%` : "-"}
                         </div>
-                      )}
-                    </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {nonCardPixCeilingFee
-                        ? `R$ ${nonCardPixCeilingFee}`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Antecipação</h4>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-amber-100">
-                        {nonCardEventualAnticipationFeeAdmin
-                          ? `${nonCardEventualAnticipationFeeAdmin}%`
-                          : "-"}
-                      </div>
-                      {nonCardEventualAnticipationFeeAdmin &&
-                        nonCardEventualAnticipationFee && (
+                        {cardPixMdrAdmin && cardPixMdr && (
                           <div className="text-[9px] text-gray-500">
                             {(
-                              parseFloat(nonCardEventualAnticipationFeeAdmin) -
-                              parseFloat(nonCardEventualAnticipationFee)
+                              parseFloat(cardPixMdrAdmin) -
+                              parseFloat(cardPixMdr)
                             ).toFixed(2)}
                             %
                           </div>
                         )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {`${cardPixMdr}%` || "-"}
+                      </div>
                     </div>
-                    <div className="rounded-full h-8 w-20 flex justify-center items-center text-sm bg-blue-100">
-                      {nonCardEventualAnticipationFee
-                        ? `${nonCardEventualAnticipationFee}%`
-                        : "-"}
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Custo Mínimo</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {cardPixMinimumCostFeeAdmin
+                            ? `R$ ${cardPixMinimumCostFeeAdmin}`
+                            : "-"}
+                        </div>
+                        {cardPixMinimumCostFeeAdmin &&
+                          cardPixMinimumCostFee && (
+                            <div className="text-[9px] text-gray-500">
+                              R${" "}
+                              {(
+                                parseFloat(cardPixMinimumCostFeeAdmin) -
+                                parseFloat(cardPixMinimumCostFee)
+                              ).toFixed(2)}
+                            </div>
+                          )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {cardPixMinimumCostFee
+                          ? `R$ ${cardPixMinimumCostFee}`
+                          : "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Custo Máximo</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {cardPixCeilingFeeAdmin
+                            ? `R$ ${cardPixCeilingFeeAdmin}`
+                            : "-"}
+                        </div>
+                        {cardPixCeilingFeeAdmin && cardPixCeilingFee && (
+                          <div className="text-[9px] text-gray-500">
+                            R${" "}
+                            {(
+                              parseFloat(cardPixCeilingFeeAdmin) -
+                              parseFloat(cardPixCeilingFee)
+                            ).toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Antecipação</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {eventualAnticipationFeeAdmin
+                            ? `${eventualAnticipationFeeAdmin}%`
+                            : "-"}
+                        </div>
+                        {eventualAnticipationFeeAdmin &&
+                          eventualAnticipationFee && (
+                            <div className="text-[9px] text-gray-500">
+                              {(
+                                parseFloat(eventualAnticipationFeeAdmin) -
+                                parseFloat(eventualAnticipationFee)
+                              ).toFixed(2)}
+                              %
+                            </div>
+                          )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {eventualAnticipationFee
+                          ? `${eventualAnticipationFee}%`
+                          : "-"}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Card: Documentos */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Documentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 col-span-2">
-            <div className="mt-4 ">
-              {pricingSolicitation.id && (
-                <ListDocumentDownload
-                  solicitationId={pricingSolicitation.id}
-                  refreshKey={refreshDocsKey}
-                />
-              )}
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Adicionar botão para abrir o diálogo de upload quando status é PENDING */}
-
-            {pricingSolicitation.status === "SEND_DOCUMENTS" && (
-              <div className="flex justify-end ">
-                <Button
-                  onClick={() => setOpenUploadDialog(true)}
-                  className="flex items-center gap-2"
-                >
-                  <UploadIcon className="w-4 h-4" />
-                  Importar Documentos
-                </Button>
+          {/* Card: Taxas Transações Online */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Taxas Transações Online
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
+              <div className="flex flex-col gap-4 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-amber-100" />
+                  <span className="text-sm text-gray-600">
+                    Oferecido pelo Outbank
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-100" />
+                  <span className="text-sm text-gray-600">Solicitado</span>
+                </div>
               </div>
-            )}
-          </CardContent>
-          <CardContent>
-            <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
-              <DialogContent className="sm:max-w-[900px]">
-                <DialogHeader>
-                  <DialogTitle>Importar Documentos</DialogTitle>
-                  <DialogDescription>
-                    Selecione os documentos que deseja anexar à solicitação.
-                  </DialogDescription>
-                </DialogHeader>
-                <FileUpload
-                  title="Documentos"
-                  description="Selecione os documentos que deseja anexar à solicitação."
-                  entityType="solicitationFee"
-                  entityId={Number(pricingSolicitation.id)}
-                  fileType="DOCUMENTOS"
-                  maxSizeMB={5}
-                  acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
-                  onUploadComplete={handleUploadComplete}
-                />
+              <div className="w-full overflow-x-auto overflow-y-visible max-w-full">
+                <Table className="w-full text-xs min-w-[900px] table-fixed">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        className="sticky left-0 z-20 bg-white w-20"
+                        style={{ width: "20%", minWidth: "120px" }}
+                      >
+                        Bandeiras
+                      </TableHead>
+                      {SolicitationFeeProductTypeList.map((type, index) => (
+                        <>
+                          <TableHead
+                            key={`${type.value}-noCardFeeAdmin-${index}`}
+                            className="text-center"
+                            style={{ width: "9%" }}
+                          >
+                            {type.label}
+                          </TableHead>
+                          <TableHead
+                            key={`${type.value}-diff-${index}`}
+                            className="text-center text-xs"
+                            style={{ width: "7%" }}
+                          ></TableHead>
+                          <TableHead
+                            key={`${type.value}-noCardFee-${index}`}
+                            className="text-center"
+                            style={{ width: "9%" }}
+                          >
+                            {type.label}
+                          </TableHead>
+                        </>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {feesData.map((item) => (
+                      <TableRow key={item.brand.value}>
+                        <TableCell
+                          className="font-medium sticky left-0 z-20 bg-white"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                            {getCardImage(item.brand.value) && (
+                              <img
+                                src={getCardImage(item.brand.value)}
+                                alt={item.brand.label}
+                                width={40}
+                                height={24}
+                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                              />
+                            )}
+                            <span className="truncate">{item.brand.label}</span>
+                          </div>
+                        </TableCell>
+                        {item.onlineTypes.map((productType, typeIndex) => {
+                          const noCardFeeAdmin =
+                            typeof productType.noCardFeeAdmin === "number"
+                              ? productType.noCardFeeAdmin
+                              : typeof productType.noCardFeeAdmin === "string"
+                                ? parseFloat(productType.noCardFeeAdmin)
+                                : 0;
+                          const noCardFee =
+                            typeof productType.noCardFee === "number"
+                              ? productType.noCardFee
+                              : typeof productType.noCardFee === "string"
+                                ? parseFloat(productType.noCardFee)
+                                : 0;
+                          const difference =
+                            noCardFeeAdmin && noCardFee
+                              ? (noCardFeeAdmin - noCardFee).toFixed(2)
+                              : "-";
 
-                <DialogFooter>
+                          return (
+                            <>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="flex items-center justify-center">
+                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
+                                    {productType.noCardFeeAdmin
+                                      ? `${productType.noCardFeeAdmin}%`
+                                      : "-"}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="text-[10px] text-gray-600 font-medium">
+                                  {difference !== "-" ? `${difference}%` : "-"}
+                                </div>
+                              </TableCell>
+                              <TableCell
+                                key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                                className="p-1 text-center"
+                              >
+                                <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                                  {productType.noCardFee
+                                    ? `${productType.noCardFee}%`
+                                    : "-"}
+                                </div>
+                              </TableCell>
+                            </>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="w-full overflow-hidden">
+                <h3 className="text-lg font-medium mb-2">PIX Online</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">MDR</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {nonCardPixMdrAdmin ? `${nonCardPixMdrAdmin}%` : "-"}
+                        </div>
+                        {nonCardPixMdrAdmin && nonCardPixMdr && (
+                          <div className="text-[9px] text-gray-500">
+                            {(
+                              parseFloat(nonCardPixMdrAdmin) -
+                              parseFloat(nonCardPixMdr)
+                            ).toFixed(2)}
+                            %
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Custo Mínimo</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {nonCardPixMinimumCostFeeAdmin
+                            ? `R$ ${nonCardPixMinimumCostFeeAdmin}`
+                            : "-"}
+                        </div>
+                        {nonCardPixMinimumCostFeeAdmin &&
+                          nonCardPixMinimumCostFee && (
+                            <div className="text-[9px] text-gray-500">
+                              R${" "}
+                              {(
+                                parseFloat(nonCardPixMinimumCostFeeAdmin) -
+                                parseFloat(nonCardPixMinimumCostFee)
+                              ).toFixed(2)}
+                            </div>
+                          )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {nonCardPixMinimumCostFee
+                          ? `R$ ${nonCardPixMinimumCostFee}`
+                          : "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Custo Máximo</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {nonCardPixCeilingFeeAdmin
+                            ? `R$ ${nonCardPixCeilingFeeAdmin}`
+                            : "-"}
+                        </div>
+                        {nonCardPixCeilingFeeAdmin && nonCardPixCeilingFee && (
+                          <div className="text-[9px] text-gray-500">
+                            R${" "}
+                            {(
+                              parseFloat(nonCardPixCeilingFeeAdmin) -
+                              parseFloat(nonCardPixCeilingFee)
+                            ).toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {nonCardPixCeilingFee
+                          ? `R$ ${nonCardPixCeilingFee}`
+                          : "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1 text-sm">Antecipação</h4>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-amber-100 px-1">
+                          {nonCardEventualAnticipationFeeAdmin
+                            ? `${nonCardEventualAnticipationFeeAdmin}%`
+                            : "-"}
+                        </div>
+                        {nonCardEventualAnticipationFeeAdmin &&
+                          nonCardEventualAnticipationFee && (
+                            <div className="text-[9px] text-gray-500">
+                              {(
+                                parseFloat(
+                                  nonCardEventualAnticipationFeeAdmin
+                                ) - parseFloat(nonCardEventualAnticipationFee)
+                              ).toFixed(2)}
+                              %
+                            </div>
+                          )}
+                      </div>
+                      <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                        {nonCardEventualAnticipationFee
+                          ? `${nonCardEventualAnticipationFee}%`
+                          : "-"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Card: Documentos */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Documentos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 col-span-2">
+              <div className="mt-4">
+                {pricingSolicitation.id && (
+                  <ListDocumentDownload
+                    solicitationId={pricingSolicitation.id}
+                    refreshKey={refreshDocsKey}
+                  />
+                )}
+              </div>
+              {pricingSolicitation.status === "SEND_DOCUMENTS" && (
+                <div className="flex justify-end">
                   <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleCloseUploadDialog}
+                    onClick={() => setOpenUploadDialog(true)}
+                    className="flex items-center gap-2"
                   >
-                    Concluir
+                    <UploadIcon className="w-4 h-4" />
+                    Importar Documentos
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-        {pricingSolicitation.id && (
-          <div className="flex justify-end gap-4 mt-6">
-            {pricingSolicitation.status === "REVIEWED" && (
-              <Button
-                variant="outline"
-                onClick={handleOpenRejectDialog}
-                disabled={isSubmitting}
-                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                </div>
+              )}
+            </CardContent>
+            <CardContent>
+              <Dialog
+                open={openUploadDialog}
+                onOpenChange={setOpenUploadDialog}
               >
-                Recusar
-              </Button>
-            )}
-            {pricingSolicitation.status === "REVIEWED" && (
-              <>
+                <DialogContent className="sm:max-w-[900px]">
+                  <DialogHeader>
+                    <DialogTitle>Importar Documentos</DialogTitle>
+                    <DialogDescription>
+                      Selecione os documentos que deseja anexar à solicitação.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <FileUpload
+                    title="Documentos"
+                    description="Selecione os documentos que deseja anexar à solicitação."
+                    entityType="solicitationFee"
+                    entityId={Number(pricingSolicitation.id)}
+                    fileType="DOCUMENTOS"
+                    maxSizeMB={5}
+                    acceptedFileTypes="pdf,jpeg,jpg,png,gif,bmp,tiff,ico,webp,svg,heic,heif,PNG"
+                    onUploadComplete={handleUploadComplete}
+                  />
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleCloseUploadDialog}
+                    >
+                      Concluir
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+          {pricingSolicitation.id && (
+            <div className="flex justify-end gap-4 mt-6">
+              {pricingSolicitation.status === "REVIEWED" && (
+                <Button
+                  variant="outline"
+                  onClick={handleOpenRejectDialog}
+                  disabled={isSubmitting}
+                  className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                >
+                  Recusar
+                </Button>
+              )}
+              {pricingSolicitation.status === "REVIEWED" && (
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1074,103 +1109,100 @@ export function PricingSolicitationView({
                 >
                   Aceitar
                 </Button>
-              </>
-            )}
-
-            {pricingSolicitation.status === "APPROVED" && (
+              )}
+              {pricingSolicitation.status === "APPROVED" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowUploadDialog(true)}
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Importar e Concluir
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        {/* Modal de Upload de Aditivo */}
+        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
+              <DialogDescription>
+                Faça o upload do aditivo devidamente assinado
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="aditivo">Aditivo Assinado</Label>
+                <Input
+                  id="aditivo"
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx"
+                />
+              </div>
+              {uploadedFile && (
+                <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                  <FileIcon className="h-5 w-5 text-blue-500" />
+                  <span className="text-sm">{uploadedFile.name}</span>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setShowUploadDialog(true)}
+                onClick={() => setShowUploadDialog(false)}
                 disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700 text-white"
               >
-                Importar e Concluir
+                Cancelar
               </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Modal de Upload de Aditivo */}
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
-            <DialogDescription>
-              Faça o upload do aditivo devidamente assinado
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="aditivo">Aditivo Assinado</Label>
-              <Input
-                id="aditivo"
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx"
+              <Button
+                onClick={handleUploadSubmit}
+                disabled={!uploadedFile || isSubmitting}
+              >
+                {isSubmitting ? "Enviando..." : "Enviar Aditivo"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* Modal de Rejeição */}
+        <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmar Rejeição</DialogTitle>
+              <DialogDescription>
+                Informe o motivo da rejeição desta solicitação de taxas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Textarea
+                placeholder="Informe o motivo da rejeição"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="min-h-[100px]"
               />
             </div>
-            {uploadedFile && (
-              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                <FileIcon className="h-5 w-5 text-blue-500" />
-                <span className="text-sm">{uploadedFile.name}</span>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowUploadDialog(false)}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUploadSubmit}
-              disabled={!uploadedFile || isSubmitting}
-            >
-              {isSubmitting ? "Enviando..." : "Enviar Aditivo"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Rejeição */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Rejeição</DialogTitle>
-            <DialogDescription>
-              Informe o motivo da rejeição desta solicitação de taxas.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Textarea
-              placeholder="Informe o motivo da rejeição"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowRejectDialog(false)}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleReject}
-              disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isSubmitting ? "Processando..." : "Rejeitar Solicitação"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Form>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowRejectDialog(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleReject}
+                disabled={isSubmitting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isSubmitting ? "Processando..." : "Rejeitar Solicitação"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </Form>
+    </div>
   );
 }
