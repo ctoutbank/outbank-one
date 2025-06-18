@@ -20,10 +20,6 @@ export const adjustmentReasons: SelectItem[] = [
     value: "AJT",
     label: "Ajustes(erros)",
   },
-  {
-    value: "OTHER",
-    label: "Outros",
-  },
 ];
 
 export const adjustmentADE: SelectItem[] = [
