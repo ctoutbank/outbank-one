@@ -16,7 +16,6 @@ import {
   getTransactionsGroupedByShift,
   getTransactionStatusData,
 } from "@/features/merchant/server/merchant-dashboard";
-import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
@@ -171,7 +170,7 @@ export default async function MerchantsPage({
       <BaseBody
         title="Estabelecimentos"
         subtitle={`Visualização de todos os estabelecimentos`}
-        actions={<SyncButton syncType="merchants" />}
+        // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-2 justify-between mb-1">

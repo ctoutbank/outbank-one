@@ -3,7 +3,6 @@ import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SyncButton } from "@/features/sync/syncButton";
 import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
 import TransactionsList from "@/features/transactions/_components/transactions-list";
@@ -151,7 +150,7 @@ export default async function TransactionsPage({
       <BaseBody
         title="Vendas"
         subtitle={`Visualização de todas as vendas`}
-        actions={<SyncButton syncType="transactions" />}
+        // actions={<SyncButton syncType="transactions" />}
       >
         <Suspense
           fallback={
