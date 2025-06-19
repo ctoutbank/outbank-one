@@ -85,15 +85,17 @@ export default function MerchantDisplay({
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(result.message || "Merchant desativado com sucesso");
+        toast.success(
+          result.message || "Estabelecimento desativado com sucesso"
+        );
         // Redirecionar para a lista de merchants após desativar
         router.push("/portal/merchants");
       } else {
-        toast.error(result.error || "Erro ao desativar merchant");
+        toast.error(result.error || "Erro ao desativar estabelecimento");
       }
     } catch (error) {
-      console.error("Erro ao desativar merchant:", error);
-      toast.error("Ocorreu um erro ao desativar o merchant");
+      console.error("Erro ao desativar estabelecimento:", error);
+      toast.error("Ocorreu um erro ao desativar o estabelecimento");
     } finally {
       setIsDeleting(false);
     }
@@ -113,14 +115,15 @@ export default function MerchantDisplay({
                 className="flex items-center gap-1"
               >
                 <Trash2 className="h-4 w-4" />
-                Desativar Merchant
+                Desativar Estabelecimento
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Desativar Merchant</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja desativar o merchant {merchant.name}?
+                  Tem certeza que deseja desativar o Estabelecimento{" "}
+                  {merchant.name}?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
