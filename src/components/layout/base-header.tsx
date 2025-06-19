@@ -9,7 +9,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import ThemeSwitcher from "../theme-switcher";
 import { SidebarTrigger } from "../ui/sidebar";
 
 export type BreadcrumbItem = {
@@ -46,7 +45,7 @@ const BaseHeader = ({
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <ThemeSwitcher />
+      {/* <ThemeSwitcher /> */}
     </header>
   );
 };
