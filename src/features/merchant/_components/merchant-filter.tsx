@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import { FilterMerchantsButton } from "./merchant-filter-button";
 import { FilterMerchantsContent } from "./merchant-filter-content";
 
@@ -22,12 +22,14 @@ export function MerchantFilter(props: MerchantFilterWrapperProps) {
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
-
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setIsFiltersVisible(false);
       }
     }
@@ -40,7 +42,6 @@ export function MerchantFilter(props: MerchantFilterWrapperProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isFiltersVisible]);
-
 
   const handleFilter = (filters: {
     dateFrom?: Date;
@@ -120,26 +121,26 @@ export function MerchantFilter(props: MerchantFilterWrapperProps) {
     (props.salesAgentIn ? 1 : 0);
 
   return (
-      <div ref={filterRef}>
-    <FilterMerchantsButton
-      activeFiltersCount={activeFiltersCount}
-      onClearFilters={handleClearFilters}
-      isFiltersVisible={isFiltersVisible}
-      onVisibilityChange={setIsFiltersVisible}
-    >
-      <FilterMerchantsContent
-        onClose={() => setIsFiltersVisible(false)}
-        dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
-        establishmentIn={props.establishmentIn}
-        statusIn={props.statusIn}
-        stateIn={props.stateIn}
-        emailIn={props.emailIn}
-        cnpjIn={props.cnpjIn}
-        activeIn={props.activeIn}
-        salesAgentIn={props.salesAgentIn}
-        onFilter={handleFilter}
-      />
-    </FilterMerchantsButton>
-      </div>
+    <div ref={filterRef}>
+      <FilterMerchantsButton
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={handleClearFilters}
+        isFiltersVisible={isFiltersVisible}
+        onVisibilityChange={setIsFiltersVisible}
+      >
+        <FilterMerchantsContent
+          onClose={() => setIsFiltersVisible(false)}
+          dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
+          establishmentIn={props.establishmentIn}
+          statusIn={props.statusIn}
+          stateIn={props.stateIn}
+          emailIn={props.emailIn}
+          cnpjIn={props.cnpjIn}
+          activeIn={props.activeIn}
+          salesAgentIn={props.salesAgentIn}
+          onFilter={handleFilter}
+        />
+      </FilterMerchantsButton>
+    </div>
   );
 }
