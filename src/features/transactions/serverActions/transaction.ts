@@ -256,6 +256,8 @@ export async function getTransactions(
     };
   });
 
+
+
   return {
     transactions: result,
     totalCount,
@@ -270,6 +272,26 @@ export type TransactionsGroupedReport = {
   transaction_status: string;
   date: string;
 };
+
+
+export async function getRawTransactionsByDate(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} AND dt_insert < ${dateToUTC}
+  `);
+
+  return result.rows;
+}
 
 export async function normalizeDateRange(
   start: string,
@@ -287,6 +309,27 @@ export async function normalizeDateRange(
   // Final fica como 'YYYY-MM-DDT23:59:59'
   const endDate = `${nextDay}T23:59:59`;
   return { start: startDate, end: endDate };
+}
+
+export async function getCancelledTransactions(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} 
+      AND dt_insert < ${dateToUTC}
+      AND transaction_status = 'DENIED'
+  `);
+
+  return result.rows;
 }
 
 export async function getTransactionsGroupedReport(

@@ -5,8 +5,8 @@ import PaginationWithSizeSelector from "@/components/pagination-with-size-select
 import { getFeesAction } from "@/features/newTax/server/fee-db"
 
 export default async function NewTaxPage({ searchParams }: { searchParams: { page?: string; pageSize?: string } }) {
-    const page = Number(searchParams.page) || 1;
-    const pageSize = Number(searchParams.pageSize) || 10;
+    const page = parseInt(searchParams.page || "1");
+    const pageSize = parseInt(searchParams.pageSize || "20");
 
     const { fees, totalRecords, currentPage, pageSize: returnedPageSize } = await getFeesAction(page, pageSize);
 

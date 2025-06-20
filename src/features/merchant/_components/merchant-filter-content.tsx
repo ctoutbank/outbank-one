@@ -177,7 +177,7 @@ export function FilterMerchantsContent({
                     >
                       <p></p>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Dia de cadastro"}
+                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "dd/mm/aaaa"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
