@@ -5,7 +5,6 @@ import PaginationRecords from "@/components/pagination-Records";
 import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-link-filter";
 import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
-import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
@@ -53,7 +52,7 @@ export default async function PaymentLinkPage({
       <BaseBody
         title="Links de Pagamento"
         subtitle={`Visualização de todos os Links de Pagamento`}
-        actions={<SyncButton syncType="paymentLink" />}
+        // actions={<SyncButton syncType="paymentLink" />}
       >
         <div className="mb-4">
           <PaymentLinkFilter
@@ -66,20 +65,19 @@ export default async function PaymentLinkPage({
         <PaymentLinkList links={paymentLinks} />
 
         {totalRecords > 0 && (
-            <div className="flex items-center justify-between mt-4">
-              <PageSizeSelector
-                  currentPageSize={pageSize}
-                  pageName="portal/paymentLink"
-              />
-              <PaginationRecords
-                  totalRecords={totalRecords}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  pageName="portal/paymentLink"
-              />
-            </div>
+          <div className="flex items-center justify-between mt-4">
+            <PageSizeSelector
+              currentPageSize={pageSize}
+              pageName="portal/paymentLink"
+            />
+            <PaginationRecords
+              totalRecords={totalRecords}
+              currentPage={page}
+              pageSize={pageSize}
+              pageName="portal/paymentLink"
+            />
+          </div>
         )}
-
       </BaseBody>
     </>
   );

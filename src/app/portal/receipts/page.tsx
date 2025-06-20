@@ -6,7 +6,6 @@ import {
   getGlobalSettlement,
   getMerchantAgendaReceipts,
 } from "@/features/merchantAgenda/server/merchantAgenda";
-import { SyncButton } from "@/features/sync/syncButton";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 0;
@@ -58,7 +57,7 @@ export default async function ReceiptsPage({
       <BaseBody
         title="Recebimentos"
         subtitle={`visualização dos Recebimentos`}
-        actions={<SyncButton syncType="payout" />}
+        //actions={<SyncButton syncType="payout" />}
       >
         <MerchantAgendaReceipts
           monthlyData={dailyAmounts}

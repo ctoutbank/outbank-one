@@ -1,12 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FilterPaymentLinkButton } from "./filter-button";
 import { FilterPaymentLinkContent } from "./filter-content";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Plus } from "lucide-react";
 
 type PaymentLinkFilterProps = {
   identifier?: string;
@@ -21,8 +21,6 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-
-
 
   const handleFilter = (filters: {
     identifier: string;
@@ -81,7 +79,7 @@ export function PaymentLinkFilter(props: PaymentLinkFilterProps) {
         <Button asChild className="shrink-0">
           <Link href="/portal/paymentLink/0">
             <Plus className="h-4 w-4" />
-            Novo Link de Pagamento
+            Novo Link
           </Link>
         </Button>
       )}

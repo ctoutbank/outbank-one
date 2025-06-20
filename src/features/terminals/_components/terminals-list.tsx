@@ -32,11 +32,11 @@ export default function TerminalsList({
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
-                Numero Logico
+                Nº Lógico
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
-                Número Serial
+                Nº Serial
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
@@ -83,19 +83,19 @@ export default function TerminalsList({
                       terminal.status === "ACTIVE"
                         ? "success"
                         : terminal.status === "INACTIVE"
-                        ? "destructive"
-                        : terminal.status === "MAINTENANCE"
-                        ? "pending"
-                        : "default"
+                          ? "destructive"
+                          : terminal.status === "MAINTENANCE"
+                            ? "pending"
+                            : "default"
                     }
                   >
                     {terminal.status === "ACTIVE"
                       ? "Ativo"
                       : terminal.status === "INACTIVE"
-                      ? "Inativo"
-                      : terminal.status === "MAINTENANCE"
-                      ? "Manutenção"
-                      : terminal.status || "Desconhecido"}
+                        ? "Inativo"
+                        : terminal.status === "MAINTENANCE"
+                          ? "Manutenção"
+                          : terminal.status || "Desconhecido"}
                   </Badge>
                 </TableCell>
 

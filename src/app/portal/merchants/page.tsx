@@ -11,16 +11,16 @@ import {
   getMerchants,
   getMerchantsWithDashboardData,
 } from "@/features/merchant/server/merchant";
-import { SyncButton } from "@/features/sync/syncButton";
+import {
+  getMerchantsGroupedByRegion,
+  getTransactionsGroupedByShift,
+  getTransactionStatusData,
+} from "@/features/merchant/server/merchant-dashboard";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
-import {
-    getMerchantsGroupedByRegion,
-    getTransactionsGroupedByShift, getTransactionStatusData
-} from "@/features/merchant/server/merchant-dashboard";
 
 export const revalidate = 0;
 
@@ -64,8 +64,7 @@ export default async function MerchantsPage({
     searchParams.salesAgent
   );
 
-
-    // Buscar dados para exportação Excel
+  // Buscar dados para exportação Excel
   const merchantsExcel = await getMerchants(
     search,
     1,
@@ -82,44 +81,52 @@ export default async function MerchantsPage({
 
   const totalRecords = merchants.totalCount;
 
-    const regionData = await getMerchantsGroupedByRegion(
-        search,
-        searchParams.establishment,
-        searchParams.status,
-        searchParams.state,
-        searchParams.dateFrom,
-        searchParams.email,
-        searchParams.cnpj,
-        searchParams.active,
-        searchParams.salesAgent
-    );
+  const regionData = await getMerchantsGroupedByRegion(
+    search,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.state,
+    searchParams.dateFrom,
+    searchParams.email,
+    searchParams.cnpj,
+    searchParams.active,
+    searchParams.salesAgent
+  );
 
-    const shiftData = await getTransactionsGroupedByShift(
-        search,
-        searchParams.establishment,
-        searchParams.status,
-        searchParams.state,
-        searchParams.dateFrom,
-        searchParams.email,
-        searchParams.cnpj,
-        searchParams.active,
-        searchParams.salesAgent
-    );
+  const shiftData = await getTransactionsGroupedByShift(
+    search,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.state,
+    searchParams.dateFrom,
+    searchParams.email,
+    searchParams.cnpj,
+    searchParams.active,
+    searchParams.salesAgent
+  );
 
-    const statusData = await getTransactionStatusData(
-        search,
-        searchParams.establishment,
-        searchParams.status,
-        searchParams.state,
-        searchParams.dateFrom,
-        searchParams.email,
-        searchParams.cnpj,
-        searchParams.active,
-        searchParams.salesAgent
-    );
+  const statusData = await getTransactionStatusData(
+    search,
+    searchParams.establishment,
+    searchParams.status,
+    searchParams.state,
+    searchParams.dateFrom,
+    searchParams.email,
+    searchParams.cnpj,
+    searchParams.active,
+    searchParams.salesAgent
+  );
 
+  // Transformar dados dos merchants para o formato de sugestões do autocomplete
+  const merchantSuggestions = merchants.merchants.map((merchant) => ({
+    id: merchant.merchantid,
+    name: merchant.name,
+    corporateName: merchant.corporate_name,
+    slug: merchant.slug,
+    idDocument: merchant.cnpj,
+  }));
 
-        const merchantData = {
+  const merchantData = {
     totalMerchants: merchants.totalCount,
     activeMerchants: merchants.active_count || 0,
     inactiveMerchants: merchants.inactive_count || 0,
@@ -163,26 +170,24 @@ export default async function MerchantsPage({
       <BaseBody
         title="Estabelecimentos"
         subtitle={`Visualização de todos os estabelecimentos`}
-        actions={<SyncButton syncType="merchants" />}
+        // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-2 justify-between mb-1">
-
-           <div className="flex items-center gap-2">
-            <MerchantFilter
-              establishmentIn={searchParams.establishment}
-              statusIn={searchParams.status}
-              stateIn={searchParams.state}
-              dateFromIn={searchParams.dateFrom}
-              emailIn={searchParams.email}
-              cnpjIn={searchParams.cnpj}
-              activeIn={searchParams.active}
-              salesAgentIn={searchParams.salesAgent}
-            />
-                  <MerchantSearchInput />
-           </div>
             <div className="flex items-center gap-2">
-
+              <MerchantFilter
+                establishmentIn={searchParams.establishment}
+                statusIn={searchParams.status}
+                stateIn={searchParams.state}
+                dateFromIn={searchParams.dateFrom}
+                emailIn={searchParams.email}
+                cnpjIn={searchParams.cnpj}
+                activeIn={searchParams.active}
+                salesAgentIn={searchParams.salesAgent}
+              />
+              <MerchantSearchInput suggestions={merchantSuggestions} />
+            </div>
+            <div className="flex items-center gap-2">
               <ExcelImportButton />
               <ExcelExport
                 data={merchantsExcel.merchants.map((merchant) => ({
@@ -198,10 +203,10 @@ export default async function MerchantsPage({
                     merchant.lockCnpAnticipationOrder
                       ? "Ambos"
                       : merchant.lockCpAnticipationOrder
-                      ? "CP - Cartão Presente"
-                      : merchant.lockCnpAnticipationOrder
-                      ? "CNP - Cartão Não Presente"
-                      : "N/A",
+                        ? "CP - Cartão Presente"
+                        : merchant.lockCnpAnticipationOrder
+                          ? "CNP - Cartão Não Presente"
+                          : "N/A",
                   PIX: merchant.hasPix ? "Sim" : "Não",
                   "Consultor de Vendas": merchant.salesAgentDocument,
                   "Status KYC": merchant.kic_status,
@@ -229,7 +234,6 @@ export default async function MerchantsPage({
               </Button>
             </div>
           </div>
-
 
           <MerchantDashboardContent {...merchantData} />
 

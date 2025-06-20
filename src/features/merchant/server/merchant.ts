@@ -366,7 +366,7 @@ export async function getMerchants(
       revenue:
         typeof merchant.revenue === "string"
           ? parseFloat(merchant.revenue)
-          : merchant.revenue ?? 0,
+          : (merchant.revenue ?? 0),
       id_category: merchant.id_category ?? 0,
       kic_status: merchant.kic_status ?? "N/A",
       corporate_name: merchant.corporate_name ?? " ",
@@ -1439,24 +1439,24 @@ export async function criarFilialMerchant(
     const categoryObject = categoryData
       ? categoryData
       : filialDetail.idCategory
-      ? await db
-          .select()
-          .from(categories)
-          .where(eq(categories.id, filialDetail.idCategory))
-          .limit(1)
-          .then((res) => res[0])
-      : undefined;
+        ? await db
+            .select()
+            .from(categories)
+            .where(eq(categories.id, filialDetail.idCategory))
+            .limit(1)
+            .then((res) => res[0])
+        : undefined;
 
     const legalNatureObject = legalNatureData
       ? legalNatureData
       : filialDetail.idLegalNature
-      ? await db
-          .select()
-          .from(legalNatures)
-          .where(eq(legalNatures.id, filialDetail.idLegalNature))
-          .limit(1)
-          .then((res) => res[0])
-      : undefined;
+        ? await db
+            .select()
+            .from(legalNatures)
+            .where(eq(legalNatures.id, filialDetail.idLegalNature))
+            .limit(1)
+            .then((res) => res[0])
+        : undefined;
 
     // 6. Enviar para a API como uma filial
     try {
@@ -2143,7 +2143,7 @@ export async function getMerchantsWithDashboardData(
     revenue:
       typeof merchant.revenue === "string"
         ? parseFloat(merchant.revenue)
-        : merchant.revenue ?? 0,
+        : (merchant.revenue ?? 0),
     id_category: merchant.id_category ?? 0,
     kic_status: merchant.kic_status ?? "N/A",
     corporate_name: merchant.corporate_name ?? " ",
