@@ -733,7 +733,7 @@ export async function correctTransactions() {
   try {
     const result = await db.execute(sql`
       SELECT slug FROM transactions
-      WHERE brand IS NULL
+      WHERE rrn IS NULL
     `);
 
     const resultRows = result.rows as { slug: string }[];
@@ -745,15 +745,15 @@ export async function correctTransactions() {
         if (data.length > 0) {
           const transaction = data[0];
           console.log(transaction);
-          if (transaction.brand) {
-            console.log("Atualizando brand");
+          if (transaction.rrn) {
+            console.log("Atualizando rrn");
             await db
               .update(transactions)
-              .set({ brand: transaction.brand })
+              .set({ rrn: transaction.rrn })
               .where(eq(transactions.slug, row.slug));
           }
           else{
-            console.log("Não atualizando brand");
+            console.log("Não atualizando rrn");
           }
         }
       } catch (error) {

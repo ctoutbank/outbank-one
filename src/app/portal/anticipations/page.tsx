@@ -81,6 +81,7 @@ export default async function AntecipationsPage({
         breadcrumbItems={[
           { title: "Antecipações", url: "/portal/anticipations" },
         ]}
+        
       />
 
       <BaseBody
