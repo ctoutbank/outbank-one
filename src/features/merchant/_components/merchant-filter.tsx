@@ -129,17 +129,16 @@ export function MerchantFilter(props: MerchantFilterWrapperProps) {
         onVisibilityChange={setIsFiltersVisible}
       >
         <FilterMerchantsContent
-          onClose={() => setIsFiltersVisible(false)}
-          dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
-          establishmentIn={props.establishmentIn}
-          statusIn={props.statusIn}
-          stateIn={props.stateIn}
-          emailIn={props.emailIn}
-          cnpjIn={props.cnpjIn}
-          activeIn={props.activeIn}
-          salesAgentIn={props.salesAgentIn}
-          onFilter={handleFilter}
-        />
+            onClose={() => setIsFiltersVisible(false)}
+            dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
+            establishmentIn={props.establishmentIn}
+            statusIn={props.statusIn}
+            stateIn={props.stateIn}
+            emailIn={props.emailIn}
+            cnpjIn={props.cnpjIn}
+            activeIn={props.activeIn}
+            salesAgentIn={props.salesAgentIn}
+            onFilter={handleFilter} StatusKyc={undefined}        />
       </FilterMerchantsButton>
     </div>
   );
