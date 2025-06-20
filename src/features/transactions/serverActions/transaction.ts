@@ -455,6 +455,7 @@ export async function getTotalTransactionsByMonth(
       "CANCELED",
       "DENIED",
       "PROCESSING",
+      "PENDING",
     ])
   );
 
@@ -635,8 +636,9 @@ export async function getTotalTransactions(
 
   // ignorar transações inválidas
   whereConditions.push(
-    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING')`
+    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')`
   );
+  whereConditions.push(sql`sf.status = 'COMPLETED'`);
 
   const whereClause =
     whereConditions.length > 0
@@ -751,8 +753,7 @@ export async function correctTransactions() {
               .update(transactions)
               .set({ rrn: transaction.rrn })
               .where(eq(transactions.slug, row.slug));
-          }
-          else{
+          } else {
             console.log("Não atualizando rrn");
           }
         }

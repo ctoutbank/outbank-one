@@ -96,7 +96,7 @@ export interface MerchantAgenda {
   rnn: string;
 }
 
-export interface MerchantAgendaList {
+export interface MerchantAgendaListType {
   merchantAgenda: MerchantAgenda[];
   totalCount: number;
   aggregates: {
@@ -148,7 +148,7 @@ export async function getMerchantAgenda(
   settlementDateTo?: string,
   expectedSettlementDateFrom?: string,
   expectedSettlementDateTo?: string
-): Promise<MerchantAgendaList> {
+): Promise<MerchantAgendaListType> {
   const offset = (page - 1) * pageSize;
 
   // Get user's merchant access
@@ -332,7 +332,7 @@ export async function getMerchantAgendaExcel(
     settlementDateTo?: string,
     expectedSettlementDateFrom?: string,
     expectedSettlementDateTo?: string
-): Promise<MerchantAgendaList> {
+): Promise<MerchantAgendaListType> {
 
     // Get user's merchant access
     const userAccess = await getUserMerchantsAccess();

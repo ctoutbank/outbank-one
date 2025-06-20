@@ -32,7 +32,7 @@ export interface MerchantAgendaAdjustment {
   adjustmentType: string | null;
 }
 
-export interface MerchantAgendaAdjustmentList {
+export interface MerchantAgendaAdjustmentListType {
   merchantAgendaAdjustments: MerchantAgendaAdjustment[];
   totalCount: number;
 }
@@ -72,7 +72,7 @@ export async function getMerchantAgendaAdjustment(
   dateFrom?: string,
   dateTo?: string,
   establishment?: string
-): Promise<MerchantAgendaAdjustmentList> {
+): Promise<MerchantAgendaAdjustmentListType> {
   const offset = (page - 1) * pageSize;
 
   // Get user's merchant access

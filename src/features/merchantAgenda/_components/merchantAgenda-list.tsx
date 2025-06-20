@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/table";
 import { Settings } from "lucide-react";
 import { useState } from "react";
-import type { MerchantAgendaList } from "../server/merchantAgenda";
+import type { MerchantAgendaListType } from "../server/merchantAgenda";
 
 interface MerchantAgendaListProps {
-  merchantAgendaList?: MerchantAgendaList;
+  merchantAgendaList?: MerchantAgendaListType;
 }
 
 export default function MerchantAgendaList({
