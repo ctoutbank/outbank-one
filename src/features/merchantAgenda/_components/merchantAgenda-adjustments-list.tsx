@@ -8,10 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { MerchantAgendaAdjustmentList } from "../server/merchantAgendaAdjustment";
+import type { MerchantAgendaAdjustmentListType } from "../server/merchantAgendaAdjustment";
 
 interface MerchantAgendaAdjustmentListProps {
-  merchantAgendaAdjustmentList?: MerchantAgendaAdjustmentList;
+  merchantAgendaAdjustmentList?: MerchantAgendaAdjustmentListType;
 }
 
 export default function MerchantAgendaAdjustmentList({

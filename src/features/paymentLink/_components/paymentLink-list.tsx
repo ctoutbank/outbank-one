@@ -65,8 +65,8 @@ export default function PaymentLinksList({
           <TableHeader>
             <TableRow>
               <TableHead>Data de Criação</TableHead>
-              <TableHead>Identificador do link</TableHead>
-              <TableHead>Link expirará em</TableHead>
+              <TableHead>ID Link</TableHead>
+              <TableHead>Expira em</TableHead>
               <TableHead>Nome do EC</TableHead>
               <TableHead>Link</TableHead>
               <TableHead>Tipo de pagamento</TableHead>

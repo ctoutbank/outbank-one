@@ -261,7 +261,7 @@ export default function PaymentLinkForm({
                       name="linkName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Identificador do link *</FormLabel>
+                          <FormLabel>ID Link *</FormLabel>
                           <FormControl>
                             <Input {...field} value={field.value ?? ""} />
                           </FormControl>
@@ -564,8 +564,8 @@ export default function PaymentLinkForm({
                 {watch("installments") == "1"
                   ? "Crédito à vista"
                   : watch("installments") == null
-                  ? ""
-                  : watch("installments") + "x"}
+                    ? ""
+                    : watch("installments") + "x"}
               </span>
             </div>
           </div>

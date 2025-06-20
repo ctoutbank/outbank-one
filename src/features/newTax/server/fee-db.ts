@@ -19,12 +19,17 @@ export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
   }
 }
 
-export async function getFeesAction(): Promise<FeeData[]> {
+export async function getFeesAction(page = 1, pageSize = 10) {
   try {
-    return await getFees();
+    return await getFees(page, pageSize);
   } catch (error) {
     console.error("Erro ao buscar taxas:", error);
-    return [];
+    return {
+      fees: [],
+      totalRecords: 0,
+      currentPage: page,
+      pageSize,
+    };
   }
 }
 
@@ -208,38 +213,63 @@ function getPaymentModeFromProductType(
 }
 
 // Função para buscar todas as taxas
-export async function getFees(): Promise<FeeData[]> {
+export async function getFees(page: number, pageSize: number): Promise<{
+  fees: FeeData[];
+  totalRecords: number;
+  currentPage: number;
+  pageSize: number;
+}> {
   try {
-    // Buscar todas as taxas no banco de dados
-    const fees = await db.select().from(fee);
+    const offset = (page - 1) * pageSize;
+
+    // 1. Contar total de registros
+    const totalFees = await db
+        .select({ id: fee.id })
+        .from(fee);
+
+    const totalRecords = totalFees.length;
+
+    // 2. Buscar apenas a página atual
+    const paginatedFees = await db
+        .select()
+        .from(fee)
+        .limit(pageSize)
+        .offset(offset);
+
     const feeDataList: FeeData[] = [];
 
-    for (const f of fees) {
+    for (const f of paginatedFees) {
       const brands = await db
-        .select()
-        .from(feeBrand)
-        .where(eq(feeBrand.idFee, f.id));
+          .select()
+          .from(feeBrand)
+          .where(eq(feeBrand.idFee, f.id));
 
       const brandIds = brands.map((b) => b.id);
 
-      // Se não houver marcas, continua para a próxima taxa
-      if (brandIds.length === 0) {
-        feeDataList.push(mapDbDataToFeeData(f, [], []));
-        continue;
-      }
-
-      const productTypes = await db
-        .select()
-        .from(feeBrandProductType)
-        .where(inArray(feeBrandProductType.idFeeBrand, brandIds));
+      const productTypes = brandIds.length
+          ? await db
+              .select()
+              .from(feeBrandProductType)
+              .where(inArray(feeBrandProductType.idFeeBrand, brandIds))
+          : [];
 
       feeDataList.push(mapDbDataToFeeData(f, brands, productTypes));
     }
 
-    return feeDataList;
+    return {
+      fees: feeDataList,
+      totalRecords,
+      currentPage: page,
+      pageSize,
+    };
   } catch (error) {
     console.error("Erro ao buscar taxas:", error);
-    return [];
+    return {
+      fees: [],
+      totalRecords: 0,
+      currentPage: page,
+      pageSize,
+    };
   }
 }
 

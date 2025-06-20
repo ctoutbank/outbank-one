@@ -52,7 +52,7 @@ export default async function PricingSolicitationDetail({
           { title: "Solicitação de Taxas", url: "/portal/pricingSolicitation" },
         ]}
       />
-      <div className="relative">
+      <div className="relative ">
         <BaseBody title="Solicitação de Taxas" subtitle={pageSubtitle}>
           {isReadOnly && pricingSolicitationById ? (
             <div>

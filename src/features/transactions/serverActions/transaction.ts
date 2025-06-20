@@ -455,6 +455,7 @@ export async function getTotalTransactionsByMonth(
       "CANCELED",
       "DENIED",
       "PROCESSING",
+      "PENDING",
     ])
   );
 
@@ -635,8 +636,9 @@ export async function getTotalTransactions(
 
   // ignorar transações inválidas
   whereConditions.push(
-    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING')`
+    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')`
   );
+  whereConditions.push(sql`sf.status = 'COMPLETED'`);
 
   const whereClause =
     whereConditions.length > 0
@@ -733,7 +735,7 @@ export async function correctTransactions() {
   try {
     const result = await db.execute(sql`
       SELECT slug FROM transactions
-      WHERE brand IS NULL
+      WHERE rrn IS NULL
     `);
 
     const resultRows = result.rows as { slug: string }[];
@@ -745,15 +747,14 @@ export async function correctTransactions() {
         if (data.length > 0) {
           const transaction = data[0];
           console.log(transaction);
-          if (transaction.brand) {
-            console.log("Atualizando brand");
+          if (transaction.rrn) {
+            console.log("Atualizando rrn");
             await db
               .update(transactions)
-              .set({ brand: transaction.brand })
+              .set({ rrn: transaction.rrn })
               .where(eq(transactions.slug, row.slug));
-          }
-          else{
-            console.log("Não atualizando brand");
+          } else {
+            console.log("Não atualizando rrn");
           }
         }
       } catch (error) {
@@ -766,4 +767,46 @@ export async function correctTransactions() {
     console.error("Error in correctTransactions:", error);
     throw error; // Re-throw to handle at caller level
   }
+}
+
+
+export async function getCancelledTransactions(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} 
+      AND dt_insert < ${dateToUTC}
+      AND transaction_status = 'DENIED'
+  `);
+
+  return result.rows;
+}
+
+
+export async function getRawTransactionsByDate(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} AND dt_insert < ${dateToUTC}
+  `);
+
+  return result.rows;
 }

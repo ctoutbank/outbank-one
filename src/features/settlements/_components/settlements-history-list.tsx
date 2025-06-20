@@ -31,10 +31,10 @@ export default function SettlementHistorylist({
           <TableHeader>
             <TableRow>
               <TableHead>Data de liquidação</TableHead>
-              <TableHead>Montante bruto das vendas</TableHead>
-              <TableHead>Montante líquido das antecipações</TableHead>
-              <TableHead>Montante da restituição</TableHead>
-              <TableHead>Montante da liquidação</TableHead>
+              <TableHead>Vendas Brutas</TableHead>
+              <TableHead>Antecipações Líquidas</TableHead>
+              <TableHead>Valor Restituído</TableHead>
+              <TableHead>Valor Liquidado</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>

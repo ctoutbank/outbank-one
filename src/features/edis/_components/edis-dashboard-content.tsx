@@ -27,7 +27,7 @@ export function EdisDashboardContent({
             <div className="flex items-center justify-between">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">Arquivos EDI</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {new Date().toLocaleDateString("pt-BR", {
                     day: "2-digit",
                     month: "2-digit",
@@ -52,9 +52,9 @@ export function EdisDashboardContent({
                       <div className="text-center mb-4">
                         <div className="flex items-center gap-2 mb-3">
                           <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-base font-medium">Total de Arquivos</span>
+                          <span className="text-base text-sm font-medium">Total de Arquivos</span>
                         </div>
-                        <div className="text-2xl font-bold text-zinc-900">{totalEdis}</div>
+                        <div className="text-1xl font-bold text-zinc-900">{totalEdis}</div>
                         <div className="text-xs text-muted-foreground mt-1">Total de Arquivos</div>
                       </div>
 
@@ -65,7 +65,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-emerald-500" />
                             <span className="text-xs font-medium text-zinc-600">Ativos</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{activeEdis}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{activeEdis}</div>
                         </div>
 
                         <div className="text-center">
@@ -73,7 +73,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-red-500" />
                             <span className="text-xs font-medium text-zinc-600">Inativos</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{inactiveEdis}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{inactiveEdis}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -90,9 +90,9 @@ export function EdisDashboardContent({
                       <div className="text-center mb-4">
                         <div className="flex items-center gap-2 mb-3">
                           <FileCheck className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-base font-medium">Status Processamento</span>
+                          <span className="text-base text-sm font-medium">Status Processamento</span>
                         </div>
-                        <div className="text-2xl font-bold text-zinc-900">{processedEdis + pendingEdis + errorEdis}</div>
+                        <div className="text-1xl font-bold text-zinc-900">{processedEdis + pendingEdis + errorEdis}</div>
                         <div className="text-xs text-muted-foreground mt-1">Total em Processamento</div>
                       </div>
 
@@ -103,7 +103,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-emerald-500" />
                             <span className="text-xs font-medium text-zinc-600">Processados</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{processedEdis}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{processedEdis}</div>
                         </div>
 
                         <div className="text-center">
@@ -111,7 +111,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-amber-500" />
                             <span className="text-xs font-medium text-zinc-600">Pendentes</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{pendingEdis}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{pendingEdis}</div>
                         </div>
 
                         <div className="text-center">
@@ -119,7 +119,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-red-500" />
                             <span className="text-xs font-medium text-zinc-600">Erros</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{errorEdis}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{errorEdis}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -136,9 +136,9 @@ export function EdisDashboardContent({
                       <div className="text-center mb-4">
                         <div className="flex items-center gap-2 mb-3">
                           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-base font-medium">Tipos de Arquivo</span>
+                          <span className="text-base text-sm font-medium">Tipos de Arquivo</span>
                         </div>
-                        <div className="text-2xl font-bold text-zinc-900">{totalEdis}</div>
+                        <div className="text-1xl font-bold text-zinc-900">{totalEdis}</div>
                         <div className="text-xs text-muted-foreground mt-1">Total por Tipo</div>
                       </div>
 
@@ -149,7 +149,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-blue-500" />
                             <span className="text-xs font-medium text-zinc-600">Remessa</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{Math.round(totalEdis * 0.6)}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{Math.round(totalEdis * 0.6)}</div>
                         </div>
 
                         <div className="text-center">
@@ -157,7 +157,7 @@ export function EdisDashboardContent({
                             <div className="h-2 w-2 rounded-full bg-purple-500" />
                             <span className="text-xs font-medium text-zinc-600">Retorno</span>
                           </div>
-                          <div className="text-sm font-semibold text-zinc-900">{Math.round(totalEdis * 0.4)}</div>
+                          <div className="text-xs font-semibold text-zinc-900">{Math.round(totalEdis * 0.4)}</div>
                         </div>
                       </div>
                     </CardContent>

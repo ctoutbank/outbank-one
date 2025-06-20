@@ -1,228 +1,233 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import * as React from "react"
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { eachDayOfInterval, format, parseISO } from "date-fns"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { GetTotalTransactionsByMonthResult } from "@/features/transactions/serverActions/transaction";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChartContainer } from "@/components/ui/chart"
+import type { GetTotalTransactionsByMonthResult } from "@/features/transactions/serverActions/transaction"
+import DashboardFilters from "./dashboard-filters"
 
 const chartConfig = {
-  count: {
-    label: "Total de Transações",
-  },
-  bruto: {
-    label: "Bruto",
-    color: "hsl(var(--chart-1))",
-  },
-  lucro: {
-    label: "Lucro",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig;
+    bruto: {
+        label: "Vendas",
+        color: "#10b981",
+    },
+    lucro: {
+        label: "Lucro",
+        color: "#1875e0",
+    },
+}
 
-const DAYS_OF_WEEK = [
-  "Domingo",
-  "Segunda",
-  "Terça",
-  "Quarta",
-  "Quinta",
-  "Sexta",
-  "Sábado",
-];
+interface DailyData {
+    date: string
+    bruto: number
+    lucro: number
+    count: number
+}
 
 export function BarChartCustom({
-  chartData,
-  viewMode,
-}: {
-  chartData?: GetTotalTransactionsByMonthResult[];
-  viewMode?: string;
-  isDefault?: boolean;
+                                   transactionsData,
+                                   totalTransactions,
+                                   totalMerchants,
+                                   dateRange,
+                                   canceledTransactions,
+                               }: {
+    chartData?: GetTotalTransactionsByMonthResult[]
+    transactionsData?: any[]
+    viewMode?: string
+    totalTransactions?: any
+    totalMerchants?: number
+    dateRange?: { start: string; end: string }
+    canceledTransactions?: number
 }) {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("bruto");
+    const [hoveredData, setHoveredData] = React.useState<any>(null)
+    const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 })
+    const cardRef = React.useRef<HTMLDivElement>(null)
 
-  const isHourlyView = viewMode === "today" || viewMode === "yesterday";
-  const isWeeklyView = viewMode === "week";
-  const isMonthlyView = viewMode === "month";
-  const isCustomView = viewMode === "custom";
+    // Processamento diário (mantido igual)
+    const dailyData = React.useMemo(() => {
+        if (!dateRange || !transactionsData) return []
 
-  //Serve para mostrar todos os anos mesmo que estejam vazios.
-  const normalizedData = React.useMemo(() => {
-    if (viewMode !== "year" || !chartData) return chartData;
+        const startDate = parseISO(dateRange.start)
+        const endDate = parseISO(dateRange.end)
+        const allDays = eachDayOfInterval({ start: startDate, end: endDate })
 
-    const months = [
-      "jan",
-      "fev",
-      "mar",
-      "abr",
-      "mai",
-      "jun",
-      "jul",
-      "ago",
-      "set",
-      "out",
-      "nov",
-      "dez",
-    ];
+        const dailyMap = new Map<string, DailyData>()
 
-    const monthMap = new Map(
-      chartData.map((item) => {
-        if (!item.date) return [0, item];
-        const monthIndex = new Date(item.date).getMonth();
-        return [monthIndex, item];
-      })
-    );
+        allDays.forEach((day) => {
+            const dateKey = format(day, "yyyy-MM-dd")
+            dailyMap.set(dateKey, {
+                date: dateKey,
+                bruto: 0,
+                lucro: 0,
+                count: 0,
+            })
+        })
 
-    return months.map(
-      (_, index) =>
-        monthMap.get(index) ?? {
-          date: new Date(2025, index, 1).toISOString(), // ou só o índice se preferir
-          bruto: 0,
-          lucro: 0,
-          count: 0,
+        transactionsData.forEach((transaction) => {
+            if (transaction.dt_insert) {
+                try {
+                    const dateKey = format(new Date(transaction.dt_insert), "yyyy-MM-dd")
+                    const existing = dailyMap.get(dateKey)
+
+                    const amount = Number(transaction.total_amount || 0)
+                    const lucro = Number(transaction.profit || transaction.lucro || amount * 0.1)
+
+                    if (existing) {
+                        existing.bruto += amount
+                        existing.lucro += lucro
+                        existing.count += 1
+                    }
+                } catch (error) {
+                    console.error("Erro ao processar transaction:", transaction.dt_insert, error)
+                }
+            }
+        })
+
+        return Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+    }, [transactionsData, dateRange])
+
+    const handleMouseMove = (data: any, event: any) => {
+        if (data && data.activePayload && data.activePayload.length > 0 && cardRef.current) {
+            setHoveredData(data.activePayload[0].payload)
+
+            const cardRect = cardRef.current.getBoundingClientRect()
+            const relativeX = event?.nativeEvent?.clientX - cardRect.left || 0
+            const relativeY = event?.nativeEvent?.clientY - cardRect.top || 0
+
+            setMousePosition({ x: relativeX, y: relativeY })
         }
-    );
-  }, [chartData, viewMode]);
+    }
 
-  const total = React.useMemo(
-    () => ({
-      bruto: chartData?.reduce((acc, curr) => acc + curr.bruto, 0),
-      lucro: chartData?.reduce((acc, curr) => acc + curr.lucro, 0),
-    }),
-    [chartData]
-  );
+    const handleMouseLeave = () => {
+        setHoveredData(null)
+    }
 
-  const getDescription = () => {
-    if (isHourlyView) return "Mostrando o total de transações por hora";
-    if (isWeeklyView)
-      return "Mostrando o total de transações por dia da semana";
-    if (isMonthlyView) return "Mostrando o total de transações por mês";
-    if (isCustomView)
-      return "Mostrando o total de transações no período selecionado";
-    return "Mostrando o total de transações por ano";
-  };
+    const CustomTooltip = () => {
+        if (!hoveredData) return null
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Gráfico de Barras</CardTitle>
-          <CardDescription>{getDescription()}</CardDescription>
-        </div>
-        <div className="flex">
-          {["bruto", "lucro"].map((key) => {
-            const chart = key as keyof typeof chartConfig;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-xs text-muted-foreground">
-                  {chartConfig[chart].label + " (R$)"}
-                </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[key as keyof typeof total]?.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <BarChart
-            accessibilityLayer
-            data={normalizedData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey={
-                isHourlyView
-                  ? "hour"
-                  : isWeeklyView
-                    ? "dayOfWeek"
-                    : isMonthlyView
-                      ? "dayOfMonth"
-                      : "date"
-              }
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                if (isHourlyView) {
-                  return `${value}:00`;
-                }
-                if (isWeeklyView) {
-                  return DAYS_OF_WEEK[value];
-                }
-                if (isMonthlyView) {
-                  return value;
-                }
-                const date = new Date(value);
-                return date.toLocaleDateString("pt-BR", {
-                  month: "short",
-                  year: "numeric",
-                });
-              }}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="sum"
-                  labelFormatter={(value) => {
-                    if (isHourlyView) {
-                      return `${value}:00`;
-                    }
-                    if (isWeeklyView) {
-                      return DAYS_OF_WEEK[value];
-                    }
-                    if (isMonthlyView) {
-                      return `Dia ${value}`;
-                    }
-                    return new Date(value).toLocaleDateString("pt-BR", {
-                      month: "short",
-                      year: "numeric",
-                    });
-                  }}
-                />
-              }
-            />
-            <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+        return (
+            <div
+                className="absolute bg-white rounded shadow-md border p-2 min-w-[160px] z-50 pointer-events-none text-xs"
+                style={{
+                    left: Math.min(mousePosition.x + 8, 200),
+                    top: Math.max(mousePosition.y - 80, 5),
+                }}
+            >
+                <div className="space-y-1">
+                    <div className="font-medium text-gray-800 text-xs border-b pb-1">
+                        {new Date(hoveredData.date).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "short",
+                        })}
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Vendas:</span>
+                        <span className="font-medium text-green-600">
+              {hoveredData.bruto?.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+              })}
+            </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Lucro:</span>
+                        <span className="font-medium text-blue-600">
+              {hoveredData.lucro?.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+              })}
+            </span>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
-            {activeChart === "lucro" ? (
-              <Bar dataKey="count" fill="hsl(var(--chart-3))" />
-            ) : (
-              <Bar dataKey="lucro" fill="hsl(var(--chart-3))" />
-            )}
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+    return (
+        <Card ref={cardRef} className=" w-full border-0 bg-[#05336A] text-white overflow-hidden flex flex-col items-stretch space-y-0 border-b p-0">
+            <div className="absolute inset-0"></div>
+
+            <CardHeader className="relative z-10 pb-1 px-3 py-2">
+                <div className="flex flex-col sm:flex-row lg:flex-row sm:items-start lg:tems-start sm:justify-between lg:justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                        <CardTitle className="text-sm font-medium text-blue-100">Total de Vendas</CardTitle>
+                        <div className="text-xl sm:text-2xl font-bold break-words mt-1">
+                            {(totalTransactions?.sum || 0).toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                            })}
+                        </div>
+                    </div>
+                    <div className="flex-shrink-0 scale-75 origin-top-right">
+                        <DashboardFilters />
+                    </div>
+                </div>
+            </CardHeader>
+
+            <CardContent className="relative z-10 pt-1 px-3 pb-3">
+                <div className="h-16 sm:h-20 mb-3 relative w-full">
+                    <ChartContainer config={chartConfig} className="h-full w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                                data={dailyData}
+                                margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
+                                onMouseMove={handleMouseMove}
+                                onMouseLeave={handleMouseLeave}
+                            >
+                                <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.1)" />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={false} />
+                                <YAxis hide />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="bruto"
+                                    stroke={chartConfig.bruto.color}
+                                    strokeWidth={1.5}
+                                    dot={false}
+                                    activeDot={{ r: 3, fill: chartConfig.bruto.color, stroke: "#fff", strokeWidth: 1 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="lucro"
+                                    stroke={chartConfig.lucro.color}
+                                    strokeWidth={1.5}
+                                    dot={false}
+                                    activeDot={{ r: 3, fill: chartConfig.lucro.color, stroke: "#fff", strokeWidth: 1 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                    <div className="space-y-0.5 min-w-0">
+                        <p className="text-blue-200 text-xs">Lucro</p>
+                        <p className="text-sm font-semibold break-words">
+                            {(totalTransactions?.revenue || 0).toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                            })}
+                        </p>
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                        <p className="text-blue-200 text-xs">Transações</p>
+                        <p className="text-sm font-semibold">{(totalTransactions?.count || 0).toLocaleString("pt-BR")}</p>
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                        <p className="text-blue-200 text-xs">Canceladas</p>
+                        <p className="text-sm font-semibold">{canceledTransactions}</p>
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                        <p className="text-blue-200 text-xs">EC Cadastrados</p>
+                        <p className="text-sm font-semibold">{totalMerchants || 0}</p>
+                    </div>
+                </div>
+            </CardContent>
+
+            {hoveredData && <CustomTooltip />}
+        </Card>
+    )
 }

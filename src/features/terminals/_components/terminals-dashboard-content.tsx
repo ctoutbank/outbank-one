@@ -36,7 +36,7 @@ export function TerminalsDashboardContent({
         <Card className="w-full border-l-8 border-black bg-background">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {new Date().toLocaleDateString("pt-BR", {
                 day: "2-digit",
                 month: "2-digit",
@@ -58,12 +58,12 @@ export function TerminalsDashboardContent({
                     <div className="text-center mb-6">
                       <div className="flex items-center gap-2 mb-4">
                         <HardDrive className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium">Terminais</span>
+                        <span className="text-xs font-medium">Terminais</span>
                       </div>
                       <div className="text-lg font-bold text-zinc-900">
                         {totalTerminals}
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         Total de Terminais
                       </div>
                     </div>
@@ -109,14 +109,14 @@ export function TerminalsDashboardContent({
                   <div className="text-center mb-6">
                     <div className="flex items-center gap-2 mb-4">
                       <CircuitBoard className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">
+                      <span className="text-xs font-medium">
                         Modelos Ativos
                       </span>
                     </div>
                     <div className="text-lg font-bold text-zinc-900">
                       {totalModelosAtivos}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       Total de Modelos Ativos
                     </div>
                   </div>
