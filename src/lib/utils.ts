@@ -171,13 +171,17 @@ export function formatCNPJ(cnpj: string): string {
     8
   )}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
 }
-export function formatCurrency(number: number | undefined | null): string {
-  if (number === undefined || number === null) return "R$ 0,00";
-  return `R$ ${number
-    .toFixed(2)
-    .replace(".", ",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+
+export function formatCurrency(number: number | string | undefined | null): string {
+  const parsed = Number(number);
+  if (isNaN(parsed)) return "R$ 0,00";
+
+  return `R$ ${parsed
+      .toFixed(2)
+      .replace(".", ",")
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
+
 
 export function formatPercentage(value: number): string {
   return `${value}%`;
