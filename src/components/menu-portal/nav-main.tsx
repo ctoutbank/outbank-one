@@ -35,18 +35,18 @@ export function NavMain({
 }) {
   return (
       <SidebarGroup>
-        <SidebarGroupLabel className="text-[7px] px-1 py-0 tracking-tight text-muted-foreground">
+        <SidebarGroupLabel className="text-[6px] px-1 py-0 tracking-tight text-muted-foreground">
           Menu
         </SidebarGroupLabel>
 
-        <SidebarMenu className="space-y-[10px]">
+        <SidebarMenu className="space-y-[8px]">
           {items.map((item) => (
               <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                       asChild
                       tooltip={item.title}
-                      className="h-5 text-[6px] px-1 py-[2px] gap-1"
+                      className="h-5 text-[6px] px-1 py-[2px] gap-1 bg-blue-500"
                       size="sm"
                   >
                     <a href={item.url} className="flex items-center gap-1">
@@ -70,7 +70,7 @@ export function NavMain({
                                 <SidebarMenuSubItem key={subItem.title}>
                                   <SidebarMenuSubButton
                                       asChild
-                                      className="h-2 text-[8px] px-1 py-[2px]"
+                                      className="h-2 text-[6px] px-1 py-[2px]"
                                       size="xs"
                                   >
                                     <a href={subItem.url}>
