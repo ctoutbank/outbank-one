@@ -205,7 +205,7 @@ export function BarChartCustom({
                     <div className="space-y-0.5 min-w-0">
                         <p className="text-blue-200 text-xs">Lucro</p>
                         <p className="text-sm font-semibold break-words">
-                            {formatCurrency(totalTransactions?.revenue || 0) + " R$"}
+                            {formatCurrency(totalTransactions?.revenue || 0)}
                         </p>
                     </div>
                     <div className="space-y-0.5 min-w-0">
