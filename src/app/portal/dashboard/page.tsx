@@ -1,13 +1,13 @@
 import BaseBody from "@/components/layout/base-body"
 import BaseHeader from "@/components/layout/base-header"
 import {
-    getCancelledTransactions,
-    getRawTransactionsByDate,
-    getTotalMerchants,
-    getTotalTransactions,
-    getTotalTransactionsByMonth,
-    getTransactionsGroupedReport,
-    normalizeDateRange,
+  getCancelledTransactions,
+  getRawTransactionsByDate,
+  getTotalMerchants,
+  getTotalTransactions,
+  getTotalTransactionsByMonth,
+  getTransactionsGroupedReport,
+  normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction"
 import { format } from "date-fns"
 import { Suspense } from "react"
