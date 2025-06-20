@@ -69,7 +69,7 @@ export default async function SalesDashboard({
                 totalTransactions={totalTransactions[0]}
                 totalMerchants={totalMerchants[0]?.total || 0}
                 dateRange={{ start: dateRange.start, end: dateRange.end }}
-                canceledTransactions={canceledTransactions[0]?.cancelledCount || 0}
+                canceledTransactions={canceledTransactions.length}
             />
 
             <div className="mt-8">

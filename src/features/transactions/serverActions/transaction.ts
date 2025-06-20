@@ -768,3 +768,45 @@ export async function correctTransactions() {
     throw error; // Re-throw to handle at caller level
   }
 }
+
+
+export async function getCancelledTransactions(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} 
+      AND dt_insert < ${dateToUTC}
+      AND transaction_status = 'DENIED'
+  `);
+
+  return result.rows;
+}
+
+
+export async function getRawTransactionsByDate(dateFrom: string, dateTo: string) {
+  const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
+  const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  const result = await db.execute(sql`
+    SELECT 
+      slug,
+      dt_insert,
+      total_amount,
+      product_type,
+      brand,
+      transaction_status
+    FROM transactions
+    WHERE dt_insert >= ${dateFromUTC} AND dt_insert < ${dateToUTC}
+  `);
+
+  return result.rows;
+}
