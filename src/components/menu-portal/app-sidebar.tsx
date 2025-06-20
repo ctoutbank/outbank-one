@@ -125,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
           <SidebarContent>
-            <div className="p-2 text-center text-destructive text-[9px]">{error || "Failed to load menu"}</div>
+            <div className="p-2 text-center text-destructive text-[6px]">{error || "Failed to load menu"}</div>
           </SidebarContent>
         </Sidebar>
     )
@@ -134,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader className="flex flex-col items-center space-y-0 p-0">
-          <div className="w-full scale-[0.5] origin-center flex justify-between items-center -my-2">
+          <div className="w-full scale-[1] origin-center flex justify-between items-center -my-2">
             <TeamSwitcher teams={menuData.teams} />
             <NotificationIcon/>
           </div>
@@ -145,10 +145,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="flex-1 min-h-0 space-y-0">
             {menuData.navSections.map((section, index) => (
                 <Collapsible key={section.title} defaultOpen className="group/collapsible">
-                  <SidebarGroup className="space-y-0 py-0">
+                  <SidebarGroup className="space-y-0.5 py-0.5">
                     <SidebarGroupLabel asChild className="h-4 pt-2">
                       <CollapsibleTrigger
-                          className="flex w-full items-center justify-between text-[9px] font-semibold text-muted-foreground uppercase tracking-tighter px-0 py-0 pb-2 pt-2 hover:bg-muted hover:text-foreground rounded-sm transition-colors h-4"
+                          className="flex w-full items-center justify-between text-[6px] font-semibold text-muted-foreground uppercase tracking-tighter px-0 py-0 pb-2 pt-2 hover:bg-muted hover:text-foreground rounded-sm transition-colors h-4"
                       >
                         {section.title}
                         <ChevronDown className="ml-auto h-2 w-2 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
@@ -157,7 +157,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                     <CollapsibleContent>
                       <SidebarGroupContent>
-                        <SidebarMenu className="space-y-2">
+                        <SidebarMenu className="space-y-4">
                           <NavMain items={section.items}/>
                         </SidebarMenu>
                       </SidebarGroupContent>
