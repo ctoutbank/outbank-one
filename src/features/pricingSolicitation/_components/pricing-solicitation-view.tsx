@@ -559,13 +559,13 @@ export function PricingSolicitationView({
                 </div>
               </div>
               <div className="w-full overflow-x-auto overflow-y-visible max-w-full">
-                <Table className="w-full text-xs min-w-[900px] table-fixed">
+                <Table className="w-full text-xs min-w-[1000px] table-fixed">
                   <TableHeader>
                     <TableRow>
                       <TableHead
                         key="brand"
                         className="sticky left-0 z-20 bg-white w-20"
-                        style={{ width: "20%", minWidth: "120px" }}
+                        style={{ width: "20%", minWidth: "100 px" }}
                       >
                         Bandeiras
                       </TableHead>
@@ -574,19 +574,19 @@ export function PricingSolicitationView({
                           <TableHead
                             key={`${type.value}-feeAdmin-${index}`}
                             className="text-center"
-                            style={{ width: "9%" }}
+                            style={{ width: "9%", minWidth: "50px" }}
                           >
                             {type.label}
                           </TableHead>
                           <TableHead
                             key={`${type.value}-diff-${index}`}
                             className="text-center text-xs"
-                            style={{ width: "7%" }}
+                            style={{ width: "7%", minWidth: "50px" }}
                           ></TableHead>
                           <TableHead
                             key={`${type.value}-fee-${index}`}
                             className="text-center"
-                            style={{ width: "9%" }}
+                            style={{ width: "9%", minWidth: "50px" }}
                           >
                             {type.label}
                           </TableHead>
