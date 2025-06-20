@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
-import { Eye, EyeOff } from "lucide-react";
+import {Eye, EyeOff, LockIcon, Mail, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -127,7 +127,8 @@ export function SignInForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-1">
+      <div className="space-y-1 relative">
+        <Mail className="absolute left-3 top-11 -translate-y-1/2 text-white" size={18}/>
         <label
           className="text-sm font-medium ml-2 text-gray-300"
           htmlFor="email"
@@ -139,9 +140,9 @@ export function SignInForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Digite seu e-mail ou nome de usuário"
+          placeholder="seu@email.com"
           required
-          className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#CFC8B8]/50"
+          className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#CFC8B8]/50 pl-10"
         />
       </div>
 
@@ -153,14 +154,15 @@ export function SignInForm() {
           Senha
         </label>
         <div className="relative">
+          <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={18} />
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="············"
+            placeholder="Digite sua senha"
             required
-            className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#CFC8B8]/50"
+            className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#CFC8B8]/50 pl-10"
           />
           <button
             type="button"
@@ -186,7 +188,7 @@ export function SignInForm() {
             htmlFor="remember"
             className="text-sm font-medium leading-none text-gray-300/80 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Lembrar-me
+            Manter conectado
           </label>
         </div>
         <Link
@@ -201,11 +203,17 @@ export function SignInForm() {
 
       <Button
         type="submit"
-        className="w-full bg-white text-black hover:bg-white/90 rounded-none"
+        className="w-full bg-white text-black hover:bg-white/90 rounded-2"
         disabled={isLoading || !isLoaded}
       >
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
+
+      <div>
+        <h2 className="text-sm font-semibold text-gray-300/80 sm:text-center">
+          Não tem uma conta? <a className="text-blue-400">Cadastre-se</a>
+        </h2>
+      </div>
     </form>
   );
 }

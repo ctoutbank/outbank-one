@@ -31,7 +31,7 @@ export default async function SalesAgentsPage({
   await checkPagePermission("Configurar Consultor Comercial");
 
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "12");
+  const pageSize = parseInt(searchParams.pageSize || "20");
 
   const salesAgents = await getSalesAgents(
     searchParams.name || "",

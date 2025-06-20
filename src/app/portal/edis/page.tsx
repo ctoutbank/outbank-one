@@ -25,7 +25,7 @@ export default async function EdisPage({
   searchParams: EdisProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "12");
+  const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
 
   // Buscar dados EDIS usando a função de servidor

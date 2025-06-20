@@ -36,7 +36,7 @@ export function SettlementsHistoryDashboardContent({
             <div className="flex items-center justify-between">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">Liquidações</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {new Date().toLocaleDateString("pt-BR", {
                     day: "2-digit",
                     month: "2-digit",
@@ -59,14 +59,14 @@ export function SettlementsHistoryDashboardContent({
                       <div className="text-center mb-6">
                         <div className="flex items-center gap-2 mb-4">
                           <CreditCard className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-lg font-medium">
+                          <span className="text-xs font-medium">
                             Total de Liquidações
                           </span>
                         </div>
                         <div className="text-2xl font-bold text-zinc-900">
                           {totalSettlements}
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1  ">
+                        <div className="text-xs text-muted-foreground mt-1  ">
                           Total de Liquidações
                         </div>
                       </div>
@@ -75,20 +75,20 @@ export function SettlementsHistoryDashboardContent({
                       <div className="flex flex-wrap justify-center gap-8">
                         <div className="flex items-center gap-2">
                           <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                          <span className="text-sm font-medium text-zinc-600">
+                          <span className="text-xs font-medium text-zinc-600">
                             Valor Bruto
                           </span>
-                          <span className="text-sm font-semibold text-zinc-900 ml-2">
+                          <span className="text-xs font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalGrossAmount)}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <div className="h-3 w-3 rounded-full bg-blue-500" />
-                          <span className="text-sm font-medium text-zinc-600">
+                          <span className="text-xs font-medium text-zinc-600">
                             Valor Líquido
                           </span>
-                          <span className="text-sm font-semibold text-zinc-900 ml-2">
+                          <span className="text-xs font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalNetAmount)}
                           </span>
                         </div>
@@ -105,7 +105,7 @@ export function SettlementsHistoryDashboardContent({
                       <div className="text-center mb-6">
                         <div className="flex items-center gap-2 mb-4">
                           <FileCheck className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-lg font-medium">Status</span>
+                          <span className="text-xs font-medium">Status</span>
                         </div>
                         <div className="text-2xl font-bold text-zinc-900">
                           {processingSettlements +
@@ -114,7 +114,7 @@ export function SettlementsHistoryDashboardContent({
                             pendingSettlements +
                             approvedSettlements}
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           Total por Status
                         </div>
                       </div>
@@ -124,11 +124,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-orange-500" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Processando
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {processingSettlements}
                           </div>
                         </div>
@@ -136,11 +136,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-orange-700" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Pendente
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {pendingSettlements}
                           </div>
                         </div>
@@ -148,11 +148,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-blue-600" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Pré-aprovado
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {approvedSettlements}
                           </div>
                         </div>
@@ -160,11 +160,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-green-500" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Aprovado
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {approvedSettlements}
                           </div>
                         </div>
@@ -172,11 +172,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-red-500" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Erro
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {errorSettlements}
                           </div>
                         </div>
@@ -184,11 +184,11 @@ export function SettlementsHistoryDashboardContent({
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                            <span className="text-sm font-medium text-zinc-600">
+                            <span className="text-xs font-medium text-zinc-600">
                               Liquidadas
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-zinc-900">
+                          <div className="text-sm font-semibold text-zinc-900">
                             {processedSettlements}
                           </div>
                         </div>
@@ -205,14 +205,14 @@ export function SettlementsHistoryDashboardContent({
                       <div className="text-center mb-6">
                         <div className="flex items-center gap-2 mb-4">
                           <Wallet className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-lg font-medium">
+                          <span className="text-sm font-medium">
                             Restituições
                           </span>
                         </div>
                         <div className="text-2xl font-bold text-zinc-900">
                           {formatCurrency(totalRestitutionAmount)}
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           Valor Total de Restituições
                         </div>
                       </div>
@@ -221,10 +221,10 @@ export function SettlementsHistoryDashboardContent({
                       <div className="flex flex-wrap justify-center gap-8">
                         <div className="flex items-center gap-2">
                           <div className="h-3 w-3 rounded-full bg-red-500" />
-                          <span className="text-sm font-medium text-zinc-600">
+                          <span className="text-xs font-medium text-zinc-600">
                             Valor Total
                           </span>
-                          <span className="text-sm font-semibold text-zinc-900 ml-2">
+                          <span className="text-xs font-semibold text-zinc-900 ml-2">
                             {formatCurrency(totalRestitutionAmount)}
                           </span>
                         </div>

@@ -30,9 +30,9 @@ export default function CardValue({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {icon && <div className="text-zinc-500">{icon}</div>}
-            <span className="text-sm font-medium text-zinc-600">{title}</span>
+            <span className="text-xs font-medium text-zinc-600">{title}</span>
           </div>
-          <span className="text-2xl font-semibold text-zinc-900">
+          <span className="text-xs font-semibold text-zinc-900">
             {valueType === "currency"
               ? Intl.NumberFormat("pt-BR", {
                   style: "currency",

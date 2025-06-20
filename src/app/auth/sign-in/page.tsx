@@ -34,14 +34,7 @@ export default async function SignInPage({
           {/* Logo */}
           <Link href="/" className="absolute top-8 left-8 z-10">
             <div className="relative p-3 rounded-lg bg-black/40 backdrop-blur-sm shadow-xl">
-              <Image
-                  src={themeData.imageUrl}
-                  alt={`Logo ${nameTenant.slug}`}
-                  width={200}
-                  height={100}
-                  className="h-16 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
-                  quality={100}
-              />
+
             </div>
           </Link>
 
@@ -80,13 +73,25 @@ export default async function SignInPage({
               </Link>
             </div>
 
+              <div className="flex justify-center">
+                  <Image
+                      src={themeData.imageUrl}
+                      alt={`Logo ${nameTenant.slug}`}
+                      width={200}
+                      height={100}
+                      className="h-16 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                      quality={100}
+                  />
+              </div>
+
             {/* Header */}
-            <div className="mb-8 text-center sm:text-left">
-              <h1 className="text-3xl font-light text-white mb-2">
-                Bem-vindo ao {nameTenant.slug}!
+            <div className="mb-8 text-center sm:text-center">
+
+              <h1 className="text-3xl font-bold-light text-white mb-2">
+                Entrar na sua conta
               </h1>
               <p className="text-gray-300/80">
-                Por favor, faça login na sua conta
+                  Acesse o sistema para gerenciar suas cobranças
               </p>
             </div>
 

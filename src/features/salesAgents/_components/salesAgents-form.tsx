@@ -512,7 +512,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center">
-                                            Cpf{" "}
+                                            CPF{" "}
                                             <span className="text-destructive ml-1">*</span>
                                         </FormLabel>
                                         <FormControl>

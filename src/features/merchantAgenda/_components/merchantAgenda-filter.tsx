@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MerchantAgendaFilterButton } from "./merchantAgenda-filter-button";
-import { MerchantAgendaFilterContent } from "./merchantAgenda-filter-content";
+import { MerchantAgendaFilterModalContent } from "./merchantAgenda-filter-content";
 
 type MerchantAgendaFilterProps = {
   dateFromIn?: string;
@@ -142,7 +142,7 @@ export function MerchantAgendaFilter(props: MerchantAgendaFilterProps) {
       onVisibilityChange={setIsFiltersVisible}
       isLoading={isLoading}
     >
-      <MerchantAgendaFilterContent
+      <MerchantAgendaFilterModalContent
         dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
         dateToIn={props.dateToIn ? new Date(props.dateToIn) : undefined}
         establishmentIn={props.establishmentIn}
