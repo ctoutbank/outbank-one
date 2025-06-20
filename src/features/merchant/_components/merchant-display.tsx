@@ -120,7 +120,7 @@ export default function MerchantDisplay({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Desativar Merchant</AlertDialogTitle>
+                <AlertDialogTitle>Desativar Estabelecimento</AlertDialogTitle>
                 <AlertDialogDescription>
                   Tem certeza que deseja desativar o Estabelecimento{" "}
                   {merchant.name}?
