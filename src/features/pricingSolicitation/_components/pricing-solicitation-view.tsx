@@ -15,6 +15,7 @@ import {
 import { Form, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -558,118 +559,126 @@ export function PricingSolicitationView({
                   <span className="text-sm text-gray-600">Solicitado</span>
                 </div>
               </div>
-              <div className="w-full overflow-x-auto overflow-y-visible max-w-full">
-                <Table className="w-full text-xs min-w-[1000px] table-fixed">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead
-                        key="brand"
-                        className="sticky left-0 z-20 bg-white w-20"
-                        style={{ width: "20%", minWidth: "100 px" }}
-                      >
-                        Bandeiras
-                      </TableHead>
-                      {SolicitationFeeProductTypeList.map((type, index) => (
-                        <>
-                          <TableHead
-                            key={`${type.value}-feeAdmin-${index}`}
-                            className="text-center"
-                            style={{ width: "9%", minWidth: "50px" }}
-                          >
-                            {type.label}
-                          </TableHead>
-                          <TableHead
-                            key={`${type.value}-diff-${index}`}
-                            className="text-center text-xs"
-                            style={{ width: "7%", minWidth: "50px" }}
-                          ></TableHead>
-                          <TableHead
-                            key={`${type.value}-fee-${index}`}
-                            className="text-center"
-                            style={{ width: "9%", minWidth: "50px" }}
-                          >
-                            {type.label}
-                          </TableHead>
-                        </>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {feesData.map((item) => (
-                      <TableRow key={item.brand.value}>
-                        <TableCell
-                          className="font-medium sticky left-0 z-20 bg-white"
-                          style={{ minWidth: "120px" }}
+              <ScrollArea className="overflow-y-hidden max-w-screen-md overflow-x-auto">
+                <div className="inline-block min-w-[1200px]">
+                  <Table className="table-auto text-xs ">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead
+                          key="brand"
+                          className="sticky left-0 z-20 bg-white w-20"
+                          style={{ width: "20%", minWidth: "100 px" }}
                         >
-                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                            {getCardImage(item.brand.value) && (
-                              <img
-                                src={getCardImage(item.brand.value)}
-                                alt={item.brand.label}
-                                width={40}
-                                height={24}
-                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
-                              />
-                            )}
-                            <span className="truncate">{item.brand.label}</span>
-                          </div>
-                        </TableCell>
-                        {item.posTypes.map((productType, typeIndex) => {
-                          const feeAdmin =
-                            typeof productType.feeAdmin === "number"
-                              ? productType.feeAdmin
-                              : typeof productType.feeAdmin === "string"
-                                ? parseFloat(productType.feeAdmin)
-                                : 0;
-                          const fee =
-                            typeof productType.fee === "number"
-                              ? productType.fee
-                              : typeof productType.fee === "string"
-                                ? parseFloat(productType.fee)
-                                : 0;
-                          const difference =
-                            feeAdmin && fee ? (feeAdmin - fee).toFixed(2) : "-";
+                          Bandeiras
+                        </TableHead>
+                        {SolicitationFeeProductTypeList.map((type, index) => (
+                          <>
+                            <TableHead
+                              key={`${type.value}-feeAdmin-${index}`}
+                              className="text-center"
+                              style={{ width: "9%", minWidth: "50px" }}
+                            >
+                              {type.label}
+                            </TableHead>
+                            <TableHead
+                              key={`${type.value}-diff-${index}`}
+                              className="text-center text-xs"
+                              style={{ width: "7%", minWidth: "50px" }}
+                            ></TableHead>
+                            <TableHead
+                              key={`${type.value}-fee-${index}`}
+                              className="text-center"
+                              style={{ width: "9%", minWidth: "50px" }}
+                            >
+                              {type.label}
+                            </TableHead>
+                          </>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {feesData.map((item) => (
+                        <TableRow key={item.brand.value}>
+                          <TableCell
+                            className="font-medium sticky left-0 z-20 bg-white"
+                            style={{ minWidth: "120px" }}
+                          >
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                              {getCardImage(item.brand.value) && (
+                                <img
+                                  src={getCardImage(item.brand.value)}
+                                  alt={item.brand.label}
+                                  width={40}
+                                  height={24}
+                                  className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                                />
+                              )}
+                              <span className="truncate">
+                                {item.brand.label}
+                              </span>
+                            </div>
+                          </TableCell>
+                          {item.posTypes.map((productType, typeIndex) => {
+                            const feeAdmin =
+                              typeof productType.feeAdmin === "number"
+                                ? productType.feeAdmin
+                                : typeof productType.feeAdmin === "string"
+                                  ? parseFloat(productType.feeAdmin)
+                                  : 0;
+                            const fee =
+                              typeof productType.fee === "number"
+                                ? productType.fee
+                                : typeof productType.fee === "string"
+                                  ? parseFloat(productType.fee)
+                                  : 0;
+                            const difference =
+                              feeAdmin && fee
+                                ? (feeAdmin - fee).toFixed(2)
+                                : "-";
 
-                          return (
-                            <>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="flex items-center justify-center">
-                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                                    {productType.feeAdmin
-                                      ? `${productType.feeAdmin}%`
+                            return (
+                              <>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-feeAdmin-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="flex items-center justify-center">
+                                    <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
+                                      {productType.feeAdmin
+                                        ? `${productType.feeAdmin}%`
+                                        : "-"}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="text-[10px] text-gray-600 font-medium">
+                                    {difference !== "-"
+                                      ? `${difference}%`
                                       : "-"}
                                   </div>
-                                </div>
-                              </TableCell>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="text-[10px] text-gray-600 font-medium">
-                                  {difference !== "-" ? `${difference}%` : "-"}
-                                </div>
-                              </TableCell>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
-                                  {productType.fee
-                                    ? `${productType.fee}%`
-                                    : "-"}
-                                </div>
-                              </TableCell>
-                            </>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                                </TableCell>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-fee-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                                    {productType.fee
+                                      ? `${productType.fee}%`
+                                      : "-"}
+                                  </div>
+                                </TableCell>
+                              </>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ScrollArea>
               <div className="w-full overflow-hidden">
                 <h3 className="text-lg font-medium mb-2">PIX </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
@@ -799,119 +808,125 @@ export function PricingSolicitationView({
                   <span className="text-sm text-gray-600">Solicitado</span>
                 </div>
               </div>
-              <div className="w-full overflow-x-auto overflow-y-visible max-w-full">
-                <Table className="w-full text-xs min-w-[900px] table-fixed">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead
-                        className="sticky left-0 z-20 bg-white w-20"
-                        style={{ width: "20%", minWidth: "120px" }}
-                      >
-                        Bandeiras
-                      </TableHead>
-                      {SolicitationFeeProductTypeList.map((type, index) => (
-                        <>
-                          <TableHead
-                            key={`${type.value}-noCardFeeAdmin-${index}`}
-                            className="text-center"
-                            style={{ width: "9%" }}
-                          >
-                            {type.label}
-                          </TableHead>
-                          <TableHead
-                            key={`${type.value}-diff-${index}`}
-                            className="text-center text-xs"
-                            style={{ width: "7%" }}
-                          ></TableHead>
-                          <TableHead
-                            key={`${type.value}-noCardFee-${index}`}
-                            className="text-center"
-                            style={{ width: "9%" }}
-                          >
-                            {type.label}
-                          </TableHead>
-                        </>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {feesData.map((item) => (
-                      <TableRow key={item.brand.value}>
-                        <TableCell
-                          className="font-medium sticky left-0 z-20 bg-white"
-                          style={{ minWidth: "120px" }}
+              <ScrollArea className="overflow-y-hidden max-w-screen-md overflow-x-auto">
+                <div className="inline-block min-w-[1200px]">
+                  <Table className="min-w-[1200px] text-xs ">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead
+                          className="sticky left-0 z-20 bg-white w-20"
+                          style={{ width: "28%", minWidth: "120px" }}
                         >
-                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                            {getCardImage(item.brand.value) && (
-                              <img
-                                src={getCardImage(item.brand.value)}
-                                alt={item.brand.label}
-                                width={40}
-                                height={24}
-                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
-                              />
-                            )}
-                            <span className="truncate">{item.brand.label}</span>
-                          </div>
-                        </TableCell>
-                        {item.onlineTypes.map((productType, typeIndex) => {
-                          const noCardFeeAdmin =
-                            typeof productType.noCardFeeAdmin === "number"
-                              ? productType.noCardFeeAdmin
-                              : typeof productType.noCardFeeAdmin === "string"
-                                ? parseFloat(productType.noCardFeeAdmin)
-                                : 0;
-                          const noCardFee =
-                            typeof productType.noCardFee === "number"
-                              ? productType.noCardFee
-                              : typeof productType.noCardFee === "string"
-                                ? parseFloat(productType.noCardFee)
-                                : 0;
-                          const difference =
-                            noCardFeeAdmin && noCardFee
-                              ? (noCardFeeAdmin - noCardFee).toFixed(2)
-                              : "-";
+                          Bandeiras
+                        </TableHead>
+                        {SolicitationFeeProductTypeList.map((type, index) => (
+                          <>
+                            <TableHead
+                              key={`${type.value}-noCardFeeAdmin-${index}`}
+                              className="text-center"
+                              style={{ width: "9%" }}
+                            >
+                              {type.label}
+                            </TableHead>
+                            <TableHead
+                              key={`${type.value}-diff-${index}`}
+                              className="text-center text-xs"
+                              style={{ width: "7%" }}
+                            ></TableHead>
+                            <TableHead
+                              key={`${type.value}-noCardFee-${index}`}
+                              className="text-center"
+                              style={{ width: "9%" }}
+                            >
+                              {type.label}
+                            </TableHead>
+                          </>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {feesData.map((item) => (
+                        <TableRow key={item.brand.value}>
+                          <TableCell
+                            className="font-medium sticky left-0 z-20 bg-white"
+                            style={{ minWidth: "120px" }}
+                          >
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                              {getCardImage(item.brand.value) && (
+                                <img
+                                  src={getCardImage(item.brand.value)}
+                                  alt={item.brand.label}
+                                  width={40}
+                                  height={24}
+                                  className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                                />
+                              )}
+                              <span className="truncate">
+                                {item.brand.label}
+                              </span>
+                            </div>
+                          </TableCell>
+                          {item.onlineTypes.map((productType, typeIndex) => {
+                            const noCardFeeAdmin =
+                              typeof productType.noCardFeeAdmin === "number"
+                                ? productType.noCardFeeAdmin
+                                : typeof productType.noCardFeeAdmin === "string"
+                                  ? parseFloat(productType.noCardFeeAdmin)
+                                  : 0;
+                            const noCardFee =
+                              typeof productType.noCardFee === "number"
+                                ? productType.noCardFee
+                                : typeof productType.noCardFee === "string"
+                                  ? parseFloat(productType.noCardFee)
+                                  : 0;
+                            const difference =
+                              noCardFeeAdmin && noCardFee
+                                ? (noCardFeeAdmin - noCardFee).toFixed(2)
+                                : "-";
 
-                          return (
-                            <>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="flex items-center justify-center">
-                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                                    {productType.noCardFeeAdmin
-                                      ? `${productType.noCardFeeAdmin}%`
+                            return (
+                              <>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-noCardFeeAdmin-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="flex items-center justify-center">
+                                    <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
+                                      {productType.noCardFeeAdmin
+                                        ? `${productType.noCardFeeAdmin}%`
+                                        : "-"}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="text-[10px] text-gray-600 font-medium">
+                                    {difference !== "-"
+                                      ? `${difference}%`
                                       : "-"}
                                   </div>
-                                </div>
-                              </TableCell>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-diff-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="text-[10px] text-gray-600 font-medium">
-                                  {difference !== "-" ? `${difference}%` : "-"}
-                                </div>
-                              </TableCell>
-                              <TableCell
-                                key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
-                                className="p-1 text-center"
-                              >
-                                <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
-                                  {productType.noCardFee
-                                    ? `${productType.noCardFee}%`
-                                    : "-"}
-                                </div>
-                              </TableCell>
-                            </>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                                </TableCell>
+                                <TableCell
+                                  key={`${item.brand.value}-${productType.value}-noCardFee-${typeIndex}`}
+                                  className="p-1 text-center"
+                                >
+                                  <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                                    {productType.noCardFee
+                                      ? `${productType.noCardFee}%`
+                                      : "-"}
+                                  </div>
+                                </TableCell>
+                              </>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ScrollArea>
               <div className="w-full overflow-hidden">
                 <h3 className="text-lg font-medium mb-2">PIX Online</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
