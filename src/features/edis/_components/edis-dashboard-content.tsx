@@ -23,7 +23,7 @@ export function EdisDashboardContent({
   return (
       <div className="w-full max-w-full">
         <div className="w-full mt-2 mb-2">
-          <Card className="w-full border-l-8 border-black bg-sidebar">
+          <Card className="w-full border-l-8 border-black bg-white">
             <div className="flex items-center justify-between">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">Arquivos EDI</CardTitle>

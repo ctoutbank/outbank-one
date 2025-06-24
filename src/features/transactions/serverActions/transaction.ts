@@ -256,6 +256,8 @@ export async function getTransactions(
     };
   });
 
+
+
   return {
     transactions: result,
     totalCount,
@@ -270,6 +272,7 @@ export type TransactionsGroupedReport = {
   transaction_status: string;
   date: string;
 };
+
 
 export async function normalizeDateRange(
   start: string,
@@ -288,6 +291,8 @@ export async function normalizeDateRange(
   const endDate = `${nextDay}T23:59:59`;
   return { start: startDate, end: endDate };
 }
+
+
 
 export async function getTransactionsGroupedReport(
   dateFrom: string,

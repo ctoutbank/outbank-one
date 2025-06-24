@@ -26,7 +26,7 @@ const getGroupFromUrl = (url: string): string => {
     legalNatures: "Natureza Juridica",
     history: "Liquidação",
     reports: "Relatório",
-    financialAdjusment: "Lançamentos Financeiros",
+    financialAdjustment: "Lançamentos Financeiros",
     pricingSolicitation: "Solicitação de Taxas",
     pricing: "Taxas",
     closing: "Fechamento",
@@ -134,14 +134,14 @@ export async function getAuthorizedMenu() {
               icon: "FileText",
             },
             {
-              title: "Lançamentos Financeiros",
-              url: "/portal/financialReleases",
-              icon: "CalendarDays",
-            },
-            {
               title: "Arquivos EDI",
               url: "/portal/edis",
               icon: "FolderOpen",
+            },
+            {
+              title: "Lançamentos Financeiros",
+              url: "/portal/financialAdjustment",
+              icon: "CalendarDays",
             },
           ],
         },

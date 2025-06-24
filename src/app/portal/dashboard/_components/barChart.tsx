@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
 import type { GetTotalTransactionsByMonthResult } from "@/features/transactions/serverActions/transaction"
 import DashboardFilters from "./dashboard-filters"
+import { formatCurrency } from "@/lib/utils"
 
 const chartConfig = {
     bruto: {
@@ -45,6 +46,7 @@ export function BarChartCustom({
     const [hoveredData, setHoveredData] = React.useState<any>(null)
     const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 })
     const cardRef = React.useRef<HTMLDivElement>(null)
+
 
     // Processamento diário (mantido igual)
     const dailyData = React.useMemo(() => {
@@ -155,10 +157,7 @@ export function BarChartCustom({
                     <div className="min-w-0 flex-1">
                         <CardTitle className="text-sm font-medium text-blue-100">Total de Vendas</CardTitle>
                         <div className="text-xl sm:text-2xl font-bold break-words mt-1">
-                            {(totalTransactions?.sum || 0).toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                            })}
+                            {formatCurrency(totalTransactions?.sum || 0)}
                         </div>
                     </div>
                     <div className="flex-shrink-0 scale-75 origin-top-right">
@@ -206,10 +205,7 @@ export function BarChartCustom({
                     <div className="space-y-0.5 min-w-0">
                         <p className="text-blue-200 text-xs">Lucro</p>
                         <p className="text-sm font-semibold break-words">
-                            {(totalTransactions?.revenue || 0).toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                            })}
+                            {formatCurrency(totalTransactions?.revenue || 0)}
                         </p>
                     </div>
                     <div className="space-y-0.5 min-w-0">

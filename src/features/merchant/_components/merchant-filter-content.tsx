@@ -185,7 +185,6 @@ export function FilterMerchantsContent({
             </div>
           </div>
 
-          {/* Cadastrado em */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Cadastrado em</h3>
             <div className="flex flex-col gap-2">
@@ -198,6 +197,7 @@ export function FilterMerchantsContent({
                       !dateFrom && "text-muted-foreground"
                     )}
                   >
+                    <p></p>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateFrom
                       ? format(dateFrom, "dd/MM/yyyy")
