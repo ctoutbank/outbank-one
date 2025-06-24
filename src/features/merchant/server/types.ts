@@ -167,4 +167,5 @@ export interface MerchantTabsProps {
   merchantPriceGroupProps: MerchantPriceGroupProps;
   permissions: string[];
   merchantFiles?: FileItem[];
+  isCreating?: boolean;
 }

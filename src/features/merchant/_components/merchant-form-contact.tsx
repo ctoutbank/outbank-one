@@ -30,6 +30,27 @@ import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
 
+// Função para permitir apenas números
+const handleNumericInput = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const allowedKeys = [
+    "Backspace",
+    "Delete",
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+  ];
+
+  if (allowedKeys.includes(event.key)) {
+    return;
+  }
+
+  if (!/[0-9]/.test(event.key)) {
+    event.preventDefault();
+  }
+};
+
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
   Address: typeof addresses.$inferSelect;
@@ -171,6 +192,10 @@ function ContactFormItem({
               <Input
                 id={`idDocument-${id}`}
                 placeholder="000.000.000-00"
+                type="text"
+                inputMode="numeric"
+                maxLength={14}
+                onKeyDown={handleNumericInput}
                 {...registerContact("idDocument")}
               />
               {errorsContact.idDocument && (
@@ -283,6 +308,9 @@ function ContactFormItem({
                   id={`areaCode-${id}`}
                   placeholder="00"
                   maxLength={2}
+                  type="text"
+                  inputMode="numeric"
+                  onKeyDown={handleNumericInput}
                   {...registerContact("areaCode")}
                 />
                 {errorsContact.areaCode && (
@@ -299,7 +327,10 @@ function ContactFormItem({
                 <Input
                   id={`number-${id}`}
                   placeholder="000000000"
-                  maxLength={9}
+                  maxLength={10}
+                  type="text"
+                  inputMode="numeric"
+                  onKeyDown={handleNumericInput}
                   {...registerContact("number")}
                 />
                 {errorsContact.number && (
