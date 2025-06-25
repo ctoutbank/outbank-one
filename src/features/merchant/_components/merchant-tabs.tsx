@@ -30,10 +30,8 @@ export default function MerchantTabs({
 
   merchantPriceGroupProps,
   permissions,
-  isCreating = false,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
-  const [completedTabs, setCompletedTabs] = useState<Set<string>>(new Set());
 
   const listTabs = [
     "company",
@@ -44,140 +42,34 @@ export default function MerchantTabs({
     "rate",
     "documents",
   ];
-
-  // Define quais tabs estão disponíveis com base na lógica de negócio
-  const getAvailableTabs = () => {
-    const tabs = [
-      "company",
-      "contact",
-      "operation",
-      ...(permissions?.includes("Configurar dados Bancários") ? ["bank"] : []),
-      "authorizers",
-      ...(permissions?.includes("Configurar Taxas do EC") ? ["rate"] : []),
-      ...(permissions?.includes("Inserir documentos EC") ? ["documents"] : []),
-    ];
-    return tabs;
-  };
-
-  const availableTabs = getAvailableTabs();
-
-  // Verifica se uma tab pode ser acessada
-  const isTabAccessible = (tabValue: string) => {
-    if (!isCreating) return true; // No modo de edição, todas as tabs são acessíveis
-
-    const tabIndex = availableTabs.indexOf(tabValue);
-    if (tabIndex === 0) return true; // Primeira tab sempre acessível
-
-    // Tab só é acessível se a anterior foi completada
-    const previousTab = availableTabs[tabIndex - 1];
-    return completedTabs.has(previousTab);
-  };
-
-  // Marca uma tab como completada
-  const markTabAsCompleted = (tabValue: string) => {
-    if (isCreating) {
-      setCompletedTabs((prev) => new Set([...Array.from(prev), tabValue]));
-    }
-  };
-
-  // Custom handler para mudança de tab que respeita as regras de acesso
-  const handleTabChange = (tabValue: string) => {
-    if (isTabAccessible(tabValue)) {
-      setActiveTab(tabValue);
-    }
-  };
-
   console.log("activeTab 1", activeTab);
   const searchParams = useSearchParams();
   useEffect(() => {
     console.log("entrou no useEffect");
 
     const tab = searchParams?.get("tab") || "company";
-    // Só permite mudar para a tab se ela for acessível
-    if (isTabAccessible(tab)) {
-      setActiveTab(tab);
-    }
-  }, [searchParams, completedTabs, isCreating]);
+    setActiveTab(tab);
+  }, [searchParams]);
 
   return (
     <Tabs
       value={activeTab}
-      onValueChange={handleTabChange}
+      onValueChange={setActiveTab}
       className="space-y-4 w-full"
     >
       <TabsList>
-        <TabsTrigger
-          value="company"
-          disabled={!isTabAccessible("company")}
-          className={
-            !isTabAccessible("company") ? "opacity-50 cursor-not-allowed" : ""
-          }
-        >
-          Dados da Empresa
-        </TabsTrigger>
-        <TabsTrigger
-          value="contact"
-          disabled={!isTabAccessible("contact")}
-          className={
-            !isTabAccessible("contact") ? "opacity-50 cursor-not-allowed" : ""
-          }
-        >
-          Dados do Responsável
-        </TabsTrigger>
-        <TabsTrigger
-          value="operation"
-          disabled={!isTabAccessible("operation")}
-          className={
-            !isTabAccessible("operation") ? "opacity-50 cursor-not-allowed" : ""
-          }
-        >
-          Dados de Operação
-        </TabsTrigger>
+        <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
+        <TabsTrigger value="contact">Dados do Responsável</TabsTrigger>
+        <TabsTrigger value="operation">Dados de Operação</TabsTrigger>
         {permissions?.includes("Configurar dados Bancários") && (
-          <TabsTrigger
-            value="bank"
-            disabled={!isTabAccessible("bank")}
-            className={
-              !isTabAccessible("bank") ? "opacity-50 cursor-not-allowed" : ""
-            }
-          >
-            Dados Bancários
-          </TabsTrigger>
+          <TabsTrigger value="bank">Dados Bancários</TabsTrigger>
         )}
-        <TabsTrigger
-          value="authorizers"
-          disabled={!isTabAccessible("authorizers")}
-          className={
-            !isTabAccessible("authorizers")
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-          }
-        >
-          Autorizados
-        </TabsTrigger>
+        <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
         {permissions?.includes("Configurar Taxas do EC") && (
-          <TabsTrigger
-            value="rate"
-            disabled={!isTabAccessible("rate")}
-            className={
-              !isTabAccessible("rate") ? "opacity-50 cursor-not-allowed" : ""
-            }
-          >
-            Taxas de Transação
-          </TabsTrigger>
+          <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
         )}
         {permissions?.includes("Inserir documentos EC") && (
-          <TabsTrigger
-            value="documents"
-            disabled={!isTabAccessible("documents")}
-            className={
-              !isTabAccessible("documents")
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }
-          >
-            Documentos
-          </TabsTrigger>
+          <TabsTrigger value="documents">Documentos</TabsTrigger>
         )}
       </TabsList>
 
@@ -202,10 +94,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
-          setActiveTab={(tab: string) => {
-            markTabAsCompleted("company");
-            setActiveTab(tab);
-          }}
+          setActiveTab={setActiveTab}
           permissions={permissions}
         />
       </TabsContent>
@@ -252,10 +141,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
-          setActiveTab={(tab: string) => {
-            markTabAsCompleted("contact");
-            setActiveTab(tab);
-          }}
+          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
@@ -295,10 +181,7 @@ export default function MerchantTabs({
           merhcnatSlug={merchant.slugCategory || ""}
           timezone={merchant.timezone || ""}
           idMerchant={merchant.id}
-          setActiveTab={(tab: string) => {
-            markTabAsCompleted("operation");
-            setActiveTab(tab);
-          }}
+          setActiveTab={setActiveTab}
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
@@ -342,10 +225,7 @@ export default function MerchantTabs({
             }}
             DDBank={DDBank}
             idMerchant={merchant.id}
-            setActiveTab={(tab: string) => {
-              markTabAsCompleted("bank");
-              setActiveTab(tab);
-            }}
+            setActiveTab={setActiveTab}
             activeTab={
               listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
             }
