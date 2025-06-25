@@ -1,14 +1,14 @@
 "use client"
 
-import * as React from "react"
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { eachDayOfInterval, format, parseISO } from "date-fns"
+import * as React from "react"
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
 import type { GetTotalTransactionsByMonthResult } from "@/features/transactions/serverActions/transaction"
-import DashboardFilters from "./dashboard-filters"
 import { formatCurrency } from "@/lib/utils"
+import DashboardFilters from "./dashboard-filters"
 
 const chartConfig = {
     bruto: {
@@ -92,14 +92,13 @@ export function BarChartCustom({
     }, [transactionsData, dateRange])
 
     const handleMouseMove = (data: any, event: any) => {
-        if (data && data.activePayload && data.activePayload.length > 0 && cardRef.current) {
+        if (data && data.activePayload && data.activePayload.length > 0) {
             setHoveredData(data.activePayload[0].payload)
-
-            const cardRect = cardRef.current.getBoundingClientRect()
-            const relativeX = event?.nativeEvent?.clientX - cardRect.left || 0
-            const relativeY = event?.nativeEvent?.clientY - cardRect.top || 0
-
-            setMousePosition({ x: relativeX, y: relativeY })
+    
+            const mouseX = event?.nativeEvent?.clientX || 0
+            const mouseY = event?.nativeEvent?.clientY || 0
+    
+            setMousePosition({ x: mouseX, y: mouseY })
         }
     }
 
@@ -109,13 +108,13 @@ export function BarChartCustom({
 
     const CustomTooltip = () => {
         if (!hoveredData) return null
-
+    
         return (
             <div
-                className="absolute bg-white rounded shadow-md border p-2 min-w-[160px] z-50 pointer-events-none text-xs"
+                className="fixed bg-white rounded shadow-md border p-2 min-w-[160px] z-50 pointer-events-none text-xs"
                 style={{
-                    left: Math.min(mousePosition.x + 8, 200),
-                    top: Math.max(mousePosition.y - 80, 5),
+                    left: mousePosition.x + 10,
+                    top: mousePosition.y + 10,
                 }}
             >
                 <div className="space-y-1">
@@ -128,29 +127,28 @@ export function BarChartCustom({
                     <div className="flex justify-between">
                         <span className="text-gray-600">Vendas:</span>
                         <span className="font-medium text-green-600">
-              {hoveredData.bruto?.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-              })}
-            </span>
+                            {hoveredData.bruto?.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                            })}
+                        </span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">Lucro:</span>
                         <span className="font-medium text-blue-600">
-              {hoveredData.lucro?.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-              })}
-            </span>
+                            {hoveredData.lucro?.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                            })}
+                        </span>
                     </div>
                 </div>
             </div>
         )
     }
-
+    
     return (
         <Card ref={cardRef} className=" w-full border-0 bg-[#05336A] text-white overflow-hidden flex flex-col items-stretch space-y-0 border-b p-0">
-            <div className="absolute inset-0"></div>
 
             <CardHeader className="relative z-10 pb-1 px-3 py-2">
                 <div className="flex flex-col sm:flex-row lg:flex-row sm:items-start lg:tems-start sm:justify-between lg:justify-between gap-2">

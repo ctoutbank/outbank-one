@@ -1,10 +1,9 @@
 "use client"
 
-import { Bolt, Calculator, Calendar, CalendarDays, CalendarFold, Check, DollarSign, DollarSignIcon, File, FilePlus2, FileText, FolderOpen, HomeIcon, Landmark, Link,  type LucideIcon, PieChart, Receipt, Settings, User, ChevronDown } from 'lucide-react'
-import { useEffect, useState } from "react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { NavMain } from "@/components/menu-portal/nav-projects"
+import { NotificationIcon } from "@/components/notification"
 import { TeamSwitcher } from "@/components/team-switcher"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
 import {
   Sidebar,
@@ -18,8 +17,9 @@ import {
   SidebarMenuSkeleton,
 } from "@/components/ui/sidebar"
 import { UserMenu } from "@/components/user-menu"
-import { NotificationIcon } from "@/components/notification"
 import { getAuthorizedMenu } from "@/features/menu/actions"
+import { Bolt, Calculator, Calendar, CalendarDays, CalendarFold, Check, ChevronDown, DollarSign, DollarSignIcon, File, FilePlus2, FileText, FolderOpen, HomeIcon, Landmark, Link, type LucideIcon, PieChart, Receipt, Settings, User } from 'lucide-react'
+import { useEffect, useState } from "react"
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -143,15 +143,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         <SidebarContent className="flex flex-col h-full max-h-[calc(100vh-3rem)] overflow-y-auto p-0 space-y-0">
           <div className="flex-1 min-h-0 space-y-0">
-            {menuData.navSections.map((section, index) => (
+            {menuData.navSections.map((section,) => (
                 <Collapsible key={section.title} defaultOpen className="group/collapsible">
                   <SidebarGroup className="space-y-0.5 py-0.5">
                     <SidebarGroupLabel asChild className="h-4 pt-2">
                       <CollapsibleTrigger
-                          className="flex w-full items-center justify-between text-[6px] font-semibold text-muted-foreground uppercase tracking-tighter px-0 py-0 pb-2 pt-2 hover:bg-muted hover:text-foreground rounded-sm transition-colors h-4"
+                          className="flex w-full items-center justify-between -ml-4 font-semibold text-muted-foreground uppercase tracking-tighter px-0 py-0 pb-2 pt-2 hover:bg-muted hover:text-foreground rounded-sm transition-colors h-4"
                       >
                         {section.title}
-                        <ChevronDown className="ml-auto h-2 w-2 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                        <ChevronDown className="text-black ml-auto h-2 w-2 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                       </CollapsibleTrigger>
                     </SidebarGroupLabel>
 
@@ -164,9 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </CollapsibleContent>
                   </SidebarGroup>
 
-                  {index < menuData.navSections.length - 1 && (
-                      <Separator className="bg-border/50 my-0" />
-                  )}
+
                 </Collapsible>
             ))}
           </div>

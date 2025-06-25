@@ -349,6 +349,7 @@ export default async function MerchantDetail({
             DDBank={DDBank}
             permissions={permissions}
             merchantFiles={merchantFiles}
+            isCreating={true}
           />
         ) : merchant?.merchants?.id ? (
           <MerchantDisplay
