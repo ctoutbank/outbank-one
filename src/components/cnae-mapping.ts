@@ -1,4 +1,4 @@
-export const cnaeMap = {
+export const cnaeMap:Record<string, { mcc: string; mdr: string }> =  {
   "61906/01": { mcc: "4816", mdr: "MDR I" },
   "63119/00": { mcc: "4816", mdr: "MDR I" },
   "63194/00": { mcc: "4816", mdr: "MDR I" },

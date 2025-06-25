@@ -1,6 +1,6 @@
 "use client";
 
-import {ChevronRight, LucideIcon} from "lucide-react";
+import {ChevronDown, LucideIcon} from "lucide-react";
 
 import {
     Collapsible,
@@ -59,24 +59,24 @@ export function NavMain({items, }: Props) {
                                         <SidebarMenuButton
                                             tooltip={item.title}
                                             isActive={isAnySubItemActive}
-                                            size="sm"
-                                            className="h-5 lg:h-6 text-xs lg:text-xs py-0.5 px-1.5"
+                                            className="-ml-4"
                                         >
                                             {item.icon && (
                                                 <div
                                                     className="relative flex items-center justify-center w-4 h-4 lg:w-5 lg:h-5 rounded-sm bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4 lg:group-data-[collapsible=icon]:w-5 lg:group-data-[collapsible=icon]:h-5">
                                                     <item.icon
-                                                        className="size-3 lg:size-4 text-sidebar-foreground"
+                                                        className="size-3 lg:size-3 md:size-5 text-black"
                                                         strokeWidth={2}
                                                     />
                                                 </div>
                                             )}
-                                            <span
-                                                className="font-normal lg:font-medium text-[9px] lg:text-[9px] truncate group-data-[collapsible=icon]:hidden">
+                                             <span
+                                                className="text-[10px] lg:text-[10px] truncate group-data-[collapsible=icon]:hidden">
                         {item.title}
                       </span>
-                                            <ChevronRight
-                                                className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden size-3"/>
+
+                                            <ChevronDown className="text-black ml-auto h-2 w-2 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+
                                         </SidebarMenuButton>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent
@@ -91,11 +91,11 @@ export function NavMain({items, }: Props) {
                                                     <SidebarMenuSubButton
                                                         asChild
                                                         isActive={activeUrl == subItem.url}
-                                                        size="sm"
-                                                        className="h-2 lg:h-5 text-xs py-0 px-1"
+                                                        size="xs"
+                                                        className="-ml-4"
                                                     >
                                                         <a href={subItem.url}>
-                              <span className="text-xs truncate">
+                              <span className="font-dmSans text-[8px] truncate">
                                 {subItem.title}
                               </span>
                                                         </a>
@@ -109,15 +109,15 @@ export function NavMain({items, }: Props) {
                                 <SidebarMenuButton
                                     asChild
                                     isActive={item.url === activeUrl || item.isActive}
-                                    size="sm"
-                                    className="h-5 lg:h-6 text-[9px] lg:text-[9px] py-0.5 px-1.5"
+                                    size="xs"
+                                    className="-ml-4"
                                 >
                                     <a href={item.url}>
                                         {item.icon && (
                                             <div
                                                 className="relative flex items-center justify-center w-2 h-2 lg:w-5 lg:h-5 rounded-sm bg-sidebar-accent/10 flex-shrink-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:m-auto group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4 lg:group-data-[collapsible=icon]:w-5 lg:group-data-[collapsible=icon]:h-5">
                                                 <item.icon
-                                                    className="size-2 lg:size-3.5 text-sidebar-foreground"
+                                                    className="size-3 lg:size-3 md:size-3 text-black"
                                                     strokeWidth={2}
                                                 />
                                             </div>

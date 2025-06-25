@@ -101,13 +101,11 @@ export async function getTransactions(
   }
 
   if (dateFrom) {
-    console.log("dateFrom", dateFrom);
     const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
     if (dateFromUTC) conditions.push(gte(transactions.dtInsert, dateFromUTC));
   }
 
   if (dateTo) {
-    console.log("dateTo", dateTo);
     const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
     if (dateToUTC) conditions.push(lte(transactions.dtInsert, dateToUTC));
   }
@@ -155,8 +153,6 @@ export async function getTransactions(
 
   const whereClause = conditions.length ? and(...conditions) : undefined;
 
-  console.log("datas", dateFrom, dateTo);
-
   const baseQuery = db
     .select({
       slug: transactions.slug,
@@ -173,7 +169,7 @@ export async function getTransactions(
       transactionStatus: transactions.transactionStatus,
       amount: transactions.totalAmount,
       feeAdmin: solicitationBrandProductType.feeAdmin,
-      transactionMdr: payout.transactionMdr,
+      transactionMdr: sql<number>`p2.transaction_mdr`,
     })
     .from(transactions)
     .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
@@ -187,6 +183,18 @@ export async function getTransactions(
         eq(solicitationFeeBrand.brand, transactions.brand)
       )
     )
+    // LATERAL JOIN para pegar o maior installment_number
+    .leftJoin(
+      sql`LATERAL (
+        SELECT p2.transaction_mdr, p2.installment_number
+        FROM ${payout} AS p2
+        WHERE p2.payout_id::uuid = ${transactions.slug}
+        ORDER BY p2.installment_number DESC
+        LIMIT 1
+      ) AS p2`,
+      sql`TRUE`
+    )
+    // JOIN no solicitationBrandProductType com o BETWEEN
     .leftJoin(
       solicitationBrandProductType,
       and(
@@ -197,10 +205,10 @@ export async function getTransactions(
         eq(
           solicitationBrandProductType.productType,
           sql`SPLIT_PART(${transactions.productType}, '_', 1)`
-        )
+        ),
+        sql`p2.installment_number BETWEEN ${solicitationBrandProductType.transactionFeeStart} AND ${solicitationBrandProductType.transactionFeeEnd}`
       )
     )
-    .leftJoin(payout, sql`${payout.payoutId}::uuid = ${transactions.slug}`)
     .where(whereClause)
     .orderBy(transactions.dtInsert);
 
@@ -225,7 +233,7 @@ export async function getTransactions(
     const feeAdmin =
       item.feeAdmin !== null ? parseFloat(item.feeAdmin.toString()) : null;
     const transactionMdr =
-      item.transactionMdr !== null ? parseFloat(item.transactionMdr) : null;
+      item.transactionMdr !== null ? parseFloat(item.transactionMdr.toString()) : null;
 
     const lucro =
       transactionMdr !== null && feeAdmin !== null
@@ -256,13 +264,12 @@ export async function getTransactions(
     };
   });
 
-
-
   return {
     transactions: result,
     totalCount,
   };
 }
+
 
 export type TransactionsGroupedReport = {
   product_type: string;

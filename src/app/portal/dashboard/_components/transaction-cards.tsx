@@ -1,7 +1,7 @@
-import type React from "react"
-import { CreditCard, Banknote } from "lucide-react"
-import type { TransactionsGroupedReport } from "@/features/transactions/serverActions/transaction"
 import { Card, CardContent } from "@/components/ui/card"
+import type { TransactionsGroupedReport } from "@/features/transactions/serverActions/transaction"
+import { CreditCard } from "lucide-react"
+import type React from "react"
 
 interface TransactionSummaryCardsProps {
     transactions: TransactionsGroupedReport[]
@@ -107,35 +107,35 @@ export function TransactionSummaryCards({ transactions }: TransactionSummaryCard
             title: "Débito",
             value: debitData.totalAmount,
             count: debitData.count,
-            icon: <CreditCard className="h-6 w-6 text-gray-600" />,
+            icon: <CreditCard className="h-6 w-6 text-black" />,
         },
         {
             id: "credit",
             title: "Crédito",
             value: creditData.totalAmount,
             count: creditData.count,
-            icon: <CreditCard className="h-6 w-6 text-gray-600" />,
+            icon: <CreditCard className="h-6 w-6 text-black" />,
         },
         {
             id: "prepaid-debit",
             title: "Débito Pré-pago",
             value: prepaidDebitData.totalAmount,
             count: prepaidDebitData.count,
-            icon: <CreditCard className="h-6 w-6 text-gray-600" />,
+            icon: <CreditCard className="h-6 w-6 text-black" />,
         },
         {
             id: "prepaid-credit",
             title: "Crédito Pré-pago",
             value: prepaidCreditData.totalAmount,
             count: prepaidCreditData.count,
-            icon: <CreditCard className="h-6 w-6 text-gray-600" />,
+            icon: <CreditCard className="h-6 w-6 text-black" />,
         },
         {
             id: "pix",
-            title: "PIX",
+            title: "Pix",
             value: pixData.totalAmount,
             count: pixData.count,
-            icon: <Banknote className="h-6 w-6 text-gray-600" />,
+            icon: <img src="/pix.png" alt="Ícone de PIX" className="h-6 w-6" />,
         },
     ]
 

@@ -1,8 +1,8 @@
 "use server"
 
 import { getUserGroupPermissions } from "@/features/users/server/users"
-import { currentUser } from "@clerk/nextjs/server"
 import { getThemeByTenant, type ThemeData } from "@/lib/getThemeByTenant"
+import { currentUser } from "@clerk/nextjs/server"
 import { cookies } from "next/headers"
 
 const getGroupFromUrl = (url: string): string => {

@@ -2,8 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useForm } from "react-hook-form";
+import { cnaeMap } from "@/components/cnae-mapping";
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -157,6 +159,22 @@ export default function PricingSolicitationForm({
       description: pricingSolicitation?.description || "",
     },
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      console.log("WATCH TRIGGERED:", name, value);
+      if (name === "cnae" && value.cnae) {
+        const mapping = cnaeMap[value.cnae];
+        if (mapping) {
+          console.log("MCC SETADO COMO: ", mapping.mcc);
+          form.setValue("mcc", mapping.mcc);
+          form.setValue("cardPixMdr", mapping.mdr);
+        }
+      }
+    });
+    return () => subscription.unsubscribe?.();
+  }, [form]);
+
 
   // Map form data to solicitation structure
   function mapFormDataToSolicitation(data: PricingSolicitationSchema) {
