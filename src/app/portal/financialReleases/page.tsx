@@ -16,7 +16,7 @@ export default function FinancialReleasesPage() {
 
       <BaseBody
         title="Lançamentos Financeiros"
-        subtitle="Visualização de todos os lançamentos financeiros"
+        subtitle="Visualização de Todos os Lançamentos Financeiros"
       >
         <div className="flex flex-col space-y-4">
           <Card className="w-full">

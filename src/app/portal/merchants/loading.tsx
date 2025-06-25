@@ -1,16 +1,18 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Estabelecimentos", url: "/portal/merchants" }]}
+        breadcrumbItems={[
+          { title: "Estabelecimentos", url: "/portal/merchants" },
+        ]}
       />
       <BaseBody
         title="Estabelecimentos"
-        subtitle={`visualização de todos os estabelecimentos`}
+        subtitle={`Visualização de Todos os Estabelecimentos`}
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="flex gap-2 items-center">
@@ -28,7 +30,7 @@ export default function Loading() {
               <Skeleton className="h-5 w-[100px]" />
             </div>
           </div>
-          
+
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}

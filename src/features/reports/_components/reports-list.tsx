@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,12 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteReport, ReportsList } from "@/features/reports/server/reports";
+import { ReportsList } from "@/features/reports/server/reports";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function ReportList({
   Reports,
@@ -25,16 +23,16 @@ export default function ReportList({
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
   };
 
-  const router = useRouter();
+  //const router = useRouter();
 
-  const handleDeleteReport = async (id: number) => {
+  /*const handleDeleteReport = async (id: number) => {
     const confirmDelete = window.confirm("Você deseja excluir esse relatório?");
 
     if (confirmDelete) {
       await deleteReport(id);
       router.refresh();
     }
-  };
+  };*/
 
   return (
     <div>
@@ -60,7 +58,7 @@ export default function ReportList({
               </TableHead>
 
               <TableHead>
-                Periodo
+                Período
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>
@@ -73,10 +71,6 @@ export default function ReportList({
               </TableHead>
               <TableHead>
                 Horário
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Ações
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
             </TableRow>
@@ -112,14 +106,6 @@ export default function ReportList({
                   {report.shippingTime
                     ? report.shippingTime.substring(0, 5)
                     : "-"}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteReport(report.id)}
-                  >
-                    Excluir
-                  </Button>
                 </TableCell>
               </TableRow>
             ))}

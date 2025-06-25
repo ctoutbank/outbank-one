@@ -1,11 +1,21 @@
 "use server";
 
-import { salesAgents } from "../../../../drizzle/schema";
-import { db } from "../../../server/db";
-
-// Ensure the salesAgents schema includes the slug property
-
+import { hashPassword } from "@/app/utils/password";
+import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
+import { DD, generateRandomPassword } from "@/features/users/server/users";
+import { generateSlug } from "@/lib/utils";
+import { clerkClient } from "@clerk/nextjs/server";
 import { and, count, desc, eq, gte, like, lte, max, or } from "drizzle-orm";
+import {
+  addresses,
+  customers,
+  merchants,
+  profiles,
+  salesAgents,
+  userMerchants,
+  users,
+} from "../../../../drizzle/schema";
+import { db } from "../../../server/db";
 
 export type SalesAgentFull = {
   id: number;
@@ -31,6 +41,35 @@ export interface SalesAgentsList {
 
 export type SalesAgentesDetail = typeof salesAgents.$inferSelect;
 export type SalesAgentesInsert = typeof salesAgents.$inferInsert;
+
+export type SalesAgentDetail = SalesAgentesDetail & {
+  idProfile: number | null;
+  idCustomer: number | null;
+  idAddress: number | null;
+  streetAddress: string | null;
+  streetNumber: string | null;
+  complement: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  country: string | null;
+  selectedMerchants: string[] | null;
+};
+
+export type SalesAgentInsert = SalesAgentesInsert & {
+  idProfile: number | null;
+  idCustomer: number | null;
+  streetAddress: string | null;
+  streetNumber: string | null;
+  complement: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  country: string | null;
+  selectedMerchants: string[] | null;
+};
 
 export async function getSalesAgents(
   search: string,
@@ -133,13 +172,11 @@ export async function generateNextDocumentId(): Promise<string> {
     let documentId = "";
     let isUnique = false;
 
-    // Loop até encontrar um documentId único
     while (!isUnique) {
       // Formatar com zeros à esquerda (1 -> 0001)
       const formattedNumber = nextNumber.toString().padStart(4, "0");
       documentId = `c${formattedNumber}`;
 
-      // Verificar se este documentId já existe
       const existingAgent = await db
         .select()
         .from(salesAgents)
@@ -161,12 +198,11 @@ export async function generateNextDocumentId(): Promise<string> {
     return documentId;
   } catch (error) {
     console.error("Erro ao gerar próximo documentId:", error);
-    // Em caso de erro, retornar um valor padrão
     return `c0001`;
   }
 }
 
-export async function insertSalesAgent(salesAgent: SalesAgentesInsert) {
+export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
   console.log("Inserindo salesAgent:", salesAgent);
 
   // Se não tiver documentId, gerar um novo documentId sequencial
@@ -189,24 +225,131 @@ export async function insertSalesAgent(salesAgent: SalesAgentesInsert) {
       console.log("Novo documentId gerado:", salesAgent.documentId);
     }
   }
+  const address = await db
+    .insert(addresses)
+    .values({
+      streetAddress: salesAgent.streetAddress,
+      streetNumber: salesAgent.streetNumber,
+      complement: salesAgent.complement,
+      neighborhood: salesAgent.neighborhood,
+      city: salesAgent.city,
+      state: salesAgent.state,
+      zipCode: salesAgent.zipCode,
+      country: salesAgent.country,
+    })
+    .returning({ id: addresses.id });
+
+  const idAddress = address[0].id;
+  const clerkUser = await (
+    await clerkClient()
+  ).users.createUser({
+    firstName: salesAgent.firstName || "",
+    lastName: salesAgent.lastName || "",
+    emailAddress: [salesAgent.email || ""],
+    skipPasswordRequirement: true,
+    publicMetadata: {
+      isFirstLogin: true,
+    },
+  });
+
+  const password = await generateRandomPassword();
+
+  const hashedPassword = hashPassword(password);
+  console.log(password);
+
+  const newUser = await db
+    .insert(users)
+    .values({
+      slug: generateSlug(),
+      dtinsert: new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+      active: true,
+      idClerk: clerkUser.id,
+      idCustomer: salesAgent.idCustomer,
+      idProfile: salesAgent.idProfile,
+      idAddress: idAddress,
+      fullAccess: false,
+      hashedPassword: hashedPassword,
+      email: salesAgent.email,
+    })
+
+    .returning({ id: users.id });
+
+  await sendWelcomePasswordEmail(salesAgent.email || "", password);
+
+  // Insert user-merchant relationships if any merchants are selected
+  if (salesAgent.selectedMerchants && salesAgent.selectedMerchants.length > 0) {
+    const userMerchantValues = salesAgent.selectedMerchants.map(
+      (merchantId) => ({
+        slug: generateSlug(),
+        dtinsert: new Date().toISOString(),
+        dtupdate: new Date().toISOString(),
+        active: true,
+        idUser: newUser[0].id,
+        idMerchant: Number(merchantId),
+      })
+    );
+
+    await db.insert(userMerchants).values(userMerchantValues);
+  }
 
   const result = await db.insert(salesAgents).values(salesAgent).returning({
     id: salesAgents.id,
   });
-
   return result[0].id;
 }
 
 export async function getSalesAgentById(
   id: number
-): Promise<SalesAgentesDetail | null> {
+): Promise<SalesAgentDetail | null> {
   const result = await db
-    .select()
+    .select({
+      id: salesAgents.id,
+      slug: salesAgents.slug,
+      firstName: salesAgents.firstName,
+      lastName: salesAgents.lastName,
+      email: salesAgents.email,
+      active: salesAgents.active,
+      dtinsert: salesAgents.dtinsert,
+      dtupdate: salesAgents.dtupdate,
+      documentId: salesAgents.documentId,
+      slugCustomer: salesAgents.slugCustomer,
+      cpf: salesAgents.cpf,
+      phone: salesAgents.phone,
+      birthDate: salesAgents.birthDate,
+      idUsers: salesAgents.idUsers,
+      idProfile: profiles.id,
+      idCustomer: users.idCustomer,
+      idAddress: users.idAddress,
+      streetAddress: addresses.streetAddress,
+      streetNumber: addresses.streetNumber,
+      complement: addresses.complement,
+      neighborhood: addresses.neighborhood,
+      city: addresses.city,
+      state: addresses.state,
+      zipCode: addresses.zipCode,
+      country: addresses.country,
+    })
     .from(salesAgents)
+    .leftJoin(users, eq(salesAgents.idUsers, users.id))
+    .leftJoin(profiles, eq(users.idProfile, profiles.id))
+    .leftJoin(addresses, eq(users.idAddress, addresses.id))
     .where(eq(salesAgents.id, id))
     .limit(1);
 
-  return result[0] || null;
+  const userMerchantResult = await db
+    .select({
+      idMerchant: userMerchants.idMerchant,
+    })
+    .from(userMerchants)
+    .where(eq(userMerchants.idUser, result[0]?.idUsers || 0));
+
+  return {
+    ...result[0],
+    selectedMerchants: userMerchantResult.map(
+      (merchant) => merchant.idMerchant?.toString() || ""
+    ),
+  };
 }
 
 export async function updateSalesAgent(
@@ -249,4 +392,35 @@ export async function updateSalesAgent(
     console.error("Erro ao atualizar salesAgent:", error);
     throw error;
   }
+}
+
+export async function getDDMerchants(idCustomer: number): Promise<DD[]> {
+  const result = await db
+    .select({
+      id: merchants.id,
+      name: merchants.name,
+    })
+    .from(merchants)
+    .where(eq(merchants.idCustomer, idCustomer));
+  return result;
+}
+
+export async function getDDProfiles(): Promise<DD[]> {
+  const result = await db
+    .select({
+      id: profiles.id,
+      name: profiles.name,
+    })
+    .from(profiles);
+  return result;
+}
+
+export async function getDDCustomers(): Promise<DD[]> {
+  const result = await db
+    .select({
+      id: customers.id,
+      name: customers.name,
+    })
+    .from(customers);
+  return result;
 }

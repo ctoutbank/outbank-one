@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import {
   Building2,
@@ -53,24 +53,9 @@ export function MerchantAgendaDashboardContent({
 
   return (
     <div className="w-full">
-      <div className="w-full mt-2 mb-2">
-        <Card className="w-full bg-background border-none">
-          <div className="flex items-center justify-between">
-            <CardHeader>
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </p>
-            </CardHeader>
-          </div>
-
-          <CardContent className="pb-6 px-6">
+      <div className="w-full mt-6">
+        <Card className="w-full bg-transparent border-none">
+         <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {/* Card de Estabelecimentos */}
               <Card className="bg-background border">

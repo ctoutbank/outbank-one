@@ -169,7 +169,7 @@ export default async function MerchantsPage({
 
       <BaseBody
         title="Estabelecimentos"
-        subtitle={`Visualização de todos os estabelecimentos`}
+        subtitle={`Visualização de Todos os Estabelecimentos`}
         // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">

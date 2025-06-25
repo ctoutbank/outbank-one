@@ -2,7 +2,7 @@ import CardValue from "@/components/dashboard/cardValue";
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { BarChartCustom } from "@/features/closing/components/barChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
 
@@ -113,24 +113,8 @@ export default async function SalesDashboard({
           </div>
         </div>
         <Suspense fallback={<div>Carregando...</div>}>
-          <Card className="w-full border-l-8 border-black bg-sidebar">
-            <div className="flex items-center justify-between">
-              <CardHeader>
-                <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {new Date().toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </p>
-              </CardHeader>
-            </div>
-
-            <CardContent>
+          <Card className="w-full border-l-8 border-black bg-transparent">
+            <CardContent className="p-6">
               <div className="grid gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                   <CardValue

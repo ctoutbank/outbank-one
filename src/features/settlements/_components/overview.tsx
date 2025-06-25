@@ -40,7 +40,7 @@ export default function FinancialOverview({
   });
 
   return (
-    <Card className="w-full border-l-8 border-black bg-white">
+    <Card className="w-full border-l-8 border-black bg-transparent">
       <div className="flex items-center justify-between">
         <CardHeader>
           <CardTitle className="text-xl font-bold ">Visão geral</CardTitle>

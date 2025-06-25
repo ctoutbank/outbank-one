@@ -77,7 +77,7 @@ export default async function FinancialAdjustmentsPage({
 
       <BaseBody
         title="Ajustes Financeiros"
-        subtitle={`Visualização de todos os Ajustes Financeiros`}
+        subtitle={`Visualização de Todos os Ajustes Financeiros`}
       >
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">

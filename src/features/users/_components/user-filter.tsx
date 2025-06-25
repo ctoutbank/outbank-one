@@ -4,9 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FilterUserButton } from "./filter-user-button";
 import { FilterUserContent } from "./filter-user-content";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { DD } from "../server/users";
 
 type UserFilterProps = {
@@ -42,11 +39,6 @@ export function UserFilter({
   merchantOptions = [],
   customerOptions = [],
   profileOptions = [],
-
-  // Optional props
-  newButtonUrl = "/portal/user/0",
-  newButtonLabel = "Novo Usuário",
-  showNewButton = true,
 }: UserFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -144,15 +136,6 @@ export function UserFilter({
           onFilter={handleFilter}
         />
       </FilterUserButton>
-
-      {showNewButton && (
-        <Button asChild className="shrink-0">
-          <Link href={newButtonUrl}>
-            <Plus className="h-4 w-4 mr-2" />
-            {newButtonLabel}
-          </Link>
-        </Button>
-      )}
     </div>
   );
 }

@@ -174,10 +174,10 @@ export async function getAnticipations(
         !anticipation.lockCnp && !anticipation.lockCp
           ? "Ambas"
           : !anticipation.lockCnp
-          ? "Cartão Não Presente"
-          : !anticipation.lockCp
-          ? "Cartão Presente"
-          : "",
+            ? "Cartão Não Presente"
+            : !anticipation.lockCp
+              ? "Cartão Presente"
+              : "",
       merchantCnpj: anticipation.merchantCnpj || "",
       merchantName: anticipation.merchantName || "",
       amount: Number(anticipation.amount) || 0,
@@ -207,7 +207,7 @@ export async function getMerchantDD(): Promise<MerchantDD[]> {
 
   return result.map((merchant) => ({
     slug: merchant.slug || "",
-    name: merchant.name || "",
+    name: merchant.name?.toUpperCase() || "",
   }));
 }
 
@@ -400,10 +400,10 @@ export async function getEventualAnticipations(
         !anticipation.lockCnp && !anticipation.lockCp
           ? "Ambas"
           : !anticipation.lockCnp
-          ? "Cartão Não Presente"
-          : !anticipation.lockCp
-          ? "Cartão Presente"
-          : "",
+            ? "Cartão Não Presente"
+            : !anticipation.lockCp
+              ? "Cartão Presente"
+              : "",
       merchantCnpj: anticipation.merchantCnpj || "",
       merchantName: anticipation.merchantName || "",
       amount: Number(anticipation.amount) || 0,

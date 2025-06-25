@@ -126,7 +126,12 @@ export async function getTerminalById(slug: string) {
       .where(and(...conditions))
       .then((res) => res[0] || null);
 
-    return terminal;
+    return terminal
+      ? {
+          ...terminal,
+          merchantName: terminal.merchantName?.toUpperCase() || "",
+        }
+      : null;
   } catch (error) {
     console.error("Erro ao buscar terminal:", error);
     throw new Error("Erro ao buscar terminal");
@@ -404,7 +409,7 @@ export async function getTerminals(
         type: terminal.type || "",
         isActive: terminal.isActive || null,
         slugMerchant: terminal.slugMerchant || "",
-        merchantName: terminal.merchantName || "",
+        merchantName: terminal.merchantName?.toUpperCase() || "",
         merchantDocumentId: terminal.merchantDocumentId || "",
         slugCustomer: terminal.slugCustomer || "",
         status: terminal.status || "",
@@ -670,7 +675,7 @@ export async function getTerminalsForExport(
           type: terminal.type || "",
           isActive: terminal.isActive || null,
           slugMerchant: terminal.slugMerchant || "",
-          merchantName: terminal.merchantName || "",
+          merchantName: terminal.merchantName?.toUpperCase() || "",
           merchantDocumentId: terminal.merchantDocumentId || "",
           slugCustomer: terminal.slugCustomer || "",
           status: terminal.status || "",
@@ -682,8 +687,8 @@ export async function getTerminalsForExport(
           dtUltimaTransacao: dtUltimaTransacao
             ? new Date(convertUTCToSaoPaulo(dtUltimaTransacao))
             : terminal.dtinsert
-            ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
-            : null,
+              ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
+              : null,
           versao: null, // Campo não disponível no schema atual
         };
       }),

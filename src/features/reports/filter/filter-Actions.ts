@@ -415,7 +415,9 @@ export async function getMerchantByName(
       .where(ilike(merchants.name, merchantName))
       .limit(1);
 
-    return result.length > 0 ? result[0] : null;
+    return result.length > 0
+      ? { ...result[0], name: result[0].name?.toUpperCase() ?? null }
+      : null;
   } catch (error) {
     console.error("Erro ao buscar merchant pelo nome:", error);
     return null;

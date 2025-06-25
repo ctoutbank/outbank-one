@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
 import { SalesAgentDashboardContent } from "@/features/salesAgents/_components/salesAgents-dashboard-content";
@@ -9,7 +10,6 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
-import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -52,7 +52,7 @@ export default async function SalesAgentsPage({
 
       <BaseBody
         title="Consultores"
-        subtitle={`Visualização de todos os Consultores`}
+        subtitle={`Visualização de Todos os Consultores`}
       >
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">
@@ -114,18 +114,18 @@ export default async function SalesAgentsPage({
           <SalesAgentlist SalesAgents={salesAgents} />
 
           {totalRecords && totalRecords > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <PageSizeSelector
-                    currentPageSize={pageSize}
-                    pageName="portal/salesAgents"
-                />
-                <PaginationRecords
-                    totalRecords={totalRecords}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/salesAgents"
-                />
-              </div>
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/salesAgents"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/salesAgents"
+              />
+            </div>
           )}
         </div>
       </BaseBody>
