@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
+import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
 import { CategoriesDashboardContent } from "@/features/categories/_components/categories-dashboard-content";
@@ -10,7 +11,6 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import Categorylist from "../../../features/categories/_components/categories-list";
-import PageSizeSelector from "@/components/page-size-selector";
 
 export const revalidate = 0;
 
@@ -58,7 +58,7 @@ export default async function CategoriesPage({
         breadcrumbItems={[{ title: "CNAE", url: "/portal/categories" }]}
       />
 
-      <BaseBody title="CNAE" subtitle={`visualização de todos os CNAE`}>
+      <BaseBody title="CNAE" subtitle={`Visualização de Todos os CNAE`}>
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
@@ -102,20 +102,19 @@ export default async function CategoriesPage({
           />
 
           {totalRecords > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <PageSizeSelector
-                    currentPageSize={pageSize}
-                    pageName="portal/categories"
-                />
-                <PaginationRecords
-                    totalRecords={totalRecords}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/categories"
-                />
-              </div>
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/categories"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/categories"
+              />
+            </div>
           )}
-
         </div>
       </BaseBody>
     </>

@@ -66,7 +66,7 @@ export default async function SettlementsPage({
 
       <BaseBody
         title="Liquidações"
-        subtitle={`Visualização de todas as Liquidações`}
+        subtitle={`Visualização de Todas as Liquidações`}
         //actions={<SyncButton syncType="settlement" />}
       >
         {settlements.settlement.length > 0 && (

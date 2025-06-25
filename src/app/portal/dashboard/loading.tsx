@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
@@ -8,19 +8,14 @@ export default function Loading() {
       <BaseHeader
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
-      <BaseBody title="Dashboard" subtitle="Visão geral das vendas">
-        
+      <BaseBody title="Dashboard" subtitle="Visão Geral das Vendas">
         <div className="mb-6 flex items-center justify-between">
           <Skeleton className="h-10 w-[200px]" />
         </div>
 
-       
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-xl border bg-card p-6 shadow"
-            >
+            <div key={i} className="rounded-xl border bg-card p-6 shadow">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <Skeleton className="h-4 w-[120px]" />
@@ -36,7 +31,6 @@ export default function Loading() {
           ))}
         </div>
 
-        
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
           <div className="rounded-xl border bg-card p-6 shadow">
             <div className="mb-4 space-y-3">

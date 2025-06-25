@@ -51,7 +51,7 @@ export default async function PaymentLinkPage({
 
       <BaseBody
         title="Links de Pagamento"
-        subtitle={`Visualização de todos os Links de Pagamento`}
+        subtitle={`Visualização de Todos os Links de Pagamento`}
         // actions={<SyncButton syncType="paymentLink" />}
       >
         <div className="mb-4">

@@ -244,9 +244,8 @@ export default function MerchantFormOperations({
             : undefined,
         };
 
-        idConfigurationForMerchant = await insertConfigurationFormAction(
-          formattedData
-        );
+        idConfigurationForMerchant =
+          await insertConfigurationFormAction(formattedData);
       } // Atualizar merchant com o ID da configuração (novo ou existente)
       const merchantUpdates = {
         idConfiguration: idConfigurationForMerchant!, // Usar o ID obtido da criação ou o existente
@@ -693,11 +692,7 @@ export default function MerchantFormOperations({
                     <FormItem>
                       <FormLabel>Consultor Comercial</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="DOCK"
-                          value={field.value}
-                        />
+                        <Input {...field} value={field.value} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

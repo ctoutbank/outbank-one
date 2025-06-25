@@ -12,7 +12,7 @@ export default function Loading() {
       />
       <BaseBody
         title="Agenda dos Lojistas"
-        subtitle="Visualização da agenda dos lojistas"
+        subtitle="Visualização da Agenda dos Lojistas"
         className="overflow-x-visible"
       >
         <div className="flex flex-col space-y-4 mt-2">

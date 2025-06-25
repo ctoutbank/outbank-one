@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { ArrowDownSquare, ArrowUpSquare, CircleDollarSign } from "lucide-react";
 
@@ -60,24 +60,9 @@ export function MerchantAdjustmentsDashboardContent({
 
   return (
     <div className="w-full">
-      <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-background">
-          <div className="flex items-center justify-between">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </p>
-            </CardHeader>
-          </div>
-          <CardContent className="pt-6">
+      <div className="w-full mt-2">
+        <Card className="w-full border-none bg-transparent">
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {/* Card de Ajustes Liquidados */}
               <Card className="bg-background border">

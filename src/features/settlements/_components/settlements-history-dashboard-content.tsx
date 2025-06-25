@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { CreditCard, FileCheck, Wallet } from "lucide-react";
 
@@ -32,23 +32,7 @@ export function SettlementsHistoryDashboardContent({
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
         <div className="grid grid-cols-1 gap-4">
-          <Card className="w-full border-l-8 border-black bg-background">
-            <div className="flex items-center justify-between">
-              <CardHeader>
-                <CardTitle className="text-xl font-bold">Liquidações</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  {new Date().toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </p>
-              </CardHeader>
-            </div>
-
+          <Card className="w-full border-l-8 border-black bg-transparent">
             <CardContent className="p-6">
               <div className="flex flex-col xl:flex-row gap-6 w-full">
                 {/* Card de Total de Liquidações */}

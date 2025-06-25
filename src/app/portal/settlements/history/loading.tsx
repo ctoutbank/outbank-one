@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
@@ -28,9 +28,12 @@ export default function Loading() {
           <div className="border-b p-3">
             <div className="grid grid-cols-6 gap-2">
               <Skeleton className="h-3 w-full" /> {/* Data de liquidação */}
-              <Skeleton className="h-3 w-full" /> {/* Montante bruto das vendas */}
-              <Skeleton className="h-3 w-full" /> {/* Montante líquido das antecipações */}
-              <Skeleton className="h-3 w-full" /> {/* Montante da restituição */}
+              <Skeleton className="h-3 w-full" />{" "}
+              {/* Montante bruto das vendas */}
+              <Skeleton className="h-3 w-full" />{" "}
+              {/* Montante líquido das antecipações */}
+              <Skeleton className="h-3 w-full" />{" "}
+              {/* Montante da restituição */}
               <Skeleton className="h-3 w-full" /> {/* Montante da liquidação */}
               <Skeleton className="ml-24 h-3 w-[80px]" /> {/* Status */}
             </div>
@@ -53,8 +56,8 @@ export default function Loading() {
 
         {/* Pagination Skeleton */}
         <div className="flex items-center justify-center mt-4">
-            <Skeleton className="h-5 w-[450px]" /> {/* Pagination buttons */}
-          </div>
+          <Skeleton className="h-5 w-[450px]" /> {/* Pagination buttons */}
+        </div>
         <div className="mt-4 gap-4">
           <Skeleton className="h-5 w-[150px]" /> {/* Total records counter */}
         </div>

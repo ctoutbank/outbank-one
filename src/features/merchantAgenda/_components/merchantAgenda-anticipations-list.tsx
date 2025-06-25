@@ -42,7 +42,7 @@ export default function MerchantAgendaAnticipationList({
     { id: "transactionMdrFee", name: "MDR (R$)", defaultVisible: false },
     {
       id: "settlementAmount",
-      name: "Valor Líquido da Parcela",
+      name: "R$ Líquido da Parcela",
       defaultVisible: true,
     },
     {
@@ -50,7 +50,7 @@ export default function MerchantAgendaAnticipationList({
       name: "Data Prevista de Liquidação",
       defaultVisible: false,
     },
-    { id: "anticipatedAmount", name: "Valor Antecipado", defaultVisible: true },
+    { id: "anticipatedAmount", name: "R$ Antecipado", defaultVisible: true },
     {
       id: "anticipationDayNumber",
       name: "Dias Antecipados",
@@ -68,7 +68,7 @@ export default function MerchantAgendaAnticipationList({
     },
     {
       id: "netAmount",
-      name: "Valor Líquido Antecipado",
+      name: "R$ Líquido Antecipado",
       defaultVisible: false,
     },
     { id: "anticipationCode", name: "ID do Pedido", defaultVisible: false },

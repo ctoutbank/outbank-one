@@ -47,8 +47,8 @@ export default async function PricingSolicitationPage({
       />
 
       <BaseBody
-        title="Solicitação de Taxas"
-        subtitle={`Visualização de todas as solicitações de taxas`}
+        title="Solicitação de Taxa"
+        subtitle={`Visualização de Todas as Solicitações de Taxas`}
       >
         <div className="mb-4">
           <PricingSolicitationFilter
@@ -60,20 +60,20 @@ export default async function PricingSolicitationPage({
         {pricingSolicitations && (
           <PricingSolicitationList solicitations={pricingSolicitations} />
         )}
-          {totalRecords > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                  <PageSizeSelector
-                      currentPageSize={pageSize}
-                      pageName="portal/pricingSolicitation"
-                  />
-                  <PaginationRecords
-                      totalRecords={totalRecords}
-                      currentPage={page}
-                      pageSize={pageSize}
-                      pageName="portal/pricingSolicitation"
-                  />
-              </div>
-          )}
+        {totalRecords > 0 && (
+          <div className="flex items-center justify-between mt-4">
+            <PageSizeSelector
+              currentPageSize={pageSize}
+              pageName="portal/pricingSolicitation"
+            />
+            <PaginationRecords
+              totalRecords={totalRecords}
+              currentPage={page}
+              pageSize={pageSize}
+              pageName="portal/pricingSolicitation"
+            />
+          </div>
+        )}
       </BaseBody>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { FileCheck, HomeIcon, Wallet } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type {
@@ -65,24 +65,10 @@ export function MerchantDashboardContent({
   return (
     <div className="w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-background ">
-          <CardHeader className="-mb-6">
-            <CardTitle className="text-lg font-bold">Visão geral</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {new Date().toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZone: "America/Sao_Paulo",
-              })}
-            </p>
-          </CardHeader>
-
-          <CardContent className="p-3">
+        <Card className="w-full border-l-8 border-black bg-transparent ">
+          <CardContent className="p-6">
+            {/* Linha Superior - Cards de Dados */}
             <div className="space-y-3">
-              {/* Linha Superior - Cards de Dados */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total de Estabelecimentos */}
                 <div className="h-[165px] p-4 bg-background rounded-lg border flex flex-col justify-between">

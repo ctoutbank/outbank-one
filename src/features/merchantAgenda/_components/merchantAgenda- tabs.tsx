@@ -140,46 +140,39 @@ export function MerchantAgendaTabs({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {activeTab === "receivables" ? (
-              <div className="flex-1">
-                <MerchantAgendaFilter
-                  dateFromIn={dateFrom}
-                  dateToIn={dateTo}
-                  establishmentIn={establishmentIn}
-                  statusIn={statusIn}
-                  cardBrandIn={merchantAgendaTabsProps.searchParams.cardBrand}
-                  settlementDateFromIn={settlementDateFromIn?.toISOString()}
-                  settlementDateToIn={settlementDateToIn?.toISOString()}
-                  expectedSettlementDateFromIn={
-                    merchantAgendaTabsProps.searchParams
-                      .expectedSettlementDateFrom
-                  }
-                  expectedSettlementDateToIn={
-                    merchantAgendaTabsProps.searchParams
-                      .expectedSettlementDateTo
-                  }
-                />
-              </div>
+              <MerchantAgendaFilter
+                dateFromIn={dateFrom}
+                dateToIn={dateTo}
+                establishmentIn={establishmentIn}
+                statusIn={statusIn}
+                cardBrandIn={merchantAgendaTabsProps.searchParams.cardBrand}
+                settlementDateFromIn={settlementDateFromIn?.toISOString()}
+                settlementDateToIn={settlementDateToIn?.toISOString()}
+                expectedSettlementDateFromIn={
+                  merchantAgendaTabsProps.searchParams
+                    .expectedSettlementDateFrom
+                }
+                expectedSettlementDateToIn={
+                  merchantAgendaTabsProps.searchParams.expectedSettlementDateTo
+                }
+              />
             ) : activeTab === "anticipations" ? (
-              <div className="flex-1">
-                <AnticipationsListFilter
-                  settlementDateFromIn={settlementDateFromIn}
-                  settlementDateToIn={settlementDateToIn}
-                  saleDateFromIn={saleDateFromIn}
-                  saleDateToIn={saleDateToIn}
-                  establishmentIn={establishmentIn}
-                  nsuIn={nsuIn}
-                  statusIn={statusIn}
-                  orderIdIn={orderIdIn}
-                />
-              </div>
+              <AnticipationsListFilter
+                settlementDateFromIn={settlementDateFromIn}
+                settlementDateToIn={settlementDateToIn}
+                saleDateFromIn={saleDateFromIn}
+                saleDateToIn={saleDateToIn}
+                establishmentIn={establishmentIn}
+                nsuIn={nsuIn}
+                statusIn={statusIn}
+                orderIdIn={orderIdIn}
+              />
             ) : (
-              <div className="flex-1">
-                <AdjustmentsListFilter
-                  dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
-                  dateToIn={dateTo ? new Date(dateTo) : undefined}
-                  establishmentIn={establishmentIn}
-                />
-              </div>
+              <AdjustmentsListFilter
+                dateFromIn={dateFrom ? new Date(dateFrom) : undefined}
+                dateToIn={dateTo ? new Date(dateTo) : undefined}
+                establishmentIn={establishmentIn}
+              />
             )}
 
             <TabsList className="flex h-9 items-center rounded-lg bg-muted p-1 text-muted-foreground">
@@ -203,7 +196,7 @@ export function MerchantAgendaTabs({
               </TabsTrigger>
             </TabsList>
           </div>
-          <div className="ml-2">
+          <div>
             {activeTab === "receivables" ? (
               <ExcelExport
                 data={merchantAgenda.merchantAgenda.map((data) => ({

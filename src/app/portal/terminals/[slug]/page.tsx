@@ -25,7 +25,7 @@ export default async function TerminalDetail({
       <BaseHeader
         breadcrumbItems={[{ title: "Terminais", url: "/portal/terminals" }]}
       />
-      <BaseBody title="Terminal" subtitle="Detalhes do terminal">
+      <BaseBody title="Terminal" subtitle="Detalhes do Terminal">
         <TerminalDetails terminal={terminal} />
       </BaseBody>
     </>

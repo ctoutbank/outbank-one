@@ -56,7 +56,7 @@ export default async function ReceiptsPage({
 
       <BaseBody
         title="Recebimentos"
-        subtitle={`visualização dos Recebimentos`}
+        subtitle={`Visualização dos Recebimentos`}
         //actions={<SyncButton syncType="payout" />}
       >
         <MerchantAgendaReceipts

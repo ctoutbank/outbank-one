@@ -181,7 +181,7 @@ export async function getUsers(
   };
 }
 
-function generateRandomPassword(length = 6) {
+export async function generateRandomPassword(length = 6) {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let randomPassword = "";
@@ -225,7 +225,7 @@ export async function InsertUser(data: UserInsert) {
       },
     });
 
-    const password = generateRandomPassword();
+    const password = await generateRandomPassword();
 
     const hashedPassword = hashPassword(password);
     console.log(password);
@@ -448,7 +448,10 @@ export async function getDDMerchants(customerId?: number): Promise<DD[]> {
     return [];
   }
 
-  return merchantResult as DD[];
+  return merchantResult.map((merchant) => ({
+    ...merchant,
+    name: merchant.name?.toUpperCase() ?? null,
+  })) as DD[];
 }
 
 export async function getDDCustomers(): Promise<DD[]> {

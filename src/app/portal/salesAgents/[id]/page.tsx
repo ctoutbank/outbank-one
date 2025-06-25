@@ -3,6 +3,11 @@ import SalesAgentsForm from "../../../../features/salesAgents/_components/salesA
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import {
+  getDDCustomers,
+  getDDMerchants,
+  getDDProfiles,
+} from "@/features/salesAgents/server/salesAgent";
 
 export const revalidate = 0;
 
@@ -12,6 +17,10 @@ export default async function SalesAgentsDetail({
   params: { id: string };
 }) {
   const agent = await getSalesAgentById(parseInt(params.id));
+  const merchantsList = await getDDMerchants(agent?.idCustomer || 0);
+  const profilesList = await getDDProfiles();
+  const customersList = await getDDCustomers();
+  
 
   return (
     <>
@@ -23,20 +32,33 @@ export default async function SalesAgentsDetail({
         subtitle={agent?.id ? "Editar Consultor" : "Adicionar Consultor"}
       >
         <SalesAgentsForm
-            salesAgent={{
-                id: agent?.id,
-                firstName: agent?.firstName || "",
-                lastName: agent?.lastName || "",
-                email: agent?.email || "",
-                active: agent?.active ?? true,
-                dtinsert: agent?.dtinsert ? new Date(agent.dtinsert) : new Date(),
-                dtupdate: agent?.dtupdate ? new Date(agent.dtupdate) : new Date(),
-                documentId: agent?.documentId || "",
-                slugCustomer: agent?.slugCustomer || "",
-                cpf: agent?.cpf || "",
-                phone: agent?.phone || "",
-                birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
-            }} profiles={[]} customers={[]}        />
+          salesAgent={{
+            id: agent?.id,
+            firstName: agent?.firstName || "",
+            lastName: agent?.lastName || "",
+            email: agent?.email || "",
+            cpf: agent?.cpf || "",
+            phone: agent?.phone || "",
+            birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
+            idProfile: agent?.idProfile?.toString() || undefined,
+            idCustomer: agent?.idCustomer?.toString() || undefined,
+            active: agent?.active ?? true,
+            address: {
+              zipCode: agent?.zipCode || "",
+              streetAddress: agent?.streetAddress || "",
+              streetNumber: agent?.streetNumber || "",
+              complement: agent?.complement || "",
+              neighborhood: agent?.neighborhood || "",
+              city: agent?.city || "",
+              state: agent?.state || "",
+              country: agent?.country || "Brasil",
+            },
+            selectedMerchants: agent?.selectedMerchants || [],
+          }}
+          profiles={profilesList}
+          customers={customersList}
+          merchantsList={merchantsList}
+        />
       </BaseBody>
     </>
   );

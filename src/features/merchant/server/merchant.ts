@@ -360,7 +360,7 @@ export async function getMerchants(
       merchantid: merchant.merchantid,
       slug: merchant.slug ?? "N/A",
       active: merchant.active ?? false,
-      name: merchant.name ?? "Não informado",
+      name: merchant.name?.toUpperCase() ?? "Não informado",
       email: merchant.email ?? "N/A",
       phone_type: merchant.phone_type ?? "N/A",
       revenue:
@@ -2137,7 +2137,7 @@ export async function getMerchantsWithDashboardData(
     merchantid: merchant.merchantid,
     slug: merchant.slug ?? "N/A",
     active: merchant.active ?? false,
-    name: merchant.name ?? "Não informado",
+    name: merchant.name?.toUpperCase() ?? "Não informado",
     email: merchant.email ?? "N/A",
     phone_type: merchant.phone_type ?? "N/A",
     revenue:
