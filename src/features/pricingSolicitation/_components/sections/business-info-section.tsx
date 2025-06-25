@@ -46,34 +46,34 @@ export function BusinessInfoSection({ control }: BusinessInfoSectionProps) {
       <h3 className="font-semibold text-lg">Informações do Negócio</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <FormField
-            control={control}
-            name="cnae"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CNAE</FormLabel>
-                <FormControl>
-                  <Input placeholder="00.00-0-00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+                control={control}
+                name="cnae"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>CNAE</FormLabel>
+                        <FormControl>
+                            <Input placeholder="00000/00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
         </div>
         <div>
-          <FormField
-            control={control}
-            name="mcc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>MCC</FormLabel>
-                <FormControl>
-                  <Input placeholder="0000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+                control={control}
+                name="mcc"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>MCC</FormLabel>
+                        <FormControl>
+                            <Input placeholder="0000" {...field} readOnly className="bg-muted" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
         </div>
         <div>
           <FormField

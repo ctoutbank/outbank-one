@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -53,7 +52,6 @@ export function TeamSwitcher({
                 </span>
                   <span className="truncate text-xs">{activeTeam.plan}</span>
                 </div>
-                <ChevronsUpDown className="ml-auto" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
