@@ -552,46 +552,51 @@ export interface UserMerchantSlugs {
 }
 
 export async function getUserMerchantsAccess(): Promise<UserMerchantsAccess> {
-  const userClerk = await currentUser();
+  try {
+    const userClerk = await currentUser();
 
-  if (!userClerk) {
-    throw new Error("User not authenticated");
-  }
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
 
-  const user = await db
-    .select({
-      id: users.id,
-      fullAccess: users.fullAccess,
-    })
-    .from(users)
-    .where(eq(users.idClerk, userClerk.id));
+    const user = await db
+      .select({
+        id: users.id,
+        fullAccess: users.fullAccess,
+      })
+      .from(users)
+      .where(eq(users.idClerk, userClerk.id));
 
-  if (!user || user.length === 0) {
-    throw new Error("User not found in database");
-  }
+    if (!user || user.length === 0) {
+      throw new Error("User not found in database");
+    }
 
-  if (user[0].fullAccess) {
+    if (user[0].fullAccess) {
+      return {
+        fullAccess: true,
+        idMerchants: [],
+      };
+    }
+
+    type MerchantResult = { idMerchant: number | null };
+
+    const merchantAccess = await db
+      .select({
+        idMerchant: userMerchants.idMerchant,
+      })
+      .from(userMerchants)
+      .where(eq(userMerchants.idUser, user[0].id));
+
     return {
-      fullAccess: true,
-      idMerchants: [],
+      fullAccess: user[0].fullAccess || false,
+      idMerchants: (merchantAccess as MerchantResult[])
+        .map((merchant) => merchant.idMerchant)
+        .filter((id): id is number => id !== null),
     };
+  } catch (error) {
+    console.error("Erro ao obter acesso aos comerciantes do usuário:", error);
+    throw error;
   }
-
-  type MerchantResult = { idMerchant: number | null };
-
-  const merchantAccess = await db
-    .select({
-      idMerchant: userMerchants.idMerchant,
-    })
-    .from(userMerchants)
-    .where(eq(userMerchants.idUser, user[0].id));
-
-  return {
-    fullAccess: user[0].fullAccess || false,
-    idMerchants: (merchantAccess as MerchantResult[])
-      .map((merchant) => merchant.idMerchant)
-      .filter((id): id is number => id !== null),
-  };
 }
 
 export async function getUserMerchantSlugs(): Promise<UserMerchantSlugs> {

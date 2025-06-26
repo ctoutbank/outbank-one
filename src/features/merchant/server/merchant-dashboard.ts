@@ -1,6 +1,6 @@
 "use server";
 
-import { getUserMerchantsAccess,} from "@/features/users/server/users";
+import { UserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import { and, count, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 import {
@@ -10,7 +10,8 @@ import {
   legalNatures,
   merchantPrice,
   merchants,
-  salesAgents, transactions,
+  salesAgents,
+  transactions,
 } from "../../../../drizzle/schema";
 
 // Tipo para o gráfico A - Estabelecimentos cadastrados por período
@@ -37,7 +38,7 @@ export type MerchantTransactionChart = {
 export type MerchantTypeChart = {
   name: string;
   value: number;
-}
+};
 // Tipo para o gráfico de região
 export type MerchantRegionChart = {
   name: string; // Nome da região (ex: "Sudeste", "Norte", etc.)
@@ -54,7 +55,7 @@ export type TransactionShiftChart = {
 export type TransactionStatusChart = {
   name: string; // "Aprovada" ou "Negada"
   value: number; // Quantidade de transações
-}
+};
 
 // Cache para condições de filtro
 let lastFilterKey: string = "";
@@ -62,6 +63,7 @@ let lastFilterConditions: any[] = [];
 
 // Função auxiliar para criar as condições de filtro
 export async function createFilterConditions(
+  userAccess: UserMerchantsAccess,
   search?: string,
   establishment?: string,
   status?: string,
@@ -93,7 +95,6 @@ export async function createFilterConditions(
   const conditions = [];
 
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
 
   // If user doesn't have full access, add merchant ID filter
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
@@ -195,6 +196,7 @@ export async function createFilterConditions(
 
 // Função para obter dados do gráfico A - Postos cadastrados por período
 export async function getMerchantRegistrationsByPeriod(
+  userAccess: UserMerchantsAccess,
   search?: string,
   establishment?: string,
   status?: string,
@@ -216,6 +218,7 @@ export async function getMerchantRegistrationsByPeriod(
 
   // Criar condições de filtro
   const filterConditions = await createFilterConditions(
+    userAccess,
     search,
     establishment,
     status,
@@ -264,6 +267,7 @@ export async function getMerchantRegistrationsByPeriod(
 
 // Função para obter sumário de estabelecimentos por períodos (mês atual, mês anterior, semana atual, hoje)
 export async function getMerchantRegistrationSummary(
+  userAccess: UserMerchantsAccess,
   search?: string,
   establishment?: string,
   status?: string,
@@ -312,6 +316,7 @@ export async function getMerchantRegistrationSummary(
 
   // Criar condições de filtro base
   const baseFilterConditions = await createFilterConditions(
+    userAccess,
     search,
     establishment,
     status,
@@ -400,6 +405,7 @@ async function getMerchantCountForPeriod(
 
 // Função para obter dados do gráfico B - Transaciona/Não Transaciona
 export async function getMerchantTransactionData(
+  userAccess: UserMerchantsAccess,
   search?: string,
   establishment?: string,
   status?: string,
@@ -412,6 +418,7 @@ export async function getMerchantTransactionData(
 ): Promise<MerchantTransactionChart[]> {
   // Criar condições de filtro
   const filterConditions = await createFilterConditions(
+    userAccess,
     search,
     establishment,
     status,
@@ -478,6 +485,7 @@ async function countMerchantsWithTransactions(
 
 // Função para obter dados do gráfico C - Compulsória/Eventual
 export async function getMerchantTypeData(
+  userAccess: UserMerchantsAccess,
   search?: string,
   establishment?: string,
   status?: string,
@@ -490,6 +498,7 @@ export async function getMerchantTypeData(
 ): Promise<MerchantTypeChart[]> {
   // Criar condições de filtro
   const filterConditions = await createFilterConditions(
+    userAccess,
     search,
     establishment,
     status,
@@ -560,53 +569,83 @@ async function countMerchantsByType(
 
 //Mapeamento de estados por região
 const STATE_TO_REGION: Record<string, string> = {
-  AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
-  AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste',
-  PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
-  DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
-  ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
-  PR: 'Sul', RS: 'Sul', SC: 'Sul',
+  AC: "Norte",
+  AP: "Norte",
+  AM: "Norte",
+  PA: "Norte",
+  RO: "Norte",
+  RR: "Norte",
+  TO: "Norte",
+  AL: "Nordeste",
+  BA: "Nordeste",
+  CE: "Nordeste",
+  MA: "Nordeste",
+  PB: "Nordeste",
+  PE: "Nordeste",
+  PI: "Nordeste",
+  RN: "Nordeste",
+  SE: "Nordeste",
+  DF: "Centro-Oeste",
+  GO: "Centro-Oeste",
+  MT: "Centro-Oeste",
+  MS: "Centro-Oeste",
+  ES: "Sudeste",
+  MG: "Sudeste",
+  RJ: "Sudeste",
+  SP: "Sudeste",
+  PR: "Sul",
+  RS: "Sul",
+  SC: "Sul",
 };
 
 export async function getMerchantsGroupedByRegion(
-    search?: string,
-    establishment?: string,
-    status?: string,
-    state?: string,
-    dateFrom?: string,
-    email?: string,
-    cnpj?: string,
-    active?: string,
-    salesAgent?: string
+  userAccess: UserMerchantsAccess,
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
 ): Promise<MerchantRegionChart[]> {
-
-  console.log('🔍 getMerchantsGroupedByRegion called with:', {
-    search, establishment, status, state, dateFrom, email, cnpj, active, salesAgent
+  console.log("🔍 getMerchantsGroupedByRegion called with:", {
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent,
   });
   const filterConditions = await createFilterConditions(
-      search,
-      establishment,
-      status,
-      state,
-      dateFrom,
-      email,
-      cnpj,
-      active,
-      salesAgent
+    userAccess,
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
   );
 
   const query = db
-      .select({
-        state: addresses.state,
-        total: count(),
-      })
-      .from(merchants)
-      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
-      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
-      .leftJoin(categories, eq(merchants.idCategory, categories.id));
+    .select({
+      state: addresses.state,
+      total: count(),
+    })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id));
 
   if (filterConditions.length > 0) {
     query.where(and(...filterConditions));
@@ -619,7 +658,7 @@ export async function getMerchantsGroupedByRegion(
   for (const { state, total } of stateResults) {
     if (!state) continue;
 
-    const region = STATE_TO_REGION[state.trim().toUpperCase()] || 'Sudeste';
+    const region = STATE_TO_REGION[state.trim().toUpperCase()] || "Sudeste";
     regionMap[region] = (regionMap[region] || 0) + Number(total);
   }
 
@@ -630,44 +669,46 @@ export async function getMerchantsGroupedByRegion(
 }
 
 export async function getTransactionsGroupedByShift(
-    search?: string,
-    establishment?: string,
-    status?: string,
-    state?: string,
-    dateFrom?: string,
-    email?: string,
-    cnpj?: string,
-    active?: string,
-    salesAgent?: string
+  userAccess: UserMerchantsAccess,
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
 ): Promise<TransactionShiftChart[]> {
   // Criar condições de filtro aplicados aos merchants
   const filterConditions = await createFilterConditions(
-      search,
-      establishment,
-      status,
-      state,
-      dateFrom,
-      email,
-      cnpj,
-      active,
-      salesAgent
+    userAccess,
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
   );
 
   // 1. Buscar slugs dos merchants filtrados
   const merchantSlugsResult = await db
-      .select({ slug: merchants.slug })
-      .from(merchants)
-      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
-      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
-      .leftJoin(categories, eq(merchants.idCategory, categories.id))
-      .where(and(...filterConditions));
+    .select({ slug: merchants.slug })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .where(and(...filterConditions));
 
   const merchantSlugs = merchantSlugsResult
-      .map((m) => m.slug)
-      .filter((slug): slug is string => !!slug);
+    .map((m) => m.slug)
+    .filter((slug): slug is string => !!slug);
 
   // 2. Se não tiver merchants após filtro, retorna todos os turnos zerados
   if (merchantSlugs.length === 0) {
@@ -681,9 +722,9 @@ export async function getTransactionsGroupedByShift(
 
   // 3. Buscar transações associadas aos merchants filtrados
   const transactionsResult = await db
-      .select({ dtInsert: transactions.dtInsert })
-      .from(transactions)
-      .where(inArray(transactions.slugMerchant, merchantSlugs));
+    .select({ dtInsert: transactions.dtInsert })
+    .from(transactions)
+    .where(inArray(transactions.slugMerchant, merchantSlugs));
 
   // 4. Agrupar transações por turno
   const shiftMap: Record<string, number> = {
@@ -699,13 +740,13 @@ export async function getTransactionsGroupedByShift(
     const hour = new Date(dtInsert).getHours();
 
     const shift =
-        hour >= 6 && hour < 12
-            ? "Manhã"
-            : hour >= 12 && hour < 18
-                ? "Tarde"
-                : hour >= 18 && hour < 24
-                    ? "Noite"
-                    : "Madrugada";
+      hour >= 6 && hour < 12
+        ? "Manhã"
+        : hour >= 12 && hour < 18
+          ? "Tarde"
+          : hour >= 18 && hour < 24
+            ? "Noite"
+            : "Madrugada";
 
     shiftMap[shift]++;
   }
@@ -718,44 +759,46 @@ export async function getTransactionsGroupedByShift(
 }
 
 export async function getTransactionStatusData(
-    search?: string,
-    establishment?: string,
-    status?: string,
-    state?: string,
-    dateFrom?: string,
-    email?: string,
-    cnpj?: string,
-    active?: string,
-    salesAgent?: string
+  userAccess: UserMerchantsAccess,
+  search?: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
 ): Promise<TransactionStatusChart[]> {
   // Criar condições de filtro aplicados aos merchants
   const filterConditions = await createFilterConditions(
-      search,
-      establishment,
-      status,
-      state,
-      dateFrom,
-      email,
-      cnpj,
-      active,
-      salesAgent
+    userAccess,
+    search,
+    establishment,
+    status,
+    state,
+    dateFrom,
+    email,
+    cnpj,
+    active,
+    salesAgent
   );
 
   // 1. Buscar slugs dos merchants filtrados
   const merchantSlugsResult = await db
-      .select({ slug: merchants.slug })
-      .from(merchants)
-      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-      .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-      .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
-      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
-      .leftJoin(categories, eq(merchants.idCategory, categories.id))
-      .where(and(...filterConditions));
+    .select({ slug: merchants.slug })
+    .from(merchants)
+    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
+    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
+    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+    .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .where(and(...filterConditions));
 
   const merchantSlugs = merchantSlugsResult
-      .map((m) => m.slug)
-      .filter((slug): slug is string => !!slug);
+    .map((m) => m.slug)
+    .filter((slug): slug is string => !!slug);
 
   // 2. Se não tiver merchants após filtro, retorna todos os status zerados
   if (merchantSlugs.length === 0) {
@@ -767,13 +810,13 @@ export async function getTransactionStatusData(
 
   // 3. Buscar transações associadas aos merchants filtrados
   const transactionsResult = await db
-      .select({
-        status: transactions.transactionStatus,
-        count: count(),
-      })
-      .from(transactions)
-      .where(inArray(transactions.slugMerchant, merchantSlugs))
-      .groupBy(transactions.transactionStatus);
+    .select({
+      status: transactions.transactionStatus,
+      count: count(),
+    })
+    .from(transactions)
+    .where(inArray(transactions.slugMerchant, merchantSlugs))
+    .groupBy(transactions.transactionStatus);
 
   // 4. Montar o mapa com contagem
   const statusMap: Record<string, number> = {
