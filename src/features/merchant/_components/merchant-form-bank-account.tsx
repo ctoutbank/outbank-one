@@ -42,6 +42,7 @@ import {
   merchantPixAccountSchema,
 } from "@/features/merchant/schema/merchant-pixaccount-schema";
 import { typeaccountDD } from "@/features/merchant/server/merchant-bank";
+import { handleNumericInput } from "@/lib/utils";
 import {
   buscarMerchantPorId,
   InsertMerchant1,
@@ -431,7 +432,11 @@ export default function MerchantFormBankAccount({
                         CPF/CNPJ <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          maxLength={14}
+                          onKeyDown={(e) => handleNumericInput(e, 14)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -528,7 +533,11 @@ export default function MerchantFormBankAccount({
                           Agência <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            maxLength={5}
+                            onKeyDown={(e) => handleNumericInput(e, 5)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -543,7 +552,11 @@ export default function MerchantFormBankAccount({
                       <FormItem>
                         <FormLabel>Dígito da agência</FormLabel>
                         <FormControl>
-                          <Input {...field} maxLength={2} />
+                          <Input
+                            {...field}
+                            maxLength={1}
+                            onKeyDown={(e) => handleNumericInput(e, 1)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -563,7 +576,11 @@ export default function MerchantFormBankAccount({
                           Conta <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            maxLength={13}
+                            onKeyDown={(e) => handleNumericInput(e, 13)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -578,7 +595,11 @@ export default function MerchantFormBankAccount({
                       <FormItem>
                         <FormLabel>Dígito da conta</FormLabel>
                         <FormControl>
-                          <Input {...field} maxLength={2} />
+                          <Input
+                            {...field}
+                            maxLength={1}
+                            onKeyDown={(e) => handleNumericInput(e, 1)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

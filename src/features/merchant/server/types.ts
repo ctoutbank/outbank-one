@@ -10,6 +10,7 @@ import {
   CnaeMccDropdown,
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
+  SalesAgentDropdown,
 } from "../server/merchant";
 import {
   accountTypeDropdown,
@@ -168,4 +169,5 @@ export interface MerchantTabsProps {
   permissions: string[];
   merchantFiles?: FileItem[];
   isCreating?: boolean;
+  DDSalesAgent: SalesAgentDropdown[];
 }

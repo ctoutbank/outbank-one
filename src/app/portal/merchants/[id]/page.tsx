@@ -9,6 +9,7 @@ import {
   getEstablishmentFormatForDropdown,
   getLegalNaturesForDropdown,
   getMerchantById,
+  getSalesAgentForDropdown,
 } from "@/features/merchant/server/merchant";
 import { getMerchantBankAccountById } from "@/features/merchant/server/merchant-bank";
 import {
@@ -42,6 +43,7 @@ export default async function MerchantDetail({
   const merchantBankAccount = await getMerchantBankAccountById(
     merchant?.merchants.idMerchantBankAccount || 0
   );
+  const DDSalesAgent = await getSalesAgentForDropdown();
 
   console.log("merchantBankAccount:", merchantBankAccount);
 
@@ -352,6 +354,7 @@ export default async function MerchantDetail({
             permissions={permissions}
             merchantFiles={merchantFiles}
             isCreating={true}
+            DDSalesAgent={DDSalesAgent}
           />
         ) : merchant?.merchants?.id ? (
           <MerchantDisplay
@@ -558,6 +561,7 @@ export default async function MerchantDetail({
             DDBank={DDBank}
             permissions={permissions}
             merchantFiles={merchantFiles}
+            DDSalesAgent={DDSalesAgent}
           />
         ) : (
           <div>
