@@ -1705,6 +1705,28 @@ export type EstablishmentFormatDropdown = {
   label: string;
 };
 
+export type SalesAgentDropdown = {
+  value: number;
+  label: string;
+};
+
+export async function getSalesAgentForDropdown(): Promise<
+  SalesAgentDropdown[]
+> {
+  const result = await db
+    .select({
+      value: salesAgents.id,
+      label: salesAgents.firstName,
+    })
+    .from(salesAgents)
+    .orderBy(salesAgents.id);
+
+  return result.map((item) => ({
+    value: item.value,
+    label: item.label ?? "",
+  }));
+}
+
 export async function getEstablishmentFormatForDropdown(): Promise<
   EstablishmentFormatDropdown[]
 > {

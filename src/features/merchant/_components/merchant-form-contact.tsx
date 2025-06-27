@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { states, UF } from "@/lib/lookuptables/lookuptables";
+import { handleNumericInput } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Plus, Trash2, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,25 +32,6 @@ import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
 
 // Função para permitir apenas números
-const handleNumericInput = (event: React.KeyboardEvent<HTMLInputElement>) => {
-  const allowedKeys = [
-    "Backspace",
-    "Delete",
-    "Tab",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowUp",
-    "ArrowDown",
-  ];
-
-  if (allowedKeys.includes(event.key)) {
-    return;
-  }
-
-  if (!/[0-9]/.test(event.key)) {
-    event.preventDefault();
-  }
-};
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
@@ -211,7 +193,7 @@ function ContactFormItem({
                 type="text"
                 inputMode="numeric"
                 maxLength={14}
-                onKeyDown={handleNumericInput}
+                onKeyDown={(e) => handleNumericInput(e, 14)}
                 {...registerContact("idDocument")}
               />
               {errorsContact.idDocument && (
@@ -245,7 +227,7 @@ function ContactFormItem({
                 maxLength={2}
                 type="text"
                 inputMode="numeric"
-                onKeyDown={handleNumericInput}
+                onKeyDown={(e) => handleNumericInput(e, 2)}
                 {...registerContact("areaCode")}
               />
               {errorsContact.areaCode && (
@@ -264,7 +246,7 @@ function ContactFormItem({
                 maxLength={10}
                 type="text"
                 inputMode="numeric"
-                onKeyDown={handleNumericInput}
+                onKeyDown={(e) => handleNumericInput(e, 10)}
                 {...registerContact("number")}
               />
               {errorsContact.number && (
@@ -372,6 +354,8 @@ function ContactFormItem({
                 id={`icNumber-${id}`}
                 placeholder="00.000.000-0"
                 {...registerContact("icNumber")}
+                maxLength={9}
+                onKeyDown={(e) => handleNumericInput(e, 9)}
               />
               {errorsContact.icNumber && (
                 <p className="text-sm text-red-500 mt-1">
@@ -471,6 +455,8 @@ function ContactFormItem({
                   id={`zipCode-${id}`}
                   placeholder="00000-000"
                   {...registerAddress("zipCode")}
+                  maxLength={9}
+                  onKeyDown={(e) => handleNumericInput(e, 9)}
                 />
                 {errorsAddress.zipCode && (
                   <p className="text-sm text-red-500 mt-1">
@@ -505,6 +491,8 @@ function ContactFormItem({
                   id={`number-address-${id}`}
                   placeholder="123"
                   {...registerAddress("number")}
+                  maxLength={9}
+                  onKeyDown={(e) => handleNumericInput(e, 9)}
                 />
                 {errorsAddress.number && (
                   <p className="text-sm text-red-500 mt-1">

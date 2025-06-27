@@ -55,6 +55,7 @@ export default function MerchantDisplay({
   permissions,
   merchantPixAccount,
   merchantFiles = [],
+  DDSalesAgent,
 }: MerchantTabsProps) {
   const router = useRouter();
   const [activeEditSection, setActiveEditSection] = useState<string | null>(
@@ -465,6 +466,8 @@ export default function MerchantDisplay({
                   setActiveTab={() => {}}
                   permissions={permissions}
                   idConfiguration={merchant.idConfiguration || undefined}
+                  DDSalesAgent={DDSalesAgent}
+                  idSalesAgent={merchant.idSalesAgent || null}
                 />
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -1176,6 +1179,8 @@ export default function MerchantDisplay({
               setActiveTab={() => {}}
               permissions={permissions}
               idConfiguration={merchant.idConfiguration || undefined}
+              DDSalesAgent={DDSalesAgent}
+              idSalesAgent={merchant.idSalesAgent || null}
             />
           )}
 

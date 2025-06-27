@@ -35,7 +35,10 @@ import { CreditCard, Settings } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { updateMerchantColumnsById } from "../server/merchant";
+import {
+  SalesAgentDropdown,
+  updateMerchantColumnsById,
+} from "../server/merchant";
 
 // Estendendo o tipo de configuração para incluir os campos adicionais
 interface ConfigurationWithExtras {
@@ -61,10 +64,12 @@ interface MerchantProps {
   merhcnatSlug: string;
   timezone: string;
   idMerchant: number;
+  idSalesAgent: number | null;
   setActiveTab: (tab: string) => void;
   activeTab: string;
   permissions: string[];
   idConfiguration?: number;
+  DDSalesAgent: SalesAgentDropdown[];
 }
 
 export default function MerchantFormOperations({
@@ -77,8 +82,10 @@ export default function MerchantFormOperations({
   setActiveTab,
   activeTab,
   idMerchant,
+
   permissions,
   idConfiguration,
+  DDSalesAgent,
 }: MerchantProps) {
   const router = useRouter();
   const [loadedConfiguration] = useState<ConfigurationWithExtras | null>(null);
@@ -253,6 +260,7 @@ export default function MerchantFormOperations({
         hasTop: data.hastop || false,
         hasPix: data.hasPix || false,
         timezone: data.timezone || "",
+        idSalesAgent: data.idSalesAgent || null,
       };
 
       console.log("Dados para atualização do merchant:", merchantUpdates);
@@ -687,13 +695,32 @@ export default function MerchantFormOperations({
 
                 <FormField
                   control={form.control}
-                  name="merhcnatSlug"
+                  name="idSalesAgent"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Consultor Comercial</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value} />
-                      </FormControl>
+                      <FormLabel>
+                        Formato Jurídico <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DDSalesAgent.map((item) => (
+                            <SelectItem
+                              key={item.value}
+                              value={item.value.toString()}
+                            >
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

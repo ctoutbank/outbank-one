@@ -38,6 +38,7 @@ export const schemaConfigurationOperations = z.object({
   anticipationRiskFactorCnp: z.string().optional(),
   waitingPeriodCp: z.string().optional(),
   waitingPeriodCnp: z.string().optional(),
+  idSalesAgent: z.number().optional(),
 });
 
 export type ConfigurationOperationsSchema = z.infer<

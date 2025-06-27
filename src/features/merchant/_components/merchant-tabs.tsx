@@ -30,6 +30,7 @@ export default function MerchantTabs({
 
   merchantPriceGroupProps,
   permissions,
+  DDSalesAgent,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
 
@@ -187,6 +188,8 @@ export default function MerchantTabs({
           }
           permissions={permissions}
           idConfiguration={merchant.idConfiguration || undefined}
+          DDSalesAgent={DDSalesAgent}
+          idSalesAgent={merchant.idSalesAgent || null}
         />
       </TabsContent>
       {permissions?.includes("Configurar dados Bancários") && (
