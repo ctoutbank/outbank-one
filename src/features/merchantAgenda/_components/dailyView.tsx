@@ -96,7 +96,9 @@ export function DailyView({ dailyData, exportExcelDailyData }: DailyViewProps) {
               >
                 <AccordionTrigger className="py-4 hover:no-underline">
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-medium">{merchant.merchant}</span>
+                    <span className="font-medium">
+                      {merchant.merchant.toUpperCase()}
+                    </span>
                     <div className="flex items-center gap-4">
                       <span
                         className={`font-medium ${

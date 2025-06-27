@@ -172,16 +172,17 @@ export function formatCNPJ(cnpj: string): string {
   )}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
 }
 
-export function formatCurrency(number: number | string | undefined | null): string {
+export function formatCurrency(
+  number: number | string | undefined | null
+): string {
   const parsed = Number(number);
   if (isNaN(parsed)) return "R$ 0,00";
 
   return `R$ ${parsed
-      .toFixed(2)
-      .replace(".", ",")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+    .toFixed(2)
+    .replace(".", ",")
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
-
 
 export function formatPercentage(value: number): string {
   return `${value}%`;
@@ -189,15 +190,13 @@ export function formatPercentage(value: number): string {
 
 export function formatPercentagea(value: number | null) {
   if (value === null) return null;
-  return `${Math.abs(value).toFixed(2).replace('.', ',')}%`;
+  return `${Math.abs(value).toFixed(2).replace(".", ",")}%`;
 }
 
 export function formatCurrencya(value: number | null) {
   if (value === null) return null;
-  return `R$ ${Math.abs(value).toFixed(2).replace('.', ',')}`;
+  return `R$ ${Math.abs(value).toFixed(2).replace(".", ",")}`;
 }
-
-
 
 export function generateSlug(): string {
   return crypto.randomBytes(16).toString("hex").toUpperCase();
@@ -355,4 +354,28 @@ export function getPreviousPeriodFromRange(
     from: fmt(prevFrom)!,
     to: fmt(prevTo)!,
   };
+}
+
+export function handleNumericInput(
+  event: React.KeyboardEvent<HTMLInputElement>,
+  maxLength: number
+) {
+  const allowedKeys = [
+    "Backspace",
+    "Delete",
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+  ];
+
+  if (allowedKeys.includes(event.key)) {
+    return;
+  }
+
+  const inputElement = event.target as HTMLInputElement;
+  if (inputElement.value.length >= maxLength || !/[0-9]/.test(event.key)) {
+    event.preventDefault();
+  }
 }

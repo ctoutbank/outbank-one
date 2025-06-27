@@ -221,6 +221,7 @@ export default async function ReportDetail({
   const periods = await getperiodTypes();
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
+  
 
   return (
     <>

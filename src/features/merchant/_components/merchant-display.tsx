@@ -55,6 +55,7 @@ export default function MerchantDisplay({
   permissions,
   merchantPixAccount,
   merchantFiles = [],
+  DDSalesAgent,
 }: MerchantTabsProps) {
   const router = useRouter();
   const [activeEditSection, setActiveEditSection] = useState<string | null>(
@@ -258,6 +259,10 @@ export default function MerchantDisplay({
                         : "-"
                     }
                   />
+                  <InfoItem
+                    label="Tipo de Estabelecimento"
+                    value={merchant.establishmentFormat}
+                  />
 
                   <div className="col-span-2 mt-2 border-t pt-2">
                     <p className="font-medium mb-1 text-sm">Endereço</p>
@@ -314,6 +319,14 @@ export default function MerchantDisplay({
                     label="CPF"
                     value={Contacts?.contacts?.idDocument}
                   />
+                  <InfoItem
+                    label="Data de Nascimento"
+                    value={formatDate(Contacts?.contacts?.birthDate)}
+                  />
+                  <InfoItem
+                    label="Nome da Mãe"
+                    value={Contacts?.contacts?.mothersName}
+                  />
                   <InfoItem label="E-mail" value={Contacts?.contacts?.email} />
                   <InfoItem
                     label="Telefone"
@@ -323,10 +336,19 @@ export default function MerchantDisplay({
                         : "-"
                     }
                   />
+
                   <InfoItem label="RG" value={Contacts?.contacts?.icNumber} />
                   <InfoItem
-                    label="Data de Nascimento"
-                    value={formatDate(Contacts?.contacts?.birthDate)}
+                    label="Data de Emissão"
+                    value={formatDate(Contacts?.contacts?.icDateIssuance)}
+                  />
+                  <InfoItem
+                    label="Orgao Emissor"
+                    value={Contacts?.contacts?.icDispatcher}
+                  />
+                  <InfoItem
+                    label="UF"
+                    value={Contacts?.contacts?.icFederativeUnit}
                   />
                   <InfoItem
                     label="Sócio ou Proprietário"
@@ -444,6 +466,8 @@ export default function MerchantDisplay({
                   setActiveTab={() => {}}
                   permissions={permissions}
                   idConfiguration={merchant.idConfiguration || undefined}
+                  DDSalesAgent={DDSalesAgent}
+                  idSalesAgent={merchant.idSalesAgent || null}
                 />
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -1155,6 +1179,8 @@ export default function MerchantDisplay({
               setActiveTab={() => {}}
               permissions={permissions}
               idConfiguration={merchant.idConfiguration || undefined}
+              DDSalesAgent={DDSalesAgent}
+              idSalesAgent={merchant.idSalesAgent || null}
             />
           )}
 

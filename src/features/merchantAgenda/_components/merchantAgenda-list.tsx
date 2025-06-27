@@ -118,7 +118,7 @@ export default function MerchantAgendaList({
                   <TableRow key={index}>
                     {visibleColumns.includes("merchant") && (
                       <TableCell className="text-muted-foreground">
-                        {merchantAgenda.merchant}
+                        {merchantAgenda.merchant.toUpperCase()}
                       </TableCell>
                     )}
                     {visibleColumns.includes("terminal") && (

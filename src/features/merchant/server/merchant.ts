@@ -2,7 +2,7 @@
 
 import { CategoryDetail } from "@/features/categories/server/category";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { UserMerchantsAccess } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables"; // ajuste o path se necessário
 import { db } from "@/server/db";
 import {
@@ -122,6 +122,7 @@ export async function getMerchants(
   search: string,
   page: number,
   pageSize: number,
+  userAccess: UserMerchantsAccess,
   establishment?: string,
   status?: string,
   state?: string,
@@ -134,9 +135,6 @@ export async function getMerchants(
   const offset = (page - 1) * pageSize;
 
   const conditions = [];
-
-  // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
 
   // If user doesn't have full access, add merchant ID filter
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
@@ -484,10 +482,10 @@ export type MerchantSelect = typeof merchants.$inferSelect & {
   contacts?: typeof contacts.$inferSelect;
 };
 
-export async function getMerchantById(id: number) {
-  // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-
+export async function getMerchantById(
+  id: number,
+  userAccess: UserMerchantsAccess
+) {
   // Check if user has access to this merchant
   if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
     throw new Error("You don't have access to this merchant");
@@ -1707,6 +1705,28 @@ export type EstablishmentFormatDropdown = {
   label: string;
 };
 
+export type SalesAgentDropdown = {
+  value: number;
+  label: string;
+};
+
+export async function getSalesAgentForDropdown(): Promise<
+  SalesAgentDropdown[]
+> {
+  const result = await db
+    .select({
+      value: salesAgents.id,
+      label: salesAgents.firstName,
+    })
+    .from(salesAgents)
+    .orderBy(salesAgents.id);
+
+  return result.map((item) => ({
+    value: item.value,
+    label: item.label ?? "",
+  }));
+}
+
 export async function getEstablishmentFormatForDropdown(): Promise<
   EstablishmentFormatDropdown[]
 > {
@@ -1822,6 +1842,7 @@ export async function getMerchantsWithDashboardData(
   search: string,
   page: number,
   pageSize: number,
+  userAccess: UserMerchantsAccess,
   establishment?: string,
   status?: string,
   state?: string,
@@ -1835,7 +1856,6 @@ export async function getMerchantsWithDashboardData(
   const conditions = [];
 
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
 
   // If user doesn't have full access, add merchant ID filter
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {

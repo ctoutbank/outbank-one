@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { handleNumericInput } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Landmark } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -237,7 +238,11 @@ export default function MerchantFormBank({
                         Agência <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          maxLength={5}
+                          onKeyDown={(e) => handleNumericInput(e, 5)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -252,7 +257,11 @@ export default function MerchantFormBank({
                     <FormItem>
                       <FormLabel>Dígito da agência</FormLabel>
                       <FormControl>
-                        <Input {...field} maxLength={1} />
+                        <Input
+                          {...field}
+                          maxLength={1}
+                          onKeyDown={(e) => handleNumericInput(e, 1)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -272,7 +281,11 @@ export default function MerchantFormBank({
                         Conta <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          maxLength={13}
+                          onKeyDown={(e) => handleNumericInput(e, 13)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -289,7 +302,11 @@ export default function MerchantFormBank({
                         Dígito da conta <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} maxLength={1} />
+                        <Input
+                          {...field}
+                          maxLength={1}
+                          onKeyDown={(e) => handleNumericInput(e, 1)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
