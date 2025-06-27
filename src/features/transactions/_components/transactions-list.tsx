@@ -126,7 +126,7 @@ export default function TransactionsList({
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  {transaction.merchantName || "N/A"}
+                  {transaction.merchantName?.toUpperCase() || "N/A"}
                   <span className="text-xs text-gray-500">
                     {transaction.merchantCNPJ
                       ? formatCNPJ(transaction.merchantCNPJ)

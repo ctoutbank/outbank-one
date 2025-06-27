@@ -157,7 +157,7 @@ export default function MerchantAgendaAnticipationList({
                   <TableRow key={index}>
                     {visibleColumns.includes("merchantName") && (
                       <TableCell className="text-muted-foreground">
-                        {item.merchantName || "-"}
+                        {item.merchantName?.toUpperCase() || "-"}
                       </TableCell>
                     )}
                     {visibleColumns.includes("rrn") && (

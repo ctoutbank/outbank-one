@@ -97,7 +97,7 @@ export default function MerchantSettlementsList({
                           <TableBody>
                             <TableRow>
                               <TableCell className="w-[20%] min-w-[180px] text-muted-foreground">
-                                {settlement.merchant}
+                                {settlement.merchant.toUpperCase()}
                               </TableCell>
                               <TableCell className="w-[15%] min-w-[140px] text-center text-muted-foreground">
                                 {formatCurrency(Number(settlement.batchamount))}

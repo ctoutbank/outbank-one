@@ -233,7 +233,9 @@ export async function getTransactions(
     const feeAdmin =
       item.feeAdmin !== null ? parseFloat(item.feeAdmin.toString()) : null;
     const transactionMdr =
-      item.transactionMdr !== null ? parseFloat(item.transactionMdr.toString()) : null;
+      item.transactionMdr !== null
+        ? parseFloat(item.transactionMdr.toString())
+        : null;
 
     const lucro =
       transactionMdr !== null && feeAdmin !== null
@@ -270,7 +272,6 @@ export async function getTransactions(
   };
 }
 
-
 export type TransactionsGroupedReport = {
   product_type: string;
   brand: string;
@@ -280,6 +281,21 @@ export type TransactionsGroupedReport = {
   date: string;
 };
 
+export type TransactionsDashboardTotals = {
+  product_type: string;
+  count: number;
+  total_amount: number;
+};
+
+export type CancelledTransactions = {
+  count: number;
+};
+
+export type TotalTransactionsByDay = {
+  date: string;
+  total_amount: number;
+  lucro: number;
+};
 
 export async function normalizeDateRange(
   start: string,
@@ -298,8 +314,6 @@ export async function normalizeDateRange(
   const endDate = `${nextDay}T23:59:59`;
   return { start: startDate, end: endDate };
 }
-
-
 
 export async function getTransactionsGroupedReport(
   dateFrom: string,
@@ -451,6 +465,7 @@ export async function getTotalTransactionsByMonth(
   dateTo: string,
   viewMode?: string
 ): Promise<GetTotalTransactionsByMonthResult[]> {
+  const startTime = performance.now();
   const conditions: any[] = [];
 
   if (dateFrom) {
@@ -613,19 +628,23 @@ export async function getTotalTransactionsByMonth(
         }
     );
   }
-
+  const endTime = performance.now();
+  console.log(
+    `getTotalTransactionsByMonth executed in ${endTime - startTime} ms`
+  );
   return totals;
 }
 
 export async function getTotalMerchants() {
+  const startTime = performance.now();
   const result = await db.execute(sql`
     SELECT 
       COUNT(1) AS total
     FROM merchants
   `);
-
+  const endTime = performance.now();
+  console.log(`getTotalMerchants executed in ${endTime - startTime} ms`);
   const data = result.rows as MerchantTotal[];
-  console.log(data);
   return data;
 }
 
@@ -633,89 +652,95 @@ export async function getTotalTransactions(
   dateFrom: string,
   dateTo: string
 ): Promise<GetTotalTransactionsResult[]> {
-  const whereConditions = [];
-
-  if (dateFrom) {
-    const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
-    whereConditions.push(sql`t.dt_insert >= ${dateFromUTC}`);
-    console.log(dateFromUTC);
-  }
-  if (dateTo) {
-    const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
-    whereConditions.push(sql`t.dt_insert <= ${dateToUTC}`);
-    console.log(dateToUTC);
-  }
-
-  // ignorar transações inválidas
-  whereConditions.push(
-    sql`t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')`
-  );
-  whereConditions.push(sql`sf.status = 'COMPLETED'`);
-
-  const whereClause =
-    whereConditions.length > 0
-      ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}`
-      : sql``;
+  const startTime = performance.now();
+  // Converte datas para UTC se fornecidas
+  const dateFromUTC = dateFrom
+    ? getDateUTC(dateFrom, "America/Sao_Paulo")!
+    : null;
+  const dateToUTC = dateTo ? getDateUTC(dateTo, "America/Sao_Paulo")! : null;
 
   const result = await db.execute(sql`
+    WITH filtered_transactions AS (
+      SELECT *
+      FROM transactions t
+      WHERE
+        t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')
+        ${dateFromUTC ? sql`AND t.dt_insert >= ${dateFromUTC}` : sql``}
+        ${dateToUTC ? sql`AND t.dt_insert <= ${dateToUTC}` : sql``}
+    ),
+    latest_payout AS (
+      SELECT DISTINCT ON (p.payout_id)
+        p.payout_id,
+        p.transaction_mdr,
+        p.installment_number
+      FROM payout p
+      ORDER BY p.payout_id, p.installment_number DESC
+    ),
+    merchant_info AS (
+      SELECT
+        ft.*,
+        m.id_category,
+        c.mcc,
+        sf.id                AS sf_id,
+        sf.card_pix_mdr_admin,
+        sf.non_card_pix_mdr_admin
+      FROM filtered_transactions ft
+      JOIN merchants m ON ft.slug_merchant = m.slug
+      JOIN categories c ON m.id_category = c.id
+      JOIN solicitation_fee sf
+        ON c.mcc = sf.mcc
+       AND sf.status = 'COMPLETED'
+    ),
+    joined_data AS (
+      SELECT
+        mi.*,
+        lp.transaction_mdr,
+        lp.installment_number,
+        sfb.id              AS sfb_id,
+        sbpt.fee_admin,
+        sbpt.no_card_fee_admin
+      FROM merchant_info mi
+      LEFT JOIN latest_payout lp
+        ON lp.payout_id::uuid = mi.slug
+      LEFT JOIN solicitation_fee_brand sfb
+        ON sfb.solicitation_fee_id = mi.sf_id
+       AND sfb.brand = mi.brand
+      LEFT JOIN solicitation_brand_product_type sbpt
+        ON sbpt.solicitation_fee_brand_id = sfb.id
+       AND sbpt.product_type = SPLIT_PART(mi.product_type, '_', 1)
+       AND lp.installment_number BETWEEN sbpt.transaction_fee_start AND sbpt.transaction_fee_end
+    ),
+    final_data AS (
+      SELECT
+        total_amount,
+        method_type,
+        product_type,
+        COALESCE(transaction_mdr, 0) AS mdr,
+        COALESCE(
+          CASE
+            WHEN product_type ILIKE 'PIX' AND method_type = 'CP'  THEN card_pix_mdr_admin
+            WHEN product_type ILIKE 'PIX' AND method_type = 'CNP' THEN non_card_pix_mdr_admin
+            WHEN method_type = 'CP'                               THEN fee_admin
+            WHEN method_type = 'CNP'                              THEN no_card_fee_admin
+            ELSE 0
+          END
+        , 0) AS admin_fee
+      FROM joined_data
+    )
     SELECT
-      SUM(t.total_amount) AS sum,
-      COUNT(*)          AS count,
+      COUNT(*)                 AS count,
+      SUM(total_amount)::TEXT  AS sum,
       SUM(
         CASE
-          WHEN t.method_type = 'CP' THEN
-            CASE
-              WHEN COALESCE(p.transaction_mdr, 0) = 0 THEN 0
-              ELSE
-                t.total_amount
-                * (
-                    COALESCE(p.transaction_mdr, 0) / 100
-                    - COALESCE(
-                        CASE
-                          WHEN t.product_type ILIKE 'PIX'
-                          THEN sf.card_pix_mdr_admin
-                          ELSE sbpt.fee_admin
-                        END
-                      , 0) / 100
-                  )
-            END
-          WHEN t.method_type = 'CNP' THEN
-            CASE
-              WHEN COALESCE(p.transaction_mdr, 0) = 0 THEN 0
-              ELSE
-                t.total_amount
-                * (
-                    COALESCE(p.transaction_mdr, 0) / 100
-                    - COALESCE(
-                        CASE
-                          WHEN t.product_type ILIKE 'PIX'
-                          THEN sf.non_card_pix_mdr_admin
-                          ELSE sbpt.no_card_fee_admin
-                        END
-                      , 0) / 100
-                  )
-            END
-          ELSE 0
+          WHEN mdr = 0 THEN 0
+          ELSE total_amount * ((mdr - admin_fee) / 100.0)
         END
-      ) AS revenue
-    FROM ${transactions} AS t
-    LEFT JOIN ${merchants}  AS m  ON t.slug_merchant = m.slug
-    LEFT JOIN ${categories} AS c  ON m.id_category   = c.id
-    LEFT JOIN ${solicitationFee}       AS sf ON c.mcc = sf.mcc
-    LEFT JOIN ${solicitationFeeBrand}  AS sfb
-      ON sfb.solicitation_fee_id = sf.id
-     AND sfb.brand               = t.brand
-    LEFT JOIN ${payout} AS p
-      ON p.payout_id::uuid = t.slug
-    LEFT JOIN ${solicitationBrandProductType} AS sbpt
-      ON sbpt.solicitation_fee_brand_id = sfb.id
-     AND sbpt.product_type = SPLIT_PART(t.product_type, '_', 1)
-     AND p.installments BETWEEN sbpt.transaction_fee_start AND sbpt.transaction_fee_end
-    ${whereClause}
+      )::TEXT                  AS revenue
+    FROM final_data;
   `);
 
-  console.log(dateFrom, dateTo, result.rows as GetTotalTransactionsResult[]);
-
+  const endTime = performance.now();
+  console.log(`getTotalTransactions executed in ${endTime - startTime} ms`);
   return result.rows as GetTotalTransactionsResult[];
 }
 
@@ -781,44 +806,161 @@ export async function correctTransactions() {
   }
 }
 
-
-export async function getCancelledTransactions(dateFrom: string, dateTo: string) {
+export async function getCancelledTransactions(
+  dateFrom: string,
+  dateTo: string
+): Promise<CancelledTransactions[]> {
+  const startTime = performance.now();
   const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
   const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
 
   const result = await db.execute(sql`
     SELECT 
-      slug,
-      dt_insert,
-      total_amount,
-      product_type,
-      brand,
-      transaction_status
+     COUNT(1) AS count
     FROM transactions
     WHERE dt_insert >= ${dateFromUTC} 
       AND dt_insert < ${dateToUTC}
       AND transaction_status = 'DENIED'
   `);
-
-  return result.rows;
+  const endTime = performance.now();
+  console.log(`getCancelledTransactions executed in ${endTime - startTime} ms`);
+  return result.rows as CancelledTransactions[];
 }
 
-
-export async function getRawTransactionsByDate(dateFrom: string, dateTo: string) {
+export async function getRawTransactionsByDate(
+  dateFrom: string,
+  dateTo: string
+): Promise<TotalTransactionsByDay[]> {
+  const startTime = performance.now();
   const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
   const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
 
   const result = await db.execute(sql`
-    SELECT 
-      slug,
-      dt_insert,
-      total_amount,
-      product_type,
-      brand,
-      transaction_status
-    FROM transactions
-    WHERE dt_insert >= ${dateFromUTC} AND dt_insert < ${dateToUTC}
+    WITH filtered_transactions AS (
+      SELECT *
+      FROM transactions t
+      WHERE
+        t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')
+        AND t.dt_insert >= ${dateFromUTC}
+        AND t.dt_insert < ${dateToUTC}
+    ),
+    latest_payout AS (
+      SELECT DISTINCT ON (p.payout_id)
+        p.payout_id,
+        p.transaction_mdr,
+        p.installment_number
+      FROM payout p
+      ORDER BY p.payout_id, p.installment_number DESC
+    ),
+    merchant_info AS (
+      SELECT
+        ft.*,
+        m.id_category,
+        c.mcc,
+        sf.id                AS sf_id,
+        sf.card_pix_mdr_admin,
+        sf.non_card_pix_mdr_admin
+      FROM filtered_transactions ft
+      JOIN merchants m ON ft.slug_merchant = m.slug
+      JOIN categories c ON m.id_category = c.id
+      JOIN solicitation_fee sf
+        ON c.mcc = sf.mcc
+       AND sf.status = 'COMPLETED'
+    ),
+    joined_data AS (
+      SELECT
+        mi.*,
+        lp.transaction_mdr,
+        lp.installment_number,
+        sfb.id              AS sfb_id,
+        sbpt.fee_admin,
+        sbpt.no_card_fee_admin
+      FROM merchant_info mi
+      LEFT JOIN latest_payout lp
+        ON lp.payout_id::uuid = mi.slug
+      LEFT JOIN solicitation_fee_brand sfb
+        ON sfb.solicitation_fee_id = mi.sf_id
+       AND sfb.brand = mi.brand
+      LEFT JOIN solicitation_brand_product_type sbpt
+        ON sbpt.solicitation_fee_brand_id = sfb.id
+       AND sbpt.product_type = SPLIT_PART(mi.product_type, '_', 1)
+       AND lp.installment_number BETWEEN sbpt.transaction_fee_start AND sbpt.transaction_fee_end
+    ),
+    final_data AS (
+      SELECT
+        total_amount,
+        method_type,
+        product_type,
+        dt_insert,
+        COALESCE(transaction_mdr, 0) AS mdr,
+        COALESCE(
+          CASE
+            WHEN product_type ILIKE 'PIX' AND method_type = 'CP'  THEN card_pix_mdr_admin
+            WHEN product_type ILIKE 'PIX' AND method_type = 'CNP' THEN non_card_pix_mdr_admin
+            WHEN method_type = 'CP'                               THEN fee_admin
+            WHEN method_type = 'CNP'                              THEN no_card_fee_admin
+            ELSE 0
+          END
+        , 0) AS admin_fee
+      FROM joined_data
+    )
+    SELECT
+      DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo') as date,
+      SUM(total_amount)::NUMERIC AS total_amount,
+      SUM(
+        CASE
+          WHEN mdr = 0 THEN 0
+          ELSE total_amount * ((mdr - admin_fee) / 100.0)
+        END
+      )::NUMERIC AS lucro
+    FROM final_data
+    GROUP BY DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo')
+    ORDER BY DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo');
   `);
+  const endTime = performance.now();
+  console.log(`getRawTransactionsByDate executed in ${endTime - startTime} ms`);
+  console.log(result.rows as TotalTransactionsByDay[]);
+  return result.rows as TotalTransactionsByDay[];
+}
 
-  return result.rows;
+export async function getTransactionsDashboardTotals(
+  dateFrom: string,
+  dateTo: string
+): Promise<TransactionsDashboardTotals[]> {
+  // Construir condições dinâmicas para a consulta SQL
+  const conditions = [];
+
+  // Adicionar condições de data (sempre presentes)
+  if (dateFrom) {
+    console.log(dateFrom);
+
+    const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
+    console.log(dateFromUTC);
+    conditions.push(gte(transactions.dtInsert, dateFromUTC!));
+  }
+
+  if (dateTo) {
+    console.log(dateTo);
+    const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
+    console.log(dateToUTC);
+    conditions.push(lte(transactions.dtInsert, dateToUTC!));
+  }
+
+  conditions.push(
+    sql`transactions.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')`
+  );
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  console.log(whereClause);
+  const result = await db.execute(sql`
+    SELECT 
+      product_type, 
+      count(1) as count,
+      sum(total_amount) as total_amount
+    FROM transactions
+    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+    GROUP BY product_type
+  `);
+  console.log(result.rows as TransactionsDashboardTotals[]);
+  return result.rows as TransactionsDashboardTotals[];
 }

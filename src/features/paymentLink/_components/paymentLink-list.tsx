@@ -85,7 +85,7 @@ export default function PaymentLinksList({
                 </TableCell>
                 <TableCell>{link.name}</TableCell>
                 <TableCell>{formatDate(new Date(link.expiresAt))}</TableCell>
-                <TableCell>{link.merchantName}</TableCell>
+                <TableCell>{link.merchantName?.toUpperCase()}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className="truncate max-w-[200px]">{link.link}</span>

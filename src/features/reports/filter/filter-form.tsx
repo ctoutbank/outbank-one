@@ -1340,7 +1340,7 @@ export default function FilterForm({
                           <Input
                             type="text"
                             placeholder="Digite para buscar estabelecimentos..."
-                            value={searchTerm}
+                            value={searchTerm.toUpperCase()}
                             onChange={(e) => {
                               setSearchTerm(e.target.value);
                               // Limpar a lista de sugestões se o campo estiver vazio
@@ -1412,7 +1412,7 @@ export default function FilterForm({
                                       field.onChange(merchant.name || "");
                                     }}
                                   >
-                                    {merchant.name || "N/A"}
+                                    {merchant.name?.toUpperCase() || "N/A"}
                                     {merchant.corporateName &&
                                       ` (${merchant.corporateName})`}
                                   </li>
@@ -1431,7 +1431,7 @@ export default function FilterForm({
                               className="px-3 py-1.5 bg-blue-100 text-sm break-words flex-grow overflow-hidden"
                             >
                               <span className="block truncate">
-                                {selectedMerchant.name || "N/A"}
+                                {selectedMerchant.name?.toUpperCase() || "N/A"}
                                 {selectedMerchant.corporateName &&
                                   ` (${selectedMerchant.corporateName})`}
                               </span>

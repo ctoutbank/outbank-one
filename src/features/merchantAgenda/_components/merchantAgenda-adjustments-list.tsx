@@ -59,7 +59,7 @@ export default function MerchantAgendaAdjustmentList({
                 (item, index) => (
                   <TableRow key={index}>
                     <TableCell className="text-muted-foreground">
-                      {item.merchantName || "-"}
+                      {item.merchantName?.toUpperCase() || "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(item.paymentDate)}
