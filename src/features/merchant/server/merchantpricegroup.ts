@@ -81,8 +81,8 @@ export async function getMerchantPriceGroupsBymerchantPricetId(
                     'installmentTransactionFeeEnd', ${merchantTransactionPrice.installmentTransactionFeeEnd},
                     'mdr', ${merchantTransactionPrice.cardTransactionMdr},
                     'fee', ${merchantTransactionPrice.cardTransactionFee},
-                    'noCardTransactionFee', ${merchantTransactionPrice.nonCardTransactionFee},
-                    'noCardTransactionMdr', ${merchantTransactionPrice.nonCardTransactionMdr},
+                    'nonCardTransactionFee', ${merchantTransactionPrice.nonCardTransactionFee},
+                    'nonCardTransactionMdr', ${merchantTransactionPrice.nonCardTransactionMdr},
                     'producttype', ${merchantTransactionPrice.producttype}
                     
                 )
