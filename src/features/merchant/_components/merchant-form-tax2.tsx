@@ -11,11 +11,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  updateMerchantPriceFormAction,
+  updateMultipleTransactionPricesFormAction,
+} from "@/features/merchant/_actions/merchant-price-formActions";
 import { type FeeData } from "@/features/newTax/server/fee-db";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createMerchantPriceFromFeeAction } from "../_actions/create-merchant-price-action";
 import { updateMerchantPriceGroupFormAction } from "../_actions/merchantpricegroup-formActions";
+import {
+  merchantPriceSchema,
+  type MerchantPriceSchema,
+} from "../schema/merchant-price-schema";
 import { getMerchantPriceGroupsBymerchantPricetId } from "../server/merchantpricegroup";
 
 const getCardImage = (cardName: string): string => {
@@ -124,15 +134,169 @@ export default function MerchantFormTax2({
   const [isCreatingMerchantPrice, setIsCreatingMerchantPrice] = useState(false);
   const showFeeSelection = !idMerchantPrice || idMerchantPrice === 0;
 
+  // Configuração do formulário
+  const form = useForm<MerchantPriceSchema>({
+    resolver: zodResolver(merchantPriceSchema),
+    defaultValues: {
+      id: idMerchantPrice || undefined,
+      name: merchantprice?.[0]?.name || "",
+      active: merchantprice?.[0]?.active ?? true,
+      tableType: merchantprice?.[0]?.tableType || "",
+      anticipationType: merchantprice?.[0]?.anticipationType || "",
+      eventualAnticipationFee: merchantprice?.[0]?.eventualAnticipationFee || 0,
+      cardPixMdr: merchantprice?.[0]?.cardPixMdr || 0,
+      cardPixCeilingFee: merchantprice?.[0]?.cardPixCeilingFee || 0,
+      cardPixMinimumCostFee: merchantprice?.[0]?.cardPixMinimumCostFee || 0,
+      nonCardPixMdr: merchantprice?.[0]?.nonCardPixMdr || 0,
+      nonCardPixCeilingFee: merchantprice?.[0]?.nonCardPixCeilingFee || 0,
+      nonCardPixMinimumCostFee:
+        merchantprice?.[0]?.nonCardPixMinimumCostFee || 0,
+    },
+  });
+
   const [pixFees, setPixFees] = useState({
     mdr: merchantprice?.[0]?.cardPixMdr || 0,
     custoMinimo: merchantprice?.[0]?.cardPixMinimumCostFee || 0,
     custoMaximo: merchantprice?.[0]?.cardPixCeilingFee || 0,
-    antecipacao: merchantprice?.[0]?.anticipationType || "",
+    antecipacao: merchantprice?.[0]?.eventualAnticipationFee || 0,
   });
 
-  const handlePixFeeChange = (field: keyof typeof pixFees, value: string) => {
-    setPixFees({ ...pixFees, [field]: parseFloat(value) });
+  const [pixFeesOnline, setPixFeesOnline] = useState({
+    mdr: merchantprice?.[0]?.nonCardPixMdr || 0,
+    custoMinimo: merchantprice?.[0]?.nonCardPixMinimumCostFee || 0,
+    custoMaximo: merchantprice?.[0]?.nonCardPixCeilingFee || 0,
+    antecipacao: merchantprice?.[0]?.eventualAnticipationFee || 0,
+  });
+
+  const handlePixFeeChange = (
+    field: keyof typeof pixFees,
+    value: string,
+    type: "pos" | "online" = "pos"
+  ) => {
+    const numericValue = parseFloat(value) || 0;
+    if (type === "pos") {
+      setPixFees({ ...pixFees, [field]: numericValue });
+    } else {
+      setPixFeesOnline({ ...pixFeesOnline, [field]: numericValue });
+    }
+  };
+
+  // Função de submit do formulário
+  const onSubmit = async (data: MerchantPriceSchema) => {
+    try {
+      console.log("Dados do formulário:", data);
+      console.log("FeeData atual:", feeData);
+      console.log("PixFees atual:", pixFees);
+
+      // Preparar updates para transaction prices
+      const transactionUpdates: Array<{ id: number; data: any }> = [];
+
+      // Atualizar merchant price incluindo os campos PIX
+      const merchantPriceData = {
+        ...data,
+        cardPixMdr: pixFees.mdr,
+        cardPixCeilingFee: pixFees.custoMaximo,
+        cardPixMinimumCostFee: pixFees.custoMinimo,
+        nonCardPixMdr: pixFeesOnline.mdr,
+        nonCardPixCeilingFee: pixFeesOnline.custoMaximo,
+        nonCardPixMinimumCostFee: pixFeesOnline.custoMinimo,
+        eventualAnticipationFee: pixFees.antecipacao, // Usando o valor do POS para antecipação
+      };
+
+      console.log("Dados do merchant price para atualizar:", merchantPriceData);
+
+      await updateMerchantPriceFormAction(merchantPriceData);
+
+      feeData.forEach((group) => {
+        console.log("Processando grupo:", group);
+
+        // Crédito à vista
+        if (group.transactions.credit.vista?.id) {
+          transactionUpdates.push({
+            id: group.transactions.credit.vista.id,
+            data: {
+              cardTransactionMdr:
+                group.transactions.credit.vista.mdr ||
+                group.transactions.credit.vista.cardTransactionMdr,
+              nonCardTransactionMdr:
+                group.transactions.credit.vista.nonCardTransactionMdr,
+            },
+          });
+        }
+
+        // Crédito 2-6x
+        if (group.transactions.credit.parcela2_6?.id) {
+          transactionUpdates.push({
+            id: group.transactions.credit.parcela2_6.id,
+            data: {
+              cardTransactionMdr:
+                group.transactions.credit.parcela2_6.mdr ||
+                group.transactions.credit.parcela2_6.cardTransactionMdr,
+              nonCardTransactionMdr:
+                group.transactions.credit.parcela2_6.nonCardTransactionMdr,
+            },
+          });
+        }
+
+        // Crédito 7-12x
+        if (group.transactions.credit.parcela7_12?.id) {
+          transactionUpdates.push({
+            id: group.transactions.credit.parcela7_12.id,
+            data: {
+              cardTransactionMdr:
+                group.transactions.credit.parcela7_12.mdr ||
+                group.transactions.credit.parcela7_12.cardTransactionMdr,
+              nonCardTransactionMdr:
+                group.transactions.credit.parcela7_12.nonCardTransactionMdr,
+            },
+          });
+        }
+
+        // Débito
+        if (group.transactions.debit?.id) {
+          transactionUpdates.push({
+            id: group.transactions.debit.id,
+            data: {
+              cardTransactionMdr:
+                group.transactions.debit.mdr ||
+                group.transactions.debit.cardTransactionMdr,
+              nonCardTransactionMdr:
+                group.transactions.debit.nonCardTransactionMdr,
+            },
+          });
+        }
+
+        // Pré-pago
+        if (group.transactions.prepaid?.id) {
+          transactionUpdates.push({
+            id: group.transactions.prepaid.id,
+            data: {
+              cardTransactionMdr:
+                group.transactions.prepaid.mdr ||
+                group.transactions.prepaid.cardTransactionMdr,
+              nonCardTransactionMdr:
+                group.transactions.prepaid.nonCardTransactionMdr,
+            },
+          });
+        }
+      });
+
+      console.log("Transaction updates preparados:", transactionUpdates);
+
+      // Executar updates de transaction prices
+      if (transactionUpdates.length > 0) {
+        await updateMultipleTransactionPricesFormAction(transactionUpdates);
+      }
+
+      toast.success("Taxas atualizadas com sucesso!");
+      setIsEditing(false);
+
+      // Recarregar dados
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao atualizar taxas:", error);
+      toast.error("Erro ao atualizar taxas");
+    }
   };
 
   // Função para buscar dados da fee selecionada
@@ -535,7 +699,7 @@ export default function MerchantFormTax2({
               <h3 className="text-sm font-semibold text-gray-700 mb-3 bg-gray-100 p-2 rounded">
                 Taxas Transações no POS
               </h3>
-              <table className="w-full">
+              <table className="w-full ">
                 <thead>
                   <tr>
                     <th className="text-left py-2 px-4">Bandeira</th>
@@ -612,26 +776,24 @@ export default function MerchantFormTax2({
                 <div className="flex gap-10">
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">MDR</p>
-                    <div className="px-3 py-1 text-sm w-24">
-                      {fee.cardPixMdr}%
-                    </div>
+                    <div className="px-3 py-1 text-sm w-24">{pixFees.mdr}%</div>
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {fee.cardPixMinimumCostFee}
+                      R$ {pixFees.custoMinimo}
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {fee.cardPixCeilingFee}
+                      R$ {pixFees.custoMaximo}
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">Antecipação</p>
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {fee.eventualAnticipationFee}% ao mês
+                      {pixFees.antecipacao}% ao mês
                     </div>
                   </div>
                 </div>
@@ -672,77 +834,275 @@ export default function MerchantFormTax2({
                           <span>{group.name}</span>
                         </div>
                       </td>
+                      {/* Crédito à vista */}
                       <td className="py-2 px-4">
-                        <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.credit.vista
-                            ?.nonCardTransactionMdr
-                            ? `${group.transactions.credit.vista.nonCardTransactionMdr}%`
-                            : "-"}
-                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={
+                              group.transactions.credit.vista
+                                ?.nonCardTransactionMdr || ""
+                            }
+                            onChange={(e) => {
+                              if ("id" in group) {
+                                const newFeeData = [...feeData];
+                                const groupIndex = newFeeData.findIndex(
+                                  (g) => g.id === (group as any).id
+                                );
+                                if (
+                                  groupIndex !== -1 &&
+                                  newFeeData[groupIndex].transactions.credit
+                                    .vista
+                                ) {
+                                  newFeeData[
+                                    groupIndex
+                                  ].transactions.credit.vista.nonCardTransactionMdr =
+                                    parseFloat(e.target.value);
+                                  setFeeData(newFeeData);
+                                }
+                              }
+                            }}
+                            className="w-24 h-8 text-sm border rounded px-2"
+                          />
+                        ) : (
+                          <div className="px-3 py-1 text-sm w-24">
+                            {
+                              group.transactions.credit.vista
+                                ?.nonCardTransactionMdr
+                            }
+                            %
+                          </div>
+                        )}
                       </td>
+                      {/* Crédito 2-6x */}
                       <td className="py-2 px-4">
-                        <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.credit.parcela2_6
-                            ?.nonCardTransactionMdr
-                            ? `${group.transactions.credit.parcela2_6.nonCardTransactionMdr}%`
-                            : "-"}
-                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={
+                              group.transactions.credit.parcela2_6
+                                ?.nonCardTransactionMdr || ""
+                            }
+                            onChange={(e) => {
+                              if ("id" in group) {
+                                const newFeeData = [...feeData];
+                                const groupIndex = newFeeData.findIndex(
+                                  (g) => g.id === (group as any).id
+                                );
+                                if (
+                                  groupIndex !== -1 &&
+                                  newFeeData[groupIndex].transactions.credit
+                                    .parcela2_6
+                                ) {
+                                  newFeeData[
+                                    groupIndex
+                                  ].transactions.credit.parcela2_6.nonCardTransactionMdr =
+                                    parseFloat(e.target.value);
+                                  setFeeData(newFeeData);
+                                }
+                              }
+                            }}
+                            className="w-24 h-8 text-sm border rounded px-2"
+                          />
+                        ) : (
+                          <div className="px-3 py-1 text-sm w-24">
+                            {
+                              group.transactions.credit.parcela2_6
+                                ?.nonCardTransactionMdr
+                            }
+                            %
+                          </div>
+                        )}
                       </td>
+                      {/* Crédito 7-12x */}
                       <td className="py-2 px-4">
-                        <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.credit.parcela7_12
-                            ?.nonCardTransactionMdr
-                            ? `${group.transactions.credit.parcela7_12.nonCardTransactionMdr}%`
-                            : "-"}
-                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={
+                              group.transactions.credit.parcela7_12
+                                ?.nonCardTransactionMdr || ""
+                            }
+                            onChange={(e) => {
+                              if ("id" in group) {
+                                const newFeeData = [...feeData];
+                                const groupIndex = newFeeData.findIndex(
+                                  (g) => g.id === (group as any).id
+                                );
+                                if (
+                                  groupIndex !== -1 &&
+                                  newFeeData[groupIndex].transactions.credit
+                                    .parcela7_12
+                                ) {
+                                  newFeeData[
+                                    groupIndex
+                                  ].transactions.credit.parcela7_12.nonCardTransactionMdr =
+                                    parseFloat(e.target.value);
+                                  setFeeData(newFeeData);
+                                }
+                              }
+                            }}
+                            className="w-24 h-8 text-sm border rounded px-2"
+                          />
+                        ) : (
+                          <div className="px-3 py-1 text-sm w-24">
+                            {
+                              group.transactions.credit.parcela7_12
+                                ?.nonCardTransactionMdr
+                            }
+                            %
+                          </div>
+                        )}
                       </td>
+                      {/* Débito */}
                       <td className="py-2 px-4">
-                        <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.debit?.nonCardTransactionMdr
-                            ? `${group.transactions.debit.nonCardTransactionMdr}%`
-                            : "-"}
-                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={
+                              group.transactions.debit?.nonCardTransactionMdr ||
+                              ""
+                            }
+                            onChange={(e) => {
+                              if ("id" in group) {
+                                const newFeeData = [...feeData];
+                                const groupIndex = newFeeData.findIndex(
+                                  (g) => g.id === (group as any).id
+                                );
+                                if (
+                                  groupIndex !== -1 &&
+                                  newFeeData[groupIndex].transactions.debit
+                                ) {
+                                  newFeeData[
+                                    groupIndex
+                                  ].transactions.debit.nonCardTransactionMdr =
+                                    parseFloat(e.target.value);
+                                  setFeeData(newFeeData);
+                                }
+                              }
+                            }}
+                            className="w-24 h-8 text-sm border rounded px-2"
+                          />
+                        ) : (
+                          <div className="px-3 py-1 text-sm w-24">
+                            {group.transactions.debit?.nonCardTransactionMdr}%
+                          </div>
+                        )}
                       </td>
+                      {/* Pré-pago */}
                       <td className="py-2 px-4">
-                        <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.prepaid?.nonCardTransactionMdr
-                            ? `${group.transactions.prepaid.nonCardTransactionMdr}%`
-                            : "-"}
-                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={
+                              group.transactions.prepaid
+                                ?.nonCardTransactionMdr || ""
+                            }
+                            onChange={(e) => {
+                              if ("id" in group) {
+                                const newFeeData = [...feeData];
+                                const groupIndex = newFeeData.findIndex(
+                                  (g) => g.id === (group as any).id
+                                );
+                                if (
+                                  groupIndex !== -1 &&
+                                  newFeeData[groupIndex].transactions.prepaid
+                                ) {
+                                  newFeeData[
+                                    groupIndex
+                                  ].transactions.prepaid.nonCardTransactionMdr =
+                                    parseFloat(e.target.value);
+                                  setFeeData(newFeeData);
+                                }
+                              }
+                            }}
+                            className="w-24 h-8 text-sm border rounded px-2"
+                          />
+                        ) : (
+                          <div className="px-3 py-1 text-sm w-24">
+                            {group.transactions.prepaid?.nonCardTransactionMdr}%
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-
-              <div className="mt-8 bg-gray-50 rounded-lg p-4">
+              <div className="mt-8 bg-gray-50 rounded-lg p-4 ">
                 <h2 className="text-lg font-semibold mb-6 text-gray-800">
                   Taxa Pix
                 </h2>
                 <div className="flex gap-10">
                   <div className="flex flex-col items-left">
                     <p className="text-sm text-gray-600 mb-2">MDR</p>
-                    <div className="px-3 py-1 text-sm w-24">
-                      {fee.nonCardPixMdr}%
-                    </div>
+                    {isEditing ? (
+                      <Input
+                        value={pixFeesOnline.mdr}
+                        onChange={(e) =>
+                          handlePixFeeChange("mdr", e.target.value, "online")
+                        }
+                        className="w-24 h-8 text-sm border rounded px-2"
+                      />
+                    ) : (
+                      <div className="px-3 py-1 text-sm w-24">
+                        {pixFeesOnline.mdr}%
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
-                    <div className="px-3 py-1 text-sm w-24">
-                      R$ {fee.nonCardPixMinimumCostFee}
-                    </div>
+                    {isEditing ? (
+                      <Input
+                        value={pixFeesOnline.custoMinimo}
+                        onChange={(e) =>
+                          handlePixFeeChange(
+                            "custoMinimo",
+                            e.target.value,
+                            "online"
+                          )
+                        }
+                        className="w-24 h-8 text-sm border rounded px-2"
+                      />
+                    ) : (
+                      <div className="px-3 py-1 text-sm w-24">
+                        R$ {pixFeesOnline.custoMinimo}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
-                    <div className="px-3 py-1 text-sm w-24">
-                      R$ {fee.nonCardPixCeilingFee}
-                    </div>
+                    {isEditing ? (
+                      <Input
+                        value={pixFeesOnline.custoMaximo}
+                        onChange={(e) =>
+                          handlePixFeeChange(
+                            "custoMaximo",
+                            e.target.value,
+                            "online"
+                          )
+                        }
+                        className="w-24 h-8 text-sm border rounded px-2"
+                      />
+                    ) : (
+                      <div className="px-3 py-1 text-sm w-24">
+                        R$ {pixFeesOnline.custoMaximo}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
-                    <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {fee.eventualAnticipationFee}% ao mês
-                    </div>
+                    {isEditing ? (
+                      <Input
+                        value={pixFees.antecipacao}
+                        onChange={(e) =>
+                          handlePixFeeChange(
+                            "antecipacao",
+                            e.target.value,
+                            "online"
+                          )
+                        }
+                        className="w-24 h-8 text-sm border rounded px-2"
+                      />
+                    ) : (
+                      <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
+                        {pixFees.antecipacao}% ao mês
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -837,7 +1197,7 @@ export default function MerchantFormTax2({
           slug: group.name,
           active: group.active,
           brand: group.name,
-          idGroup: group.id,
+          idGroup: 0, // Este campo parece ser diferente do id do grupo
           idMerchantPrice: idMerchantPrice,
           dtinsert: new Date(group.dtinsert),
           dtupdate: new Date(),
@@ -1056,7 +1416,9 @@ export default function MerchantFormTax2({
                   >
                     Cancelar
                   </Button>
-                  <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
+                  <Button onClick={form.handleSubmit(onSubmit)}>
+                    Salvar Alterações
+                  </Button>
                 </>
               ) : (
                 <Button onClick={() => setIsEditing(true)}>
@@ -1263,31 +1625,29 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixMdr}
+                      value={pixFees.mdr}
                       onChange={(e) =>
-                        handlePixFeeChange("mdr", e.target.value)
+                        handlePixFeeChange("mdr", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
-                    <div className="px-3 py-1 text-sm w-24">
-                      {merchantprice[0].cardPixMdr}%
-                    </div>
+                    <div className="px-3 py-1 text-sm w-24">{pixFees.mdr}%</div>
                   )}
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixMinimumCostFee}
+                      value={pixFees.custoMinimo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMinimo", e.target.value)
+                        handlePixFeeChange("custoMinimo", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].cardPixMinimumCostFee}
+                      R$ {pixFees.custoMinimo}
                     </div>
                   )}
                 </div>
@@ -1295,15 +1655,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixCeilingFee}
+                      value={pixFees.custoMaximo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMaximo", e.target.value)
+                        handlePixFeeChange("custoMaximo", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].cardPixCeilingFee}
+                      R$ {pixFees.custoMaximo}
                     </div>
                   )}
                 </div>
@@ -1311,15 +1671,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Antecipação</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].eventualAnticipationFee}
+                      value={pixFees.antecipacao}
                       onChange={(e) =>
-                        handlePixFeeChange("antecipacao", e.target.value)
+                        handlePixFeeChange("antecipacao", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {merchantprice[0].eventualAnticipationFee}% ao mês
+                      {pixFees.antecipacao}% ao mês
                     </div>
                   )}
                 </div>
@@ -1364,7 +1724,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.vista
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1377,7 +1737,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.vista.noCardTransactionMdr =
+                              ].transactions.credit.vista.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1388,7 +1748,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.vista
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -1400,7 +1760,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.parcela2_6
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1414,7 +1774,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.parcela2_6.noCardTransactionMdr =
+                              ].transactions.credit.parcela2_6.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1425,7 +1785,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.parcela2_6
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -1437,7 +1797,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.parcela7_12
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1451,7 +1811,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.parcela7_12.noCardTransactionMdr =
+                              ].transactions.credit.parcela7_12.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1462,7 +1822,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.parcela7_12
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -1473,7 +1833,8 @@ export default function MerchantFormTax2({
                       {isEditing ? (
                         <Input
                           value={
-                            group.transactions.debit?.noCardTransactionMdr || ""
+                            group.transactions.debit?.nonCardTransactionMdr ||
+                            ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1486,7 +1847,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.debit.noCardTransactionMdr =
+                              ].transactions.debit.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1495,7 +1856,7 @@ export default function MerchantFormTax2({
                         />
                       ) : (
                         <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.debit?.noCardTransactionMdr}%
+                          {group.transactions.debit?.nonCardTransactionMdr}%
                         </div>
                       )}
                     </td>
@@ -1504,7 +1865,7 @@ export default function MerchantFormTax2({
                       {isEditing ? (
                         <Input
                           value={
-                            group.transactions.prepaid?.noCardTransactionMdr ||
+                            group.transactions.prepaid?.nonCardTransactionMdr ||
                             ""
                           }
                           onChange={(e) => {
@@ -1518,7 +1879,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.prepaid.noCardTransactionMdr =
+                              ].transactions.prepaid.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1527,7 +1888,7 @@ export default function MerchantFormTax2({
                         />
                       ) : (
                         <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.prepaid?.noCardTransactionMdr}%
+                          {group.transactions.prepaid?.nonCardTransactionMdr}%
                         </div>
                       )}
                     </td>
@@ -1544,15 +1905,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixMdr}
+                      value={pixFeesOnline.mdr}
                       onChange={(e) =>
-                        handlePixFeeChange("mdr", e.target.value)
+                        handlePixFeeChange("mdr", e.target.value, "online")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      {merchantprice[0].nonCardPixMdr}%
+                      {pixFeesOnline.mdr}%
                     </div>
                   )}
                 </div>
@@ -1560,15 +1921,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixMinimumCostFee}
+                      value={pixFeesOnline.custoMinimo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMinimo", e.target.value)
+                        handlePixFeeChange(
+                          "custoMinimo",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].nonCardPixMinimumCostFee}
+                      R$ {pixFeesOnline.custoMinimo}
                     </div>
                   )}
                 </div>
@@ -1576,15 +1941,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixCeilingFee}
+                      value={pixFeesOnline.custoMaximo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMaximo", e.target.value)
+                        handlePixFeeChange(
+                          "custoMaximo",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].nonCardPixCeilingFee}
+                      R$ {pixFeesOnline.custoMaximo}
                     </div>
                   )}
                 </div>
@@ -1592,15 +1961,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].eventualAnticipationFee}
+                      value={pixFees.antecipacao}
                       onChange={(e) =>
-                        handlePixFeeChange("antecipacao", e.target.value)
+                        handlePixFeeChange(
+                          "antecipacao",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {merchantprice[0].eventualAnticipationFee}% ao mês
+                      {pixFees.antecipacao}% ao mês
                     </div>
                   )}
                 </div>
@@ -1626,8 +1999,8 @@ export default function MerchantFormTax2({
                 </tr>
               </thead>
               <tbody>
-                {feeData.map((group) => (
-                  <tr key={group.id} className="border-t border-gray-200">
+                {feeData.map((group, index) => (
+                  <tr key={index} className="border-t border-gray-200">
                     <td className="py-2 px-4">
                       <div className="flex items-center gap-2">
                         {getCardImage(group.name) && (
@@ -1804,31 +2177,29 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixMdr}
+                      value={pixFees.mdr}
                       onChange={(e) =>
-                        handlePixFeeChange("mdr", e.target.value)
+                        handlePixFeeChange("mdr", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
-                    <div className="px-3 py-1 text-sm w-24">
-                      {merchantprice[0].cardPixMdr}%
-                    </div>
+                    <div className="px-3 py-1 text-sm w-24">{pixFees.mdr}%</div>
                   )}
                 </div>
                 <div className="flex flex-col items-center">
                   <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixMinimumCostFee}
+                      value={pixFees.custoMinimo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMinimo", e.target.value)
+                        handlePixFeeChange("custoMinimo", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].cardPixMinimumCostFee}
+                      R$ {pixFees.custoMinimo}
                     </div>
                   )}
                 </div>
@@ -1836,15 +2207,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].cardPixCeilingFee}
+                      value={pixFees.custoMaximo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMaximo", e.target.value)
+                        handlePixFeeChange("custoMaximo", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].cardPixCeilingFee}
+                      R$ {pixFees.custoMaximo}
                     </div>
                   )}
                 </div>
@@ -1852,15 +2223,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Antecipação</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].eventualAnticipationFee}
+                      value={pixFees.antecipacao}
                       onChange={(e) =>
-                        handlePixFeeChange("antecipacao", e.target.value)
+                        handlePixFeeChange("antecipacao", e.target.value, "pos")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {merchantprice[0].eventualAnticipationFee}% ao mês
+                      {pixFees.antecipacao}% ao mês
                     </div>
                   )}
                 </div>
@@ -1908,7 +2279,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.vista
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1921,7 +2292,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.vista.noCardTransactionMdr =
+                              ].transactions.credit.vista.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1932,7 +2303,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.vista
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -1944,7 +2315,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.parcela2_6
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1958,7 +2329,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.parcela2_6.noCardTransactionMdr =
+                              ].transactions.credit.parcela2_6.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -1969,7 +2340,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.parcela2_6
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -1981,7 +2352,7 @@ export default function MerchantFormTax2({
                         <Input
                           value={
                             group.transactions.credit.parcela7_12
-                              ?.noCardTransactionMdr || ""
+                              ?.nonCardTransactionMdr || ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -1995,7 +2366,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.credit.parcela7_12.noCardTransactionMdr =
+                              ].transactions.credit.parcela7_12.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -2006,7 +2377,7 @@ export default function MerchantFormTax2({
                         <div className="px-3 py-1 text-sm w-24">
                           {
                             group.transactions.credit.parcela7_12
-                              ?.noCardTransactionMdr
+                              ?.nonCardTransactionMdr
                           }
                           %
                         </div>
@@ -2017,7 +2388,8 @@ export default function MerchantFormTax2({
                       {isEditing ? (
                         <Input
                           value={
-                            group.transactions.debit?.noCardTransactionMdr || ""
+                            group.transactions.debit?.nonCardTransactionMdr ||
+                            ""
                           }
                           onChange={(e) => {
                             const newFeeData = [...feeData];
@@ -2030,7 +2402,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.debit.noCardTransactionMdr =
+                              ].transactions.debit.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -2039,7 +2411,7 @@ export default function MerchantFormTax2({
                         />
                       ) : (
                         <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.debit?.noCardTransactionMdr}%
+                          {group.transactions.debit?.nonCardTransactionMdr}%
                         </div>
                       )}
                     </td>
@@ -2048,7 +2420,7 @@ export default function MerchantFormTax2({
                       {isEditing ? (
                         <Input
                           value={
-                            group.transactions.prepaid?.noCardTransactionMdr ||
+                            group.transactions.prepaid?.nonCardTransactionMdr ||
                             ""
                           }
                           onChange={(e) => {
@@ -2062,7 +2434,7 @@ export default function MerchantFormTax2({
                             ) {
                               newFeeData[
                                 groupIndex
-                              ].transactions.prepaid.noCardTransactionMdr =
+                              ].transactions.prepaid.nonCardTransactionMdr =
                                 parseFloat(e.target.value);
                               setFeeData(newFeeData);
                             }
@@ -2071,7 +2443,7 @@ export default function MerchantFormTax2({
                         />
                       ) : (
                         <div className="px-3 py-1 text-sm w-24">
-                          {group.transactions.prepaid?.noCardTransactionMdr}%
+                          {group.transactions.prepaid?.nonCardTransactionMdr}%
                         </div>
                       )}
                     </td>
@@ -2088,15 +2460,15 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixMdr}
+                      value={pixFeesOnline.mdr}
                       onChange={(e) =>
-                        handlePixFeeChange("mdr", e.target.value)
+                        handlePixFeeChange("mdr", e.target.value, "online")
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      {merchantprice[0].nonCardPixMdr}%
+                      {pixFeesOnline.mdr}%
                     </div>
                   )}
                 </div>
@@ -2104,15 +2476,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Mínimo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixMinimumCostFee}
+                      value={pixFeesOnline.custoMinimo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMinimo", e.target.value)
+                        handlePixFeeChange(
+                          "custoMinimo",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].nonCardPixMinimumCostFee}
+                      R$ {pixFeesOnline.custoMinimo}
                     </div>
                   )}
                 </div>
@@ -2120,15 +2496,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm text-gray-600 mb-2">Custo Máximo</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].nonCardPixCeilingFee}
+                      value={pixFeesOnline.custoMaximo}
                       onChange={(e) =>
-                        handlePixFeeChange("custoMaximo", e.target.value)
+                        handlePixFeeChange(
+                          "custoMaximo",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm w-24">
-                      R$ {merchantprice[0].nonCardPixCeilingFee}
+                      R$ {pixFeesOnline.custoMaximo}
                     </div>
                   )}
                 </div>
@@ -2136,15 +2516,19 @@ export default function MerchantFormTax2({
                   <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
                   {isEditing ? (
                     <Input
-                      value={merchantprice[0].eventualAnticipationFee}
+                      value={pixFees.antecipacao}
                       onChange={(e) =>
-                        handlePixFeeChange("antecipacao", e.target.value)
+                        handlePixFeeChange(
+                          "antecipacao",
+                          e.target.value,
+                          "online"
+                        )
                       }
                       className="w-24 h-8 text-sm border rounded px-2"
                     />
                   ) : (
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
-                      {merchantprice[0].eventualAnticipationFee}% ao mês
+                      {pixFees.antecipacao}% ao mês
                     </div>
                   )}
                 </div>
