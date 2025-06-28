@@ -935,6 +935,7 @@ export default function MerchantDisplay({
                     idMerchantPrice={merchant.idMerchantPrice || 0}
                     permissions={permissions}
                     merchantId={merchant.id}
+                    availableFees={merchantPriceGroupProps?.availableFees || []}
                   />
                 ) : (
                   <>
@@ -1028,6 +1029,9 @@ export default function MerchantDisplay({
                           idMerchantPrice={merchant.idMerchantPrice || 0}
                           permissions={[]}
                           merchantId={merchant.id}
+                          availableFees={
+                            merchantPriceGroupProps?.availableFees || []
+                          }
                         />
                       </div>
                     )}
@@ -1289,6 +1293,7 @@ export default function MerchantDisplay({
               idMerchantPrice={merchant.idMerchantPrice || 0}
               permissions={permissions}
               merchantId={merchant.id}
+              availableFees={merchantPriceGroupProps?.availableFees || []}
             />
           )}
 

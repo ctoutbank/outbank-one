@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFeesAction, type FeeData } from "@/features/newTax/server/fee-db";
+import { type FeeData } from "@/features/newTax/server/fee-db";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createMerchantPriceFromFeeAction } from "../_actions/create-merchant-price-action";
@@ -76,6 +76,7 @@ interface MerchantpriceList {
   permissions: string[];
   idMerchantPrice: number;
   merchantId?: number;
+  availableFees?: FeeData[];
 }
 
 type TransactionPrice = {
@@ -109,6 +110,7 @@ export default function MerchantFormTax2({
   idMerchantPrice,
   permissions,
   merchantId,
+  availableFees = [],
 }: MerchantpriceList) {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTab, setSelectedTab] = useState("todas");
@@ -117,7 +119,6 @@ export default function MerchantFormTax2({
   const [onlineData, setOnlineData] = useState<any[]>([]);
 
   // Estados para seleção de fee
-  const [availableFees, setAvailableFees] = useState<FeeData[]>([]);
   const [selectedFeeId, setSelectedFeeId] = useState<string>("");
   const [selectedFee, setSelectedFee] = useState<FeeData | null>(null);
   const [isCreatingMerchantPrice, setIsCreatingMerchantPrice] = useState(false);
@@ -133,93 +134,6 @@ export default function MerchantFormTax2({
   const handlePixFeeChange = (field: keyof typeof pixFees, value: string) => {
     setPixFees({ ...pixFees, [field]: parseFloat(value) });
   };
-
-  // Buscar fees disponíveis quando o componente for montado e não houver merchantPriceId
-  useEffect(() => {
-    async function loadAvailableFees() {
-      if (showFeeSelection) {
-        try {
-          const result = await getFeesAction(1, 100); // Buscar até 100 fees
-          setAvailableFees(result.fees);
-        } catch (error) {
-          console.error("Erro ao carregar fees:", error);
-          toast.error("Erro ao carregar taxas disponíveis");
-        }
-      }
-    }
-
-    loadAvailableFees();
-  }, [showFeeSelection]);
-
-  // Restante do código existente para quando já há merchantPriceId
-  useEffect(() => {
-    console.log("Todos merchantprices:", merchantprice);
-
-    if (merchantprice) {
-      // Encontrar dados POS e ONLINE
-      const posPrice = merchantprice.find((mp) => mp.tableType === "POS");
-      const onlinePrice = merchantprice.find((mp) => mp.tableType === "ONLINE");
-
-      // Processar dados para a aba "todas"
-      const groupsToShow = merchantprice.reduce((acc: any[], mp) => {
-        const groups = mp.merchantpricegroup || [];
-        return [...acc, ...groups];
-      }, []);
-
-      // Remover duplicatas baseadas no nome da bandeira
-      const uniqueGroups = Array.from(
-        new Map(groupsToShow.map((group) => [group.name, group])).values()
-      );
-
-      const organizeTransactions = (group: any) => {
-        const transactions = group.listMerchantTransactionPrice || [];
-        return {
-          ...group,
-          transactions: {
-            credit: {
-              vista: transactions.find(
-                (tx: any) =>
-                  tx.producttype === "CREDIT" &&
-                  tx.installmentTransactionFeeStart === 1 &&
-                  tx.installmentTransactionFeeEnd === 1
-              ),
-              parcela2_6: transactions.find(
-                (tx: any) =>
-                  tx.producttype === "CREDIT" &&
-                  tx.installmentTransactionFeeStart === 2 &&
-                  tx.installmentTransactionFeeEnd === 6
-              ),
-              parcela7_12: transactions.find(
-                (tx: any) =>
-                  tx.producttype === "CREDIT" &&
-                  tx.installmentTransactionFeeStart === 7 &&
-                  tx.installmentTransactionFeeEnd === 12
-              ),
-            },
-            debit: transactions.find((tx: any) => tx.producttype === "DEBIT"),
-            prepaid: transactions.find(
-              (tx: any) => tx.producttype === "PREPAID"
-            ),
-          },
-        };
-      };
-
-      // Organizar dados para cada aba
-      const organizedAllData = uniqueGroups.map(organizeTransactions);
-
-      // Dados específicos para POS
-      const posGroups = posPrice?.merchantpricegroup || [];
-      const organizedPosData = posGroups.map(organizeTransactions);
-
-      // Dados específicos para ONLINE
-      const onlineGroups = onlinePrice?.merchantpricegroup || [];
-      const organizedOnlineData = onlineGroups.map(organizeTransactions);
-
-      setFeeData(organizedAllData);
-      setPosData(organizedPosData);
-      setOnlineData(organizedOnlineData);
-    }
-  }, [merchantprice]);
 
   // Função para buscar dados da fee selecionada
   const handleFeeSelection = async (feeId: string) => {
@@ -825,7 +739,7 @@ export default function MerchantFormTax2({
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <p className="text-sm text-gray-600 mb-2">Antecipação</p>
+                    <p className="text-sm  text-gray-600 mb-2">Antecipação</p>
                     <div className="px-3 py-1 text-sm min-w-fit whitespace-nowrap">
                       {fee.eventualAnticipationFee}% ao mês
                     </div>
@@ -837,6 +751,129 @@ export default function MerchantFormTax2({
         </Tabs>
       </div>
     );
+  };
+
+  useEffect(() => {
+    console.log("Todos merchantprices:", merchantprice);
+
+    if (merchantprice) {
+      // Encontrar dados POS e ONLINE
+      const posPrice = merchantprice.find((mp) => mp.tableType === "POS");
+      const onlinePrice = merchantprice.find((mp) => mp.tableType === "ONLINE");
+
+      // Processar dados para a aba "todas"
+      const groupsToShow = merchantprice.reduce((acc: any[], mp) => {
+        const groups = mp.merchantpricegroup || [];
+        return [...acc, ...groups];
+      }, []);
+
+      // Remover duplicatas baseadas no nome da bandeira
+      const uniqueGroups = Array.from(
+        new Map(groupsToShow.map((group) => [group.name, group])).values()
+      );
+
+      const organizeTransactions = (group: any) => {
+        const transactions = group.listMerchantTransactionPrice || [];
+        return {
+          ...group,
+          transactions: {
+            credit: {
+              vista: transactions.find(
+                (tx: any) =>
+                  tx.producttype === "CREDIT" &&
+                  tx.installmentTransactionFeeStart === 1 &&
+                  tx.installmentTransactionFeeEnd === 1
+              ),
+              parcela2_6: transactions.find(
+                (tx: any) =>
+                  tx.producttype === "CREDIT" &&
+                  tx.installmentTransactionFeeStart === 2 &&
+                  tx.installmentTransactionFeeEnd === 6
+              ),
+              parcela7_12: transactions.find(
+                (tx: any) =>
+                  tx.producttype === "CREDIT" &&
+                  tx.installmentTransactionFeeStart === 7 &&
+                  tx.installmentTransactionFeeEnd === 12
+              ),
+            },
+            debit: transactions.find((tx: any) => tx.producttype === "DEBIT"),
+            prepaid: transactions.find(
+              (tx: any) => tx.producttype === "PREPAID"
+            ),
+          },
+        };
+      };
+
+      // Organizar dados para cada aba
+      const organizedAllData = uniqueGroups.map(organizeTransactions);
+
+      // Dados específicos para POS
+      const posGroups = posPrice?.merchantpricegroup || [];
+      const organizedPosData = posGroups.map(organizeTransactions);
+
+      // Dados específicos para ONLINE
+      const onlineGroups = onlinePrice?.merchantpricegroup || [];
+      const organizedOnlineData = onlineGroups.map(organizeTransactions);
+
+      setFeeData(organizedAllData);
+      setPosData(organizedPosData);
+      setOnlineData(organizedOnlineData);
+    }
+  }, [merchantprice]);
+
+  const handleSaveChanges = async () => {
+    try {
+      // Combinar todos os dados para atualização
+      const allData = [
+        ...feeData,
+        ...posData.filter((pd) => !feeData.some((fd) => fd.id === pd.id)),
+        ...onlineData.filter((od) => !feeData.some((fd) => fd.id === od.id)),
+      ];
+
+      const updatePromises = allData.map(async (group) => {
+        await updateMerchantPriceGroupFormAction({
+          id: group.id,
+          slug: group.name,
+          active: group.active,
+          brand: group.name,
+          idGroup: group.id,
+          idMerchantPrice: idMerchantPrice,
+          dtinsert: new Date(group.dtinsert),
+          dtupdate: new Date(),
+        });
+      });
+
+      await Promise.all(updatePromises);
+      setIsEditing(false);
+      const updatedGroups =
+        await getMerchantPriceGroupsBymerchantPricetId(idMerchantPrice);
+      if (updatedGroups) {
+        const updatedData = updatedGroups
+          .map((group) => {
+            if (!group.priceGroup) {
+              return null;
+            }
+            return {
+              id: group.priceGroup.id,
+              name: group.priceGroup.brand || "",
+              active: group.priceGroup.active || false,
+              dtinsert: group.priceGroup.dtinsert || "",
+              dtupdate: group.priceGroup.dtupdate || "",
+              idMerchantPrice: group.priceGroup.idMerchantPrice || 0,
+              listMerchantTransactionPrice: JSON.parse(
+                group.transactionPrices || "[]"
+              ),
+            };
+          })
+          .filter((group): group is MerchantPriceGroup => group !== null);
+
+        // Atualizar todos os dados após salvar
+        setFeeData(updatedData);
+      }
+    } catch (error) {
+      console.error("Erro ao salvar alterações:", error);
+    }
   };
 
   // Se não há merchantPriceId, mostrar seleção de fee
@@ -915,60 +952,6 @@ export default function MerchantFormTax2({
       </div>
     );
   }
-
-  const handleSaveChanges = async () => {
-    try {
-      // Combinar todos os dados para atualização
-      const allData = [
-        ...feeData,
-        ...posData.filter((pd) => !feeData.some((fd) => fd.id === pd.id)),
-        ...onlineData.filter((od) => !feeData.some((fd) => fd.id === od.id)),
-      ];
-
-      const updatePromises = allData.map(async (group) => {
-        await updateMerchantPriceGroupFormAction({
-          id: group.id,
-          slug: group.name,
-          active: group.active,
-          brand: group.name,
-          idGroup: group.id,
-          idMerchantPrice: idMerchantPrice,
-          dtinsert: new Date(group.dtinsert),
-          dtupdate: new Date(),
-        });
-      });
-
-      await Promise.all(updatePromises);
-      setIsEditing(false);
-      const updatedGroups =
-        await getMerchantPriceGroupsBymerchantPricetId(idMerchantPrice);
-      if (updatedGroups) {
-        const updatedData = updatedGroups
-          .map((group) => {
-            if (!group.priceGroup) {
-              return null;
-            }
-            return {
-              id: group.priceGroup.id,
-              name: group.priceGroup.brand || "",
-              active: group.priceGroup.active || false,
-              dtinsert: group.priceGroup.dtinsert || "",
-              dtupdate: group.priceGroup.dtupdate || "",
-              idMerchantPrice: group.priceGroup.idMerchantPrice || 0,
-              listMerchantTransactionPrice: JSON.parse(
-                group.transactionPrices || "[]"
-              ),
-            };
-          })
-          .filter((group): group is MerchantPriceGroup => group !== null);
-
-        // Atualizar todos os dados após salvar
-        setFeeData(updatedData);
-      }
-    } catch (error) {
-      console.error("Erro ao salvar alterações:", error);
-    }
-  };
 
   return (
     <div className="w-full mx-auto p-4">

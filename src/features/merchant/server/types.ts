@@ -1,3 +1,4 @@
+import { type FeeData } from "@/features/newTax/server/fee-db";
 import { FileItem } from "@/server/upload";
 import {
   addresses,
@@ -148,6 +149,7 @@ interface MerchantPrice {
 interface MerchantPriceGroupProps {
   merchantPrice: MerchantPrice;
   merchantpricegroup: MerchantPriceGroup[];
+  availableFees?: FeeData[];
 }
 
 export interface MerchantTabsProps {

@@ -292,6 +292,8 @@ export default function MerchantTabs({
             ]}
             idMerchantPrice={merchant.idMerchantPrice || 0}
             permissions={permissions}
+            merchantId={merchant.id}
+            availableFees={merchantPriceGroupProps?.availableFees || []}
           />
         </TabsContent>
       )}

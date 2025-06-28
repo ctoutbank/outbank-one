@@ -18,6 +18,7 @@ import {
   getMerchantPixAccountByMerchantId,
 } from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
+import { getFeesAction } from "@/features/newTax/server/fee-db";
 import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { getFilesByEntity } from "@/server/upload";
@@ -44,6 +45,10 @@ export default async function MerchantDetail({
     merchant?.merchants.idMerchantBankAccount || 0
   );
   const DDSalesAgent = await getSalesAgentForDropdown();
+
+  // Buscar fees disponíveis para quando não há merchantPriceId
+  const feesResult = await getFeesAction(1, 100); // Buscar até 100 fees
+  const availableFees = feesResult.fees;
 
   console.log("merchantBankAccount:", merchantBankAccount);
 
@@ -347,6 +352,7 @@ export default async function MerchantDetail({
               },
               merchantpricegroup:
                 formattedMerchantPriceGroups.merchantpricegroup,
+              availableFees: availableFees,
             }}
             establishmentFormatList={establishmentFormatList}
             DDAccountType={DDAccountType}
@@ -555,6 +561,7 @@ export default async function MerchantDetail({
               },
               merchantpricegroup:
                 formattedMerchantPriceGroups.merchantpricegroup,
+              availableFees: availableFees,
             }}
             establishmentFormatList={establishmentFormatList}
             DDAccountType={DDAccountType}
