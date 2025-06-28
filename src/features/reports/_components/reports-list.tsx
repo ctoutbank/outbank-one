@@ -23,16 +23,6 @@ export default function ReportList({
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
   };
 
-  //const router = useRouter();
-
-  /*const handleDeleteReport = async (id: number) => {
-    const confirmDelete = window.confirm("Você deseja excluir esse relatório?");
-
-    if (confirmDelete) {
-      await deleteReport(id);
-      router.refresh();
-    }
-  };*/
 
   return (
     <div>

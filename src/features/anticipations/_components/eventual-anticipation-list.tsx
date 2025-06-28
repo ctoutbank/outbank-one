@@ -69,7 +69,9 @@ export default function EventualAnticipationListComponent({
                 <TableCell>{formatDate(item.expectedSettlementDate)}</TableCell>
                 <TableCell>
                   <div>
-                    <span className="font-medium">{item.merchantName}</span>
+                    <span className="font-medium">
+                      {item.merchantName?.toUpperCase()}
+                    </span>
                     <br />
                     <span className="text-[10px] text-muted-foreground">
                       {formatCNPJ(item.merchantCnpj)}
