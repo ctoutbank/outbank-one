@@ -52,6 +52,7 @@ export async function updateCategoryFormAction(data: CategoriesSchema) {
     mcc: data.mcc || "",
     cnae: data.cnae || "",
     slug: data.slug || "",
+    idFee: Number(data.idFee) || 0,
   };
   await updateCategory(categoryUpdate);
   toast({

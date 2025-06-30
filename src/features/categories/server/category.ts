@@ -1,9 +1,13 @@
 "use server";
 
 import { db } from "@/server/db";
-import { asc, count, desc, eq, ilike, or, and } from "drizzle-orm";
-import { categories } from "../../../../drizzle/schema";
-
+import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
+import {
+  categories,
+  fee,
+  feeBrand,
+  feeBrandProductType,
+} from "../../../../drizzle/schema";
 
 export interface CategoryList {
   categories: {
@@ -37,8 +41,8 @@ export async function getCategories(
   search: string,
   page: number,
   pageSize: number,
-  sortField: string = 'id',
-  sortOrder: 'asc' | 'desc' = 'desc',
+  sortField: string = "id",
+  sortOrder: "asc" | "desc" = "desc",
   name?: string,
   status?: string,
   mcc?: string,
@@ -72,15 +76,15 @@ export async function getCategories(
           ilike(categories.cnae, `%${search}%`)
         ),
         name ? ilike(categories.name, `%${name}%`) : undefined,
-        status ? eq(categories.active, status === 'ACTIVE') : undefined,
+        status ? eq(categories.active, status === "ACTIVE") : undefined,
         mcc ? ilike(categories.mcc, `%${mcc}%`) : undefined,
         cnae ? ilike(categories.cnae, `%${cnae}%`) : undefined
       )
     )
     .orderBy(
-      sortField === 'name' 
-        ? sortOrder === 'asc' 
-          ? asc(categories.name) 
+      sortField === "name"
+        ? sortOrder === "asc"
+          ? asc(categories.name)
           : desc(categories.name)
         : desc(categories.id)
     )
@@ -90,7 +94,7 @@ export async function getCategories(
   const totalCountResult = await db.select({ count: count() }).from(categories);
   const totalCount = totalCountResult[0]?.count || 0;
 
-  console.log(sortField, sortOrder)
+  console.log(sortField, sortOrder);
 
   const categoriesList = result.map((category) => ({
     id: category.id,
@@ -111,17 +115,31 @@ export async function getCategories(
   return {
     categories: categoriesList,
     totalCount,
-    activeCount: categoriesList.filter(c => c.active).length,
-    inactiveCount: categoriesList.filter(c => !c.active).length,
-    avgWaitingPeriodCp: calculateAverage(categoriesList, 'waiting_period_cp'),
-    avgWaitingPeriodCnp: calculateAverage(categoriesList, 'waiting_period_cnp'),
-    avgAnticipationRiskFactorCp: calculateAverage(categoriesList, 'anticipation_risk_factor_cp'),
-    avgAnticipationRiskFactorCnp: calculateAverage(categoriesList, 'anticipation_risk_factor_cnp'),
+    activeCount: categoriesList.filter((c) => c.active).length,
+    inactiveCount: categoriesList.filter((c) => !c.active).length,
+    avgWaitingPeriodCp: calculateAverage(categoriesList, "waiting_period_cp"),
+    avgWaitingPeriodCnp: calculateAverage(categoriesList, "waiting_period_cnp"),
+    avgAnticipationRiskFactorCp: calculateAverage(
+      categoriesList,
+      "anticipation_risk_factor_cp"
+    ),
+    avgAnticipationRiskFactorCnp: calculateAverage(
+      categoriesList,
+      "anticipation_risk_factor_cnp"
+    ),
   };
 }
 
-function calculateAverage(categories: { waiting_period_cp: number | null; waiting_period_cnp: number | null; anticipation_risk_factor_cp: number | null; anticipation_risk_factor_cnp: number | null }[], field: keyof typeof categories[0]): number {
-  const values = categories.map(c => Number(c[field])).filter(Boolean);
+function calculateAverage(
+  categories: {
+    waiting_period_cp: number | null;
+    waiting_period_cnp: number | null;
+    anticipation_risk_factor_cp: number | null;
+    anticipation_risk_factor_cnp: number | null;
+  }[],
+  field: keyof (typeof categories)[0]
+): number {
+  const values = categories.map((c) => Number(c[field])).filter(Boolean);
   return values.length ? values.reduce((a, b) => a + b) / values.length : 0;
 }
 
@@ -142,9 +160,6 @@ export async function insertCategory(category: CategoryInsert) {
     .values(category)
     .returning({ id: categories.id });
 
-
-   
-
   return result[0].id;
 }
 
@@ -163,9 +178,98 @@ export async function updateCategory(category: CategoryDetail): Promise<void> {
       waitingPeriodCnp: category.waitingPeriodCnp,
     })
     .where(eq(categories.id, category.id));
-   
 }
 
 export async function deleteCategory(id: number): Promise<void> {
   await db.delete(categories).where(eq(categories.id, id));
+}
+
+// Tipos auxiliares para a estrutura de taxas
+export interface FeeProductType {
+  id: number;
+  name: string | null;
+  cardTransactionFee: number | null;
+  cardTransactionMdr: string | null;
+  nonCardTransactionFee: number | null;
+  nonCardTransactionMdr: string | null;
+  installmentTransactionFeeStart: number | null;
+  installmentTransactionFeeEnd: number | null;
+  // Adicione outros campos relevantes se necessário
+}
+
+export interface FeeBrand {
+  id: number;
+  brand: string | null;
+  productTypes: FeeProductType[];
+}
+
+export interface FeeDetail {
+  id: number;
+  name: string | null;
+  tableType: string | null;
+  compulsoryAnticipationConfig: number | null;
+  eventualAnticipationFee: string | number | null;
+  anticipationType: string | null;
+  cardPixMdr: string | number | null;
+  cardPixCeilingFee: string | number | null;
+  cardPixMinimumCostFee: string | number | null;
+  nonCardPixMdr: string | number | null;
+  nonCardPixCeilingFee: string | number | null;
+  nonCardPixMinimumCostFee: string | number | null;
+  brands: FeeBrand[];
+}
+
+export async function getFeeDetailById(
+  idFee: number
+): Promise<FeeDetail | null> {
+  // Busca a fee principal
+  const feeResult = await db.select().from(fee).where(eq(fee.id, idFee));
+  if (!feeResult[0]) return null;
+  const feeData = feeResult[0];
+
+  // Busca as brands associadas
+  const brandsResult = await db
+    .select()
+    .from(feeBrand)
+    .where(eq(feeBrand.idFee, idFee));
+
+  // Para cada brand, busca os productTypes
+  const brands: FeeBrand[] = [];
+  for (const brand of brandsResult) {
+    const productTypesResult = await db
+      .select()
+      .from(feeBrandProductType)
+      .where(eq(feeBrandProductType.idFeeBrand, brand.id));
+    brands.push({
+      id: brand.id,
+      brand: brand.brand,
+      productTypes: productTypesResult.map((pt) => ({
+        id: pt.id,
+        name: pt.producttype,
+        cardTransactionFee: pt.cardTransactionFee,
+        cardTransactionMdr: pt.cardTransactionMdr,
+        nonCardTransactionFee: pt.nonCardTransactionFee,
+        nonCardTransactionMdr: pt.nonCardTransactionMdr,
+        installmentTransactionFeeStart: pt.installmentTransactionFeeStart,
+        installmentTransactionFeeEnd: pt.installmentTransactionFeeEnd,
+        // Adicione outros campos relevantes se necessário
+      })),
+    });
+  }
+
+  return {
+    id: feeData.id,
+    name: feeData.name,
+    tableType: feeData.tableType,
+    compulsoryAnticipationConfig: feeData.compulsoryAnticipationConfig,
+    eventualAnticipationFee: feeData.eventualAnticipationFee,
+    anticipationType: feeData.anticipationType,
+    cardPixMdr: feeData.cardPixMdr,
+    cardPixCeilingFee: feeData.cardPixCeilingFee,
+    cardPixMinimumCostFee: feeData.cardPixMinimumCostFee,
+    nonCardPixMdr: feeData.nonCardPixMdr,
+    nonCardPixCeilingFee: feeData.nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee: feeData.nonCardPixMinimumCostFee,
+    brands,
+  };
 }
