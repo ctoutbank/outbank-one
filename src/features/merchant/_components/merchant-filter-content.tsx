@@ -185,40 +185,26 @@ export function FilterMerchantsContent({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Cadastrado em</h3>
-            <div className="flex flex-col gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateFrom && "text-muted-foreground"
-                    )}
-                  >
-                    <p></p>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom
-                      ? format(dateFrom, "dd/MM/yyyy")
-                      : "Dia de cadastro"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0"
-                  align="start"
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  <Calendar
-                    mode="single"
-                    selected={dateFrom}
-                    onSelect={setDateFrom}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Data de cadastro</h3>
+              <div className="flex flex-col gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
+                    >
+                      <p></p>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "dd/mm/aaaa"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
+                    <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-          </div>
 
           {/* Status KYC */}
           <div className="space-y-2">

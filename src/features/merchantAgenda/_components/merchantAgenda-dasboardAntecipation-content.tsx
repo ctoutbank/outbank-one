@@ -52,7 +52,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
               {/* Card de Período */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -68,7 +68,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
               </Card>
 
               {/* Card de Estabelecimentos */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -89,7 +89,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
               </Card>
 
               {/* Card de Pedidos de Antecipação */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <ClipboardList className="h-4 w-4 text-muted-foreground" />
@@ -110,7 +110,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
               </Card>
 
               {/* Card de Parcelas */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Tag className="h-4 w-4 text-muted-foreground" />
@@ -155,7 +155,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
               </Card>
 
               {/* Card de Valores Financeiros */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <CircleDollarSign className="h-4 w-4 text-muted-foreground" />

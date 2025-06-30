@@ -28,10 +28,10 @@ export function FinancialAdjustmentsDashboardContent({
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
         <Card className="w-full border-l-8 border-black bg-transparent">
-         <CardContent className="p-6">
+          <CardContent className="p-6">
             <div className="flex flex-col xl:flex-row gap-4 w-full">
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     <div className="text-center mb-4">
                       <div className="flex items-center gap-2 mb-3">
@@ -52,7 +52,7 @@ export function FinancialAdjustmentsDashboardContent({
               </div>
 
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     <div className="text-center mb-4">
                       <div className="flex items-center gap-2 mb-3">
@@ -73,7 +73,7 @@ export function FinancialAdjustmentsDashboardContent({
               </div>
 
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     <div className="text-center mb-4">
                       <div className="flex items-center gap-2 mb-3">

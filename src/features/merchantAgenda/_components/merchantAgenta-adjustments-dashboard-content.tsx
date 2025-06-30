@@ -65,7 +65,7 @@ export function MerchantAdjustmentsDashboardContent({
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {/* Card de Ajustes Liquidados */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <ArrowUpSquare className="h-4 w-4 text-muted-foreground" />
@@ -110,7 +110,7 @@ export function MerchantAdjustmentsDashboardContent({
               </Card>
 
               {/* Card de Ajustes Parcialmente Liquidados */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
@@ -157,7 +157,7 @@ export function MerchantAdjustmentsDashboardContent({
               </Card>
 
               {/* Card de Ajustes Pendentes */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <ArrowDownSquare className="h-4 w-4 text-muted-foreground" />

@@ -58,7 +58,7 @@ export function MerchantAgendaDashboardContent({
          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {/* Card de Estabelecimentos */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -79,7 +79,7 @@ export function MerchantAgendaDashboardContent({
               </Card>
 
               {/* Card de Vendas */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <UserCheck className="h-4 w-4 text-muted-foreground" />
@@ -124,7 +124,7 @@ export function MerchantAgendaDashboardContent({
               </Card>
 
               {/* Card de Parcelas Liquidadas/Antecipadas */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -195,7 +195,7 @@ export function MerchantAgendaDashboardContent({
               </Card>
 
               {/* Card de Parcelas a Liquidar */}
-              <Card className="bg-background border">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="h-4 w-4 text-muted-foreground" />

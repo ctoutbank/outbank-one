@@ -65,13 +65,7 @@ export function TerminalsDashboardContent({
   ];
 
   // Dados para gráfico de barras dos modelos
-  const modelosData = [
-    { nome: "FEPAS", quantidade: 25 },
-    { nome: "GPOS700X1024MB-C", quantidade: 20 },
-    { nome: "S920203GWB-C", quantidade: 5 },
-    { nome: "INTEGRATION", quantidade: 3 },
-    { nome: "PAYLINK", quantidade: 2 },
-  ];
+  const modelosData = modelosAtivosDetalhes;
 
   return (
     <div className="w-full mt-1 mb-1 md:mt-2 md:mb-2 lg:mt-4 lg:mb-4">
@@ -187,57 +181,54 @@ export function TerminalsDashboardContent({
                 </CardContent>
               </Card>
 
-              {/* Card 3: Terminais por Modelo */}
-              <Card className="bg-transparent border md:col-span-2 lg:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
-                    Terminais por Modelo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[180px] md:h-[220px] lg:h-[280px] w-full flex flex-col justify-between">
-                    {/* Gráfico de barras customizado */}
-                    <div className="flex-1 space-y-1 md:space-y-2 lg:space-y-3 py-1 md:py-2 lg:py-3">
-                      {modelosData.map((modelo, index) => (
-                        <div key={index} className="space-y-0.5 md:space-y-1">
-                          <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                            <div
-                              className="text-[9px] md:text-[10px] lg:text-xs text-gray-600 text-right w-16 md:w-20 lg:w-24 truncate"
-                              title={modelo.nome}
-                            >
-                              {modelo.nome}
-                            </div>
-                            <div className="flex-1 relative">
-                              <div
-                                className="h-2 md:h-3 lg:h-4 bg-orange-500 rounded-r-sm transition-all duration-300"
-                                style={{
-                                  width: `${(modelo.quantidade / Math.max(...modelosData.map((m) => m.quantidade))) * 100}%`,
-                                  minWidth:
-                                    modelo.quantidade > 0 ? "12px" : "0px",
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                            <div className="w-16 md:w-20 lg:w-24"></div>
-                            <div className="flex-1">
-                              <span className="text-[9px] md:text-[10px] lg:text-xs text-gray-700 font-medium">
-                                {modelo.quantidade}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                {/* Card 3: Terminais por Modelo */}
+                <Card className="bg-transparent border p-2 md:p-3 lg:p-4 md:col-span-2 lg:col-span-1">
+                  <CardHeader className="pb-1 md:pb-2 lg:pb-3">
+                    <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
+                      Terminais por Modelo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 p-2 md:p-3 lg:p-4">
+                    <div className="flex flex-col gap-1">
+                      {modelosData
+                          .sort((a, b) => b.quantidade - a.quantidade) // Ordena do maior para o menor
+                          .slice(0, 10) // Limita a 10 itens para caber visualmente (ajuste conforme necessário)
+                          .map((modelo, index) => (
+                              <div key={index} className="space-y-0.5">
+                                <div className="flex items-center gap-1">
+                                  <div
+                                      className="text-[8px] md:text-[9px] lg:text-[10px] text-gray-600 text-right w-[70px] truncate"
+                                      title={modelo.nome}
+                                  >
+                                    {modelo.nome}
+                                  </div>
+                                  <div className="flex-1 relative">
+                                    <div
+                                        className="h-[6px] bg-orange-500 rounded-sm transition-all duration-300"
+                                        style={{
+                                          width: `${(modelo.quantidade / Math.max(...modelosData.map((m) => m.quantidade))) * 100}%`,
+                                          minWidth: modelo.quantidade > 0 ? "12px" : "0px",
+                                        }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-[70px]"></div>
+                                  <div className="flex-1">
+                <span className="text-[8px] md:text-[9px] lg:text-[10px] text-gray-700 font-medium">
+                  {modelo.quantidade}
+                </span>
+                                  </div>
+                                </div>
+                              </div>
+                          ))}
                     </div>
-
-                    {/* Escala dinâmica baseada no valor máximo */}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
+  )
 }
