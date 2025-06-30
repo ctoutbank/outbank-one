@@ -33,6 +33,9 @@ export default function MerchantTabs({
   DDSalesAgent,
 }: MerchantTabsProps) {
   const [activeTab, setActiveTab] = useState("company");
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(
+    new Set(["company"])
+  );
 
   const listTabs = [
     "company",
@@ -43,6 +46,13 @@ export default function MerchantTabs({
     "rate",
     "documents",
   ];
+
+  // Função para marcar uma tab como visitada e navegar para ela
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    setVisitedTabs((prev) => new Set(prev).add(newTab));
+  };
+
   console.log("activeTab 1", activeTab);
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -50,39 +60,73 @@ export default function MerchantTabs({
 
     const tab = searchParams?.get("tab") || "company";
     setActiveTab(tab);
+
+    // Quando vem da URL, marca todas as tabs até a solicitada como visitadas
+    const tabIndex = listTabs.indexOf(tab);
+    if (tabIndex > 0) {
+      const tabsToVisit = listTabs.slice(0, tabIndex + 1);
+      setVisitedTabs(new Set(tabsToVisit));
+    } else {
+      setVisitedTabs((prev) => new Set(prev).add(tab));
+    }
   }, [searchParams]);
 
   return (
     <Tabs
       value={activeTab}
-      onValueChange={setActiveTab}
+      onValueChange={handleTabChange}
       className="space-y-4 w-full"
     >
       <TabsList>
-        <TabsTrigger value="company" className="pointer-events-none">
+        <TabsTrigger
+          value="company"
+          className={visitedTabs.has("company") ? "" : "pointer-events-none"}
+        >
           Dados da Empresa
         </TabsTrigger>
-        <TabsTrigger value="contact" className="pointer-events-none">
+        <TabsTrigger
+          value="contact"
+          className={visitedTabs.has("contact") ? "" : "pointer-events-none"}
+        >
           Dados do Responsável
         </TabsTrigger>
-        <TabsTrigger value="operation" className="pointer-events-none">
+        <TabsTrigger
+          value="operation"
+          className={visitedTabs.has("operation") ? "" : "pointer-events-none"}
+        >
           Dados de Operação
         </TabsTrigger>
         {permissions?.includes("Configurar dados Bancários") && (
-          <TabsTrigger value="bank" className="pointer-events-none">
+          <TabsTrigger
+            value="bank"
+            className={visitedTabs.has("bank") ? "" : "pointer-events-none"}
+          >
             Dados Bancários
           </TabsTrigger>
         )}
-        <TabsTrigger value="authorizers" className="pointer-events-none">
+        <TabsTrigger
+          value="authorizers"
+          className={
+            visitedTabs.has("authorizers") ? "" : "pointer-events-none"
+          }
+        >
           Autorizados
         </TabsTrigger>
         {permissions?.includes("Configurar Taxas do EC") && (
-          <TabsTrigger value="rate" className="pointer-events-none">
+          <TabsTrigger
+            value="rate"
+            className={visitedTabs.has("rate") ? "" : "pointer-events-none"}
+          >
             Taxas de Transação
           </TabsTrigger>
         )}
         {permissions?.includes("Inserir documentos EC") && (
-          <TabsTrigger value="documents" className="pointer-events-none">
+          <TabsTrigger
+            value="documents"
+            className={
+              visitedTabs.has("documents") ? "" : "pointer-events-none"
+            }
+          >
             Documentos
           </TabsTrigger>
         )}
@@ -109,7 +153,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           permissions={permissions}
         />
       </TabsContent>
@@ -156,7 +200,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
         />
       </TabsContent>
 
@@ -196,7 +240,7 @@ export default function MerchantTabs({
           merhcnatSlug={merchant.slugCategory || ""}
           timezone={merchant.timezone || ""}
           idMerchant={merchant.id}
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
@@ -242,7 +286,7 @@ export default function MerchantTabs({
             }}
             DDBank={DDBank}
             idMerchant={merchant.id}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleTabChange}
             activeTab={
               listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
             }
@@ -261,7 +305,7 @@ export default function MerchantTabs({
           activeTab={
             listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
           }
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           idMerchant={merchant.id}
           permissions={permissions}
         />
@@ -318,7 +362,7 @@ export default function MerchantTabs({
             activeTab={
               listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
             }
-            setActiveTab={setActiveTab}
+            setActiveTab={handleTabChange}
           />
         </TabsContent>
       )}

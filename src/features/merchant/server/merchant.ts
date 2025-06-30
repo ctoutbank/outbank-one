@@ -90,6 +90,11 @@ export type Merchantlist = {
     dtupdate: string;
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
+    idConfiguration: number;
+    idmerchantbankaccount: number;
+    idcontact: number;
+    idmerchantpixaccount: number;
+    idmerchantprice: number;
 
     sales_agent: string;
     state: string;
@@ -256,6 +261,7 @@ export async function getMerchants(
       document: merchants.idDocument,
       lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
+      idConfiguration: merchants.idConfiguration,
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
@@ -271,6 +277,10 @@ export async function getMerchants(
       Inclusion: merchants.inclusion,
       dtupdate: merchants.dtupdate,
       dtdelete: merchants.dtdelete,
+      idmerchantbankaccount: merchantBankAccounts.id,
+      idcontact: contacts.id,
+      idmerchantpixaccount: merchantpixaccount.id,
+      idmerchantprice: merchantPrice.id,
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
@@ -279,6 +289,16 @@ export async function getMerchants(
     .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
     .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(
+      merchantBankAccounts,
+      eq(merchants.idMerchantBankAccount, merchantBankAccounts.id)
+    )
+    .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+    .leftJoin(
+      merchantpixaccount,
+      eq(merchants.id, merchantpixaccount.idMerchant)
+    )
+
     .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
@@ -403,6 +423,7 @@ export async function getMerchants(
       cnpj: merchant.document ?? "N/A",
       lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
       lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
+      idConfiguration: merchant.idConfiguration ?? 0,
       slug_category: merchant.slug_category ?? "N/A",
       time_zone: merchant.time_zone ?? "N/A",
       sales_agent: merchant.salesAgents ?? "N/A",
@@ -418,6 +439,10 @@ export async function getMerchants(
       Inclusion: merchant.Inclusion || "",
       dtupdate: merchant.dtupdate || "",
       dtdelete: merchant.dtdelete || "",
+      idmerchantbankaccount: merchant.idmerchantbankaccount || 0,
+      idcontact: merchant.idcontact || 0,
+      idmerchantpixaccount: merchant.idmerchantpixaccount || 0,
+      idmerchantprice: merchant.idmerchantprice || 0,
     })),
     totalCount,
     active_count: Number(activeCount),
@@ -2133,6 +2158,7 @@ export async function getMerchantsWithDashboardData(
       document: merchants.idDocument,
       lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
+      idConfiguration: configurations.id,
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
@@ -2148,6 +2174,10 @@ export async function getMerchantsWithDashboardData(
       Inclusion: merchants.inclusion,
       dtupdate: merchants.dtupdate,
       dtdelete: merchants.dtdelete,
+      idmerchantbankaccount: merchantBankAccounts.id,
+      idcontact: contacts.id,
+      idmerchantpixaccount: merchantpixaccount.id,
+      idmerchantprice: merchantPrice.id,
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
@@ -2156,6 +2186,15 @@ export async function getMerchantsWithDashboardData(
     .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
     .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(
+      merchantBankAccounts,
+      eq(merchants.idMerchantBankAccount, merchantBankAccounts.id)
+    )
+    .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+    .leftJoin(
+      merchantpixaccount,
+      eq(merchants.id, merchantpixaccount.idMerchant)
+    )
     .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
@@ -2288,6 +2327,7 @@ export async function getMerchantsWithDashboardData(
     cnpj: merchant.document ?? "N/A",
     lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
     lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
+    idConfiguration: merchant.idConfiguration ?? 0,
     slug_category: merchant.slug_category ?? "N/A",
     time_zone: merchant.time_zone ?? "N/A",
     sales_agent: merchant.salesAgents ?? "N/A",
@@ -2303,6 +2343,10 @@ export async function getMerchantsWithDashboardData(
     Inclusion: merchant.Inclusion || "",
     dtupdate: merchant.dtupdate || "",
     dtdelete: merchant.dtdelete || "",
+    idmerchantbankaccount: merchant.idmerchantbankaccount || 0,
+    idcontact: merchant.idcontact || 0,
+    idmerchantpixaccount: merchant.idmerchantpixaccount || 0,
+    idmerchantprice: merchant.idmerchantprice || 0,
   }));
 
   // Criar objeto de retorno
