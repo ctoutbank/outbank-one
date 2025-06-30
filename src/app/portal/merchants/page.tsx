@@ -16,6 +16,7 @@ import {
   getTransactionsGroupedByShift,
   getTransactionStatusData,
 } from "@/features/merchant/server/merchant-dashboard";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
 import { Plus } from "lucide-react";
@@ -49,11 +50,14 @@ export default async function MerchantsPage({
   const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
 
+  const userAccess = await getUserMerchantsAccess();
+
   // Buscar todos os dados em uma única requisição
   const { merchants, dashboardData } = await getMerchantsWithDashboardData(
     search,
     page,
     pageSize,
+    userAccess,
     searchParams.establishment,
     searchParams.status,
     searchParams.state,
@@ -69,6 +73,7 @@ export default async function MerchantsPage({
     search,
     1,
     50,
+    userAccess,
     searchParams.establishment,
     searchParams.status,
     searchParams.state,
@@ -82,6 +87,7 @@ export default async function MerchantsPage({
   const totalRecords = merchants.totalCount;
 
   const regionData = await getMerchantsGroupedByRegion(
+    userAccess,
     search,
     searchParams.establishment,
     searchParams.status,
@@ -94,6 +100,7 @@ export default async function MerchantsPage({
   );
 
   const shiftData = await getTransactionsGroupedByShift(
+    userAccess,
     search,
     searchParams.establishment,
     searchParams.status,
@@ -106,6 +113,7 @@ export default async function MerchantsPage({
   );
 
   const statusData = await getTransactionStatusData(
+    userAccess,
     search,
     searchParams.establishment,
     searchParams.status,
@@ -169,7 +177,7 @@ export default async function MerchantsPage({
 
       <BaseBody
         title="Estabelecimentos"
-        subtitle={`Visualização de todos os estabelecimentos`}
+        subtitle={`Visualização de Todos os Estabelecimentos`}
         // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">

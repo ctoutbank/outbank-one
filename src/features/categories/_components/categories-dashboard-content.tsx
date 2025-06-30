@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tags } from "lucide-react";
 
 type CategoriesDashboardContentProps = {
@@ -21,76 +21,58 @@ export function CategoriesDashboardContent({
   return (
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-background ">
+        <Card className="w-full border-l-8 border-black bg-transparent p-6">
           <div className="flex items-center justify-between">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </p>
-            </CardHeader>
-          </div>
+            {/* Card Único de Categorias */}
+            <div className="w-full max-w-md">
+              <Card className="bg-background border">
+                <CardContent className="p-4">
+                  {/* Total de Categorias */}
+                  <div className="text-center mb-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tags className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-medium">
+                        Total de Categorias
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-zinc-900">
+                      {totalCategories}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Total de Categorias
+                    </div>
+                  </div>
 
-          <CardContent className="p-6">
-            <div className="flex items-start justify-start w-full">
-              {/* Card Único de Categorias */}
-              <div className="w-full max-w-md">
-                <Card className="bg-background border">
-                  <CardContent className="p-4">
-                    {/* Total de Categorias */}
-                    <div className="text-center mb-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Tags className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-base font-medium">
-                          Total de Categorias
+                  {/* Status das Categorias */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="text-xs font-medium text-zinc-600">
+                          Ativas
                         </span>
                       </div>
-                      <div className="text-2xl font-bold text-zinc-900">
-                        {totalCategories}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Total de Categorias
+                      <div className="text-sm font-semibold text-zinc-900">
+                        {activeCategories}
                       </div>
                     </div>
 
-                    {/* Status das Categorias */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span className="text-xs font-medium text-zinc-600">
-                            Ativas
-                          </span>
-                        </div>
-                        <div className="text-sm font-semibold text-zinc-900">
-                          {activeCategories}
-                        </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <div className="h-2 w-2 rounded-full bg-red-500" />
+                        <span className="text-xs font-medium text-zinc-600">
+                          Inativas
+                        </span>
                       </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <div className="h-2 w-2 rounded-full bg-red-500" />
-                          <span className="text-xs font-medium text-zinc-600">
-                            Inativas
-                          </span>
-                        </div>
-                        <div className="text-sm font-semibold text-zinc-900">
-                          {inactiveCategories}
-                        </div>
+                      <div className="text-sm font-semibold text-zinc-900">
+                        {inactiveCategories}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
+          </div>
         </Card>
       </div>
     </div>

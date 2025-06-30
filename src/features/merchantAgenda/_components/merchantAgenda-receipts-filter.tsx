@@ -10,8 +10,8 @@ type MerchantAgendaReceiptsFilterProps = {
   date?: string;
   view: "month" | "day";
 };
-
 export function MerchantAgendaReceiptsFilter(
+
   props: MerchantAgendaReceiptsFilterProps
 ) {
   const router = useRouter();

@@ -149,7 +149,7 @@ export default async function TransactionsPage({
       />
       <BaseBody
         title="Vendas"
-        subtitle={`Visualização de todas as vendas`}
+        subtitle={`Visualização de Todas as Vendas`}
         // actions={<SyncButton syncType="transactions" />}
       >
         <Suspense

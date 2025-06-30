@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { states, UF } from "@/lib/lookuptables/lookuptables";
+import { handleNumericInput } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Plus, Trash2, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,6 +30,8 @@ import {
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
+
+// Função para permitir apenas números
 
 interface MerchantProps {
   Contact: typeof contacts.$inferSelect;
@@ -74,18 +77,14 @@ function ContactFormItem({
       areaCode: initialData?.areaCode || "",
       number: initialData?.number || "",
       phoneType: initialData?.phoneType || "",
-      birthDate: initialData?.birthDate
-        ? new Date(initialData.birthDate)
-        : undefined,
+      birthDate: initialData?.birthDate || "",
       mothersName: initialData?.mothersName || "",
       isPartnerContact: initialData?.isPartnerContact || false,
       isPep: initialData?.isPep || false,
       slugMerchant: initialData?.slugMerchant || "",
       idAddress: initialData?.idAddress,
       icNumber: initialData?.icNumber || "",
-      icDateIssuance: initialData?.icDateIssuance
-        ? new Date(initialData.icDateIssuance)
-        : undefined,
+      icDateIssuance: initialData?.icDateIssuance || "",
       icDispatcher: initialData?.icDispatcher || "",
       icFederativeUnit: initialData?.icFederativeUnit || "",
     },
@@ -146,8 +145,9 @@ function ContactFormItem({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-4">
+        <div className="space-y-4">
+          {/* Primeira linha: Nome e Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor={`name-${id}`}>
                 Nome <span className="text-red-500">*</span>
@@ -163,100 +163,6 @@ function ContactFormItem({
                 </p>
               )}
             </div>
-
-            <div>
-              <Label htmlFor={`idDocument-${id}`}>
-                CPF <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id={`idDocument-${id}`}
-                placeholder="000.000.000-00"
-                {...registerContact("idDocument")}
-              />
-              {errorsContact.idDocument && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errorsContact.idDocument.message}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`icNumber-${id}`}>RG</Label>
-                <Input
-                  id={`icNumber-${id}`}
-                  placeholder="00.000.000-0"
-                  {...registerContact("icNumber")}
-                />
-                {errorsContact.icNumber && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.icNumber.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor={`icDateIssuance-${id}`}>Data de emissão</Label>
-                <Input
-                  id={`icDateIssuance-${id}`}
-                  type="date"
-                  {...registerContact("icDateIssuance", {
-                    setValueAs: (value) =>
-                      value ? new Date(value) : undefined,
-                  })}
-                />
-                {errorsContact.icDateIssuance && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.icDateIssuance.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
-                <Label htmlFor={`icDispatcher-${id}`}>Órgão expedidor</Label>
-                <Input
-                  id={`icDispatcher-${id}`}
-                  placeholder="SSP"
-                  {...registerContact("icDispatcher")}
-                />
-                {errorsContact.icDispatcher && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.icDispatcher.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor={`icFederativeUnit-${id}`}>UF</Label>
-                <Select
-                  onValueChange={(value) =>
-                    contactForm.setValue("icFederativeUnit", value)
-                  }
-                  value={watchContact("icFederativeUnit") || ""}
-                >
-                  <SelectTrigger id={`icFederativeUnit-${id}`}>
-                    <SelectValue placeholder="UF" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UF.map((uf) => (
-                      <SelectItem key={uf.value} value={uf.value}>
-                        {uf.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errorsContact.icFederativeUnit && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.icFederativeUnit.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
             <div>
               <Label htmlFor={`email-${id}`}>
                 Email <span className="text-red-500">*</span>
@@ -273,113 +179,242 @@ function ContactFormItem({
                 </p>
               )}
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor={`areaCode-${id}`}>
-                  DDD <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`areaCode-${id}`}
-                  placeholder="00"
-                  maxLength={2}
-                  {...registerContact("areaCode")}
-                />
-                {errorsContact.areaCode && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.areaCode.message}
-                  </p>
-                )}
-              </div>
+          {/* Segunda linha: CPF, Data de Nascimento, DDD, Telefone */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor={`idDocument-${id}`}>
+                CPF <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`idDocument-${id}`}
+                placeholder="000.000.000-00"
+                type="text"
+                inputMode="numeric"
+                maxLength={14}
+                onKeyDown={(e) => handleNumericInput(e, 14)}
+                {...registerContact("idDocument")}
+              />
+              {errorsContact.idDocument && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.idDocument.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`birthDate-${id}`}>
+                Data de Nascimento <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`birthDate-${id}`}
+                type="date"
+                {...registerContact("birthDate")}
+              />
+              {errorsContact.birthDate && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.birthDate.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`areaCode-${id}`}>
+                DDD <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`areaCode-${id}`}
+                placeholder="00"
+                maxLength={2}
+                type="text"
+                inputMode="numeric"
+                onKeyDown={(e) => handleNumericInput(e, 2)}
+                {...registerContact("areaCode")}
+              />
+              {errorsContact.areaCode && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.areaCode.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`number-${id}`}>
+                Telefone <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`number-${id}`}
+                placeholder="000000000"
+                maxLength={10}
+                type="text"
+                inputMode="numeric"
+                onKeyDown={(e) => handleNumericInput(e, 10)}
+                {...registerContact("number")}
+              />
+              {errorsContact.number && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.number.message}
+                </p>
+              )}
+            </div>
+          </div>
 
-              <div>
-                <Label htmlFor={`number-${id}`}>
-                  Telefone <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`number-${id}`}
-                  placeholder="000000000"
-                  maxLength={9}
-                  {...registerContact("number")}
-                />
-                {errorsContact.number && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errorsContact.number.message}
-                  </p>
-                )}
+          {/* Terceira linha: Nome da Mãe e Radio buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor={`mothersName-${id}`}>
+                Nome da Mãe <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`mothersName-${id}`}
+                placeholder="Nome da Mãe"
+                type="text"
+                {...registerContact("mothersName")}
+              />
+              {errorsContact.mothersName && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.mothersName.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>É sócio?</Label>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id={`isPartnerContact-yes-${id}`}
+                    checked={watchContact("isPartnerContact") === true}
+                    onChange={() =>
+                      contactForm.setValue("isPartnerContact", true)
+                    }
+                    className="h-4 w-4"
+                  />
+                  <Label
+                    htmlFor={`isPartnerContact-yes-${id}`}
+                    className="text-sm"
+                  >
+                    Sim
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id={`isPartnerContact-no-${id}`}
+                    checked={watchContact("isPartnerContact") === false}
+                    onChange={() =>
+                      contactForm.setValue("isPartnerContact", false)
+                    }
+                    className="h-4 w-4"
+                  />
+                  <Label
+                    htmlFor={`isPartnerContact-no-${id}`}
+                    className="text-sm"
+                  >
+                    Não
+                  </Label>
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>É sócio?</Label>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`isPartnerContact-yes-${id}`}
-                      checked={watchContact("isPartnerContact") === true}
-                      onChange={() =>
-                        contactForm.setValue("isPartnerContact", true)
-                      }
-                      className="h-4 w-4"
-                    />
-                    <Label
-                      htmlFor={`isPartnerContact-yes-${id}`}
-                      className="text-sm"
-                    >
-                      Sim
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`isPartnerContact-no-${id}`}
-                      checked={watchContact("isPartnerContact") === false}
-                      onChange={() =>
-                        contactForm.setValue("isPartnerContact", false)
-                      }
-                      className="h-4 w-4"
-                    />
-                    <Label
-                      htmlFor={`isPartnerContact-no-${id}`}
-                      className="text-sm"
-                    >
-                      Não
-                    </Label>
-                  </div>
+            <div className="space-y-2">
+              <Label>É PEP?</Label>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id={`isPep-yes-${id}`}
+                    checked={watchContact("isPep") === true}
+                    onChange={() => contactForm.setValue("isPep", true)}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor={`isPep-yes-${id}`} className="text-sm">
+                    Sim
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id={`isPep-no-${id}`}
+                    checked={watchContact("isPep") === false}
+                    onChange={() => contactForm.setValue("isPep", false)}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor={`isPep-no-${id}`} className="text-sm">
+                    Não
+                  </Label>
                 </div>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4"></div>
+          </div>
 
-              <div className="space-y-2">
-                <Label>É PEP?</Label>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`isPep-yes-${id}`}
-                      checked={watchContact("isPep") === true}
-                      onChange={() => contactForm.setValue("isPep", true)}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor={`isPep-yes-${id}`} className="text-sm">
-                      Sim
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`isPep-no-${id}`}
-                      checked={watchContact("isPep") === false}
-                      onChange={() => contactForm.setValue("isPep", false)}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor={`isPep-no-${id}`} className="text-sm">
-                      Não
-                    </Label>
-                  </div>
-                </div>
-              </div>
+          {/* Quarta linha: RG, Data de emissão, Órgão expedidor, UF */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor={`icNumber-${id}`}>RG</Label>
+              <Input
+                id={`icNumber-${id}`}
+                placeholder="00.000.000-0"
+                {...registerContact("icNumber")}
+                maxLength={9}
+                onKeyDown={(e) => handleNumericInput(e, 9)}
+              />
+              {errorsContact.icNumber && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.icNumber.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`icDateIssuance-${id}`}>Data de emissão</Label>
+              <Input
+                id={`icDateIssuance-${id}`}
+                type="date"
+                {...registerContact("icDateIssuance", {
+                  setValueAs: (value) => (value ? new Date(value) : undefined),
+                })}
+              />
+              {errorsContact.icDateIssuance && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.icDateIssuance.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`icDispatcher-${id}`}>Órgão expedidor</Label>
+              <Input
+                id={`icDispatcher-${id}`}
+                placeholder="SSP"
+                {...registerContact("icDispatcher")}
+              />
+              {errorsContact.icDispatcher && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.icDispatcher.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor={`icFederativeUnit-${id}`}>UF</Label>
+              <Select
+                onValueChange={(value) =>
+                  contactForm.setValue("icFederativeUnit", value)
+                }
+                value={watchContact("icFederativeUnit") || ""}
+              >
+                <SelectTrigger id={`icFederativeUnit-${id}`}>
+                  <SelectValue placeholder="UF" />
+                </SelectTrigger>
+                <SelectContent>
+                  {UF.map((uf) => (
+                    <SelectItem key={uf.value} value={uf.value}>
+                      {uf.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errorsContact.icFederativeUnit && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errorsContact.icFederativeUnit.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -420,6 +455,8 @@ function ContactFormItem({
                   id={`zipCode-${id}`}
                   placeholder="00000-000"
                   {...registerAddress("zipCode")}
+                  maxLength={9}
+                  onKeyDown={(e) => handleNumericInput(e, 9)}
                 />
                 {errorsAddress.zipCode && (
                   <p className="text-sm text-red-500 mt-1">
@@ -454,6 +491,8 @@ function ContactFormItem({
                   id={`number-address-${id}`}
                   placeholder="123"
                   {...registerAddress("number")}
+                  maxLength={9}
+                  onKeyDown={(e) => handleNumericInput(e, 9)}
                 />
                 {errorsAddress.number && (
                   <p className="text-sm text-red-500 mt-1">

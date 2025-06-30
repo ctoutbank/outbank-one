@@ -1,12 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import PageSizeSelector from "@/components/page-size-selector";
-import PaginationRecords from "@/components/pagination-Records";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AnticipationListComponent from "@/features/anticipations/_components/anticipation-list";
-import { AnticipationsListFilter } from "@/features/anticipations/_components/anticipations-filter";
-import EventualAnticipationListComponent from "@/features/anticipations/_components/eventual-anticipation-list";
-import { EventualAnticipationsListFilter } from "@/features/anticipations/_components/eventual-anticipations-filter";
+import AnticipationTabs from "@/features/anticipation/_components/anticipation-tabs";
 import {
   getAnticipations,
   getEventualAnticipations,
@@ -81,105 +75,29 @@ export default async function AntecipationsPage({
         breadcrumbItems={[
           { title: "Antecipações", url: "/portal/anticipations" },
         ]}
-        
       />
 
       <BaseBody
         title="Antecipações"
-        subtitle={`visualização das antecipações`}
+        subtitle={`Visualização das Antecipações`}
         className="overflow-x-hidden"
       >
-        <Tabs defaultValue="compulsory" className="w-full">
-          <TabsList>
-            <TabsTrigger value="compulsory">COMPULSÓRIA</TabsTrigger>
-            <TabsTrigger value="eventual">EVENTUAL</TabsTrigger>
-          </TabsList>
-          <TabsContent value="compulsory" className="mt-6">
-            <AnticipationsListFilter
-              merchantDD={merchantDD}
-              dateFromIn={startDate ? new Date(startDate) : undefined}
-              dateToIn={endDate ? new Date(endDate) : undefined}
-              merchantSlugIn={merchantSlug}
-              typeIn={type}
-              statusIn={status}
-            />
-            <div className="mb-4"></div>
-
-            <div className="w-full overflow-x-auto">
-              <AnticipationListComponent
-                anticipations={anticipations}
-              ></AnticipationListComponent>
-
-              {anticipations.totalCount > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <PageSizeSelector
-                        currentPageSize={Number(pageSize)}
-                        pageName="portal/anticipations"
-                    />
-                    <PaginationRecords
-                        totalRecords={anticipations.totalCount}
-                        currentPage={Number(page)}
-                        pageSize={Number(pageSize)}
-                        pageName="portal/anticipations"
-                    />
-                  </div>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="eventual" className="mt-6 ">
-            <EventualAnticipationsListFilter
-              merchantDD={merchantDD}
-              dateFromIn={startDate ? new Date(startDate) : undefined}
-              dateToIn={endDate ? new Date(endDate) : undefined}
-              expectedSettlementDateFromIn={
-                expectedSettlementStartDate
-                  ? new Date(expectedSettlementStartDate)
-                  : undefined
-              }
-              expectedSettlementDateToIn={
-                expectedSettlementEndDate
-                  ? new Date(expectedSettlementEndDate)
-                  : undefined
-              }
-              merchantSlugIn={merchantSlug}
-              typeIn={type}
-              statusIn={status}
-            />
-            <div className="mb-4"></div>
-
-            <div className="w-full overflow-x-auto">
-              <EventualAnticipationListComponent
-                anticipations={eventualAnticipations}
-              >
-
-              </EventualAnticipationListComponent>
-
-              {eventualAnticipations.totalCount > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <PageSizeSelector
-                        currentPageSize={Number(pageSize)}
-                        pageName="portal/anticipations"
-                    />
-                    <PaginationRecords
-                        totalRecords={eventualAnticipations.totalCount}
-                        currentPage={Number(page)}
-                        pageSize={Number(pageSize)}
-                        pageName="portal/anticipations"
-                    />
-                  </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+        <AnticipationTabs
+          anticipations={anticipations}
+          eventualAnticipations={eventualAnticipations}
+          merchantDD={merchantDD}
+          search={search}
+          page={page}
+          pageSize={pageSize}
+          merchantSlug={merchantSlug}
+          type={type}
+          status={status}
+          startDate={startDate}
+          endDate={endDate}
+          expectedSettlementStartDate={expectedSettlementStartDate}
+          expectedSettlementEndDate={expectedSettlementEndDate}
+        />
       </BaseBody>
     </>
   );
 }
-/*   {totalRecords > 0 && (
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/merchantAgenda"
-              />
-            )}*/

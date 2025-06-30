@@ -58,13 +58,13 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     },
     {
       id: "antCp",
-      name: "Ant.CP",
+      name: "Ant. CP",
       defaultVisible: false,
       alwaysVisible: false,
     },
     {
       id: "antCnp",
-      name: "Ant.CNP",
+      name: "Ant. CNP",
       defaultVisible: false,
       alwaysVisible: false,
     },
@@ -77,7 +77,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     {
       id: "consultor",
       name: "Consultor",
-      defaultVisible: true,
+      defaultVisible: false,
       alwaysVisible: false,
     },
     { id: "ativo", name: "Ativo", defaultVisible: true, alwaysVisible: false },

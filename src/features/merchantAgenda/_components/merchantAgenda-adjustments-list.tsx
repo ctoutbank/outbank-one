@@ -20,7 +20,7 @@ export default function MerchantAgendaAdjustmentList({
   const columns = [
     { id: "merchantName", name: "Estabelecimento" },
     { id: "paymentDate", name: "Data de Lançamento" },
-    { id: "amount", name: "Valor Bruto" },
+    { id: "amount", name: "R$ Bruto" },
     { id: "type", name: "Tipo de Lançamento" },
     { id: "title", name: "Título" },
     { id: "reason", name: "Razão" },
@@ -59,7 +59,7 @@ export default function MerchantAgendaAdjustmentList({
                 (item, index) => (
                   <TableRow key={index}>
                     <TableCell className="text-muted-foreground">
-                      {item.merchantName || "-"}
+                      {item.merchantName?.toUpperCase() || "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(item.paymentDate)}

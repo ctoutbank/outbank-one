@@ -10,8 +10,6 @@ import {
   getMerchantAgendaAnticipationStats,
 } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import { Suspense } from "react";
-import Loading from "./loading";
 
 export const revalidate = 0;
 
@@ -97,21 +95,19 @@ export default async function MerchantAgendaPage({
 
       <BaseBody
         title="Agenda dos Lojistas"
-        subtitle={`Visualização da agenda dos lojistas`}
+        subtitle={`Visualização da Agenda dos Lojistas`}
         className="overflow-x-visible"
       >
-        <Suspense fallback={<Loading />}>
-          <MerchantAgendaTabs
-            merchantAgendaTabsProps={{
-              searchParams,
-              merchantAgenda: merchantAgenda,
-              merchantAgendaAnticipation: merchantAgendaAnticipation,
-              merchantAgendaAdjustment: merchantAgendaAdjustment,
-              anticipationDashboardStats: anticipationDashboardStats,
-              adjustmentDashboardStats: adjustmentDashboardStats,
-            }}
-          />
-        </Suspense>
+        <MerchantAgendaTabs
+          merchantAgendaTabsProps={{
+            searchParams,
+            merchantAgenda: merchantAgenda,
+            merchantAgendaAnticipation: merchantAgendaAnticipation,
+            merchantAgendaAdjustment: merchantAgendaAdjustment,
+            anticipationDashboardStats: anticipationDashboardStats,
+            adjustmentDashboardStats: adjustmentDashboardStats,
+          }}
+        />
       </BaseBody>
     </>
   );

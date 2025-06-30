@@ -120,7 +120,7 @@ export default async function TerminalsPage({
       <BaseHeader
         breadcrumbItems={[{ title: "Terminais", url: "/portal/terminals" }]}
       />
-      <BaseBody title="Terminais" subtitle="Visualização de todos os terminais">
+      <BaseBody title="Terminais" subtitle="Visualização de Todos os Terminais">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-col items-start gap-4">
             <div className="flex items-center justify-between w-full">

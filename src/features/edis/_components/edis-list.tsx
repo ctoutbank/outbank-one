@@ -49,7 +49,7 @@ export default function EdisList({ list }: { list: EdisListType }) {
 
   return (
     <div>
-      <div className="border rounded-lg mt-2">
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>

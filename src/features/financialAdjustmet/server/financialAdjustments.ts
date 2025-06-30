@@ -295,7 +295,10 @@ export async function getMerchantsForFinancialAdjustment(
       )
     );
 
-  return result;
+  return result.map((merchant) => ({
+    ...merchant,
+    name: merchant.name?.toUpperCase() ?? null,
+  }));
 }
 
 // Função para buscar todos os merchants disponíveis
@@ -310,7 +313,10 @@ export async function getAllMerchants(): Promise<MerchantInfo[]> {
     .where(eq(merchants.active, true))
     .orderBy(merchants.name);
 
-  return result;
+  return result.map((merchant) => ({
+    ...merchant,
+    name: merchant.name?.toUpperCase() ?? null,
+  }));
 }
 
 // Estatísticas para dashboard

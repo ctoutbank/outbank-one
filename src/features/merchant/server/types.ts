@@ -1,3 +1,4 @@
+import { type FeeData } from "@/features/newTax/server/fee-db";
 import { FileItem } from "@/server/upload";
 import {
   addresses,
@@ -10,6 +11,7 @@ import {
   CnaeMccDropdown,
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
+  SalesAgentDropdown,
 } from "../server/merchant";
 import {
   accountTypeDropdown,
@@ -147,6 +149,7 @@ interface MerchantPrice {
 interface MerchantPriceGroupProps {
   merchantPrice: MerchantPrice;
   merchantpricegroup: MerchantPriceGroup[];
+  availableFees?: FeeData[];
 }
 
 export interface MerchantTabsProps {
@@ -167,4 +170,6 @@ export interface MerchantTabsProps {
   merchantPriceGroupProps: MerchantPriceGroupProps;
   permissions: string[];
   merchantFiles?: FileItem[];
+  isCreating?: boolean;
+  DDSalesAgent: SalesAgentDropdown[];
 }

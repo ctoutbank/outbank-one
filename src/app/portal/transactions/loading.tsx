@@ -8,7 +8,7 @@ export default function TransactionsLoading() {
       <BaseHeader
         breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
       />
-      <BaseBody title="Vendas" subtitle="Visualização de todas as vendas">
+      <BaseBody title="Vendas" subtitle="Visualização de Todas as Vendas">
         <div className="flex flex-col space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">

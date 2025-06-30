@@ -2,7 +2,8 @@
 
 import { CategoryDetail } from "@/features/categories/server/category";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { UserMerchantsAccess } from "@/features/users/server/users";
+import { states } from "@/lib/lookuptables/lookuptables"; // ajuste o path se necessário
 import { db } from "@/server/db";
 import {
   and,
@@ -37,6 +38,33 @@ import {
   MerchantTransactionChart,
   MerchantTypeChart,
 } from "./merchant-dashboard";
+
+// Função helper para criar condições de filtro de estado
+function createStateCondition(state: string, addresses: any) {
+  // Primeiro, verifica se é um valor de UF exato (AC, AL, etc.)
+  const exactStateMatch = states.find(
+    (s) => s.value.toLowerCase() === state.toLowerCase()
+  );
+
+  if (exactStateMatch) {
+    // Se encontrou correspondência exata com UF, usa o valor
+    return eq(addresses.state, exactStateMatch.value);
+  }
+
+  // Busca por correspondência parcial no nome do estado
+  const partialMatches = states.filter((s) =>
+    s.label.toLowerCase().includes(state.toLowerCase())
+  );
+
+  if (partialMatches.length > 0) {
+    // Se encontrou correspondências parciais, cria um OR com todas as UFs correspondentes
+    const stateValues = partialMatches.map((s) => s.value);
+    return inArray(addresses.state, stateValues);
+  }
+
+  // Se não encontrou correspondência direta, faz busca livre
+  return or(eq(addresses.state, state), ilike(addresses.state, `%${state}%`));
+}
 
 // Extender o tipo MerchantInsert para incluir os novos campos
 type MerchantInsertBase = typeof merchants.$inferInsert;
@@ -94,6 +122,7 @@ export async function getMerchants(
   search: string,
   page: number,
   pageSize: number,
+  userAccess: UserMerchantsAccess,
   establishment?: string,
   status?: string,
   state?: string,
@@ -106,9 +135,6 @@ export async function getMerchants(
   const offset = (page - 1) * pageSize;
 
   const conditions = [];
-
-  // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
 
   // If user doesn't have full access, add merchant ID filter
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
@@ -168,7 +194,7 @@ export async function getMerchants(
   }
 
   if (state) {
-    conditions.push(eq(addresses.state, state));
+    conditions.push(createStateCondition(state, addresses));
   }
 
   if (dateFrom) {
@@ -265,7 +291,7 @@ export async function getMerchants(
     .select({ count: count() })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id)) // Adicionado para filtro de salesAgent
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .where(and(...conditions))
     .then((res) => res[0]?.count || 0);
 
@@ -274,7 +300,7 @@ export async function getMerchants(
     .select({ count: count() })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id)) // Adicionado para filtro de salesAgent
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .where(and(...conditions, eq(merchants.active, true)))
     .then((res) => res[0]?.count || 0);
 
@@ -283,7 +309,7 @@ export async function getMerchants(
     .select({ count: count() })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id)) // Adicionado para filtro de salesAgent
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .where(and(...conditions, eq(merchants.active, false)))
     .then((res) => res[0]?.count || 0);
 
@@ -337,7 +363,7 @@ export async function getMerchants(
     .from(merchants)
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id)) // Adicionado para filtro de salesAgent
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .where(
       and(...conditions, eq(configurations.lockCpAnticipationOrder, false))
     )
@@ -349,7 +375,7 @@ export async function getMerchants(
     .from(merchants)
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id)) // Adicionado para filtro de salesAgent
+    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
     .where(
       and(...conditions, eq(configurations.lockCnpAnticipationOrder, false))
     )
@@ -360,7 +386,7 @@ export async function getMerchants(
       merchantid: merchant.merchantid,
       slug: merchant.slug ?? "N/A",
       active: merchant.active ?? false,
-      name: merchant.name ?? "Não informado",
+      name: merchant.name?.toUpperCase() ?? "Não informado",
       email: merchant.email ?? "N/A",
       phone_type: merchant.phone_type ?? "N/A",
       revenue:
@@ -456,10 +482,10 @@ export type MerchantSelect = typeof merchants.$inferSelect & {
   contacts?: typeof contacts.$inferSelect;
 };
 
-export async function getMerchantById(id: number) {
-  // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-
+export async function getMerchantById(
+  id: number,
+  userAccess: UserMerchantsAccess
+) {
   // Check if user has access to this merchant
   if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
     throw new Error("You don't have access to this merchant");
@@ -1679,6 +1705,28 @@ export type EstablishmentFormatDropdown = {
   label: string;
 };
 
+export type SalesAgentDropdown = {
+  value: number;
+  label: string;
+};
+
+export async function getSalesAgentForDropdown(): Promise<
+  SalesAgentDropdown[]
+> {
+  const result = await db
+    .select({
+      value: salesAgents.id,
+      label: salesAgents.firstName,
+    })
+    .from(salesAgents)
+    .orderBy(salesAgents.id);
+
+  return result.map((item) => ({
+    value: item.value,
+    label: item.label ?? "",
+  }));
+}
+
 export async function getEstablishmentFormatForDropdown(): Promise<
   EstablishmentFormatDropdown[]
 > {
@@ -1794,6 +1842,7 @@ export async function getMerchantsWithDashboardData(
   search: string,
   page: number,
   pageSize: number,
+  userAccess: UserMerchantsAccess,
   establishment?: string,
   status?: string,
   state?: string,
@@ -1807,7 +1856,6 @@ export async function getMerchantsWithDashboardData(
   const conditions = [];
 
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
 
   // If user doesn't have full access, add merchant ID filter
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
@@ -1897,7 +1945,7 @@ export async function getMerchantsWithDashboardData(
   }
 
   if (state) {
-    conditions.push(eq(addresses.state, state));
+    conditions.push(createStateCondition(state, addresses));
   }
 
   if (dateFrom) {
@@ -1978,6 +2026,92 @@ export async function getMerchantsWithDashboardData(
   );
   const lastDayPreviousMonthStr = lastDayPreviousMonth.toISOString();
 
+  // Construir WHERE clause simples para a query SQL bruta
+  const whereClauses: string[] = [];
+
+  // Filtro de busca
+  if (search) {
+    whereClauses.push(`(
+      merchants.name ILIKE '%${search}%' OR 
+      merchants.corporate_name ILIKE '%${search}%' OR 
+      merchants.id_document ILIKE '%${search}%' OR 
+      merchants.email ILIKE '%${search}%'
+    )`);
+  }
+
+  // Filtro de estado
+  if (state) {
+    // Primeiro, verifica se é um valor de UF exato (AC, AL, etc.)
+    const exactStateMatch = states.find(
+      (s) => s.value.toLowerCase() === state.toLowerCase()
+    );
+
+    if (exactStateMatch) {
+      // Se encontrou correspondência exata com UF, usa o valor
+      whereClauses.push(`a.state = '${exactStateMatch.value}'`);
+    } else {
+      // Busca por correspondência parcial no nome do estado
+      const partialMatches = states.filter((s) =>
+        s.label.toLowerCase().includes(state.toLowerCase())
+      );
+
+      if (partialMatches.length > 0) {
+        // Se encontrou correspondências parciais, cria um IN com todas as UFs correspondentes
+        const stateValues = partialMatches.map((s) => `'${s.value}'`).join(",");
+        whereClauses.push(`a.state IN (${stateValues})`);
+      } else {
+        // Se não encontrou correspondência direta, faz busca livre
+        whereClauses.push(
+          `(a.state = '${state}' OR a.state ILIKE '%${state}%')`
+        );
+      }
+    }
+  }
+
+  // Filtro de status
+  if (status && status !== "all") {
+    if (status === "pending") {
+      whereClauses.push(
+        `merchants.risk_analysis_status IN ('PENDING', 'WAITINGDOCUMENTS', 'NOTANALYSED')`
+      );
+    } else if (status === "approved") {
+      whereClauses.push(`merchants.risk_analysis_status = 'APPROVED'`);
+    } else if (status === "rejected") {
+      whereClauses.push(
+        `merchants.risk_analysis_status IN ('DECLINED', 'KYCOFFLINE')`
+      );
+    }
+  }
+
+  // Filtro de ativo
+  if (active && active !== "all") {
+    whereClauses.push(`merchants.active = ${active === "true"}`);
+  }
+
+  // Filtro de email
+  if (email) {
+    whereClauses.push(`merchants.email ILIKE '%${email}%'`);
+  }
+
+  // Filtro de CNPJ
+  if (cnpj) {
+    whereClauses.push(`merchants.id_document ILIKE '%${cnpj}%'`);
+  }
+
+  // Filtro de data
+  if (dateFrom) {
+    whereClauses.push(`merchants.dtinsert >= '${dateFrom}'`);
+  }
+
+  // Filtro de consultor de vendas
+  if (salesAgent) {
+    whereClauses.push(`sa.document_id = '${salesAgent}'`);
+  }
+
+  // Montar WHERE final
+  const whereSqlFinal =
+    whereClauses.length > 0 ? whereClauses.join(" AND ") : "1=1";
+
   // Consulta principal para obter merchants com paginação
   const merchantResult = await db
     .select({
@@ -2045,7 +2179,7 @@ export async function getMerchantsWithDashboardData(
       LEFT JOIN addresses a ON merchants.id_address = a.id
       LEFT JOIN configurations c ON merchants.id_configuration = c.id
       LEFT JOIN sales_agents sa ON merchants.id_sales_agent = sa.id
-      WHERE ${and(...conditions) || sql`1=1`}
+      WHERE ${sql.raw(whereSqlFinal)}
     ),
     date_counts AS (
       SELECT 
@@ -2137,7 +2271,7 @@ export async function getMerchantsWithDashboardData(
     merchantid: merchant.merchantid,
     slug: merchant.slug ?? "N/A",
     active: merchant.active ?? false,
-    name: merchant.name ?? "Não informado",
+    name: merchant.name?.toUpperCase() ?? "Não informado",
     email: merchant.email ?? "N/A",
     phone_type: merchant.phone_type ?? "N/A",
     revenue:

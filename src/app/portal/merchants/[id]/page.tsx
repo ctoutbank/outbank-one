@@ -9,6 +9,7 @@ import {
   getEstablishmentFormatForDropdown,
   getLegalNaturesForDropdown,
   getMerchantById,
+  getSalesAgentForDropdown,
 } from "@/features/merchant/server/merchant";
 import { getMerchantBankAccountById } from "@/features/merchant/server/merchant-bank";
 import {
@@ -17,6 +18,8 @@ import {
   getMerchantPixAccountByMerchantId,
 } from "@/features/merchant/server/merchantpixacount";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
+import { getFeesAction } from "@/features/newTax/server/fee-db";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { getFilesByEntity } from "@/server/upload";
 
@@ -31,15 +34,21 @@ export default async function MerchantDetail({
   );
 
   const merchantId = parseInt(params.id);
+  const userAccess = await getUserMerchantsAccess();
 
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
-  const merchant = await getMerchantById(merchantId);
+  const merchant = await getMerchantById(merchantId, userAccess);
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
   const merchantBankAccount = await getMerchantBankAccountById(
     merchant?.merchants.idMerchantBankAccount || 0
   );
+  const DDSalesAgent = await getSalesAgentForDropdown();
+
+  // Buscar fees disponíveis para quando não há merchantPriceId
+  const feesResult = await getFeesAction(1, 100); // Buscar até 100 fees
+  const availableFees = feesResult.fees;
 
   console.log("merchantBankAccount:", merchantBankAccount);
 
@@ -343,12 +352,15 @@ export default async function MerchantDetail({
               },
               merchantpricegroup:
                 formattedMerchantPriceGroups.merchantpricegroup,
+              availableFees: availableFees,
             }}
             establishmentFormatList={establishmentFormatList}
             DDAccountType={DDAccountType}
             DDBank={DDBank}
             permissions={permissions}
             merchantFiles={merchantFiles}
+            isCreating={true}
+            DDSalesAgent={DDSalesAgent}
           />
         ) : merchant?.merchants?.id ? (
           <MerchantDisplay
@@ -549,12 +561,14 @@ export default async function MerchantDetail({
               },
               merchantpricegroup:
                 formattedMerchantPriceGroups.merchantpricegroup,
+              availableFees: availableFees,
             }}
             establishmentFormatList={establishmentFormatList}
             DDAccountType={DDAccountType}
             DDBank={DDBank}
             permissions={permissions}
             merchantFiles={merchantFiles}
+            DDSalesAgent={DDSalesAgent}
           />
         ) : (
           <div>

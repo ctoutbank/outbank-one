@@ -89,30 +89,28 @@ export default function MerchantAgendaReceipts({
   return (
     <div>
       <div className="flex justify-start w-[21rem]">
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(v) => v && setView(v)}
-          className="border bg-white rounded-lg h-8 mt-4 w-full"
-        >
-          <ToggleGroupItem value="month" className="w-1/2">
-            Visualização por Mês
-          </ToggleGroupItem>
-          <ToggleGroupItem value="day" className="w-1/2">
-            Visualização por Dia
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-
-      <div className="flex justify-between">
-        <div className="flex gap-2 items-center my-4 ">
+        <div className="flex items-center gap-4 w-full mb-4">
           <MerchantAgendaReceiptsFilter
             merchant={searchParams?.get("search") || undefined}
             date={searchParams?.get("date") || undefined}
             view={view as "month" | "day"}
           />
+          <ToggleGroup
+            type="single"
+            value={view}
+            onValueChange={(v) => v && setView(v)}
+            className="border bg-white rounded-lg h-8 w-full"
+          >
+            <ToggleGroupItem value="month" className="w-[200px]">
+              Visualização por Mês
+            </ToggleGroupItem>
+            <ToggleGroupItem value="day" className="w-[200px]">
+              Visualização por Dia
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
+
       {view === "day" && (
         <div className="mb-4">
           <MerchantAgendaReceiptsTotal

@@ -19,16 +19,18 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreloadedFilterData } from "@/features/reports/filter/filter-Actions";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  ReportFilterParamDetail,
   deleteReportFilter,
+  ReportFilterParamDetail,
 } from "../filter/filter-Actions";
 import FilterForm from "../filter/filter-form";
 import { ReportFilterSchema } from "../filter/schema";
 import { ReportSchema } from "../schema/schema";
 import {
+  deleteReport,
   FileFormatDD,
   PeriodDD,
   Recorrence,
@@ -200,6 +202,17 @@ export default function ReportsWizardForm({
     }
   }, [editFilterId, existingFilters]);
 
+  const router = useRouter();
+
+  const handleDeleteReport = async (id: number) => {
+    const confirmDelete = window.confirm("Você deseja excluir esse relatório?");
+
+    if (confirmDelete) {
+      await deleteReport(id);
+      router.push("/portal/reports");
+    }
+  };
+
   return (
     <div className="w-full">
       <Tabs
@@ -207,8 +220,8 @@ export default function ReportsWizardForm({
         onValueChange={handleStepChange}
         className="w-full"
       >
-        <div className="flex justify-center w-full mb-4">
-          <div className="w-full md:w-1/3">
+        <div className="flex items-center justify-center w-full mb-4">
+          <div className="w-1/3">
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="step1" className="text-sm">
                 1. Criar Relatório
@@ -223,7 +236,16 @@ export default function ReportsWizardForm({
             </TabsList>
           </div>
         </div>
-
+        {report.id && (
+          <div className="w-full flex justify-end">
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteReport(report.id as number)}
+            >
+              Excluir Relatório
+            </Button>
+          </div>
+        )}
         <TabsContent value="step1">
           <Card className="border-0 shadow-none">
             <CardContent className="p-0">

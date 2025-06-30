@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, FileText, FileType } from "lucide-react";
 
 type ReportsDashboardContentProps = {
@@ -29,23 +29,7 @@ export function ReportsDashboardContent({
   return (
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-background">
-          <div className="flex items-center justify-between">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">Visão geral</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </p>
-            </CardHeader>
-          </div>
-
+        <Card className="w-full border-l-8 border-black bg-transparent">
           <CardContent className="p-6">
             <div className="flex flex-col xl:flex-row gap-4 w-full">
               {/* Card de Total de Relatórios */}

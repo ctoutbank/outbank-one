@@ -34,7 +34,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { legalPersonTypes, states } from "@/lib/lookuptables/lookuptables";
-import { formatCNPJ } from "@/lib/utils";
+import { formatCNPJ, handleNumericInput } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addresses, merchants } from "../../../../drizzle/schema";
@@ -360,6 +360,7 @@ export default function MerchantFormCompany({
                                   value={field.value || ""}
                                   onChange={field.onChange}
                                   maxLength={2}
+                                  onKeyDown={(e) => handleNumericInput(e, 2)}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -379,6 +380,8 @@ export default function MerchantFormCompany({
                                 <Input
                                   value={field.value || ""}
                                   onChange={field.onChange}
+                                  maxLength={9}
+                                  onKeyDown={(e) => handleNumericInput(e, 9)}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -615,7 +618,12 @@ export default function MerchantFormCompany({
                           <FormItem>
                             <FormLabel>Inscrição Municipal</FormLabel>
                             <FormControl>
-                              <Input {...field} value={field.value || ""} />
+                              <Input
+                                {...field}
+                                value={field.value || ""}
+                                maxLength={11}
+                                onKeyDown={(e) => handleNumericInput(e, 11)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -629,7 +637,12 @@ export default function MerchantFormCompany({
                           <FormItem>
                             <FormLabel>Inscrição Estadual</FormLabel>
                             <FormControl>
-                              <Input {...field} value={field.value || ""} />
+                              <Input
+                                {...field}
+                                value={field.value || ""}
+                                maxLength={9}
+                                onKeyDown={(e) => handleNumericInput(e, 9)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -792,6 +805,7 @@ export default function MerchantFormCompany({
                                   {...field}
                                   maxLength={8}
                                   value={field.value?.toString() || ""}
+                                  onKeyDown={(e) => handleNumericInput(e, 8)}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -831,6 +845,8 @@ export default function MerchantFormCompany({
                                   <Input
                                     {...field}
                                     value={field.value?.toString() || ""}
+                                    maxLength={10}
+                                    onKeyDown={(e) => handleNumericInput(e, 10)}
                                   />
                                 </FormControl>
                                 <FormMessage />

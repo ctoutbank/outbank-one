@@ -35,9 +35,11 @@ import {
 import TransactionFees from "./merchantedittaxa";
 
 import { useRouter } from "next/navigation";
-import { insertMerchantFormAction } from "../_actions/merchant-formActions";
-import { updateMerchantFormAction } from "../_actions/merchant-formActions";
 import { toast } from "sonner";
+import {
+  insertMerchantFormAction,
+  updateMerchantFormAction,
+} from "../_actions/merchant-formActions";
 
 interface MerchantProps {
   merchant: MerchantSchema | undefined;
@@ -271,8 +273,10 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                                 const updated = checked
                                   ? [...current, id]
                                   : Array.isArray(current)
-                                  ? current.filter((day: string) => day !== id)
-                                  : [];
+                                    ? current.filter(
+                                        (day: string) => day !== id
+                                      )
+                                    : [];
                                 field.onChange(updated);
                               }}
                             />
@@ -300,6 +304,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                             type="time"
                             {...field}
                             value={field.value || ""}
+                            max="23:59"
                           />
                         </FormControl>
                         <FormMessage />
@@ -321,6 +326,7 @@ export default function MerchantForm({ merchant }: MerchantProps) {
                             type="time"
                             {...field}
                             value={field.value || ""}
+                            max="23:59"
                           />
                         </FormControl>
                         <FormMessage />

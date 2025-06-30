@@ -58,7 +58,7 @@ export default async function LegalNaturesPage({
 
       <BaseBody
         title="Natureza Jurídica"
-        subtitle={`visualização de todas Natureza Jurídica`}
+        subtitle={`Visualização de Todas Natureza Jurídica`}
       >
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">
@@ -89,18 +89,18 @@ export default async function LegalNaturesPage({
           <LegalNaturelist LegalNatures={legalNatures} />
 
           {totalRecords > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <PageSizeSelector
-                    currentPageSize={pageSize}
-                    pageName="portal/legalNatures"
-                />
-                <PaginationRecords
-                    totalRecords={totalRecords}
-                    currentPage={page}
-                    pageSize={pageSize}
-                    pageName="portal/legalNatures"
-                />
-              </div>
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/legalNatures"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/legalNatures"
+              />
+            </div>
           )}
         </div>
       </BaseBody>

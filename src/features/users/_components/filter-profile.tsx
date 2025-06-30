@@ -4,9 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FilterProfileButton } from "./filter-profile-button";
 import { FilterProfileContent } from "./filter-profile-content";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Plus } from "lucide-react";
 
 type ProfileFilterProps = {
   profileName?: string;
@@ -17,9 +14,6 @@ type ProfileFilterProps = {
 
 export function ProfileFilter({
   profileName,
-  newButtonUrl = "/portal/profile/0",
-  newButtonLabel = "Novo Perfil",
-  showNewButton = true,
 }: ProfileFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,14 +53,6 @@ export function ProfileFilter({
         />
       </FilterProfileButton>
       
-      {showNewButton && (
-        <Button asChild className="shrink-0">
-          <Link href={newButtonUrl}>
-            <Plus className="h-4 w-4 mr-2" />
-            {newButtonLabel}
-          </Link>
-        </Button>
-      )}
     </div>
   );
 }

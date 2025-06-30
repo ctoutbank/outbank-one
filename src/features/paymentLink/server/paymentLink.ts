@@ -367,7 +367,7 @@ export async function getMerchants(): Promise<DDMerchant[]> {
   const result = await db.select().from(merchants);
   return result.map((merchant) => ({
     id: merchant.id,
-    name: merchant.name ?? "",
+    name: merchant.name?.toUpperCase() ?? "",
   }));
 }
 

@@ -1,34 +1,44 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartTooltip } from "@/components/ui/chart"
-import { terminalModels } from "@/lib/lookuptables/lookuptables-terminals"
-import type { ModeloAtivo } from "../serverActions/terminal"
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartTooltip } from "@/components/ui/chart";
+import { terminalModels } from "@/lib/lookuptables/lookuptables-terminals";
+import {
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { ModeloAtivo } from "../serverActions/terminal";
 
 type TerminalsDashboardContentProps = {
-  totalTerminals: number
-  ativosTerminals: number
-  inativosTerminals: number
-  desativadosTerminals: number
-  totalModelosAtivos: number
-  modelosAtivos: string[]
-  modelosAtivosDetalhes?: ModeloAtivo[]
-}
+  totalTerminals: number;
+  ativosTerminals: number;
+  inativosTerminals: number;
+  desativadosTerminals: number;
+  totalModelosAtivos: number;
+  modelosAtivos: string[];
+  modelosAtivosDetalhes?: ModeloAtivo[];
+};
 
 export function TerminalsDashboardContent({
-                                            totalTerminals,
-                                            ativosTerminals,
-                                            inativosTerminals,
-                                            modelosAtivosDetalhes = [],
-                                          }: TerminalsDashboardContentProps) {
+  totalTerminals,
+  ativosTerminals,
+  inativosTerminals,
+  modelosAtivosDetalhes = [],
+}: TerminalsDashboardContentProps) {
   modelosAtivosDetalhes = terminalModels.map((item) => {
-    const quantity = modelosAtivosDetalhes.find((model) => model.nome === item)
+    const quantity = modelosAtivosDetalhes.find((model) => model.nome === item);
     return {
       nome: item,
       quantidade: quantity ? quantity.quantidade : 0,
-    }
-  })
+    };
+  });
 
   // Dados para o gráfico de pizza (Distribuição por Status)
   const statusData = [
@@ -42,7 +52,7 @@ export function TerminalsDashboardContent({
       value: inativosTerminals,
       color: "#2a9d90", // emerald-500
     },
-  ]
+  ];
 
   // Dados mockados para evolução mensal
   const evolucaoData = [
@@ -52,129 +62,127 @@ export function TerminalsDashboardContent({
     { mes: "Mai", valor: 25 },
     { mes: "Jun", valor: 22 },
     { mes: "Jul", valor: 28 },
-  ]
+  ];
 
   // Dados para gráfico de barras dos modelos
   const modelosData = modelosAtivosDetalhes;
 
   return (
-      <div className="w-full mt-1 mb-1 md:mt-2 md:mb-2 lg:mt-4 lg:mb-4">
-        <div className="grid grid-cols-1 gap-2 md:gap-3 lg:gap-4">
-          <Card className="w-full border-l-4 md:border-l-6 lg:border-l-8 border-black bg-background">
-            <CardHeader className="pb-1 md:pb-2 lg:pb-3">
-              <CardTitle className="text-sm md:text-base lg:text-xl font-bold">Visão geral</CardTitle>
-              <p className="text-[10px] md:text-xs lg:text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </p>
-            </CardHeader>
+    <div className="w-full mt-1 mb-1 md:mt-2 md:mb-2 lg:mt-4 lg:mb-4">
+      <div className="grid grid-cols-1 gap-2 md:gap-3 lg:gap-4">
+        <Card className="w-full border-none bg-transparent">
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 lg:gap-6 w-full">
+              {/* Card 1: Distribuição por Status */}
+              <Card className="bg-transparent border">
+                <CardHeader>
+                  <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
+                    Distribuição por Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[100px] md:h-[140px] lg:h-[180px] w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={60}
+                          className="md:outerRadius-[35] lg:outerRadius-[50]"
+                          dataKey="value"
+                        >
+                          {statusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
 
-            <CardContent className="p-2 md:p-3 lg:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 lg:gap-6 w-full">
-                {/* Card 1: Distribuição por Status */}
-                <Card className="bg-background border p-2 md:p-3 lg:p-4">
-                  <CardHeader className="pb-1 md:pb-2 lg:pb-3">
-                    <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
-                      Distribuição por Status
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 p-2 md:p-3 lg:p-4">
-                    <div className="h-[100px] md:h-[140px] lg:h-[180px] w-full flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                              data={statusData}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={60}
-                              className="md:outerRadius-[35] lg:outerRadius-[50]"
-                              dataKey="value"
-                          >
-                            {statusData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Legenda simples centralizada */}
-                    <div className="flex justify-center gap-2 md:gap-3 lg:gap-4 mt-2 md:mt-3 lg:mt-4">
-                      {statusData.map((item, index) => {
-                        const percentage = ((item.value / totalTerminals) * 100).toFixed(0)
-                        return (
-                            <div key={index} className="flex items-center gap-1 md:gap-2">
-                              <div
-                                  className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 rounded-full"
-                                  style={{ backgroundColor: item.color }}
-                              />
-                              <span className="text-[10px] md:text-xs lg:text-sm text-zinc-700">{item.name}</span>
-                              <span className="text-[10px] md:text-xs lg:text-sm font-semibold text-zinc-900">
+                  {/* Legenda simples centralizada */}
+                  <div className="flex justify-center gap-2 md:gap-3 lg:gap-4 mt-2 md:mt-3 lg:mt-4">
+                    {statusData.map((item, index) => {
+                      const percentage = (
+                        (item.value / totalTerminals) *
+                        100
+                      ).toFixed(0);
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 md:gap-2"
+                        >
+                          <div
+                            className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 rounded-full"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-[10px] md:text-xs lg:text-sm text-zinc-700">
+                            {item.name}
+                          </span>
+                          <span className="text-[10px] md:text-xs lg:text-sm font-semibold text-zinc-900">
                             {percentage}%
                           </span>
-                            </div>
-                        )
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Card 2: Evolução Mensal */}
-                <Card className="bg-background border p-2 md:p-3 lg:p-4 md:col-span-2 lg:col-span-1">
-                  <CardHeader className="pb-1 md:pb-2 lg:pb-3">
-                    <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
-                      Evolução Mensal de Inclusão de Terminais
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 p-2 md:p-3 lg:p-4">
-                    <div className="h-[120px] md:h-[160px] lg:h-[200px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={evolucaoData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                          <XAxis
-                              dataKey="mes"
-                              axisLine={false}
-                              tickLine={false}
-                              tick={{ fontSize: 8, fill: "#666" }}
-                              className="md:text-[10px] lg:text-xs"
-                          />
-                          <YAxis hide />
-                          <Line
-                              type="monotone"
-                              dataKey="valor"
-                              stroke="#ef4444"
-                              strokeWidth={1}
-                              className="md:stroke-[1.5] lg:stroke-2"
-                              dot={{ fill: "#ef4444", strokeWidth: 1, r: 1 }}
-                              activeDot={{ r: 3, fill: "#ef4444" }}
-                          />
-                          <ChartTooltip
-                              content={({ active, payload, label }) => {
-                                if (active && payload && payload.length) {
-                                  return (
-                                      <div className="bg-white p-1 md:p-2 lg:p-3 border rounded shadow">
-                                        <p className="text-[10px] md:text-xs lg:text-sm font-medium">{label}</p>
-                                        <p className="text-[10px] md:text-xs lg:text-sm">{payload[0].value} terminais</p>
-                                      </div>
-                                  )
-                                }
-                                return null
-                              }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Card 2: Evolução Mensal */}
+              <Card className="bg-transparent border md:col-span-2 lg:col-span-1">
+                <CardHeader>
+                  <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
+                    Evolução Mensal de Inclusão de Terminais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent >
+                  <div className="h-[120px] md:h-[160px] lg:h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={evolucaoData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis
+                          dataKey="mes"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 8, fill: "#666" }}
+                          className="md:text-[10px] lg:text-xs"
+                        />
+                        <YAxis hide />
+                        <Line
+                          type="monotone"
+                          dataKey="valor"
+                          stroke="#ef4444"
+                          strokeWidth={1}
+                          className="md:stroke-[1.5] lg:stroke-2"
+                          dot={{ fill: "#ef4444", strokeWidth: 1, r: 1 }}
+                          activeDot={{ r: 3, fill: "#ef4444" }}
+                        />
+                        <ChartTooltip
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className="bg-white p-1 md:p-2 lg:p-3 border rounded shadow">
+                                  <p className="text-[10px] md:text-xs lg:text-sm font-medium">
+                                    {label}
+                                  </p>
+                                  <p className="text-[10px] md:text-xs lg:text-sm">
+                                    {payload[0].value} terminais
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
                 {/* Card 3: Terminais por Modelo */}
-                <Card className="bg-background border p-2 md:p-3 lg:p-4 md:col-span-2 lg:col-span-1">
+                <Card className="bg-transparent border p-2 md:p-3 lg:p-4 md:col-span-2 lg:col-span-1">
                   <CardHeader className="pb-1 md:pb-2 lg:pb-3">
                     <CardTitle className="text-[10px] md:text-sm lg:text-base font-semibold">
                       Terminais por Modelo
