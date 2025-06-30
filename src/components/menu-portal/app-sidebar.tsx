@@ -174,7 +174,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Separator orientation="horizontal" className="bg-border w-full mt-2 group-data-[collapsible=icon]:mt-1" />
         </SidebarHeader>
 
-        <SidebarContent className="flex flex-col h-full max-h-[calc(100vh-3rem)] p-0 space-y-0">
+        <SidebarContent className="flex flex-col h-full max-h-[calc(100vh-3rem)] p-0 space-y-0 overflow-y-hidden">
           <div className="flex-1 min-h-0 space-y-0">
             {menuData.navSections.map((section) => (
                 <Collapsible key={section.title} defaultOpen className="group/collapsible">

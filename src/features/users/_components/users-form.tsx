@@ -63,6 +63,7 @@ import {
   UserDetailForm,
   UserInsert,
 } from "../server/users";
+import {formatCep, formatCPF} from "@/lib/regex";
 
 interface UserFormProps {
   user?: UserDetailForm;
@@ -675,9 +676,9 @@ export default function UserForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      {...field}
-                      maxLength={8}
-                      value={field.value?.toString() || ""}
+                        placeholder="Digite o CEP do novo consultor"
+                        value={formatCep(field.value)}
+                        onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
                     />
                   </FormControl>
                   <FormMessage />

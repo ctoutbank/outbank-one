@@ -1,58 +1,74 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CreditCard, Plus, Trash2 } from "lucide-react"
-import { useRef, useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CreditCard, Plus, Trash2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
 
 // Tipos de autorizadores disponíveis
 const AUTHORIZER_TYPES = [
   "GLOBAL PAYMENTS",
   "AUTORIZADOR DOCK PIX",
   "DOCK | POSTILION",
-  "GLOBAL PAYMENTS ECOMMERCE"
-]
+  "GLOBAL PAYMENTS ECOMMERCE",
+];
 
 // Interface para os dados do autorizador
 interface AuthorizerData {
-  id: number
-  type: string
-  conciliarTransacoes: string
-  merchantId?: string
-  tokenCnp?: string
-  terminalId?: string
-  idConta?: string
-  chavePix?: string
-  
+  id: number;
+  type: string;
+  conciliarTransacoes: string;
+  merchantId?: string;
+  tokenCnp?: string;
+  terminalId?: string;
+  idConta?: string;
+  chavePix?: string;
+}
+
+// Props para o componente principal
+interface MerchantFormAuthorizersProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  idMerchant?: number;
+  permissions?: string[];
 }
 
 // Componente para um único autorizador
 function AuthorizerFormItem({
   id,
   initialData,
-  
 }: {
-  id: number
-  initialData: AuthorizerData
-  onRemove: (id: number) => void
-  isRemovable: boolean
+  id: number;
+  initialData: AuthorizerData;
 }) {
   // Determinar quais campos mostrar com base no tipo de autorizador
-  const showMerchantId = initialData.type !== "AUTORIZADOR DOCK PIX"
-  const showTokenCnp = initialData.type !== "AUTORIZADOR DOCK PIX"
-  const showTerminalId = true
-  const showIdConta = initialData.type === "AUTORIZADOR DOCK PIX"
-  const showChavePix = initialData.type === "AUTORIZADOR DOCK PIX"
+  const showMerchantId = initialData.type !== "AUTORIZADOR DOCK PIX";
+  const showTokenCnp = initialData.type !== "AUTORIZADOR DOCK PIX";
+  const showTerminalId = true;
+  const showIdConta = initialData.type === "AUTORIZADOR DOCK PIX";
+  const showChavePix = initialData.type === "AUTORIZADOR DOCK PIX";
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Conciliar transações <span className="text-red-500">*</span></Label>
-        <RadioGroup defaultValue={initialData.conciliarTransacoes || "nao"} className="flex space-x-4">
+        <Label>
+          Conciliar transações <span className="text-red-500">*</span>
+        </Label>
+        <RadioGroup
+          defaultValue={initialData.conciliarTransacoes || "nao"}
+          className="flex space-x-4"
+        >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="sim" id={`${id}-sim`} />
             <Label htmlFor={`${id}-sim`}>Sim</Label>
@@ -99,20 +115,37 @@ function AuthorizerFormItem({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default function MerchantFormAuthorizers() {
+export default function MerchantFormAuthorizers({
+  activeTab,
+  setActiveTab,
+  idMerchant = 0,
+  permissions = [],
+}: MerchantFormAuthorizersProps) {
+  const router = useRouter();
+
   // Estado para armazenar os autorizadores
-  const [authorizers, setAuthorizers] = useState<AuthorizerData[]>([])
-  const [nextId, setNextId] = useState(1)
-  const [selectedType, setSelectedType] = useState<string>("")
-  const [showTypeSelector, setShowTypeSelector] = useState(false)
+  const [authorizers, setAuthorizers] = useState<AuthorizerData[]>([]);
+  const [nextId, setNextId] = useState(1);
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
 
   // Referência para armazenar os dados dos formulários
   const formRefs = useRef<{
-    [key: number]: AuthorizerData
-  }>({})
+    [key: number]: AuthorizerData;
+  }>({});
+
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams || "");
+
+  const refreshPage = (id: number) => {
+    params.set("tab", activeTab);
+    setActiveTab(activeTab);
+    //add new objects in searchParams
+    router.push(`/portal/merchants/${id}?${params.toString()}`);
+  };
 
   // Função para adicionar um novo autorizador
   const addNewAuthorizer = (type: string) => {
@@ -120,39 +153,47 @@ export default function MerchantFormAuthorizers() {
       id: nextId,
       type,
       conciliarTransacoes: "nao",
-    }
+    };
 
-    setAuthorizers([...authorizers, newAuthorizer])
-    setNextId(nextId + 1)
-    setShowTypeSelector(false)
-    setSelectedType("")
-  }
+    setAuthorizers([...authorizers, newAuthorizer]);
+    setNextId(nextId + 1);
+    setShowTypeSelector(false);
+    setSelectedType("");
+  };
 
   // Função para remover um autorizador
   const removeAuthorizer = (id: number) => {
-    setAuthorizers(authorizers.filter(auth => auth.id !== id))
-    delete formRefs.current[id]
-  }
+    setAuthorizers(authorizers.filter((auth) => auth.id !== id));
+    delete formRefs.current[id];
+  };
 
   // Função para salvar os dados
-  const onSubmit = () => {
-    console.log("Dados dos autorizadores:", authorizers)
-    // Aqui você implementaria a lógica para salvar os dados
-  }
+  const onSubmit = async () => {
+    try {
+      console.log("Dados dos autorizadores:", authorizers);
+      // Aqui você implementaria a lógica para salvar os dados dos autorizadores
+
+      // Avançar para a próxima aba
+      refreshPage(idMerchant);
+    } catch (error) {
+      console.error("Erro ao salvar autorizadores:", error);
+    }
+  };
 
   return (
     <div className="space-y-8">
       <h2 className="text-xl font-semibold mb-4">Autorizadores</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {authorizers.map((authorizer) => (
-          <Card key={authorizer.id} className="w-full shadow-sm hover:shadow-md transition-shadow">
+          <Card
+            key={authorizer.id}
+            className="w-full shadow-sm hover:shadow-md transition-shadow"
+          >
             <CardHeader className="flex flex-row items-center justify-between bg-gray-50 py-3">
               <div className="flex flex-row items-center space-x-2">
                 <CreditCard className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">
-                  {authorizer.type}
-                </CardTitle>
+                <CardTitle className="text-lg">{authorizer.type}</CardTitle>
               </div>
               {authorizers.length > 1 && (
                 <Button
@@ -166,34 +207,24 @@ export default function MerchantFormAuthorizers() {
               )}
             </CardHeader>
             <CardContent className="p-4">
-              <AuthorizerFormItem
-                id={authorizer.id}
-                initialData={authorizer}
-                onRemove={removeAuthorizer}
-                isRemovable={authorizers.length > 1}
-              />
+              <AuthorizerFormItem id={authorizer.id} initialData={authorizer} />
             </CardContent>
           </Card>
         ))}
-        
+
         {showTypeSelector && (
           <Card className="w-full shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center bg-gray-50 py-3">
               <div className="flex flex-row items-center space-x-2">
                 <Plus className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">
-                  Novo Autorizador
-                </CardTitle>
+                <CardTitle className="text-lg">Novo Autorizador</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Tipo de Autorizador</Label>
-                  <Select
-                    value={selectedType}
-                    onValueChange={setSelectedType}
-                  >
+                  <Select value={selectedType} onValueChange={setSelectedType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um autorizador" />
                     </SelectTrigger>
@@ -206,16 +237,18 @@ export default function MerchantFormAuthorizers() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex justify-end space-x-2 pt-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowTypeSelector(false)}
                   >
                     Cancelar
                   </Button>
-                  <Button 
-                    onClick={() => selectedType && addNewAuthorizer(selectedType)}
+                  <Button
+                    onClick={() =>
+                      selectedType && addNewAuthorizer(selectedType)
+                    }
                     disabled={!selectedType}
                   >
                     Adicionar
@@ -241,7 +274,7 @@ export default function MerchantFormAuthorizers() {
         </div>
       )}
 
-      {authorizers.length > 0 && (
+      {permissions?.includes("Atualizar") && (
         <div className="flex justify-end mt-8">
           <Button type="submit" onClick={onSubmit} className="px-6">
             Avançar
@@ -249,5 +282,5 @@ export default function MerchantFormAuthorizers() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -30,6 +30,7 @@ import {
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
+import {formatCep} from "@/lib/regex";
 
 // Função para permitir apenas números
 
@@ -452,11 +453,10 @@ function ContactFormItem({
                   CEP <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id={`zipCode-${id}`}
+                  id={formatCep(`zipCode-${id}`)}
                   placeholder="00000-000"
                   {...registerAddress("zipCode")}
                   maxLength={9}
-                  onKeyDown={(e) => handleNumericInput(e, 9)}
                 />
                 {errorsAddress.zipCode && (
                   <p className="text-sm text-red-500 mt-1">
