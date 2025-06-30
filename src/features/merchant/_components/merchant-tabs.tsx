@@ -243,7 +243,14 @@ export default function MerchantTabs({
       )}
 
       <TabsContent value="authorizers">
-        <MerchantFormAuthorizers />
+        <MerchantFormAuthorizers
+          activeTab={
+            listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+          }
+          setActiveTab={setActiveTab}
+          idMerchant={merchant.id}
+          permissions={permissions}
+        />
       </TabsContent>
       {permissions?.includes("Configurar Taxas do EC") && (
         <TabsContent value="rate">
@@ -294,6 +301,10 @@ export default function MerchantTabs({
             permissions={permissions}
             merchantId={merchant.id}
             availableFees={merchantPriceGroupProps?.availableFees || []}
+            activeTab={
+              listTabs[listTabs.findIndex((tab) => tab === activeTab) + 1]
+            }
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
       )}

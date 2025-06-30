@@ -27,6 +27,7 @@ import {
 } from "@/features/salesAgents/server/salesAgent";
 import { DD } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables";
+import { handleNumericInput } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Building, Mail, MapPin, User, X } from "lucide-react";
 import Link from "next/link";
@@ -85,7 +86,6 @@ export default function SalesAgentsForm({
     resolver: zodResolver(schemaSalesAgentForm),
     defaultValues: defaultAgent,
   });
-
 
   const handleRemoveMerchant = (merchantId: string) => {
     const current = form.getValues("selectedMerchants") || [];
@@ -289,6 +289,7 @@ export default function SalesAgentsForm({
                       <Input
                         placeholder="Digite o cpf do novo consultor"
                         maxLength={11}
+                        onKeyDown={(e) => handleNumericInput(e, 11)}
                         {...field}
                       />
                     </FormControl>

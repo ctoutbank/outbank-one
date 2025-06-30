@@ -1120,7 +1120,12 @@ export default function MerchantDisplay({
               </CardHeader>
               <CardContent className="p-3">
                 {activeEditSection === "authorizers" ? (
-                  <MerchantFormAuthorizers />
+                  <MerchantFormAuthorizers
+                    activeTab="authorizers"
+                    setActiveTab={() => {}}
+                    idMerchant={merchant.id}
+                    permissions={permissions}
+                  />
                 ) : (
                   <div className="text-center py-3 text-gray-500 text-sm">
                     <p>Clique em Editar para gerenciar autorizadores</p>
@@ -1243,7 +1248,14 @@ export default function MerchantDisplay({
             />
           )}
 
-          {activeEditSection === "authorizers" && <MerchantFormAuthorizers />}
+          {activeEditSection === "authorizers" && (
+            <MerchantFormAuthorizers
+              activeTab="authorizers"
+              setActiveTab={() => {}}
+              idMerchant={merchant.id}
+              permissions={permissions}
+            />
+          )}
 
           {activeEditSection === "taxes" && (
             <MerchantFormTax2

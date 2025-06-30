@@ -6,16 +6,15 @@ import {
 } from "@/features/merchant/_actions/merchant-price-formActions";
 import { type FeeData } from "@/features/newTax/server/fee-db";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createMerchantPriceFromFeeAction } from "../_actions/create-merchant-price-action";
-import { updateMerchantPriceGroupFormAction } from "../_actions/merchantpricegroup-formActions";
 import {
   merchantPriceSchema,
   type MerchantPriceSchema,
 } from "../schema/merchant-price-schema";
-import { getMerchantPriceGroupsBymerchantPricetId } from "../server/merchantpricegroup";
 import FeeSelectionView from "./fee-selection-view";
 import TaxManagementView from "./tax-management-view";
 import type { OrganizedFeeGroup, TransactionUpdate } from "./tax-types";
@@ -67,6 +66,8 @@ interface MerchantpriceList {
   idMerchantPrice: number;
   merchantId?: number;
   availableFees?: FeeData[];
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
 }
 
 export default function MerchantFormTax2({
@@ -75,18 +76,31 @@ export default function MerchantFormTax2({
   permissions,
   merchantId,
   availableFees = [],
+  activeTab,
+  setActiveTab,
 }: MerchantpriceList) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTab, setSelectedTab] = useState("todas");
   const [feeData, setFeeData] = useState<OrganizedFeeGroup[]>([]);
-  const [posData, setPosData] = useState<OrganizedFeeGroup[]>([]);
-  const [onlineData, setOnlineData] = useState<OrganizedFeeGroup[]>([]);
 
   // Estados para seleção de fee
   const [selectedFeeId, setSelectedFeeId] = useState<string>("");
   const [selectedFee, setSelectedFee] = useState<FeeData | null>(null);
   const [isCreatingMerchantPrice, setIsCreatingMerchantPrice] = useState(false);
   const showFeeSelection = !idMerchantPrice || idMerchantPrice === 0;
+
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams || "");
+
+  const refreshPage = (id: number) => {
+    if (activeTab && setActiveTab) {
+      params.set("tab", activeTab);
+      setActiveTab(activeTab);
+      //add new objects in searchParams
+      router.push(`/portal/merchants/${id}?${params.toString()}`);
+    }
+  };
 
   // Configuração do formulário
   const form = useForm<MerchantPriceSchema>({
@@ -320,8 +334,13 @@ export default function MerchantFormTax2({
       if (result.success) {
         toast.success("Taxa atribuída ao estabelecimento com sucesso!");
 
-        // Recarregar a página ou atualizar o estado
-        window.location.reload();
+        // Avançar para a próxima aba (documents)
+        if (activeTab && setActiveTab && merchantId) {
+          refreshPage(merchantId);
+        } else {
+          // Fallback: recarregar a página se não tiver props de navegação
+          window.location.reload();
+        }
       } else {
         toast.error("Erro ao atribuir taxa ao estabelecimento");
       }
@@ -337,10 +356,6 @@ export default function MerchantFormTax2({
     console.log("Todos merchantprices:", merchantprice);
 
     if (merchantprice) {
-      // Encontrar dados POS e ONLINE
-      const posPrice = merchantprice.find((mp) => mp.tableType === "POS");
-      const onlinePrice = merchantprice.find((mp) => mp.tableType === "ONLINE");
-
       // Processar dados para a aba "todas"
       const groupsToShow = merchantprice.reduce((acc: any[], mp) => {
         const groups = mp.merchantpricegroup || [];
@@ -355,73 +370,9 @@ export default function MerchantFormTax2({
       // Organizar dados para cada aba
       const organizedAllData = uniqueGroups.map(organizeTransactions);
 
-      // Dados específicos para POS
-      const posGroups = posPrice?.merchantpricegroup || [];
-      const organizedPosData = posGroups.map(organizeTransactions);
-
-      // Dados específicos para ONLINE
-      const onlineGroups = onlinePrice?.merchantpricegroup || [];
-      const organizedOnlineData = onlineGroups.map(organizeTransactions);
-      console.log("merchantprice17", merchantprice);
       setFeeData(organizedAllData);
-      setPosData(organizedPosData);
-      setOnlineData(organizedOnlineData);
     }
   }, [merchantprice]);
-
-  const handleSaveChanges = async () => {
-    try {
-      // Combinar todos os dados para atualização
-      const allData = [
-        ...feeData,
-        ...posData.filter((pd) => !feeData.some((fd) => fd.id === pd.id)),
-        ...onlineData.filter((od) => !feeData.some((fd) => fd.id === od.id)),
-      ];
-
-      const updatePromises = allData.map(async (group) => {
-        await updateMerchantPriceGroupFormAction({
-          id: group.id,
-          slug: group.name,
-          active: group.active,
-          brand: group.name,
-          idGroup: 0, // Este campo parece ser diferente do id do grupo
-          idMerchantPrice: idMerchantPrice,
-          dtinsert: new Date(group.dtinsert),
-          dtupdate: new Date(),
-        });
-      });
-
-      await Promise.all(updatePromises);
-      setIsEditing(false);
-      const updatedGroups =
-        await getMerchantPriceGroupsBymerchantPricetId(idMerchantPrice);
-      if (updatedGroups) {
-        const updatedData = updatedGroups
-          .map((group) => {
-            if (!group.priceGroup) {
-              return null;
-            }
-            return {
-              id: group.priceGroup.id,
-              name: group.priceGroup.brand || "",
-              active: group.priceGroup.active || false,
-              dtinsert: group.priceGroup.dtinsert || "",
-              dtupdate: group.priceGroup.dtupdate || "",
-              idMerchantPrice: group.priceGroup.idMerchantPrice || 0,
-              listMerchantTransactionPrice: JSON.parse(
-                group.transactionPrices || "[]"
-              ),
-            };
-          })
-          .filter((group): group is any => group !== null);
-
-        // Atualizar todos os dados após salvar
-        setFeeData(updatedData.map(organizeTransactions));
-      }
-    } catch (error) {
-      console.error("Erro ao salvar alterações:", error);
-    }
-  };
 
   // Se não há merchantPriceId, mostrar seleção de fee
   if (showFeeSelection) {
