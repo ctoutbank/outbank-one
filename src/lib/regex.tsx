@@ -35,3 +35,17 @@ export const formatCPF = (value: string) => {
 
     return formatted;
 };
+
+export const formatCep = (value: string | undefined) => {
+    const digits = value?.replace(/\D/g, '').slice(0, 8);
+    const match = digits?.match(/^(\d{0,5})(\d{0,3})$/);
+
+    if (!match) return '';
+    const [, part1, part2] = match;
+    let formatted = '';
+    if (part1) formatted += part1;
+    if (part1.length === 5) formatted += '-';
+    if (part2) formatted += part2;
+
+    return formatted;
+}

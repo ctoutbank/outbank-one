@@ -27,7 +27,7 @@ import {
 } from "@/features/salesAgents/server/salesAgent";
 import { DD } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables";
-import { formatCPF, formatPhone } from "@/lib/regex";
+import {formatCep, formatCPF, formatPhone} from "@/lib/regex";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -370,11 +370,11 @@ export default function SalesAgentsForm({
                     CEP <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      maxLength={8}
-                      value={field.value?.toString() || ""}
-                    />
+                      <Input
+                          placeholder="Digite o CEP do novo consultor"
+                          value={formatCep(field.value)}
+                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

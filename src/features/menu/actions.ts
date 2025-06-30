@@ -146,6 +146,16 @@ export async function getAuthorizedMenu() {
           ],
         },
         {
+          title: "RELATÓRIOS",
+          items: [
+            {
+              title: "Fechamento",
+              url: "/portal/closing",
+              icon: "CalendarFold",
+            },
+          ],
+        },
+        {
           title: "CONFIGURAÇÕES E SISTEMA",
           items: [
             {
@@ -167,11 +177,6 @@ export async function getAuthorizedMenu() {
               title: "Taxas",
               url: "/portal/pricing",
               icon: "Receipt",
-            },
-            {
-              title: "Fechamento",
-              url: "/portal/closing",
-              icon: "CalendarFold",
             },
           ],
         },

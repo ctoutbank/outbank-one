@@ -58,6 +58,7 @@ export function NavMain({ items }: Props) {
                                                 "w-full flex items-center",
                                                 !isCollapsed && "pl-0 -ml-4 justify-start",
                                                 isCollapsed && "justify-center px-0",
+
                                             )}
                                         >
                                             <div className="flex items-center justify-between w-full">
