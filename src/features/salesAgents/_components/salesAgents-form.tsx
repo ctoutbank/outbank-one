@@ -27,8 +27,16 @@ import {
 } from "@/features/salesAgents/server/salesAgent";
 import { DD } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables";
+import { formatCPF, formatPhone } from "@/lib/regex";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Building, Mail, MapPin, User, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Building,
+  Mail,
+  MapPin, Phone,
+  User,
+  X
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -235,15 +243,15 @@ export default function SalesAgentsForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
-                      <Mail className="h-4 w-4 mr-1" />
+                    <Phone className="h-4 w-4 mr-1" />
                       Telefone <span className="text-destructive ml-1">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Digite o telefone do novo consultor"
-                        maxLength={11}
-                        {...field}
-                      />
+                    <Input
+                                                placeholder="Digite o telefone do novo consultor"
+                                                value={formatPhone(field.value)}
+                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -286,11 +294,11 @@ export default function SalesAgentsForm({
                       CPF <span className="text-destructive ml-1">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Digite o cpf do novo consultor"
-                        maxLength={11}
-                        {...field}
-                      />
+                    <Input
+                                                placeholder="Digite o telefone do novo consultor"
+                                                value={formatCPF(field.value)}
+                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
