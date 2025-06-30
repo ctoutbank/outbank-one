@@ -699,7 +699,8 @@ export default function MerchantFormOperations({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Formato Jurídico <span className="text-red-500">*</span>
+                        Consultor Comercial{" "}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <Select
                         onValueChange={(value) => field.onChange(Number(value))}

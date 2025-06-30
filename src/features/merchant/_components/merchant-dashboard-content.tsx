@@ -71,7 +71,7 @@ export function MerchantDashboardContent({
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total de Estabelecimentos */}
-                <div className="h-[165px] p-4 bg-background rounded-lg border flex flex-col justify-between">
+                <div className="h-[165px] p-4 bg-transparent rounded-lg border flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <HomeIcon className="h-4 w-4 text-muted-foreground" />
@@ -108,7 +108,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Status KYC */}
-                <div className="h-[165px] p-4 bg-background rounded-lg border flex flex-col justify-between">
+                <div className="h-[165px] p-4 bg-transparent rounded-lg border flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <FileCheck className="h-4 w-4 text-muted-foreground" />
@@ -154,7 +154,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Antecipações */}
-                <div className="h-[165px] p-4 bg-background rounded-lg border flex flex-col justify-between">
+                <div className="h-[165px] p-4 bg-transparent rounded-lg border flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -191,7 +191,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Estabelecimentos Cadastrados */}
-                <div className="h-[165px] p-4 bg-background rounded-lg border flex flex-col justify-between">
+                <div className="h-[165px] p-4 bg-transparent rounded-lg border flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <HomeIcon className="h-4 w-4 text-muted-foreground" />
@@ -234,7 +234,7 @@ export function MerchantDashboardContent({
               {/* Linha Inferior - Gráficos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 {/* Gráfico de Distribuição de Transações */}
-                <div className="min-h-[200px] p-4 bg-background rounded-lg border">
+                <div className="min-h-[200px] p-4 bg-transparent rounded-lg border">
                   <div className="text-xs font-small mb-2">
                     Transações de Estabelecimentos
                   </div>
@@ -293,7 +293,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Gráfico de Tipo */}
-                <div className="min-h-[200px] p-4 bg-background rounded-lg border">
+                <div className="min-h-[200px] p-4 bg-transparent rounded-lg border">
                   <div className="text-xs font-small mb-2">
                     Compulsória/Eventual
                   </div>
@@ -346,7 +346,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Gráfico de Turnos */}
-                <div className="min-h-[200px] p-4 bg-background rounded-lg border">
+                <div className="min-h-[200px] p-4 bg-transparent rounded-lg border">
                   <div className="text-xs font-small mb-2">
                     Transações por Turno
                   </div>
@@ -399,7 +399,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Gráfico de Regiões */}
-                <div className="min-h-[200px] p-4 bg-background rounded-lg border">
+                <div className="min-h-[200px] p-4 bg-transparent rounded-lg border">
                   <div className="text-xs font-small mb-2">
                     Estabelecimentos por região
                   </div>
@@ -452,7 +452,7 @@ export function MerchantDashboardContent({
                 </div>
 
                 {/* Gráfico de Eficiência */}
-                <div className="min-h-[200px] p-4 bg-background rounded-lg border">
+                <div className="min-h-[200px] p-4 bg-transparent rounded-lg border">
                   <div className="text-xs font-small mb-2">
                     Eficiência operacional
                   </div>

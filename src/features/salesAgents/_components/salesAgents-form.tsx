@@ -33,9 +33,10 @@ import {
   ArrowLeft,
   Building,
   Mail,
-  MapPin, Phone,
+  MapPin,
+  Phone,
   User,
-  X
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -93,7 +94,6 @@ export default function SalesAgentsForm({
     resolver: zodResolver(schemaSalesAgentForm),
     defaultValues: defaultAgent,
   });
-
 
   const handleRemoveMerchant = (merchantId: string) => {
     const current = form.getValues("selectedMerchants") || [];
@@ -243,15 +243,19 @@ export default function SalesAgentsForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
-                    <Phone className="h-4 w-4 mr-1" />
+                      <Phone className="h-4 w-4 mr-1" />
                       Telefone <span className="text-destructive ml-1">*</span>
                     </FormLabel>
                     <FormControl>
-                    <Input
-                                                placeholder="Digite o telefone do novo consultor"
-                                                value={formatPhone(field.value)}
-                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                                            />
+                      <Input
+                        placeholder="Digite o telefone do novo consultor"
+                        value={formatPhone(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value.replace(/\D/g, "").slice(0, 11)
+                          )
+                        }
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -294,11 +298,15 @@ export default function SalesAgentsForm({
                       CPF <span className="text-destructive ml-1">*</span>
                     </FormLabel>
                     <FormControl>
-                    <Input
-                                                placeholder="Digite o telefone do novo consultor"
-                                                value={formatCPF(field.value)}
-                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                                            />
+                      <Input
+                        placeholder="Digite o telefone do novo consultor"
+                        value={formatCPF(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value.replace(/\D/g, "").slice(0, 11)
+                          )
+                        }
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
