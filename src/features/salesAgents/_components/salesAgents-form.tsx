@@ -34,7 +34,7 @@ import {
     Building,
     HelpCircle,
     Mail,
-    MapPin,
+    MapPin, Phone,
     User,
     X,
 } from "lucide-react";
@@ -63,6 +63,7 @@ import {
     UserInsert,
 } from "../server/users";
 import {SchemaSalesAgent} from "@/features/salesAgents/schema/salesAgentsSchema";
+import {formatCPF, formatPhone} from "@/lib/regex";
 
 interface UserFormProps {
     user?: UserDetailForm;
@@ -179,6 +180,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
         }
         loadAddress();
     }, [user?.idAddress, addressForm]);
+
 
     const onSubmit = async (data: UserSchema) => {
 
@@ -475,11 +477,15 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center">
-                                            <Mail className="h-4 w-4 mr-1" />
+                                            <Phone className="h-4 w-4 mr-1" />
                                             Telefone <span className="text-destructive ml-1">*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o telefone do novo consultor" maxLength={11} {...field} />
+                                            <Input
+                                                placeholder="Digite o telefone do novo consultor"
+                                                value={formatPhone(field.value)}
+                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -516,7 +522,11 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                             <span className="text-destructive ml-1">*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o cpf do novo consultor" maxLength={11} {...field} />
+                                            <Input
+                                                placeholder="Digite o telefone do novo consultor"
+                                                value={formatCPF(field.value)}
+                                                onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -799,7 +809,7 @@ export default function UserForm({user, permissions, salesAgent}: UserFormProps)
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Digite a sigla do estado" />
+                                                    <SelectValue placeholder="Selecione o estado" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>

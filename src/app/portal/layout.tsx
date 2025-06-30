@@ -12,7 +12,7 @@ export default function PortalLayout({
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
-      <SidebarInset className="bg-card rounded-lg shadow">
+      <SidebarInset className="bg-card rounded-lg shadow overflow-x-hidden">
         <IdleLogout />
         {children}
       </SidebarInset>

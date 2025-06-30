@@ -909,7 +909,7 @@ export default function MerchantFormCompany({
                                 >
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Digite a sigla do estado" />
+                                      <SelectValue placeholder="Selecione o estado" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>

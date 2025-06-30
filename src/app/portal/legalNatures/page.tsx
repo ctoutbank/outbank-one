@@ -31,7 +31,7 @@ export default async function LegalNaturesPage({
   await checkPagePermission("Natureza Juridica");
 
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "5");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
   const name = searchParams.name || "";
   const code = searchParams.code || "";

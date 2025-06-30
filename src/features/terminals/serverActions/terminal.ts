@@ -426,6 +426,18 @@ export async function getTerminals(
   }
 }
 
+export async function getTerminalsPorModelo() {
+  const result = await db
+      .select({
+        nome: terminals.model,
+        quantidade: sql<number>`COUNT(*)`,
+      })
+      .from(terminals)
+      .groupBy(terminals.model)
+
+  return result.filter((item) => item.nome !== null)
+}
+
 export async function getTerminalBySlug(slug: string) {
   const terminal = await db
     .select()

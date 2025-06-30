@@ -167,7 +167,7 @@ export function FilterMerchantsContent({
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">Cadastrado em</h3>
+              <h3 className="text-sm font-medium">Data de cadastro</h3>
               <div className="flex flex-col gap-2">
                 <Popover>
                   <PopoverTrigger asChild>

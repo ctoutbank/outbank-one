@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {useEffect, useState} from "react";
 import { useForm } from "react-hook-form";
-import { cnaeMap } from "@/components/cnae-mapping";
+import {cnaeMap, mccToCnaeMap} from "@/lib/lookuptables/lookuptables"
 
 
 import { Button } from "@/components/ui/button";
@@ -165,12 +165,22 @@ export default function PricingSolicitationForm({
       console.log("WATCH TRIGGERED:", name, value);
       if (name === "cnae" && value.cnae) {
         const mapping = cnaeMap[value.cnae];
-        if (mapping) {
+        if (mapping && value.mcc !== mapping.mcc) { // Verificar se o mcc atual é diferente
           console.log("MCC SETADO COMO: ", mapping.mcc);
           form.setValue("mcc", mapping.mcc);
           form.setValue("cardPixMdr", mapping.mdr);
         }
       }
+
+      // Preenche o campo cnae automaticamente quando o mcc for preenchido
+      if (name === "mcc" && value.mcc) {
+        const cnae = mccToCnaeMap[value.mcc];
+        if (cnae && value.cnae !== cnae) { // Verificar se o cnae atual é diferente
+          console.log("CNAE SETADO COMO: ", cnae);
+          form.setValue("cnae", cnae);
+        }
+      }
+
     });
     return () => subscription.unsubscribe?.();
   }, [form]);
