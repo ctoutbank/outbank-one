@@ -21,11 +21,11 @@ export function CategoriesDashboardContent({
   return (
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-transparent p-6">
+        <Card className="w-full border-l-8 border-black bg-transparent p-6 flex justify-center">
           <div className="flex items-center justify-between">
             {/* Card Único de Categorias */}
-            <div className="w-full max-w-md">
-              <Card className="bg-background border">
+            <div className="w-[500px]">
+              <Card className="bg-transparent border">
                 <CardContent className="p-4">
                   {/* Total de Categorias */}
                   <div className="text-center mb-4">

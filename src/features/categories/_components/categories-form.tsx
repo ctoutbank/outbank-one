@@ -17,11 +17,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   insertCategoryFormAction,
   updateCategoryFormAction,
 } from "../_actions/categories-formActions";
-import { toast } from "sonner";
+import { FeeDetail, getFeeDetailById } from "../server/category";
+import { FeeView } from "./fee-view";
 
 interface CategoriesProps {
   categories: CategoriesSchema;
@@ -33,6 +36,18 @@ export default function Categoriesform({ categories }: CategoriesProps) {
     resolver: zodResolver(schemaCategories),
     defaultValues: categories,
   });
+  console.log(categories);
+  const [feeDetail, setFeeDetail] = useState<FeeDetail | null>(null);
+
+  useEffect(() => {
+    async function fetchFee() {
+      if (categories?.id && categories?.idFee) {
+        const fee = await getFeeDetailById(Number(categories.idFee));
+        setFeeDetail(fee);
+      }
+    }
+    fetchFee();
+  }, [categories?.id, categories?.idFee]);
 
   const onSubmit = async (data: CategoriesSchema) => {
     try {
@@ -182,8 +197,12 @@ export default function Categoriesform({ categories }: CategoriesProps) {
             </div>
           </form>
         </Form>
+        {categories?.id && categories?.idFee && feeDetail && (
+          <div className="mt-8">
+            <FeeView feeDetail={feeDetail} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
-  

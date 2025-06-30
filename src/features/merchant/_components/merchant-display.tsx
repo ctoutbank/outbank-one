@@ -934,65 +934,108 @@ export default function MerchantDisplay({
                     ]}
                     idMerchantPrice={merchant.idMerchantPrice || 0}
                     permissions={permissions}
+                    merchantId={merchant.id}
+                    availableFees={merchantPriceGroupProps?.availableFees || []}
                   />
                 ) : (
-                  <div className="scale-[0.85] transform origin-top-left w-[117%] overflow-x-auto">
-                    <MerchantFormTax2
-                      merchantprice={[
-                        {
-                          id: merchantPriceGroupProps?.merchantPrice?.id || 0,
-                          name:
-                            merchantPriceGroupProps?.merchantPrice?.name || "",
-                          active:
-                            merchantPriceGroupProps?.merchantPrice?.active ||
-                            false,
-                          dtinsert:
-                            merchantPriceGroupProps?.merchantPrice?.dtinsert ||
-                            "",
-                          dtupdate:
-                            merchantPriceGroupProps?.merchantPrice?.dtupdate ||
-                            "",
-                          tableType:
-                            merchantPriceGroupProps?.merchantPrice?.tableType ||
-                            "",
-                          slugMerchant:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.slugMerchant || "",
-                          compulsoryAnticipationConfig:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.compulsoryAnticipationConfig || 0,
-                          anticipationType:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.anticipationType || "",
-                          eventualAnticipationFee:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.eventualAnticipationFee || 0,
-                          cardPixMdr:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixMdr || 0,
-                          cardPixCeilingFee:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixCeilingFee || 0,
-                          cardPixMinimumCostFee:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.cardPixMinimumCostFee || 0,
-                          nonCardPixMdr:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixMdr || 0,
-                          nonCardPixCeilingFee:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixCeilingFee || 0,
-                          nonCardPixMinimumCostFee:
-                            merchantPriceGroupProps?.merchantPrice
-                              ?.nonCardPixMinimumCostFee || 0,
-                          merchantpricegroup:
-                            merchantPriceGroupProps?.merchantpricegroup || [],
-                        },
-                      ]}
-                      idMerchantPrice={merchant.idMerchantPrice || 0}
-                      permissions={[]}
-                    />
-                  </div>
+                  <>
+                    {!merchant.idMerchantPrice ||
+                    merchant.idMerchantPrice === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-6 w-6 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                            >
+                              <path
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-700">
+                              Nenhuma taxa atribuída
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Este estabelecimento ainda não possui taxas
+                              configuradas
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="scale-[0.85] transform origin-top-left w-[117%] overflow-x-auto">
+                        <MerchantFormTax2
+                          merchantprice={[
+                            {
+                              id:
+                                merchantPriceGroupProps?.merchantPrice?.id || 0,
+                              name:
+                                merchantPriceGroupProps?.merchantPrice?.name ||
+                                "",
+                              active:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.active || false,
+                              dtinsert:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.dtinsert || "",
+                              dtupdate:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.dtupdate || "",
+                              tableType:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.tableType || "",
+                              slugMerchant:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.slugMerchant || "",
+                              compulsoryAnticipationConfig:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.compulsoryAnticipationConfig || 0,
+                              anticipationType:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.anticipationType || "",
+                              eventualAnticipationFee:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.eventualAnticipationFee || 0,
+                              cardPixMdr:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.cardPixMdr || 0,
+                              cardPixCeilingFee:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.cardPixCeilingFee || 0,
+                              cardPixMinimumCostFee:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.cardPixMinimumCostFee || 0,
+                              nonCardPixMdr:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.nonCardPixMdr || 0,
+                              nonCardPixCeilingFee:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.nonCardPixCeilingFee || 0,
+                              nonCardPixMinimumCostFee:
+                                merchantPriceGroupProps?.merchantPrice
+                                  ?.nonCardPixMinimumCostFee || 0,
+                              merchantpricegroup:
+                                merchantPriceGroupProps?.merchantpricegroup ||
+                                [],
+                            },
+                          ]}
+                          idMerchantPrice={merchant.idMerchantPrice || 0}
+                          permissions={[]}
+                          merchantId={merchant.id}
+                          availableFees={
+                            merchantPriceGroupProps?.availableFees || []
+                          }
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -1077,7 +1120,12 @@ export default function MerchantDisplay({
               </CardHeader>
               <CardContent className="p-3">
                 {activeEditSection === "authorizers" ? (
-                  <MerchantFormAuthorizers />
+                  <MerchantFormAuthorizers
+                    activeTab="authorizers"
+                    setActiveTab={() => {}}
+                    idMerchant={merchant.id}
+                    permissions={permissions}
+                  />
                 ) : (
                   <div className="text-center py-3 text-gray-500 text-sm">
                     <p>Clique em Editar para gerenciar autorizadores</p>
@@ -1200,7 +1248,14 @@ export default function MerchantDisplay({
             />
           )}
 
-          {activeEditSection === "authorizers" && <MerchantFormAuthorizers />}
+          {activeEditSection === "authorizers" && (
+            <MerchantFormAuthorizers
+              activeTab="authorizers"
+              setActiveTab={() => {}}
+              idMerchant={merchant.id}
+              permissions={permissions}
+            />
+          )}
 
           {activeEditSection === "taxes" && (
             <MerchantFormTax2
@@ -1249,6 +1304,8 @@ export default function MerchantDisplay({
               ]}
               idMerchantPrice={merchant.idMerchantPrice || 0}
               permissions={permissions}
+              merchantId={merchant.id}
+              availableFees={merchantPriceGroupProps?.availableFees || []}
             />
           )}
 

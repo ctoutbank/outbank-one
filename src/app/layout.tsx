@@ -27,6 +27,7 @@ export default async function RootLayout({
         </body>
       </html>
     );
+    
   }
 
   const primary = themeData.primary ?? "0 84% 60%";

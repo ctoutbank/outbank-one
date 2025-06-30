@@ -49,6 +49,7 @@ import {
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
 } from "../server/merchant";
+import {formatCep} from "@/lib/regex";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -802,10 +803,9 @@ export default function MerchantFormCompany({
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  {...field}
-                                  maxLength={8}
-                                  value={field.value?.toString() || ""}
-                                  onKeyDown={(e) => handleNumericInput(e, 8)}
+                                    placeholder="Digite o CEP"
+                                    value={formatCep(field.value)}
+                                    onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -925,7 +925,7 @@ export default function MerchantFormCompany({
                                 >
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Digite a sigla do estado" />
+                                      <SelectValue placeholder="Selecione o estado" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>

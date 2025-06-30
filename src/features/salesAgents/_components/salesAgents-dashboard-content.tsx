@@ -21,12 +21,12 @@ export function SalesAgentDashboardContent({
   return (
     <div className="w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-none bg-transparent">
+        <Card className="w-full border-none bg-transparent flex justify-center">
           <CardContent className="p-6">
             <div className="flex items-start justify-start w-full">
               {/* Card Único de Consultores */}
-              <div className="w-full max-w-md">
-                <Card className="bg-background border">
+              <div className="w-[500px]">
+                <Card className="bg-transparent border">
                   <CardContent className="p-6">
                     {/* Total de Consultores */}
                     <div className="text-center mb-6">

@@ -49,11 +49,33 @@ export function BusinessInfoSection({ control }: BusinessInfoSectionProps) {
             <FormField
                 control={control}
                 name="cnae"
+                rules={{
+                    required: "CNAE é obrigatório",
+                    pattern: {
+                        value: /^\d{5}\/\d{2}$/,
+                        message: "Formato inválido (ex: 12345/67)",
+                    },
+                }}
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>CNAE</FormLabel>
                         <FormControl>
-                            <Input placeholder="00000/00" {...field} />
+                            <Input
+                                placeholder="00000/00"
+                                className="bg-muted"
+                                value={field.value}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/\D/g, ""); // remove tudo que não for número
+                                    let formatted = raw;
+
+                                    if (raw.length > 5) {
+                                        formatted = `${raw.slice(0, 5)}/${raw.slice(5, 7)}`;
+                                    }
+
+                                    field.onChange(formatted);
+                                }}
+                                maxLength={8} // 7 números + 1 caractere da barra
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -64,11 +86,27 @@ export function BusinessInfoSection({ control }: BusinessInfoSectionProps) {
             <FormField
                 control={control}
                 name="mcc"
+                rules={{
+                    required: "MCC é obrigatório",
+                    pattern: {
+                        value: /^\d{4}$/,
+                        message: "Formato inválido (ex: 1234)",
+                    },
+                }}
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>MCC</FormLabel>
                         <FormControl>
-                            <Input placeholder="0000" {...field} readOnly className="bg-muted" />
+                            <Input
+                                placeholder="0000"
+                                className="bg-muted"
+                                value={field.value}
+                                onChange={(e) => {
+                                    const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                    field.onChange(onlyDigits);
+                                }}
+                                maxLength={4}
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

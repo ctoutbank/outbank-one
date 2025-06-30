@@ -37,7 +37,7 @@ export function SettlementsHistoryDashboardContent({
               <div className="flex flex-col xl:flex-row gap-6 w-full">
                 {/* Card de Total de Liquidações */}
                 <div className="flex-1 min-w-0">
-                  <Card className="bg-background border h-[270px] rounded-lg">
+                  <Card className="bg-transparent border h-[270px] rounded-lg">
                     <CardContent className="p-6">
                       {/* Total de Liquidações */}
                       <div className="text-center mb-6">
@@ -83,7 +83,7 @@ export function SettlementsHistoryDashboardContent({
 
                 {/* Card de Status */}
                 <div className="flex-1 min-w-0">
-                  <Card className="bg-background border h-[270px] rounded-lg">
+                  <Card className="bg-transparent border h-[270px] rounded-lg">
                     <CardContent className="p-6">
                       {/* Total por Status */}
                       <div className="text-center mb-6">
@@ -183,7 +183,7 @@ export function SettlementsHistoryDashboardContent({
 
                 {/* Card de Restituições */}
                 <div className="flex-1 min-w-0">
-                  <Card className="bg-background border h-[270px]">
+                  <Card className="bg-transparent border h-[270px]">
                     <CardContent className="p-6">
                       {/* Total de Restituições */}
                       <div className="text-center mb-6">

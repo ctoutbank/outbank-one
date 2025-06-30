@@ -1,3 +1,4 @@
+import { type FeeData } from "@/features/newTax/server/fee-db";
 import { FileItem } from "@/server/upload";
 import {
   addresses,
@@ -99,7 +100,7 @@ interface PixAccountData {
   legalPerson: string;
 }
 
-interface TransactionPrice {
+export interface TransactionPrice {
   id: number;
   slug: string;
   active: boolean;
@@ -115,7 +116,7 @@ interface TransactionPrice {
   producttype: string;
 }
 
-interface MerchantPriceGroup {
+export interface MerchantPriceGroup {
   id: number;
   name: string;
   active: boolean;
@@ -125,7 +126,7 @@ interface MerchantPriceGroup {
   listMerchantTransactionPrice: TransactionPrice[];
 }
 
-interface MerchantPrice {
+export interface MerchantPrice {
   id: number;
   name: string;
   active: boolean;
@@ -148,6 +149,7 @@ interface MerchantPrice {
 interface MerchantPriceGroupProps {
   merchantPrice: MerchantPrice;
   merchantpricegroup: MerchantPriceGroup[];
+  availableFees?: FeeData[];
 }
 
 export interface MerchantTabsProps {

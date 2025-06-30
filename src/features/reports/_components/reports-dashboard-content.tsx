@@ -34,7 +34,7 @@ export function ReportsDashboardContent({
             <div className="flex flex-col xl:flex-row gap-4 w-full">
               {/* Card de Total de Relatórios */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     {/* Total de Relatórios */}
                     <div className="text-center mb-4">
@@ -96,7 +96,7 @@ export function ReportsDashboardContent({
 
               {/* Card de Formatos */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     {/* Total por Formato */}
                     <div className="text-center mb-4">
@@ -144,7 +144,7 @@ export function ReportsDashboardContent({
 
               {/* Card de Tipos de Relatório */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-[180px] rounded-lg">
+                <Card className="bg-transparent border h-[180px] rounded-lg">
                   <CardContent className="p-4">
                     {/* Total por Tipo */}
                     <div className="text-center mb-4">

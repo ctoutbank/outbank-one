@@ -84,7 +84,7 @@ export function BarChartCustom({
 
     return (
       <div
-        className="fixed bg-white rounded shadow-md border p-2 min-w-[160px] z-50 pointer-events-none text-xs"
+        className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
         style={{
           left: mousePosition.x + 10,
           top: mousePosition.y + 10,

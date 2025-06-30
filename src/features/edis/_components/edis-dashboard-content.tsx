@@ -28,7 +28,7 @@ export function EdisDashboardContent({
             <div className="flex flex-col xl:flex-row gap-4 w-full">
               {/* Card de Total de Arquivos */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-full">
+                <Card className="bg-transparent border h-full">
                   <CardContent className="p-4">
                     {/* Total de Arquivos */}
                     <div className="text-center mb-4">
@@ -78,7 +78,7 @@ export function EdisDashboardContent({
 
               {/* Card de Status Processamento */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-full">
+                <Card className="bg-transparent border h-full">
                   <CardContent className="p-4">
                     {/* Total em Processamento */}
                     <div className="text-center mb-4">
@@ -140,7 +140,7 @@ export function EdisDashboardContent({
 
               {/* Card de Tipos de Arquivo */}
               <div className="flex-1 min-w-0">
-                <Card className="bg-background border h-full">
+                <Card className="bg-transparent border h-full">
                   <CardContent className="p-4">
                     {/* Total por Tipo */}
                     <div className="text-center mb-4">
