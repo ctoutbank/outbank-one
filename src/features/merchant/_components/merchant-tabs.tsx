@@ -59,18 +59,32 @@ export default function MerchantTabs({
       className="space-y-4 w-full"
     >
       <TabsList>
-        <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
-        <TabsTrigger value="contact">Dados do Responsável</TabsTrigger>
-        <TabsTrigger value="operation">Dados de Operação</TabsTrigger>
+        <TabsTrigger value="company" className="pointer-events-none">
+          Dados da Empresa
+        </TabsTrigger>
+        <TabsTrigger value="contact" className="pointer-events-none">
+          Dados do Responsável
+        </TabsTrigger>
+        <TabsTrigger value="operation" className="pointer-events-none">
+          Dados de Operação
+        </TabsTrigger>
         {permissions?.includes("Configurar dados Bancários") && (
-          <TabsTrigger value="bank">Dados Bancários</TabsTrigger>
+          <TabsTrigger value="bank" className="pointer-events-none">
+            Dados Bancários
+          </TabsTrigger>
         )}
-        <TabsTrigger value="authorizers">Autorizados</TabsTrigger>
+        <TabsTrigger value="authorizers" className="pointer-events-none">
+          Autorizados
+        </TabsTrigger>
         {permissions?.includes("Configurar Taxas do EC") && (
-          <TabsTrigger value="rate">Taxas de Transação</TabsTrigger>
+          <TabsTrigger value="rate" className="pointer-events-none">
+            Taxas de Transação
+          </TabsTrigger>
         )}
         {permissions?.includes("Inserir documentos EC") && (
-          <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="documents" className="pointer-events-none">
+            Documentos
+          </TabsTrigger>
         )}
       </TabsList>
 
