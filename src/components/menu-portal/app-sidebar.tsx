@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import {NotificationIcon} from "@/components/notification";
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -216,6 +217,9 @@ export function AppSidebar() {
                 </span>
               </div>
             )}
+            <div className="p-4">
+              <NotificationIcon/>
+            </div>
           </div>
         </div>
 

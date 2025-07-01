@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { headers } from "next/headers";
 import { Toaster } from "sonner";
 import "./globals.css";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,8 +45,10 @@ export default async function RootLayout({
       <html lang="pt-BR" suppressHydrationWarning>
         <head />
         <body className={inter.className} style={theme as React.CSSProperties}>
+        <TooltipProvider>
           {children}
           <Toaster richColors position="top-right" />
+        </TooltipProvider>
         </body>
       </html>
     </ClerkProvider>
