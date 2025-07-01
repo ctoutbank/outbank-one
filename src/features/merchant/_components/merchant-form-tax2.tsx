@@ -334,6 +334,57 @@ export default function MerchantFormTax2({
       if (result.success) {
         toast.success("Taxa atribuída ao estabelecimento com sucesso!");
 
+        // 🎯 PASSO FINAL: Buscar TODOS os dados do banco local e enviar para API
+        /* try {
+         
+
+          // GET: Buscar dados completos do merchant do banco local
+         
+          const merchantAPIData =
+            await buscarMerchantCompletoRealParaAPI(merchantId);
+          console.log("merchantAPIData", merchantAPIData);
+          if (!merchantAPIData) {
+            throw new Error(
+              "Merchant não encontrado ou dados incompletos no banco local"
+            );
+          }
+
+          console.log("✅ Dados completos obtidos do banco local:", {
+            merchantData: !!merchantAPIData.name,
+            addressData: !!merchantAPIData.address,
+            contactsData: merchantAPIData.contacts?.length || 0,
+            bankAccountData: !!merchantAPIData.merchantBankAccount,
+            merchantPriceData: !!merchantAPIData.merchantPrice,
+            priceGroupsData:
+              merchantAPIData.merchantPrice?.listMerchantPriceGroup?.length ||
+              0,
+          });
+
+          // POST: Enviar todos os dados para API
+          console.log("📤 Enviando dados completos para API...");
+          const apiResponse = await InsertMerchant1(merchantAPIData);
+          console.log("✅ Resposta da API:", apiResponse);
+
+          if (apiResponse && apiResponse.slug) {
+            toast.success(
+              `🎉 Estabelecimento cadastrado com sucesso na API! Slug: ${apiResponse.slug}`
+            );
+          } else {
+            toast.success(
+              "Taxa atribuída com sucesso! No entanto, não foi possível obter confirmação da API."
+            );
+          }
+        } catch (apiError) {
+          console.error(
+            "❌ Erro ao enviar merchant completo para API:",
+            apiError
+          );
+          toast.error(
+            "Taxa atribuída com sucesso, mas houve um erro ao enviar para API. Verifique o console para mais detalhes."
+          );
+          
+        }
+*/
         // Avançar para a próxima aba (documents)
         if (activeTab && setActiveTab && merchantId) {
           refreshPage(merchantId);
