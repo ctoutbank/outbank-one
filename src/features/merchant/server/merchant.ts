@@ -2,6 +2,7 @@
 
 import { CategoryDetail } from "@/features/categories/server/category";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
+import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
 import { UserMerchantsAccess } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables"; // ajuste o path se necessário
 import { db } from "@/server/db";
@@ -29,7 +30,9 @@ import {
   merchantBankAccounts,
   merchantpixaccount,
   merchantPrice,
+  merchantPriceGroup,
   merchants,
+  merchantTransactionPrice,
   salesAgents,
 } from "../../../../drizzle/schema";
 import {
@@ -91,6 +94,11 @@ export type Merchantlist = {
     dtupdate: string;
     lockCpAnticipationOrder: boolean;
     lockCnpAnticipationOrder: boolean;
+    idConfiguration: number;
+    idmerchantbankaccount: number;
+    idcontact: number;
+    idmerchantpixaccount: number;
+    idmerchantprice: number;
 
     sales_agent: string;
     state: string;
@@ -257,6 +265,7 @@ export async function getMerchants(
       document: merchants.idDocument,
       lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
+      idConfiguration: merchants.idConfiguration,
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
@@ -272,6 +281,10 @@ export async function getMerchants(
       Inclusion: merchants.inclusion,
       dtupdate: merchants.dtupdate,
       dtdelete: merchants.dtdelete,
+      idmerchantbankaccount: merchantBankAccounts.id,
+      idcontact: contacts.id,
+      idmerchantpixaccount: merchantpixaccount.id,
+      idmerchantprice: merchantPrice.id,
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
@@ -280,6 +293,16 @@ export async function getMerchants(
     .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
     .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(
+      merchantBankAccounts,
+      eq(merchants.idMerchantBankAccount, merchantBankAccounts.id)
+    )
+    .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+    .leftJoin(
+      merchantpixaccount,
+      eq(merchants.id, merchantpixaccount.idMerchant)
+    )
+
     .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
@@ -404,6 +427,7 @@ export async function getMerchants(
       cnpj: merchant.document ?? "N/A",
       lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
       lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
+      idConfiguration: merchant.idConfiguration ?? 0,
       slug_category: merchant.slug_category ?? "N/A",
       time_zone: merchant.time_zone ?? "N/A",
       sales_agent: merchant.salesAgents ?? "N/A",
@@ -419,6 +443,10 @@ export async function getMerchants(
       Inclusion: merchant.Inclusion || "",
       dtupdate: merchant.dtupdate || "",
       dtdelete: merchant.dtdelete || "",
+      idmerchantbankaccount: merchant.idmerchantbankaccount || 0,
+      idcontact: merchant.idcontact || 0,
+      idmerchantpixaccount: merchant.idmerchantpixaccount || 0,
+      idmerchantprice: merchant.idmerchantprice || 0,
     })),
     totalCount,
     active_count: Number(activeCount),
@@ -2147,6 +2175,7 @@ export async function getMerchantsWithDashboardData(
       document: merchants.idDocument,
       lockCpAnticipationOrder: configurations.lockCpAnticipationOrder,
       lockCnpAnticipationOrder: configurations.lockCnpAnticipationOrder,
+      idConfiguration: configurations.id,
       cnpj: merchants.idDocument,
       slug_category: merchants.slugCategory,
       time_zone: merchants.timezone,
@@ -2162,6 +2191,10 @@ export async function getMerchantsWithDashboardData(
       Inclusion: merchants.inclusion,
       dtupdate: merchants.dtupdate,
       dtdelete: merchants.dtdelete,
+      idmerchantbankaccount: merchantBankAccounts.id,
+      idcontact: contacts.id,
+      idmerchantpixaccount: merchantpixaccount.id,
+      idmerchantprice: merchantPrice.id,
     })
     .from(merchants)
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
@@ -2170,6 +2203,15 @@ export async function getMerchantsWithDashboardData(
     .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
     .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
+    .leftJoin(
+      merchantBankAccounts,
+      eq(merchants.idMerchantBankAccount, merchantBankAccounts.id)
+    )
+    .leftJoin(contacts, eq(merchants.id, contacts.idMerchant))
+    .leftJoin(
+      merchantpixaccount,
+      eq(merchants.id, merchantpixaccount.idMerchant)
+    )
     .where(and(...conditions))
     .orderBy(desc(merchants.dtinsert))
     .offset(offset)
@@ -2311,6 +2353,7 @@ export async function getMerchantsWithDashboardData(
     cnpj: merchant.document ?? "N/A",
     lockCpAnticipationOrder: merchant.lockCpAnticipationOrder ?? false,
     lockCnpAnticipationOrder: merchant.lockCnpAnticipationOrder ?? false,
+    idConfiguration: merchant.idConfiguration ?? 0,
     slug_category: merchant.slug_category ?? "N/A",
     time_zone: merchant.time_zone ?? "N/A",
     sales_agent: merchant.salesAgents ?? "N/A",
@@ -2326,6 +2369,10 @@ export async function getMerchantsWithDashboardData(
     Inclusion: merchant.Inclusion || "",
     dtupdate: merchant.dtupdate || "",
     dtdelete: merchant.dtdelete || "",
+    idmerchantbankaccount: merchant.idmerchantbankaccount || 0,
+    idcontact: merchant.idcontact || 0,
+    idmerchantpixaccount: merchant.idmerchantpixaccount || 0,
+    idmerchantprice: merchant.idmerchantprice || 0,
   }));
 
   // Criar objeto de retorno
@@ -3406,7 +3453,7 @@ export type InsertMerchantAPI = {
   timezone: string; // Fuso horário padrão (máx 5 caracteres)
 
   // Contatos
-  contacts: {
+  contacts: Array<{
     name: string; // Nome do contato (máx 80 caracteres)
     documentId: string; // CPF do contato (máx 50 caracteres)
     email: string; // Email do contato (máx 50 caracteres)
@@ -3427,7 +3474,7 @@ export type InsertMerchantAPI = {
       country: string; // País (máx 50 caracteres)
       zipCode: string; // CEP (máx 20 caracteres)
     };
-  };
+  }>;
 
   // Endereço
   address: {
@@ -3517,7 +3564,7 @@ export type InsertMerchantAPI = {
   openingHour: string; // Horário de abertura (máx 5 caracteres, formato 'HH:MM')
   closingHour: string; // Horário de fechamento (máx 5 caracteres, formato 'HH:MM')
   municipalRegistration?: string | null; // Inscrição municipal
-  stateSubscription?: string | null; // Inscrição estadual
+  stateSubcription?: string | null; // Inscrição estadual
   hasTef: boolean; // Indica se o merchant tem TEF habilitado
   hasPix: boolean; // Indica se o merchant tem PIX habilitado
   hasTop: boolean; // Indica se o merchant tem Tap On Phone habilitado
@@ -3581,6 +3628,27 @@ export async function buscarMerchantPorId(id: number) {
         contacts: { ...getTableColumns(contacts) },
         pixaccounts: { ...getTableColumns(merchantpixaccount) },
         bankaccounts: { ...getTableColumns(merchantBankAccounts) },
+        merchantPrice: sql`(
+          SELECT ${Object.values(getTableColumns(merchantPrice)).map(
+            (col) => sql`${col}`
+          )}
+          FROM ${merchantPrice}
+          WHERE ${eq(merchantPrice.id, merchants.idMerchantPrice)}
+        )`.as("merchantPrice"),
+        merchantPriceGroup: sql`(
+          SELECT ${Object.values(getTableColumns(merchantPriceGroup)).map(
+            (col) => sql`${col}`
+          )}
+          FROM ${merchantPriceGroup}
+          WHERE ${eq(merchantPriceGroup.idMerchantPrice, merchantPrice.id)}
+        )`.as("merchantPriceGroup"),
+        merchantTransactionPrice: sql`(
+          SELECT ${Object.values(getTableColumns(merchantTransactionPrice)).map(
+            (col) => sql`${col}`
+          )}
+          FROM ${merchantTransactionPrice}
+          WHERE ${eq(merchantTransactionPrice.idMerchantPriceGroup, merchantPriceGroup.id)}
+        )`.as("merchantTransactionPrice"),
       })
       .from(merchants)
       .where(eq(merchants.id, Number(id)))
@@ -3598,7 +3666,10 @@ export async function buscarMerchantPorId(id: number) {
         eq(merchants.id, merchantpixaccount.idMerchant)
       )
       .leftJoin(merchantBankAccounts, eq(merchants.id, merchantBankAccounts.id))
+      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
       .limit(1);
+
+    console.log("result", result);
 
     return result.length > 0 ? result[0] : null;
   } catch (error) {
@@ -3624,5 +3695,573 @@ export async function buscarDadosBasicosMerchant(id: number) {
   } catch (error) {
     console.error(`Erro ao buscar dados básicos do merchant ID ${id}:`, error);
     return null;
+  }
+}
+
+export async function buscarMerchantCompletoRealParaAPI(
+  id: number
+): Promise<InsertMerchantAPI | null> {
+  try {
+    console.log(`Buscando dados REAIS completos do merchant ID ${id} para API`);
+
+    // 1. Buscar todos os dados do merchant em uma única consulta
+    const result = await db
+      .select({
+        // Dados do merchant
+        merchant: {
+          id: merchants.id,
+          slug: merchants.slug,
+          name: merchants.name,
+          active: merchants.active,
+          idDocument: merchants.idDocument,
+          corporateName: merchants.corporateName,
+          email: merchants.email,
+          areaCode: merchants.areaCode,
+          number: merchants.number,
+          phoneType: merchants.phoneType,
+          timezone: merchants.timezone,
+          legalPerson: merchants.legalPerson,
+          openingDate: merchants.openingDate,
+          openingDays: merchants.openingDays,
+          openingHour: merchants.openingHour,
+          closingHour: merchants.closingHour,
+          municipalRegistration: merchants.municipalRegistration,
+          stateSubcription: merchants.stateSubcription,
+          hasTef: merchants.hasTef,
+          hasPix: merchants.hasPix,
+          hasTop: merchants.hasTop,
+          establishmentFormat: merchants.establishmentFormat,
+          revenue: merchants.revenue,
+          idCategory: merchants.idCategory,
+          idLegalNature: merchants.idLegalNature,
+          idConfiguration: merchants.idConfiguration,
+          idAddress: merchants.idAddress,
+          idMerchantPrice: merchants.idMerchantPrice,
+          idMerchantBankAccount: merchants.idMerchantBankAccount,
+        },
+        // Dados do endereço
+        address: {
+          streetAddress: addresses.streetAddress,
+          streetNumber: addresses.streetNumber,
+          complement: addresses.complement,
+          neighborhood: addresses.neighborhood,
+          city: addresses.city,
+          state: addresses.state,
+          country: addresses.country,
+          zipCode: addresses.zipCode,
+        },
+        // Dados da categoria
+        category: {
+          mcc: categories.mcc,
+          cnae: categories.cnae,
+        },
+        // Dados da natureza jurídica
+        legalNature: {
+          code: legalNatures.code,
+        },
+        // Dados da configuração
+        configuration: {
+          url: configurations.url,
+        },
+        // Dados da conta bancária
+        bankAccount: {
+          bankNumber: merchantBankAccounts.compeCode,
+          bankBranchNumber: merchantBankAccounts.bankBranchNumber,
+          bankBranchCheckDigit: merchantBankAccounts.bankBranchCheckDigit,
+          bankAccountNumber: merchantBankAccounts.accountNumber,
+          bankAccountDigit: merchantBankAccounts.accountNumberCheckDigit,
+          accountType: merchantBankAccounts.accountType,
+          corporateName: merchantBankAccounts.corporateName,
+          documentId: merchantBankAccounts.documentId,
+        },
+        // Dados básicos do merchantPrice
+        merchantPrice: {
+          name: merchantPrice.name,
+          tableType: merchantPrice.tableType,
+          anticipationType: merchantPrice.anticipationType,
+          compulsoryAnticipationConfig:
+            merchantPrice.compulsoryAnticipationConfig,
+          eventualAnticipationFee: merchantPrice.eventualAnticipationFee,
+          cardPixMdr: merchantPrice.cardPixMdr,
+          cardPixCeilingFee: merchantPrice.cardPixCeilingFee,
+          cardPixMinimumCostFee: merchantPrice.cardPixMinimumCostFee,
+          nonCardPixMdr: merchantPrice.nonCardPixMdr,
+          nonCardPixCeilingFee: merchantPrice.nonCardPixCeilingFee,
+          nonCardPixMinimumCostFee: merchantPrice.nonCardPixMinimumCostFee,
+        },
+      })
+      .from(merchants)
+      .where(eq(merchants.id, Number(id)))
+      .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
+      .leftJoin(categories, eq(merchants.idCategory, categories.id))
+      .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
+      .leftJoin(
+        configurations,
+        eq(merchants.idConfiguration, configurations.id)
+      )
+      .leftJoin(
+        merchantBankAccounts,
+        eq(merchants.idMerchantBankAccount, merchantBankAccounts.id)
+      )
+      .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
+      .limit(1);
+
+    if (result.length === 0) {
+      console.log(`Merchant ID ${id} não encontrado`);
+      return null;
+    }
+
+    const data = result[0];
+
+    // 🔍 DEBUG: Log dos dados retornados para identificar problema
+    console.log("=== DEBUG: Dados retornados do banco ===");
+    console.log(
+      "phoneType:",
+      data.merchant.phoneType,
+      "| tipo:",
+      typeof data.merchant.phoneType
+    );
+    console.log(
+      "timezone:",
+      data.merchant.timezone,
+      "| tipo:",
+      typeof data.merchant.timezone
+    );
+    console.log(
+      "openingHour:",
+      data.merchant.openingHour,
+      "| tipo:",
+      typeof data.merchant.openingHour
+    );
+    console.log(
+      "closingHour:",
+      data.merchant.closingHour,
+      "| tipo:",
+      typeof data.merchant.closingHour
+    );
+    console.log(
+      "openingDays:",
+      data.merchant.openingDays,
+      "| tipo:",
+      typeof data.merchant.openingDays
+    );
+    console.log("=== FIM DEBUG ===");
+
+    // 🔧 TRATAMENTO DOS DADOS ANTES DA VALIDAÇÃO
+    // Limpar espaços em branco do phoneType
+    if (data.merchant.phoneType) {
+      data.merchant.phoneType = data.merchant.phoneType.trim();
+    }
+
+    // Converter horários de HH:MM:SS para HH:MM (formato esperado pela API)
+    if (data.merchant.openingHour && data.merchant.openingHour.includes(":")) {
+      const timeParts = data.merchant.openingHour.split(":");
+      data.merchant.openingHour = `${timeParts[0]}:${timeParts[1]}`;
+    }
+
+    if (data.merchant.closingHour && data.merchant.closingHour.includes(":")) {
+      const timeParts = data.merchant.closingHour.split(":");
+      data.merchant.closingHour = `${timeParts[0]}:${timeParts[1]}`;
+    }
+
+    console.log("=== DEBUG: Dados APÓS tratamento ===");
+    console.log("phoneType (tratado):", data.merchant.phoneType);
+    console.log("openingHour (tratado):", data.merchant.openingHour);
+    console.log("closingHour (tratado):", data.merchant.closingHour);
+    console.log("=== FIM DEBUG TRATAMENTO ===");
+
+    // 2. Validar campos obrigatórios conforme documentação
+    const missingFields: string[] = [];
+
+    // Validações do merchant (conforme documentação)
+    if (!data.merchant.name || data.merchant.name.length > 30)
+      missingFields.push("name (required, max 30 chars)");
+    if (
+      !data.merchant.idDocument ||
+      data.merchant.idDocument.length < 11 ||
+      data.merchant.idDocument.length > 14
+    )
+      missingFields.push("documentId (required, 11-14 chars)");
+    if (
+      !data.merchant.corporateName ||
+      data.merchant.corporateName.length > 200
+    )
+      missingFields.push("corporateName (required, max 200 chars)");
+    if (!data.merchant.email || data.merchant.email.length > 50)
+      missingFields.push("email (required, max 50 chars)");
+    if (!data.merchant.areaCode || data.merchant.areaCode.length > 5)
+      missingFields.push("areaCode (required, max 5 chars)");
+    if (!data.merchant.number || data.merchant.number.length > 15)
+      missingFields.push("number (required, max 15 chars)");
+    if (
+      !data.merchant.phoneType ||
+      !["C", "P"].includes(data.merchant.phoneType)
+    )
+      missingFields.push("phoneType (required, C or P)");
+    if (!data.merchant.timezone || data.merchant.timezone.length > 5)
+      missingFields.push("timezone (required, max 5 chars)");
+
+    // Validações do endereço (conforme documentação)
+    if (!data.address) {
+      missingFields.push("address (required object)");
+    } else {
+      if (!data.address.streetAddress || data.address.streetAddress.length > 30)
+        missingFields.push("address.streetAddress (required, max 30 chars)");
+      if (!data.address.streetNumber || data.address.streetNumber.length > 10)
+        missingFields.push("address.streetNumber (required, max 10 chars)");
+      if (data.address.complement && data.address.complement.length > 100)
+        missingFields.push("address.complement (max 100 chars)");
+      if (!data.address.neighborhood || data.address.neighborhood.length > 30)
+        missingFields.push("address.neighborhood (required, max 30 chars)");
+      if (!data.address.city || data.address.city.length > 50)
+        missingFields.push("address.city (required, max 50 chars)");
+      if (!data.address.state)
+        missingFields.push("address.state (required UF)");
+      if (!data.address.country || data.address.country.length > 50)
+        missingFields.push("address.country (required, max 50 chars)");
+      if (!data.address.zipCode)
+        missingFields.push("address.zipCode (required CEP)");
+    }
+
+    // Validações de outros campos obrigatórios
+    if (!data.category) {
+      missingFields.push("category (required object)");
+    } else {
+      if (!data.category.mcc || data.category.mcc.length > 10)
+        missingFields.push("category.mcc (required, max 10 chars)");
+      if (!data.category.cnae || data.category.cnae.length > 10)
+        missingFields.push("category.cnae (required, max 10 chars)");
+    }
+
+    if (!data.legalNature) {
+      missingFields.push("legalNature (required object)");
+    } else {
+      if (!data.legalNature.code || data.legalNature.code.length > 10)
+        missingFields.push("legalNature.code (required, max 10 chars)");
+    }
+
+    if (!data.bankAccount) {
+      missingFields.push("merchantBankAccount (required object)");
+    } else {
+      if (
+        !data.bankAccount.documentId ||
+        data.bankAccount.documentId.length < 11 ||
+        data.bankAccount.documentId.length > 14
+      )
+        missingFields.push("bankAccount.documentId (required, 11-14 chars)");
+      if (
+        !data.bankAccount.corporateName ||
+        data.bankAccount.corporateName.length > 200
+      )
+        missingFields.push(
+          "bankAccount.corporateName (required, max 200 chars)"
+        );
+      if (
+        !data.bankAccount.bankBranchNumber ||
+        data.bankAccount.bankBranchNumber.length > 4
+      )
+        missingFields.push(
+          "bankAccount.bankBranchNumber (required, max 4 chars)"
+        );
+      if (
+        !data.bankAccount.bankAccountNumber ||
+        data.bankAccount.bankAccountNumber.length > 15
+      )
+        missingFields.push(
+          "bankAccount.accountNumber (required, max 15 chars)"
+        );
+      if (!data.bankAccount.accountType)
+        missingFields.push("bankAccount.accountType (required)");
+      if (
+        !data.bankAccount.bankNumber ||
+        data.bankAccount.bankNumber.length > 3
+      )
+        missingFields.push("bankAccount.compeCode (required, max 3 chars)");
+    }
+
+    if (!data.merchantPrice) {
+      missingFields.push("merchantPrice (required object)");
+    } else {
+      if (!data.merchantPrice.name || data.merchantPrice.name.length > 200)
+        missingFields.push("merchantPrice.name (required, max 200 chars)");
+      if (!data.merchantPrice.tableType)
+        missingFields.push("merchantPrice.tableType (required)");
+      if (!data.merchantPrice.anticipationType)
+        missingFields.push("merchantPrice.anticipationType (required)");
+    }
+
+    // Validações de campos obrigatórios do merchant
+    if (!data.merchant.openingDate)
+      missingFields.push("openingDate (required)");
+    if (!data.merchant.openingDays || data.merchant.openingDays.length !== 7)
+      missingFields.push("openingDays (required, 7 chars)");
+    if (!data.merchant.openingHour || data.merchant.openingHour.length > 5)
+      missingFields.push("openingHour (required, max 5 chars)");
+    if (!data.merchant.closingHour || data.merchant.closingHour.length > 5)
+      missingFields.push("closingHour (required, max 5 chars)");
+    if (data.merchant.hasTef === null || data.merchant.hasTef === undefined)
+      missingFields.push("hasTef (required boolean)");
+    if (data.merchant.hasPix === null || data.merchant.hasPix === undefined)
+      missingFields.push("hasPix (required boolean)");
+    if (data.merchant.hasTop === null || data.merchant.hasTop === undefined)
+      missingFields.push("hasTop (required boolean)");
+    if (!data.merchant.establishmentFormat)
+      missingFields.push("establishmentFormat (required)");
+    if (!data.merchant.revenue) missingFields.push("revenue (required)");
+
+    if (missingFields.length > 0) {
+      throw new Error(
+        `Campos obrigatórios faltando ou inválidos: ${missingFields.join(", ")}`
+      );
+    }
+
+    // 3. Buscar contatos (obrigatório ter pelo menos 1)
+    const contactsResult = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.idMerchant, Number(id)));
+
+    if (contactsResult.length === 0) {
+      throw new Error(
+        `Merchant ID ${id} não possui contatos cadastrados (obrigatório)`
+      );
+    }
+
+    // 🔧 TRATAMENTO DOS DADOS DOS CONTATOS ANTES DA VALIDAÇÃO
+    contactsResult.forEach((contact) => {
+      if (contact.phoneType) {
+        contact.phoneType = contact.phoneType.trim();
+      }
+    });
+
+    // Validar dados obrigatórios dos contatos conforme documentação
+    for (let i = 0; i < contactsResult.length; i++) {
+      const contact = contactsResult[i];
+      if (!contact.name || contact.name.length > 80)
+        missingFields.push(`contacts[${i}].name (required, max 80 chars)`);
+      if (!contact.idDocument || contact.idDocument.length > 50)
+        missingFields.push(
+          `contacts[${i}].documentId (required, max 50 chars)`
+        );
+      if (!contact.email || contact.email.length > 50)
+        missingFields.push(`contacts[${i}].email (required, max 50 chars)`);
+      if (!contact.areaCode || contact.areaCode.length > 5)
+        missingFields.push(`contacts[${i}].areaCode (required, max 5 chars)`);
+      if (!contact.number)
+        missingFields.push(`contacts[${i}].number (required)`);
+      if (!contact.phoneType || !["C", "P"].includes(contact.phoneType))
+        missingFields.push(`contacts[${i}].phoneType (required, C or P)`);
+      if (!contact.birthDate)
+        missingFields.push(`contacts[${i}].birthDate (required)`);
+      if (!contact.mothersName || contact.mothersName.length > 80)
+        missingFields.push(
+          `contacts[${i}].mothersName (required, max 80 chars)`
+        );
+      if (
+        contact.isPartnerContact === null ||
+        contact.isPartnerContact === undefined
+      )
+        missingFields.push(
+          `contacts[${i}].isPartnerContact (required boolean)`
+        );
+      if (contact.isPep === null || contact.isPep === undefined)
+        missingFields.push(`contacts[${i}].isPep (required boolean)`);
+    }
+
+    if (missingFields.length > 0) {
+      throw new Error(
+        `Dados obrigatórios dos contatos faltando: ${missingFields.join(", ")}`
+      );
+    }
+
+    // 4. Buscar dados completos de preços (obrigatório)
+    if (!data.merchantPrice) {
+      throw new Error(`Merchant ID ${id} não possui merchantPrice associado`);
+    }
+
+    const merchantPriceGroups = await getMerchantPriceGroupsBymerchantPricetId(
+      data.merchant.idMerchantPrice!
+    );
+
+    if (merchantPriceGroups.length === 0) {
+      throw new Error(
+        `MerchantPrice ID ${data.merchant.idMerchantPrice} não possui grupos de preços`
+      );
+    }
+
+    // 5. Formatar dados conforme documentação da API
+    const documentId = data.merchant.idDocument?.replace(/[^\d]/g, "") || "";
+    const zipCode = data.address?.zipCode?.replace(/[^\d]/g, "") || "";
+
+    const apiPayload: InsertMerchantAPI = {
+      // Dados básicos conforme documentação
+      name: data.merchant.name || "",
+      documentId: documentId,
+      corporateName: data.merchant.corporateName || "",
+      email: data.merchant.email || "",
+      areaCode: data.merchant.areaCode || "",
+      number: data.merchant.number || "",
+      phoneType: data.merchant.phoneType as "C" | "P",
+      timezone: data.merchant.timezone || "",
+
+      // Endereço conforme documentação
+      address: {
+        streetAddress: data.address?.streetAddress || "",
+        streetNumber: data.address?.streetNumber || "",
+        complement: data.address?.complement || undefined,
+        neighborhood: data.address?.neighborhood || "",
+        city: data.address?.city || "",
+        state: data.address?.state || "",
+        country: data.address?.country || "",
+        zipCode: zipCode,
+      },
+
+      // Contatos conforme documentação
+      contacts: contactsResult.map((contact: any) => ({
+        name: contact.name || "",
+        documentId: contact.idDocument || "",
+        email: contact.email || "",
+        areaCode: contact.areaCode || "",
+        number: contact.number || "",
+        phoneType: (contact.phoneType?.trim() || "") as "C" | "P",
+        birthDate: new Date(contact.birthDate || "")
+          .toISOString()
+          .split("T")[0],
+        mothersName: contact.mothersName || "",
+        isPartnerContact: contact.isPartnerContact || true,
+        isPep: contact.isPep || false,
+        address: {
+          streetAddress: data.address?.streetAddress || "",
+          streetNumber: data.address?.streetNumber || "",
+          complement: data.address?.complement || undefined,
+          neighborhood: data.address?.neighborhood || "",
+          city: data.address?.city || "",
+          state: data.address?.state || "",
+          country: data.address?.country || "",
+          zipCode: zipCode,
+        },
+      })),
+
+      // Campos obrigatórios conforme documentação
+      isMainOffice: true,
+      legalPerson: "JURIDICAL",
+      openingDate: new Date(data.merchant.openingDate || "")
+        .toISOString()
+        .split("T")[0],
+      openingDays: data.merchant.openingDays || "",
+      openingHour: data.merchant.openingHour || "",
+      closingHour: data.merchant.closingHour || "",
+      municipalRegistration: data.merchant.municipalRegistration || "",
+      stateSubcription: data.merchant.stateSubcription || "",
+      hasTef: data.merchant.hasTef || false,
+      hasPix: data.merchant.hasPix || false,
+      hasTop: data.merchant.hasTop || false,
+      establishmentFormat: data.merchant.establishmentFormat as
+        | "EI"
+        | "LTDA"
+        | "SA"
+        | "MEI"
+        | "EIRELI",
+      revenue: Number(data.merchant.revenue),
+
+      // Categoria conforme documentação
+      category: {
+        mcc: data.category?.mcc || "",
+        cnae: data.category?.cnae || "",
+      },
+
+      // Natureza jurídica conforme documentação
+      legalNature: {
+        code: data.legalNature?.code || "",
+      },
+
+      // Conta bancária conforme documentação
+      merchantBankAccount: {
+        documentId: data.bankAccount?.documentId?.replace(/[^\d]/g, "") || "",
+        corporateName: data.bankAccount?.corporateName || "",
+        legalPerson: "JURIDICAL",
+        bankBranchNumber: String(data.bankAccount?.bankBranchNumber || ""),
+        bankBranchCheckDigit:
+          data.bankAccount?.bankBranchCheckDigit || undefined,
+        accountNumber: String(data.bankAccount?.bankAccountNumber || ""),
+        accountNumberCheckDigit:
+          data.bankAccount?.bankAccountDigit || undefined,
+        accountType: data.bankAccount?.accountType as "CHECKING" | "SAVINGS",
+        compeCode: String(data.bankAccount?.bankNumber || ""),
+      },
+
+      // Configuração (opcional)
+      configuration: {
+        url: data.configuration?.url || "https://dock.tech/",
+      },
+
+      // Tabela de preços conforme documentação
+      merchantPrice: {
+        name: data.merchantPrice?.name || "",
+        tableType: "SIMPLE",
+        anticipationType: data.merchantPrice?.anticipationType as
+          | "EVENTUAL"
+          | "COMPULSORY",
+        compulsoryAnticipationConfig:
+          data.merchantPrice.compulsoryAnticipationConfig || undefined,
+        eventualAnticipationFee: data.merchantPrice.eventualAnticipationFee
+          ? Number(data.merchantPrice.eventualAnticipationFee)
+          : undefined,
+        cardPixMdr: data.merchantPrice.cardPixMdr
+          ? Number(data.merchantPrice.cardPixMdr)
+          : undefined,
+        cardPixCeilingFee: data.merchantPrice.cardPixCeilingFee
+          ? Number(data.merchantPrice.cardPixCeilingFee)
+          : undefined,
+        cardPixMinimumCostFee: data.merchantPrice.cardPixMinimumCostFee
+          ? Number(data.merchantPrice.cardPixMinimumCostFee)
+          : undefined,
+        nonCardPixMdr: data.merchantPrice.nonCardPixMdr
+          ? Number(data.merchantPrice.nonCardPixMdr)
+          : undefined,
+        nonCardPixCeilingFee: data.merchantPrice.nonCardPixCeilingFee
+          ? Number(data.merchantPrice.nonCardPixCeilingFee)
+          : undefined,
+        nonCardPixMinimumCostFee: data.merchantPrice.nonCardPixMinimumCostFee
+          ? Number(data.merchantPrice.nonCardPixMinimumCostFee)
+          : undefined,
+
+        // Grupos de preço conforme documentação
+        listMerchantPriceGroup: merchantPriceGroups.map((group: any) => ({
+          brand: group.priceGroup.brand,
+          groupId: group.priceGroup.idGroup,
+          listMerchantTransactionPrice: group.transactionPrices.map(
+            (price: any) => ({
+              installmentTransactionFeeStart:
+                price.installmentTransactionFeeStart,
+              installmentTransactionFeeEnd: price.installmentTransactionFeeEnd,
+              cardTransactionFee: price.fee,
+              cardTransactionMdr: Number(price.mdr),
+              nonCardTransactionFee: price.nonCardTransactionFee,
+              nonCardTransactionMdr: Number(price.nonCardTransactionMdr),
+              productType: price.producttype as "CREDIT" | "DEBIT" | "PREPAID",
+              cardCompulsoryAnticipationMdr:
+                price.cardCompulsoryAnticipationMdr || undefined,
+              nonCardCompulsoryAnticipationMdr:
+                price.nonCardCompulsoryAnticipationMdr || undefined,
+            })
+          ),
+        })),
+      },
+    };
+
+    console.log(
+      `Dados REAIS completos do merchant ID ${id} formatados conforme documentação da API`
+    );
+
+    // 🔍 LOG DA ESTRUTURA COMPLETA ENVIADA PARA API
+    console.log("=== ESTRUTURA COMPLETA PARA API ===");
+    console.log(JSON.stringify(apiPayload, null, 2));
+    console.log("=== FIM ESTRUTURA API ===");
+
+    return apiPayload;
+  } catch (error) {
+    console.error(`Erro ao buscar merchant completo REAL ID ${id}:`, error);
+    throw error;
   }
 }

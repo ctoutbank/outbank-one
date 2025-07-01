@@ -25,6 +25,47 @@ import { Merchantlist } from "../server/merchant";
 
 export default function MerchantList({ list }: { list: Merchantlist }) {
   console.log(list);
+
+  console.log(list.merchants[0].idConfiguration);
+  console.log(list.merchants[0].idmerchantbankaccount);
+  console.log(list.merchants[0].idcontact);
+  console.log(list.merchants[0].idmerchantpixaccount);
+
+  // Função para determinar a URL baseada nas condições
+  const getMerchantUrl = (merchant: any) => {
+    // Se não tiver merchantid, manda com /0
+    if (!merchant.merchantid) {
+      return "/portal/merchants/0";
+    }
+
+    const baseUrl = `/portal/merchants/${merchant.merchantid}`;
+
+    // Se existir merchantId mas não tiver idcontact
+    if (!merchant.idcontact) {
+      return `${baseUrl}?tab=contact`;
+    }
+
+    // Se existir merchant.idcontact mas não tiver idConfiguration
+    if (!merchant.idConfiguration) {
+      return `${baseUrl}?tab=operation`;
+    }
+
+    // Se existir merchant.idConfiguration mas não tiver idmerchantbankaccount OU idmerchantpixaccount
+    if (!merchant.idmerchantbankaccount || !merchant.idmerchantpixaccount) {
+      return `${baseUrl}?tab=bank`;
+    }
+
+    if (
+      (merchant.idmerchantbankaccount || merchant.idmerchantpixaccount) &&
+      !merchant.idmerchantprice
+    ) {
+      return `${baseUrl}?tab=rate`;
+    }
+
+    // Se existir merchant.idmerchantbankaccount E idmerchantpixaccount
+    return `${baseUrl}?tab=authorizers`;
+  };
+
   const columns = [
     {
       id: "nomeFantasia",
@@ -148,7 +189,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                       <Link
                         className="text-primary underline"
                         href="/portal/merchants/[id]"
-                        as={`/portal/merchants/${merchant.merchantid}`}
+                        as={getMerchantUrl(merchant)}
                       >
                         {merchant.name.toUpperCase()}
                       </Link>

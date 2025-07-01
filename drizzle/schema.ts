@@ -687,13 +687,13 @@ export const categories = pgTable("categories", {
 	waitingPeriodCp: integer("waiting_period_cp"),
 	waitingPeriodCnp: integer("waiting_period_cnp"),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	idFee: bigint("id_fee", { mode: "number" }),
+	idSolicitationFee: bigint("id_solicitation_fee", { mode: "number" }),
 }, (table) => {
 	return {
-		cnaeFeeId: foreignKey({
-			columns: [table.idFee],
-			foreignColumns: [fee.id],
-			name: "cnae_fee_id"
+		cnaeSolicitationFeeId: foreignKey({
+			columns: [table.idSolicitationFee],
+			foreignColumns: [solicitationFee.id],
+			name: "cnae_solicitation_fee_id"
 		}),
 	}
 });

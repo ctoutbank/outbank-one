@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { states } from "@/lib/lookuptables/lookuptables";
+import { formatCep } from "@/lib/regex";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -63,7 +64,6 @@ import {
   UserDetailForm,
   UserInsert,
 } from "../server/users";
-import {formatCep} from "@/lib/regex";
 
 interface UserFormProps {
   user?: UserDetailForm;
@@ -174,8 +174,6 @@ export default function UserForm({
     console.log("Enviado", data);
     const loadingToastId = toast.loading("Salvando usuário...");
     try {
-
-
       // Validar formulário de endereço
       if (!addressForm.formState.isValid) {
         const valid = await addressForm.trigger();
@@ -366,11 +364,10 @@ export default function UserForm({
     }
   }, []);
 
-
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(
+      <form
+        onSubmit={form.handleSubmit(
           (data) => {
             console.log("✅ Submit OK", data);
             onSubmit(data);
@@ -379,7 +376,9 @@ export default function UserForm({
             console.error("Erros de validação", errors);
             toast.error("Preencha todos os campos obrigatórios.");
           }
-      )} className="space-y-6">
+        )}
+        className="space-y-6"
+      >
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl flex items-center">
@@ -676,9 +675,13 @@ export default function UserForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                        placeholder="Digite o CEP do novo consultor"
-                        value={formatCep(field.value)}
-                        onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                      placeholder="Digite o CEP do novo consultor"
+                      value={formatCep(field.value)}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value.replace(/\D/g, "").slice(0, 11)
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />

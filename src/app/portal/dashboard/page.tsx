@@ -37,15 +37,17 @@ async function ChartSection({
     getTotalMerchants(),
   ]);
   return (
-    <BarChartCustom
-      chartData={totalTransactionsByMonth}
-      transactionsData={totalTransactionsByDay}
-      viewMode="custom"
-      totalTransactions={totalTransactions[0]}
-      totalMerchants={totalMerchants[0]?.total || 0}
-      dateRange={{ start: dateRange.start, end: dateRange.end }}
-      canceledTransactions={canceledTransactions[0]?.count || 0}
-    />
+    <div className="w-[99.5%]">
+      <BarChartCustom
+        chartData={totalTransactionsByMonth}
+        transactionsData={totalTransactionsByDay}
+        viewMode="custom"
+        totalTransactions={totalTransactions[0]}
+        totalMerchants={totalMerchants[0]?.total || 0}
+        dateRange={{ start: dateRange.start, end: dateRange.end }}
+        canceledTransactions={canceledTransactions[0]?.count || 0}
+      />
+    </div>
   );
 }
 
@@ -83,7 +85,9 @@ export default async function SalesDashboard({
         </Suspense>
         <div className="mt-8">
           <Suspense fallback={<CardsSkeleton />}>
-            <CardsSection dateRange={dateRange} />
+            <div className="w-[99.5%]">
+              <CardsSection dateRange={dateRange} />
+            </div>
           </Suspense>
         </div>
       </BaseBody>

@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { states, UF } from "@/lib/lookuptables/lookuptables";
+import { formatCep } from "@/lib/regex";
 import { handleNumericInput } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Plus, Trash2, User } from "lucide-react";
@@ -30,7 +31,6 @@ import {
 import { ContactSchema, schemaContact } from "../schema/contact-schema";
 import { AddressSchema, schemaAddress } from "../schema/merchant-schema";
 import { getContactByMerchantId } from "../server/contact";
-import {formatCep} from "@/lib/regex";
 
 // Função para permitir apenas números
 
@@ -78,7 +78,9 @@ function ContactFormItem({
       areaCode: initialData?.areaCode || "",
       number: initialData?.number || "",
       phoneType: initialData?.phoneType || "",
-      birthDate: initialData?.birthDate || "",
+      birthDate: initialData?.birthDate
+        ? new Date(initialData.birthDate)
+        : undefined,
       mothersName: initialData?.mothersName || "",
       isPartnerContact: initialData?.isPartnerContact || false,
       isPep: initialData?.isPep || false,
@@ -210,7 +212,9 @@ function ContactFormItem({
               <Input
                 id={`birthDate-${id}`}
                 type="date"
-                {...registerContact("birthDate")}
+                {...registerContact("birthDate", {
+                  setValueAs: (value) => (value ? new Date(value) : undefined),
+                })}
               />
               {errorsContact.birthDate && (
                 <p className="text-sm text-red-500 mt-1">
