@@ -1,5 +1,3 @@
-
-
 import { toast } from "@/components/use-toast";
 import { CategoriesSchema } from "../schema/schema";
 import {
@@ -22,16 +20,19 @@ export async function insertCategoryFormAction(data: CategoriesSchema) {
     anticipationRiskFactorCnp: Number(data.anticipation_risk_factor_cnp) ?? 0,
     waitingPeriodCp: Number(data.waiting_period_cp) ?? 0,
     waitingPeriodCnp: Number(data.waiting_period_cnp) ?? 0,
+    idSolicitationFee: data.idSolicitationFee
+      ? Number(data.idSolicitationFee)
+      : undefined,
   };
 
   const newId = await insertCategory(categoryInsert);
   toast({
     title: "sucesso",
-    description: "Categoria cadastrada com sucesso",  
-    
+    description: "Categoria cadastrada com sucesso",
+
     variant: "destructive",
   });
-  
+
   return newId;
 }
 
@@ -52,7 +53,9 @@ export async function updateCategoryFormAction(data: CategoriesSchema) {
     mcc: data.mcc || "",
     cnae: data.cnae || "",
     slug: data.slug || "",
-    idFee: Number(data.idFee) || 0,
+    idSolicitationFee: data.idSolicitationFee
+      ? Number(data.idSolicitationFee)
+      : null,
   };
   await updateCategory(categoryUpdate);
   toast({
@@ -60,5 +63,4 @@ export async function updateCategoryFormAction(data: CategoriesSchema) {
     description: "Category updated successfully",
     variant: "destructive",
   });
- 
 }

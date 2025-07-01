@@ -1,5 +1,6 @@
-import React from "react";
+"use client"
 
+import React from "react"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,24 +8,28 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "../ui/sidebar";
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { PanelLeft } from "lucide-react"
+import { useSidebar } from "@/hooks/use-sidebar-context"
 
-export type BreadcrumbItem = {
-  title: string;
-  url?: string;
-};
+interface BaseHeaderProps {
+  breadcrumbItems: { title: string; url?: string }[]
+}
 
-const BaseHeader = ({
-  breadcrumbItems,
-}: {
-  breadcrumbItems: BreadcrumbItem[];
-}) => {
+const BaseHeader = ({ breadcrumbItems }: BaseHeaderProps) => {
+  const { toggle } = useSidebar()
+
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6 justify-between pt-4">
-      <SidebarTrigger />
+      <Button variant="ghost" size="icon" onClick={toggle} className="h-7 w-7">
+        <PanelLeft className="h-4 w-4" />
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+
       <Separator orientation="vertical" className="h-6" />
+
       <div className="flex flex-1 items-center justify-between">
         <Breadcrumb>
           <BreadcrumbList>
@@ -32,9 +37,7 @@ const BaseHeader = ({
               <React.Fragment key={index}>
                 <BreadcrumbItem>
                   {item.url ? (
-                    <BreadcrumbLink href={item.url}>
-                      {item.title}
-                    </BreadcrumbLink>
+                    <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{item.title}</BreadcrumbPage>
                   )}
@@ -45,9 +48,10 @@ const BaseHeader = ({
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      {/* <ThemeSwitcher /> */}
-    </header>
-  );
-};
 
-export default BaseHeader;
+      {/* Espaço para futuros componentes como ThemeSwitcher */}
+    </header>
+  )
+}
+
+export default BaseHeader

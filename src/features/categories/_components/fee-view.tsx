@@ -1,4 +1,7 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 import {
   Table,
   TableBody,
@@ -7,18 +10,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FeeDetail } from "@/features/categories/server/category";
+import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
+import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { User } from "lucide-react";
-import type { FeeDetail } from "../server/category";
+import { useForm } from "react-hook-form";
 
 interface FeeViewProps {
   feeDetail: FeeDetail;
 }
 
-// Função para obter a imagem da bandeira (igual ao PricingSolicitationView)
+interface ProductType {
+  name?: string;
+  cardTransactionFee?: string | number | null;
+  nonCardTransactionFee?: string | number | null;
+  fee?: string | number;
+  feeAdmin?: string | number;
+  feeDock?: string | number;
+  transactionFeeStart?: string | number;
+  transactionFeeEnd?: string | number;
+  noCardFee?: string | number;
+  noCardFeeAdmin?: string | number;
+  noCardFeeDock?: string | number;
+  noCardTransactionAnticipationMdr?: string | number;
+  transactionAnticipationMdr?: string | number;
+}
+
+interface Brand {
+  name: string;
+  productTypes?: ProductType[];
+}
+
 const getCardImage = (cardName: string): string => {
   const cardMap: { [key: string]: string } = {
     MASTERCARD: "/mastercard.svg",
-    MASTER: "/mastercard.svg",
     VISA: "/visa.svg",
     ELO: "/elo.svg",
     AMERICAN_EXPRESS: "/american-express.svg",
@@ -26,189 +51,338 @@ const getCardImage = (cardName: string): string => {
     AMEX: "/american-express.svg",
     CABAL: "/cabal.svg",
   };
-  return cardMap[cardName?.toUpperCase()] || "";
+  return cardMap[cardName] || "";
 };
 
-export function FeeView({ feeDetail }: FeeViewProps) {
-  if (!feeDetail) {
-    return <div>Nenhuma tabela de taxas encontrada.</div>;
-  }
+// Função para normalizar uma string
+function normalizeString(str: string | undefined | null): string {
+  return (str ?? "").toUpperCase().trim().replace(/\s+/g, "");
+}
 
+export function FeeView({ feeDetail }: FeeViewProps) {
+  console.log("detalhe aqui fee ",feeDetail);
+  const form = useForm();
+
+  // Map brands for display
+  const brandsMap = new Map<string, Brand>();
+  feeDetail.brands?.forEach((brand: any) => {
+    const normalizedBrandName = normalizeString(brand.brand);
+    brandsMap.set(normalizedBrandName, {
+      ...brand,
+      name: normalizedBrandName,
+      productTypes: brand.productTypes?.map((pt: any) => ({
+        ...pt,
+        name: normalizeString(pt.name),
+        cardTransactionFee: pt.cardTransactionFee ?? "-",
+        nonCardTransactionFee: pt.nonCardTransactionFee ?? "-",
+      })),
+    });
+  });
+
+  const feesData = brandList.map((brand) => {
+    const normalizedBrandName = normalizeString(brand.value);
+    const foundBrand = brandsMap.get(normalizedBrandName);
+    // POS types
+    const posTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt: any) => normalizeString(pt.name) === normalizedTypeName
+      );
+      return {
+        value: type.value,
+        label: type.label,
+        cardTransactionFee: foundType?.cardTransactionFee ?? "-",
+      };
+    });
+    // Online types
+    const onlineTypes = SolicitationFeeProductTypeList.map((type) => {
+      const normalizedTypeName = normalizeString(type.value);
+      const foundType = foundBrand?.productTypes?.find(
+        (pt: any) => normalizeString(pt.name) === normalizedTypeName
+      );
+      return {
+        value: type.value,
+        label: type.label,
+        nonCardTransactionFee: foundType?.nonCardTransactionFee ?? "-",
+      };
+    });
+    return {
+      brand: {
+        value: brand.value,
+        label: brand.label,
+      },
+      posTypes,
+      onlineTypes,
+    };
+  });
+
+  // FeeDetail fields
+  const {
+
+    eventualAnticipationFee,
+
+    nonCardEventualAnticipationFee,
+    cardPixMdr,
+    cardPixCeilingFee,
+    cardPixMinimumCostFee,
+    nonCardPixMdr,
+    nonCardPixCeilingFee,
+    nonCardPixMinimumCostFee,
+  } = feeDetail;
+  console.log(feeDetail);
   return (
     <div className="w-full min-h-screen box-border relative overflow-x-hidden">
-      <div className="space-y-8 w-full max-w-full box-border overflow-x-hidden">
-        {/* Card: Informações da Tabela */}
-        <Card className="shadow-sm w-full max-w-full overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Tabela de Taxas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nome:</label>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {feeDetail.name || "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tipo:</label>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {feeDetail.tableType || "-"}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Antecipação Obrigatória:
-                  </label>
-                  <div className="p-2 border rounded-md bg-gray-50">
-                    {feeDetail.compulsoryAnticipationConfig ?? "-"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card: Taxas Transações POS */}
-        <Card className="shadow-sm w-full max-w-full overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary" />
-              Taxas Transações POS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 max-w-full overflow-x-hidden">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-amber-100" />
-              <span className="text-sm text-gray-600">
-                Oferecido pelo Outbank
-              </span>
-            </div>
- 
-
-            <div className="overflow-y-hidden overflow-x-auto">
-              <Table className="text-xs min-w-[800px] w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead
-                      className="sticky left-0 z-20 bg-white w-20"
-                      style={{ width: "20%", minWidth: "100px" }}
-                    >
-                      Bandeiras
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Tipo de Produto
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Taxa Transação Cartão
-                    </TableHead>
-                    <TableHead className="text-center">MDR Cartão</TableHead>
-                    <TableHead className="text-center">
-                      Taxa Transação Não Cartão
-                    </TableHead>
-                    <TableHead className="text-center">
-                      MDR Não Cartão
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Parcela Inicial
-                    </TableHead>
-                    <TableHead className="text-center">Parcela Final</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {feeDetail.brands.map((brand) =>
-                    brand.productTypes.map((pt, idx) => (
-                      <TableRow key={`${brand.id}-${pt.id}`}>
-                        {idx === 0 && (
+      <Form {...form}>
+        <div className="space-y-8 w-full max-w-full box-border overflow-x-hidden">
+          {/* Card: Taxas Transações POS */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Taxas Transações POS
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
+              <div className="overflow-y-hidden overflow-x-auto">
+                <Table className="text-xs min-w-[1000px] w-full ">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        key="brand"
+                        className="sticky left-0 z-20 bg-white w-20"
+                        style={{ width: "20%", minWidth: "100 px" }}
+                      >
+                        Bandeiras
+                      </TableHead>
+                      {SolicitationFeeProductTypeList.map((type, index) => (
+                        <TableHead
+                          key={`${type.value}-cardTransactionFee-${index}`}
+                          className="text-center"
+                          style={{ width: "9%", minWidth: "50px" }}
+                        >
+                          {type.label}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {feesData.map((item) => (
+                      <TableRow key={item.brand.value}>
+                        <TableCell
+                          className="font-medium sticky left-0 z-20 bg-white"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                            {getCardImage(item.brand.value) && (
+                              <img
+                                src={getCardImage(item.brand.value)}
+                                alt={item.brand.label}
+                                width={40}
+                                height={24}
+                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                              />
+                            )}
+                            <span className="truncate">{item.brand.label}</span>
+                          </div>
+                        </TableCell>
+                        {item.posTypes.map((productType, typeIndex) => (
                           <TableCell
-                            rowSpan={brand.productTypes.length}
-                            className="font-medium sticky left-0 z-20 bg-white"
-                            style={{
-                              minWidth: "120px",
-                              verticalAlign: "middle",
-                            }}
+                            key={`${item.brand.value}-${productType.value}-cardTransactionFee-${typeIndex}`}
+                            className="p-1 text-center"
                           >
-                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                              {getCardImage(brand.brand || "") && (
-                                <img
-                                  src={
-                                    getCardImage(brand.brand || "") ||
-                                    "/placeholder.svg"
-                                  }
-                                  alt={brand.brand || ""}
-                                  width={40}
-                                  height={24}
-                                  className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
-                                />
-                              )}
-                              <span className="truncate">
-                                {brand.brand || "-"}
-                              </span>
+                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                              {productType.cardTransactionFee !== undefined &&
+                              productType.cardTransactionFee !== null &&
+                              productType.cardTransactionFee !== "-"
+                                ? `${productType.cardTransactionFee}%`
+                                : "-"}
                             </div>
                           </TableCell>
-                        )}
-                        <TableCell className="text-center">
-                          {pt.name || "-"}
-                        </TableCell>
-                        <TableCell className="p-1 text-center">
-                          <div className="flex items-center justify-center">
-                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                              {pt.cardTransactionFee
-                                ? `${pt.cardTransactionFee}%`
-                                : "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-1 text-center">
-                          <div className="flex items-center justify-center">
-                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                              {pt.cardTransactionMdr
-                                ? `${pt.cardTransactionMdr}%`
-                                : "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-1 text-center">
-                          <div className="flex items-center justify-center">
-                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                              {pt.nonCardTransactionFee
-                                ? `${pt.nonCardTransactionFee}%`
-                                : "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-1 text-center">
-                          <div className="flex items-center justify-center">
-                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-amber-100 text-xs sm:text-sm">
-                              {pt.nonCardTransactionMdr
-                                ? `${pt.nonCardTransactionMdr}%`
-                                : "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {pt.installmentTransactionFeeStart ?? "-"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {pt.installmentTransactionFeeEnd ?? "-"}
-                        </TableCell>
+                        ))}
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: Taxas Transações Online */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                Taxas Transações Online
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
+              <div className="overflow-y-hidden overflow-x-auto">
+                <Table className="text-xs min-w-[1000px] w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        className="sticky left-0 z-20 bg-white w-20"
+                        style={{ width: "20%", minWidth: "100px" }}
+                      >
+                        Bandeiras
+                      </TableHead>
+                      {SolicitationFeeProductTypeList.map((type, index) => (
+                        <TableHead
+                          key={`${type.value}-nonCardTransactionFee-${index}`}
+                          className="text-center"
+                          style={{ width: "9%" }}
+                        >
+                          {type.label}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {feesData.map((item) => (
+                      <TableRow key={item.brand.value}>
+                        <TableCell
+                          className="font-medium sticky left-0 z-20 bg-white"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                            {getCardImage(item.brand.value) && (
+                              <img
+                                src={getCardImage(item.brand.value)}
+                                alt={item.brand.label}
+                                width={40}
+                                height={24}
+                                className="object-contain w-8 h-5 sm:w-10 sm:h-6 flex-shrink-0"
+                              />
+                            )}
+                            <span className="truncate">{item.brand.label}</span>
+                          </div>
+                        </TableCell>
+                        {item.onlineTypes.map((productType, typeIndex) => (
+                          <TableCell
+                            key={`${item.brand.value}-${productType.value}-nonCardTransactionFee-${typeIndex}`}
+                            className="p-1 text-center"
+                          >
+                            <div className="rounded-full py-1 px-2 inline-block min-w-[50px] max-w-[70px] text-center bg-blue-100 text-xs sm:text-sm">
+                              {productType.nonCardTransactionFee !==
+                                undefined &&
+                              productType.nonCardTransactionFee !== null &&
+                              productType.nonCardTransactionFee !== "-"
+                                ? `${productType.nonCardTransactionFee}%`
+                                : "-"}
+                            </div>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: PIX */}
+          <Card className="shadow-sm w-full max-w-full overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center">
+                <User className="h-5 w-5 mr-2 text-primary" />
+                PIX
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">MDR Cartão</h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixMdr ? `${cardPixMdr}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Mínimo Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixMinimumCostFee
+                        ? `R$ ${cardPixMinimumCostFee}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Máximo Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Antecipação Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {eventualAnticipationFee
+                        ? `${eventualAnticipationFee}%`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full mt-4">
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">MDR Sem Cartão</h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {nonCardPixMdr ? `${nonCardPixMdr}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Mínimo Sem Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {nonCardPixMinimumCostFee
+                        ? `R$ ${nonCardPixMinimumCostFee}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Máximo Sem Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {nonCardPixCeilingFee
+                        ? `R$ ${nonCardPixCeilingFee}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Antecipação Sem Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {nonCardEventualAnticipationFee
+                        ? `${nonCardEventualAnticipationFee}%`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </Form>
     </div>
   );
 }
