@@ -3541,7 +3541,7 @@ export type InsertMerchantAPI = {
   openingHour: string; // Horário de abertura (máx 5 caracteres, formato 'HH:MM')
   closingHour: string; // Horário de fechamento (máx 5 caracteres, formato 'HH:MM')
   municipalRegistration?: string | null; // Inscrição municipal
-  stateSubcription?: string | null; // Inscrição estadual
+  stateSubscription?: string | null; // Inscrição estadual
   hasTef: boolean; // Indica se o merchant tem TEF habilitado
   hasPix: boolean; // Indica se o merchant tem PIX habilitado
   hasTop: boolean; // Indica se o merchant tem Tap On Phone habilitado
@@ -3841,6 +3841,10 @@ export async function buscarMerchantCompletoRealParaAPI(
       data.merchant.closingHour = `${timeParts[0]}:${timeParts[1]}`;
     }
 
+    if (data.merchantPrice?.anticipationType === "NOANTECIPATION") {
+      data.merchantPrice.anticipationType = "NONE";
+    }
+
     console.log("=== DEBUG: Dados APÓS tratamento ===");
     console.log("phoneType (tratado):", data.merchant.phoneType);
     console.log("openingHour (tratado):", data.merchant.openingHour);
@@ -4129,7 +4133,7 @@ export async function buscarMerchantCompletoRealParaAPI(
       openingHour: data.merchant.openingHour || "",
       closingHour: data.merchant.closingHour || "",
       municipalRegistration: data.merchant.municipalRegistration || "",
-      stateSubcription: data.merchant.stateSubcription || "",
+      stateSubscription: data.merchant.stateSubcription || "",
       hasTef: data.merchant.hasTef || false,
       hasPix: data.merchant.hasPix || false,
       hasTop: data.merchant.hasTop || false,

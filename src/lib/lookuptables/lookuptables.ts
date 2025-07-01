@@ -277,7 +277,7 @@ export const solicitationDocumentTypes: SolicitationDocumentType[] = [
   },
 ];
 
-export const cnaeMap:Record<string, { mcc: string; mdr: string }> =  {
+export const cnaeMap: Record<string, { mcc: string; mdr: string }> = {
   "61906/01": { mcc: "4816", mdr: "MDR I" },
   "63119/00": { mcc: "4816", mdr: "MDR I" },
   "63194/00": { mcc: "4816", mdr: "MDR I" },
@@ -1615,12 +1615,17 @@ export const cnaeMap:Record<string, { mcc: string; mdr: string }> =  {
 };
 
 export const mccToCnaeMap: Record<string, string> = Object.keys(cnaeMap).reduce(
-    (acc, cnae) => {
-      const mcc = cnaeMap[cnae].mcc;
-      acc[mcc] = cnae;
-      return acc;
-    },
-    {} as Record<string, string>
+  (acc, cnae) => {
+    const mcc = cnaeMap[cnae].mcc;
+    acc[mcc] = cnae;
+    return acc;
+  },
+  {} as Record<string, string>
 );
 
-
+export const accountTypes: SelectItem[] = [
+  { value: "CHECKING", label: "Conta Corrente" },
+  { value: "DEPOSIT", label: "Conta de Depósito" },
+  { value: "PAYMENT", label: "Conta de Pagamento" },
+  { value: "SAVINGS", label: "Conta Poupança" },
+];
