@@ -259,7 +259,7 @@ export default function MerchantFormOperations({
         hasTef: data.hasTaf || false,
         hasTop: data.hastop || false,
         hasPix: data.hasPix || false,
-        timezone: data.timezone || "",
+        timezone: "-0300",
         idSalesAgent: data.idSalesAgent || null,
       };
 
