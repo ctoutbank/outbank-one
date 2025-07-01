@@ -134,6 +134,11 @@ export async function getAuthorizedMenu() {
               icon: "FileText",
             },
             {
+              title: "Fechamento",
+              url: "/portal/closing",
+              icon: "FolderOpen",
+            },
+            {
               title: "Arquivos EDI",
               url: "/portal/edis",
               icon: "FolderOpen",
@@ -142,16 +147,6 @@ export async function getAuthorizedMenu() {
               title: "Lançamentos Financeiros",
               url: "/portal/financialAdjustment",
               icon: "CalendarDays",
-            },
-          ],
-        },
-        {
-          title: "RELATÓRIOS",
-          items: [
-            {
-              title: "Fechamento",
-              url: "/portal/closing",
-              icon: "CalendarFold",
             },
           ],
         },

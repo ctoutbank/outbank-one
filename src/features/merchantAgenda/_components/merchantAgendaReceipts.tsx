@@ -112,7 +112,7 @@ export default function MerchantAgendaReceipts({
       </div>
 
       {view === "day" && (
-        <div className="mb-4">
+        <div className="mb-4 w-full flex justify-center">
           <MerchantAgendaReceiptsTotal
             merchantAgendaReceiptsTotalProps={{
               total: dailyData.globalSettlement - dailyData.globalAdjustments,

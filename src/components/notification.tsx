@@ -3,7 +3,6 @@
 import { useUser } from "@clerk/nextjs";
 import { Bell, Check, X } from "lucide-react";
 import * as React from "react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 interface Notification {
   id: number;
@@ -38,7 +38,12 @@ export function NotificationIcon() {
         const res = await fetch("/api/notifications");
         if (res.ok) {
           const data = await res.json();
-          setNotifications(data.notifications || []);
+          setNotifications(
+              (data.notifications || []).map((n: any) => ({
+                ...n,
+                read: n.isRead,
+              }))
+          );
         }
       } finally {
         setLoading(false);
@@ -49,25 +54,25 @@ export function NotificationIcon() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (id: number) => {
+  const markAsRead = async (id: number) => {
     setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
+        prev.map((notification) =>
+            notification.id === id ? { ...notification, read: true } : notification
+        )
     );
-    // TODO: Chamar API para marcar como lida
+    await fetch(`/api/notifications/${id}`, { method: "PATCH" });
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) =>
       prev.map((notification) => ({ ...notification, read: true }))
     );
-    // TODO: Chamar API para marcar todas como lidas
+    await fetch("/api/notifications/mark-all", {method : "POST"});
   };
 
-  const removeNotification = (id: number) => {
+  const removeNotification = async (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    // TODO: Chamar API para remover notificação se necessário
+    await fetch(`/api/notifications/${id}`, { method: "DELETE" });
   };
 
   const getTypeColor = (type: Notification["type"]) => {
@@ -87,7 +92,7 @@ export function NotificationIcon() {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
+          <Bell size={6} />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -154,9 +159,13 @@ export function NotificationIcon() {
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {notification.message}
-                      </p>
+                      {notification.link ? (
+                          <Link href={notification.link}>
+                            <p className="text-xs text-muted-foreground">{notification.message}</p>
+                          </Link>
+                      ) : (
+                          <p className="text-xs text-muted-foreground">{notification.message}</p>
+                      )}
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
                           {notification.time}

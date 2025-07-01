@@ -2,7 +2,7 @@
 
 import { UserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { and, count, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
+import {and, count, countDistinct, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql} from "drizzle-orm";
 import {
   addresses,
   categories,
@@ -416,6 +416,7 @@ export async function getMerchantTransactionData(
     active?: string,
     salesAgent?: string
 ): Promise<MerchantTransactionChart[]> {
+
   const filterConditions = await createFilterConditions(
       userAccess,
       search,
@@ -429,24 +430,23 @@ export async function getMerchantTransactionData(
       salesAgent
   );
 
-  // Condições adicionais de data se o usuário não tiver filtrado por data
-  let dateConditions: any[] = [];
-  if (!dateFrom) {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const transacionamResult = await countMerchantsWithTransactions(
+      filterConditions,
+      true,
+      dateFrom
+  );
 
-    dateConditions = [
-      gte(merchants.dtinsert, startOfMonth.toISOString()),
-      lte(merchants.dtinsert, endOfMonth.toISOString()),
-    ];
-  }
+  const naoTransacionamResult = await countMerchantsWithTransactions(
+      filterConditions,
+      false,
+      dateFrom
+  );
 
-  // Executar consultas em paralelo com as condições de data adicionadas
-  const [transacionamResult, naoTransacionamResult] = await Promise.all([
-    countMerchantsWithTransactions([...filterConditions, ...dateConditions], true),
-    countMerchantsWithTransactions([...filterConditions, ...dateConditions], false),
-  ]);
+  // Log para debug — mostrar o que foi calculado
+  console.log(`[DEBUG] Merchants que transacionam: ${transacionamResult}`);
+  console.log(`[DEBUG] Merchants que NÃO transacionam: ${naoTransacionamResult}`);
+  console.log(`[DEBUG] Data de filtro: ${dateFrom ?? "mês atual"}`);
+  console.log(`[DEBUG] Condições de filtro:`, filterConditions);
 
   return [
     {
@@ -460,35 +460,45 @@ export async function getMerchantTransactionData(
   ];
 }
 
-
 // Função auxiliar para contagem de merchants com/sem transações
-async function countMerchantsWithTransactions(
-  baseConditions: any[],
-  hasTransactions: boolean
+export async function countMerchantsWithTransactions(
+    baseConditions: any[],
+    hasTransactions: boolean,
+    dateFrom?: string
 ): Promise<number> {
-  // Copiar as condições base
   const conditions = [...baseConditions];
 
-  // Aplicar a condição que determina se o merchant tem transações (usando hasPix como exemplo)
-  conditions.push(eq(merchants.hasPix, hasTransactions));
+  const now = new Date();
+  const start = dateFrom ? new Date(dateFrom) : new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const dateCondition = and(
+      gte(transactions.dtInsert, start.toISOString()),
+      lte(transactions.dtInsert, end.toISOString())
+  );
 
   const query = db
-    .select({
-      count: count(),
-    })
-    .from(merchants)
-    .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
-    .leftJoin(salesAgents, eq(merchants.idSalesAgent, salesAgents.id))
-    .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
-    .leftJoin(merchantPrice, eq(merchants.idMerchantPrice, merchantPrice.id))
-    .leftJoin(legalNatures, eq(merchants.idLegalNature, legalNatures.id))
-    .leftJoin(categories, eq(merchants.idCategory, categories.id));
+      .select({
+        count: countDistinct(merchants.slug),
+      })
+      .from(merchants)
+      .leftJoin(
+          transactions,
+          and(
+              eq(merchants.slug, transactions.slugMerchant),
+              dateCondition
+          )
+      );
 
-  if (conditions.length > 0) {
-    query.where(and(...conditions));
-  }
+  const result = await query.where(
+      and(
+          ...conditions,
+          hasTransactions
+              ? isNotNull(transactions.slugMerchant)
+              : isNull(transactions.slugMerchant)
+      )
+  );
 
-  const result = await query;
   return Number(result[0]?.count || 0);
 }
 
