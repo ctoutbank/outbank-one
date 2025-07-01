@@ -1,8 +1,7 @@
 import IdleLogout from "@/components/IdleLogout";
 import { AppSidebar } from "@/components/menu-portal/app-sidebar";
-import { SidebarInset } from "@/components/ui/sidebar";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/hooks/use-sidebar-context";
 
 export default function PortalLayout({
   children,
@@ -11,11 +10,11 @@ export default function PortalLayout({
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
-      <SidebarInset className="bg-card rounded-lg shadow overflow-x-hidden">
+      <div className="flex w-full min-h-screen">
+        <AppSidebar />
         <IdleLogout />
-        {children}
-      </SidebarInset>
+        <div className="flex-1 flex flex-col">{children}</div>
+      </div>
     </SidebarProvider>
   );
 }

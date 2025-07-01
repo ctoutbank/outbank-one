@@ -1,9 +1,9 @@
 "use server";
 
-import { getUserGroupPermissions } from "@/features/users/server/users"
-import { getThemeByTenant, type ThemeData } from "@/lib/getThemeByTenant"
-import { currentUser } from "@clerk/nextjs/server"
-import { cookies } from "next/headers"
+import { getUserGroupPermissions } from "@/features/users/server/users";
+import { getThemeByTenant, type ThemeData } from "@/lib/getThemeByTenant";
+import { currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 const getGroupFromUrl = (url: string): string => {
   const pathSegments = url.split("/");
@@ -54,7 +54,7 @@ export async function getAuthorizedMenu() {
     const menuData = {
       teams: [
         {
-          name: themeData?.slug,
+          name: themeData?.name?.replace(/\s*\(Outbank\)$/i, ""),
           logo: themeData?.imageUrl ?? "/default-logo.png",
           plan: "Empresarial",
         },
@@ -134,6 +134,11 @@ export async function getAuthorizedMenu() {
               icon: "FileText",
             },
             {
+              title: "Fechamento",
+              url: "/portal/closing",
+              icon: "FolderOpen",
+            },
+            {
               title: "Arquivos EDI",
               url: "/portal/edis",
               icon: "FolderOpen",
@@ -142,16 +147,6 @@ export async function getAuthorizedMenu() {
               title: "Lançamentos Financeiros",
               url: "/portal/financialAdjustment",
               icon: "CalendarDays",
-            },
-          ],
-        },
-        {
-          title: "RELATÓRIOS",
-          items: [
-            {
-              title: "Fechamento",
-              url: "/portal/closing",
-              icon: "CalendarFold",
             },
           ],
         },

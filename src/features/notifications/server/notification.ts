@@ -1,9 +1,11 @@
 "use server";
 
 import { db } from "@/server/db";
-import { currentUser } from "@clerk/nextjs/server";
+import {auth, currentUser} from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { userNotifications, users } from "../../../../drizzle/schema";
+import {NextResponse} from "next/server";
+import { DateTime } from "luxon";
 
 export interface Notification {
   id: number;
@@ -84,3 +86,136 @@ export async function markNotificationAsRead(notificationId: number) {
     .set({ isRead: true, dtupdate: new Date().toISOString() })
     .where(eq(userNotifications.id, notificationId));
 }
+
+export async function createUserNotification() {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.idClerk, userId));
+  if (!user) {
+    return NextResponse.json({ error: "Usuário não encontrado no banco" }, { status: 404 });
+  }
+
+  const now = DateTime.now().setZone("America/Sao_Paulo");
+
+  // ✅ Sem milissegundos, sem segundos
+  const startOfMonthSP = now
+      .startOf("month")
+      .set({ second: 0, millisecond: 0 })
+      .toISO({ suppressMilliseconds: true, suppressSeconds: false });
+
+  // ✅ Com milissegundos
+  const endOfMonthSP = now
+      .endOf("month")
+      .toISO({ suppressMilliseconds: false });
+
+  if (!startOfMonthSP || !endOfMonthSP) {
+    return NextResponse.json({ error: "Erro ao gerar datas" }, { status: 500 });
+  }
+
+  const link = `/portal/closing?viewMode=month&dateFrom=${encodeURIComponent(startOfMonthSP)}&dateTo=${encodeURIComponent(endOfMonthSP)}`;
+
+  await db.insert(userNotifications).values({
+    slug: `teste-fechamento-${Date.now()}`,
+    dtinsert: now.toISO(),
+    dtupdate: now.toISO(),
+    active: true,
+    idUser: user.id,
+    title: "Relatório disponível",
+    message: "O relatório de fechamento mensal já está disponível no portal. Acesse sua conta para realizar o download.",
+    type: "info",
+    link,
+    isRead: false,
+  });
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function POST() {
+  try {
+    return await createUserNotification();
+  } catch (error) {
+    console.error("Erro na API /api/test-notification:", error);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+  }
+}
+
+
+
+export async function updateNotification(req: Request, { params }: { params: { id: string } }) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+
+  const [user] = await db.select().from(users).where(eq(users.idClerk, userId));
+  if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+
+  const notificationId = Number(params.id);
+  if (isNaN(notificationId)) return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+
+  await db
+      .update(userNotifications)
+      .set({ isRead: true })
+      .where(eq(userNotifications.id, notificationId));
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function deleteNotifications(req: Request, { params }: { params: { id: string } }) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+
+  const [user] = await db.select().from(users).where(eq(users.idClerk, userId));
+  if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+
+  const notificationId = Number(params.id);
+  if (isNaN(notificationId)) return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+
+  await db
+      .delete(userNotifications)
+      .where(eq(userNotifications.id, notificationId));
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function getNotificationsByUser() {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.idClerk, userId));
+  if (!user) {
+    return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+  }
+
+  const notifications = await db
+      .select()
+      .from(userNotifications)
+      .where(eq(userNotifications.idUser, user.id))
+      .orderBy(desc(userNotifications.dtinsert));
+
+  return NextResponse.json({ notifications });
+}
+
+export async function markAllNotificationsAsReadByUser() {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.idClerk, userId));
+  if (!user) {
+    return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+  }
+
+  await db
+      .update(userNotifications)
+      .set({ isRead: true })
+      .where(eq(userNotifications.idUser, user.id)); // marca todas do usuário
+
+  return NextResponse.json({ ok: true });
+}
+
+

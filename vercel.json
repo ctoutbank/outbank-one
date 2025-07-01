@@ -31,6 +31,10 @@
     {
       "path": "/api/cron/sync-paymentLinks",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/test-notification",
+      "schedule": "0 9 28-31 * *"
     }
   ]
 }

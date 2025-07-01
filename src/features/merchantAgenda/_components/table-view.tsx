@@ -98,7 +98,7 @@ export function TableView({
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 w-full flex justify-center">
           <MerchantAgendaReceiptsTotal
             merchantAgendaReceiptsTotalProps={{
               total: total,
