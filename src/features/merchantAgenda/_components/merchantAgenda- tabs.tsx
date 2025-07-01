@@ -69,6 +69,7 @@ export function MerchantAgendaTabs({
   );
   const dateFrom = merchantAgendaTabsProps.searchParams.dateFrom || "";
   const dateTo = merchantAgendaTabsProps.searchParams.dateTo || "";
+  console.log("dateTo", dateTo);
   const settlementDateFromIn = merchantAgendaTabsProps.searchParams
     .settlementDateFrom
     ? new Date(merchantAgendaTabsProps.searchParams.settlementDateFrom)
@@ -289,7 +290,7 @@ export function MerchantAgendaTabs({
                 }
                 globalStyles={globalStyles}
                 sheetName="Conciliação de ajustes"
-                fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}`}
+                fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}.xlsx`}
               />
             )}
           </div>
