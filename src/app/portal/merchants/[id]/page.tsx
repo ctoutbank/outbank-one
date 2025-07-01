@@ -153,7 +153,10 @@ export default async function MerchantDetail({
             : "Adicionar Estabelecimento"
         }
       >
-        {params.id == "0" ? (
+        {merchant?.merchants?.id == 0 ||
+        (merchant?.merchants?.id == undefined &&
+          merchant?.merchants?.idMerchantPrice == 0) ||
+        merchant?.merchants?.idMerchantPrice == undefined ? (
           <MerchantTabs
             merchant={{
               id: merchant?.merchants?.id || 0,
@@ -362,7 +365,7 @@ export default async function MerchantDetail({
             isCreating={true}
             DDSalesAgent={DDSalesAgent}
           />
-        ) : merchant?.merchants?.id ? (
+        ) : (
           <MerchantDisplay
             merchant={{
               id: merchant?.merchants?.id || 0,
@@ -570,10 +573,6 @@ export default async function MerchantDetail({
             merchantFiles={merchantFiles}
             DDSalesAgent={DDSalesAgent}
           />
-        ) : (
-          <div>
-            <h1>Estabelecimento não encontrado</h1>
-          </div>
         )}
       </BaseBody>
     </>
