@@ -4,9 +4,9 @@ import { db } from "@/server/db";
 import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import {
   categories,
-  fee,
-  feeBrand,
-  feeBrandProductType,
+  solicitationBrandProductType,
+  solicitationFee,
+  solicitationFeeBrand,
 } from "../../../../drizzle/schema";
 
 export interface CategoryList {
@@ -104,7 +104,6 @@ export async function getCategories(
     dtinsert: category.dtinsert ? new Date(category.dtinsert) : new Date(),
     dtupdate: category.dtupdate ? new Date(category.dtupdate) : new Date(),
     mcc: category.mcc || "",
-
     cnae: category.cnae || "",
     anticipation_risk_factor_cp: category.anticipation_risk_factor_cp || 0,
     anticipation_risk_factor_cnp: category.anticipation_risk_factor_cnp || 0,
@@ -189,12 +188,9 @@ export interface FeeProductType {
   id: number;
   name: string | null;
   cardTransactionFee: number | null;
-  cardTransactionMdr: string | null;
   nonCardTransactionFee: number | null;
-  nonCardTransactionMdr: string | null;
   installmentTransactionFeeStart: number | null;
   installmentTransactionFeeEnd: number | null;
-  // Adicione outros campos relevantes se necessário
 }
 
 export interface FeeBrand {
@@ -205,11 +201,10 @@ export interface FeeBrand {
 
 export interface FeeDetail {
   id: number;
-  name: string | null;
-  tableType: string | null;
   compulsoryAnticipationConfig: number | null;
   eventualAnticipationFee: string | number | null;
-  anticipationType: string | null;
+  nonCardCompulsoryAnticipationConfig: number | null;
+  nonCardEventualAnticipationFee: string | number | null;
   cardPixMdr: string | number | null;
   cardPixCeilingFee: string | number | null;
   cardPixMinimumCostFee: string | number | null;
@@ -220,56 +215,55 @@ export interface FeeDetail {
 }
 
 export async function getFeeDetailById(
-  idFee: number
+  idSolicitationFee: number
 ): Promise<FeeDetail | null> {
-  // Busca a fee principal
-  const feeResult = await db.select().from(fee).where(eq(fee.id, idFee));
+  // Busca a solicitation_fee principal
+  const feeResult = await db
+    .select()
+    .from(solicitationFee)
+    .where(eq(solicitationFee.id, idSolicitationFee));
   if (!feeResult[0]) return null;
   const feeData = feeResult[0];
 
   // Busca as brands associadas
   const brandsResult = await db
     .select()
-    .from(feeBrand)
-    .where(eq(feeBrand.idFee, idFee));
+    .from(solicitationFeeBrand)
+    .where(eq(solicitationFeeBrand.solicitationFeeId, idSolicitationFee));
 
   // Para cada brand, busca os productTypes
   const brands: FeeBrand[] = [];
   for (const brand of brandsResult) {
     const productTypesResult = await db
       .select()
-      .from(feeBrandProductType)
-      .where(eq(feeBrandProductType.idFeeBrand, brand.id));
+      .from(solicitationBrandProductType)
+      .where(eq(solicitationBrandProductType.solicitationFeeBrandId, brand.id));
     brands.push({
       id: brand.id,
       brand: brand.brand,
       productTypes: productTypesResult.map((pt) => ({
         id: pt.id,
-        name: pt.producttype,
-        cardTransactionFee: pt.cardTransactionFee,
-        cardTransactionMdr: pt.cardTransactionMdr,
-        nonCardTransactionFee: pt.nonCardTransactionFee,
-        nonCardTransactionMdr: pt.nonCardTransactionMdr,
-        installmentTransactionFeeStart: pt.installmentTransactionFeeStart,
-        installmentTransactionFeeEnd: pt.installmentTransactionFeeEnd,
-        // Adicione outros campos relevantes se necessário
+        name: pt.productType,
+        cardTransactionFee: Number(pt.feeAdmin),
+        nonCardTransactionFee: Number(pt.noCardFeeAdmin),
+        installmentTransactionFeeStart: Number(pt.transactionFeeStart),
+        installmentTransactionFeeEnd: Number(pt.transactionFeeEnd),
       })),
     });
   }
 
   return {
     id: feeData.id,
-    name: feeData.name,
-    tableType: feeData.tableType,
-    compulsoryAnticipationConfig: feeData.compulsoryAnticipationConfig,
-    eventualAnticipationFee: feeData.eventualAnticipationFee,
-    anticipationType: feeData.anticipationType,
-    cardPixMdr: feeData.cardPixMdr,
-    cardPixCeilingFee: feeData.cardPixCeilingFee,
-    cardPixMinimumCostFee: feeData.cardPixMinimumCostFee,
-    nonCardPixMdr: feeData.nonCardPixMdr,
-    nonCardPixCeilingFee: feeData.nonCardPixCeilingFee,
-    nonCardPixMinimumCostFee: feeData.nonCardPixMinimumCostFee,
+    compulsoryAnticipationConfig: feeData.compulsoryAnticipationConfigAdmin,
+    eventualAnticipationFee: feeData.eventualAnticipationFeeAdmin,
+    cardPixMdr: feeData.cardPixMdrAdmin,
+    cardPixCeilingFee: feeData.cardPixCeilingFeeAdmin,
+    cardPixMinimumCostFee: feeData.cardPixMinimumCostFeeAdmin,
+    nonCardPixMdr: feeData.nonCardPixMdrAdmin,
+    nonCardPixCeilingFee: feeData.nonCardPixCeilingFeeAdmin,
+    nonCardPixMinimumCostFee: feeData.nonCardPixMinimumCostFeeAdmin,
     brands,
+    nonCardCompulsoryAnticipationConfig: feeData.compulsoryAnticipationConfig,
+    nonCardEventualAnticipationFee: feeData.nonCardEventualAnticipationFeeAdmin
   };
 }

@@ -41,13 +41,15 @@ export default function Categoriesform({ categories }: CategoriesProps) {
 
   useEffect(() => {
     async function fetchFee() {
-      if (categories?.id && categories?.idFee) {
-        const fee = await getFeeDetailById(Number(categories.idFee));
+      if (categories?.id && categories?.idSolicitationFee) {
+        const fee = await getFeeDetailById(
+          Number(categories.idSolicitationFee)
+        );
         setFeeDetail(fee);
       }
     }
     fetchFee();
-  }, [categories?.id, categories?.idFee]);
+  }, [categories?.id, categories?.idSolicitationFee]);
 
   const onSubmit = async (data: CategoriesSchema) => {
     try {
@@ -68,141 +70,143 @@ export default function Categoriesform({ categories }: CategoriesProps) {
   };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div id="main">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ? String(field.value) : ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <>
+      <Card>
+        <CardContent className="pt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div id="main">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value ? String(field.value) : ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="active"
-                render={({ field }) => (
-                  <FormItem className="mt-2">
-                    <FormLabel className="block mb-1 mt-3">Ativo</FormLabel>
-                    <FormControl>
-                      <Checkbox
-                        onCheckedChange={field.onChange}
-                        checked={field.value ?? undefined}
-                        value={field.value?.toString()}
-                        className="w-4"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="mcc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mt-2">MCC</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="mb-2"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="cnae"
-                render={({ field }) => (
-                  <FormItem className="mt-2">
-                    <FormLabel>CNAE</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="anticipation_risk_factor_cp"
-                render={({ field }) => (
-                  <FormItem className="mt-2">
-                    <FormLabel>Fator de risco de antecipação CP</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="anticipation_risk_factor_cnp"
-                render={({ field }) => (
-                  <FormItem className="mt-2">
-                    <FormLabel>Fator de risco de antecipação CNP</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="mt-2">
+                      <FormLabel className="block mb-1 mt-3">Ativo</FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          onCheckedChange={field.onChange}
+                          checked={field.value ?? undefined}
+                          value={field.value?.toString()}
+                          className="w-4"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mcc"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="mt-2">MCC</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="mb-2"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cnae"
+                  render={({ field }) => (
+                    <FormItem className="mt-2">
+                      <FormLabel>CNAE</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="anticipation_risk_factor_cp"
+                  render={({ field }) => (
+                    <FormItem className="mt-2">
+                      <FormLabel>Fator de risco de antecipação CP</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="anticipation_risk_factor_cnp"
+                  render={({ field }) => (
+                    <FormItem className="mt-2">
+                      <FormLabel>Fator de risco de antecipação CNP</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="waiting_period_cp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Período de espera CP</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="waiting_period_cnp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Período de espera CNP</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end mt-4">
-                <Button type="submit">Salvar</Button>
+                <FormField
+                  control={form.control}
+                  name="waiting_period_cp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Período de espera CP</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="waiting_period_cnp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Período de espera CNP</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end mt-4">
+                  <Button type="submit">Salvar</Button>
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
-        {categories?.id && categories?.idFee && feeDetail && (
-          <div className="mt-8">
-            <FeeView feeDetail={feeDetail} />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+      {categories?.id && categories?.idSolicitationFee && feeDetail && (
+        <div className="mt-8">
+          <FeeView feeDetail={feeDetail} />
+        </div>
+      )}
+    </>
   );
 }

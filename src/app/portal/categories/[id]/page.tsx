@@ -43,7 +43,7 @@ export default async function CategoryDetail({
             waiting_period_cp: category?.waitingPeriodCp?.toString(),
             waiting_period_cnp:
               category?.waitingPeriodCnp?.toString() || undefined,
-            idFee: category?.idFee?.toString() || "0",
+            idSolicitationFee: category?.idSolicitationFee?.toString() || "0",
           }}
         />
       </BaseBody>
