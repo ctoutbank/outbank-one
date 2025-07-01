@@ -63,7 +63,7 @@ import {
   UserDetailForm,
   UserInsert,
 } from "../server/users";
-import {formatCep, formatCPF} from "@/lib/regex";
+import {formatCep} from "@/lib/regex";
 
 interface UserFormProps {
   user?: UserDetailForm;

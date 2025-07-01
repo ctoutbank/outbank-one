@@ -38,6 +38,7 @@ import {
   MerchantTransactionChart,
   MerchantTypeChart,
 } from "./merchant-dashboard";
+import {getDateUTC} from "@/lib/datetime-utils";
 
 // Função helper para criar condições de filtro de estado
 function createStateCondition(state: string, addresses: any) {
@@ -2112,6 +2113,19 @@ export async function getMerchantsWithDashboardData(
   const whereSqlFinal =
     whereClauses.length > 0 ? whereClauses.join(" AND ") : "1=1";
 
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const nextMonthFirstDay = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+
+  const rawFirstDay = getDateUTC(firstDay, "America/Sao_Paulo");
+  const rawNextMonth = getDateUTC(nextMonthFirstDay, "America/Sao_Paulo");
+
+  if (!rawFirstDay || !rawNextMonth) {
+    throw new Error("Falha ao converter datas para UTC");
+  }
+
+  const firstDayOfMonthUTC = rawFirstDay
+  const firstDayNextMonthUTC = rawNextMonth
+
   // Consulta principal para obter merchants com paginação
   const merchantResult = await db
     .select({
@@ -2198,12 +2212,21 @@ export async function getMerchantsWithDashboardData(
         COUNT(*) FILTER (WHERE am.dtinsert >= ${todayStr} AND am.dtinsert <= ${now.toISOString()}) AS today
       FROM all_merchants am
     ),
-    transactions AS (
-      SELECT
-        COUNT(*) FILTER (WHERE am.has_pix = true) AS transacionam,
-        COUNT(*) FILTER (WHERE am.has_pix = false) AS nao_transacionam
-      FROM all_merchants am
-    ),
+      transactions AS (
+    SELECT
+      COUNT(*) FILTER (WHERE t.total_transacoes > 0) AS transacionam,
+      COUNT(*) FILTER (WHERE t.total_transacoes = 0) AS nao_transacionam
+    FROM (
+      SELECT m.slug, COUNT(tr.slug_merchant) AS total_transacoes
+      FROM merchants m
+      LEFT JOIN transactions tr
+      ON m.slug = tr.slug_merchant
+      AND tr.dt_insert >= ${firstDayOfMonthUTC}
+      AND tr.dt_insert < ${firstDayNextMonthUTC}
+      WHERE ${sql.raw(whereSqlFinal)}
+      GROUP BY m.slug
+      ) t
+      ),
     merchant_types AS (
       SELECT
         COUNT(*) FILTER (WHERE am.has_tef = true) AS compulsoria,
