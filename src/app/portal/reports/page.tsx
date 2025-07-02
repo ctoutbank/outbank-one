@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
@@ -6,7 +7,7 @@ import { ReportsDashboardContent } from "@/features/reports/_components/reports-
 import { ReportsFilter } from "@/features/reports/_components/reports-filter";
 import ReportList from "@/features/reports/_components/reports-list";
 import { getReports, getReportStats } from "@/features/reports/server/reports";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 0;
@@ -89,7 +90,15 @@ export default async function ReportsPage({
             </div>
           </div>
 
-          <ReportList Reports={reports} />
+          {reports.reports.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <ReportList Reports={reports} />
+          )}
           {totalRecords > 0 && (
             <PaginationWithSizeSelector
               totalRecords={totalRecords}

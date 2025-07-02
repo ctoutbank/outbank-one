@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
@@ -13,6 +14,7 @@ import {
 } from "@/features/terminals/serverActions/terminal";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
+import { Search } from "lucide-react";
 
 type TerminalsProps = {
   page?: string;
@@ -181,7 +183,15 @@ export default async function TerminalsPage({
               />
             </div>
           </div>
-          <TerminalsList terminals={terminalsList} />
+          {terminalsList.terminals.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <TerminalsList terminals={terminalsList} />
+          )}
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

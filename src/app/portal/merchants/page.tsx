@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
@@ -19,7 +20,7 @@ import {
 import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Fill, Font } from "exceljs";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import MerchantList from "../../../features/merchant/_components/merchant-list";
 
@@ -246,7 +247,15 @@ export default async function MerchantsPage({
           <MerchantDashboardContent {...merchantData} />
 
           <div className="mt-2">
-            <MerchantList list={merchants} />
+            {merchants.merchants.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title="Nenhum resultado encontrado"
+                description=""
+              />
+            ) : (
+              <MerchantList list={merchants} />
+            )}
             {totalRecords > 0 && (
               <div className="mt-2">
                 <PaginationWithSizeSelector

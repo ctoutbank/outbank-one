@@ -82,11 +82,11 @@ export type MerchantSettlementsInsert = typeof merchantSettlements.$inferInsert;
 export type MerchantSettlementsDetail = typeof merchantSettlements.$inferSelect;
 
 export async function getSettlements(
-    status: string,
-    dateFrom: string,
-    dateTo: string,
-    page: number,
-    pageSize: number
+  status: string,
+  dateFrom: string,
+  dateTo: string,
+  page: number,
+  pageSize: number
 ): Promise<{
   settlements: SettlementObject[];
   totalCount: any;
@@ -96,26 +96,52 @@ export async function getSettlements(
     settled: number;
     pending: number;
     approved: number;
-    preApproved: number
+    preApproved: number;
   };
-  globalTotals: { totalGrossAmount: number; totalNetAmount: number; totalRestitutionAmount: number }
+  globalTotals: {
+    totalGrossAmount: number;
+    totalNetAmount: number;
+    totalRestitutionAmount: number;
+  };
 }> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      settlements: [],
+      totalCount: 0,
+      statusCounts: {
+        processing: 0,
+        error: 0,
+        settled: 0,
+        pending: 0,
+        approved: 0,
+        preApproved: 0,
+      },
+      globalTotals: {
+        totalGrossAmount: 0,
+        totalNetAmount: 0,
+        totalRestitutionAmount: 0,
+      },
+    };
+  }
+
   const offset = (page - 1) * pageSize;
 
   status =
-      status == undefined || status == "" || status == null
-          ? "0"
-          : status.toUpperCase();
+    status == undefined || status == "" || status == null
+      ? "0"
+      : status.toUpperCase();
   const dateF: string =
-      dateFrom == undefined || dateFrom == "" || dateFrom == null
-          ? "2024-02-23"
-          : dateFrom;
+    dateFrom == undefined || dateFrom == "" || dateFrom == null
+      ? "2024-02-23"
+      : dateFrom;
   const dateT: string =
-      dateTo == undefined || dateTo == "" || dateTo == null
-          ? new Date(new Date().setDate(new Date().getDate() + 1))
-              .toISOString()
-              .split("T")[0]
-          : dateTo;
+    dateTo == undefined || dateTo == "" || dateTo == null
+      ? new Date(new Date().setDate(new Date().getDate() + 1))
+          .toISOString()
+          .split("T")[0]
+      : dateTo;
 
   console.log("Consultando settlements com filtros:", {
     status,
@@ -127,7 +153,7 @@ export async function getSettlements(
   });
 
   const result = await db.execute(
-      sql`SELECT
+    sql`SELECT
             s.id,
             s.slug,
             (s.batch_amount + s.pix_net_amount) AS batch_amount_original,
@@ -154,21 +180,27 @@ export async function getSettlements(
     const settlementId = row.id;
 
     const adjustmentsResult = await db.execute(
-        sql`SELECT
+      sql`SELECT
               SUM(COALESCE(ms.credit_financial_adjustment_amount, 0)) as total_credit,
               SUM(COALESCE(ms.debit_financial_adjustment_amount, 0)) as total_debit
             FROM merchant_settlements ms
             WHERE ms.id_settlement = ${settlementId}`
     );
 
-    const totalCreditFromMerchants = Number(adjustmentsResult.rows[0]?.total_credit || 0);
-    const totalDebitFromMerchants = Number(adjustmentsResult.rows[0]?.total_debit || 0);
-    const totalAdjustmentsFromMerchants = totalCreditFromMerchants + totalDebitFromMerchants;
+    const totalCreditFromMerchants = Number(
+      adjustmentsResult.rows[0]?.total_credit || 0
+    );
+    const totalDebitFromMerchants = Number(
+      adjustmentsResult.rows[0]?.total_debit || 0
+    );
+    const totalAdjustmentsFromMerchants =
+      totalCreditFromMerchants + totalDebitFromMerchants;
 
     rows.push({
       slug: row.slug?.toString() || "",
       batch_amount: row.total_settlement_amount?.toString() || "0",
-      total_anticipation_amount: row.total_anticipation_amount?.toString() || "0",
+      total_anticipation_amount:
+        row.total_anticipation_amount?.toString() || "0",
       total_restitution_amount: row.total_restitution_amount?.toString() || "0",
       total_settlement_amount: row.total_settlement_amount?.toString() || "0",
       status: row.status?.toString() || "",
@@ -178,19 +210,19 @@ export async function getSettlements(
   }
 
   const totalCountResult = await db
-      .select({ count: count() })
-      .from(settlements)
-      .where(
-          sql`((${status} = '0') OR ${settlements.status} = ANY(string_to_array(${status}, ',')))
+    .select({ count: count() })
+    .from(settlements)
+    .where(
+      sql`((${status} = '0') OR ${settlements.status} = ANY(string_to_array(${status}, ',')))
               AND (${settlements.paymentDate} >= ${dateF})
               AND (${settlements.paymentDate}<= ${dateT})`
-      );
+    );
 
   const totalCount = totalCountResult[0]?.count || 0;
 
   //  Consulta para contagem de status
   const statusCountsResult = await db.execute(
-      sql`
+    sql`
         SELECT status, COUNT(*) AS count
         FROM settlements
         WHERE
@@ -211,15 +243,15 @@ export async function getSettlements(
   };
 
   for (const row of statusCountsResult.rows) {
-    if (row.status === "PROCESSING") statusCounts.processing = Number(row.count);
+    if (row.status === "PROCESSING")
+      statusCounts.processing = Number(row.count);
     if (row.status === "FAILED") statusCounts.error = Number(row.count);
     if (row.status === "SETTLED") statusCounts.settled = Number(row.count);
   }
 
-
   // Consulta para valores totais - Bruto, Líquido e Restituições
   const globalTotalsResult = await db.execute(
-      sql`
+    sql`
   SELECT
     SUM(
       COALESCE(s.total_settlement_amount, 0) +
@@ -235,20 +267,21 @@ export async function getSettlements(
 `
   );
 
-
   const globalTotals = {
     totalGrossAmount: Number(globalTotalsResult.rows[0]?.total_gross || 0),
     totalNetAmount: Number(globalTotalsResult.rows[0]?.total_net || 0),
-    totalRestitutionAmount: Number(globalTotalsResult.rows[0]?.total_restitution || 0),
+    totalRestitutionAmount: Number(
+      globalTotalsResult.rows[0]?.total_restitution || 0
+    ),
   };
 
-  console.log(globalTotals)
+  console.log(globalTotals);
 
   return {
     settlements: rows,
     totalCount,
     statusCounts,
-    globalTotals
+    globalTotals,
   };
 }
 
@@ -345,11 +378,17 @@ export async function getMerchantSettlements(
   pageSize: number,
   settlementSlug: string
 ): Promise<MerchantSettlementList> {
-  const offset = (page - 1) * pageSize;
-  const currentDay = new Date();
-
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      merchant_settlements: [],
+      totalCount: 0,
+    };
+  }
+
+  const offset = (page - 1) * pageSize;
+  const currentDay = new Date();
 
   // Build the merchant access condition
   let merchantAccessCondition = "";
@@ -478,4 +517,3 @@ export async function getMerchantSettlements(
     totalCount,
   };
 }
-

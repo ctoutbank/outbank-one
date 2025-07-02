@@ -1,4 +1,5 @@
 import CardValue from "@/components/dashboard/cardValue";
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,223 +8,238 @@ import DashboardFilters from "@/features/closing/components/dashboard-filters";
 import TransactionsExport from "@/features/closing/components/export-excel";
 import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import {
-    getTotalMerchants,
-    getTotalTransactions,
-    getTotalTransactionsByMonth,
-    getTransactionsGroupedReport,
-    normalizeDateRange,
+  getTotalMerchants,
+  getTotalTransactions,
+  getTotalTransactionsByMonth,
+  getTransactionsGroupedReport,
+  normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction";
-import {
-    gateDateByViewMode,
-    getPreviousPeriodFromRange,
-} from "@/lib/utils";
+import { gateDateByViewMode, getPreviousPeriodFromRange } from "@/lib/utils";
+import { Search } from "lucide-react";
 import { Suspense } from "react";
 
 type ClosingSearchParams = {
-    viewMode?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    status?: string;
-    merchant?: string;
-    productType?: string;
-    brand?: string;
-    method?: string;
-    salesChannel?: string;
-    terminal?: string;
-    valueMin?: string;
-    valueMax?: string;
+  viewMode?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  merchant?: string;
+  productType?: string;
+  brand?: string;
+  method?: string;
+  salesChannel?: string;
+  terminal?: string;
+  valueMin?: string;
+  valueMax?: string;
 };
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function SalesDashboard({
-                                                 searchParams,
-                                             }: {
-    searchParams: ClosingSearchParams & {
-        viewMode: string;
-        dateFrom: string;
-        dateTo: string;
-    };
+  searchParams,
+}: {
+  searchParams: ClosingSearchParams & {
+    viewMode: string;
+    dateFrom: string;
+    dateTo: string;
+  };
 }) {
-    const viewMode = searchParams.viewMode || "month";
+  const viewMode = searchParams.viewMode || "month";
 
-    const { period, previousPeriod } = gateDateByViewMode(viewMode);
-    let previousRange: { from: string; to: string } = { from: "", to: "" };
-    if (searchParams.dateFrom || searchParams.dateTo) {
-        previousRange = getPreviousPeriodFromRange(
-            searchParams.dateFrom,
-            searchParams.dateTo
-        );
-    }
-
-    const dateRange = await normalizeDateRange(
-        searchParams.dateFrom ? searchParams.dateFrom : period.from,
-        searchParams.dateTo ? searchParams.dateTo : period.to
+  const { period, previousPeriod } = gateDateByViewMode(viewMode);
+  let previousRange: { from: string; to: string } = { from: "", to: "" };
+  if (searchParams.dateFrom || searchParams.dateTo) {
+    previousRange = getPreviousPeriodFromRange(
+      searchParams.dateFrom,
+      searchParams.dateTo
     );
-    const dateRangePrevious = await normalizeDateRange(
-        searchParams.dateFrom ? previousRange.from : previousPeriod.from!,
-        searchParams.dateTo ? previousRange.to : previousPeriod.to!
-    );
+  }
 
-    const totalTransactions = await getTotalTransactions(
-        dateRange.start!,
-        dateRange.end!
-    );
+  const dateRange = await normalizeDateRange(
+    searchParams.dateFrom ? searchParams.dateFrom : period.from,
+    searchParams.dateTo ? searchParams.dateTo : period.to
+  );
+  const dateRangePrevious = await normalizeDateRange(
+    searchParams.dateFrom ? previousRange.from : previousPeriod.from!,
+    searchParams.dateTo ? previousRange.to : previousPeriod.to!
+  );
 
-    const totalTransactionsPreviousPeriod = await getTotalTransactions(
-        dateRangePrevious.start!,
-        dateRangePrevious.end!
-    );
+  const totalTransactions = await getTotalTransactions(
+    dateRange.start!,
+    dateRange.end!
+  );
 
-    const totalTransactionsByMonth = await getTotalTransactionsByMonth(
-        dateRange.start!,
-        dateRange.end!,
-        viewMode
-    );
+  const totalTransactionsPreviousPeriod = await getTotalTransactions(
+    dateRangePrevious.start!,
+    dateRangePrevious.end!
+  );
 
-    const totalMerchants = await getTotalMerchants();
+  const totalTransactionsByMonth = await getTotalTransactionsByMonth(
+    dateRange.start!,
+    dateRange.end!,
+    viewMode
+  );
 
-    const transactionsGroupedReport = await getTransactionsGroupedReport(
-        dateRange.start!,
-        dateRange.end!,
-        searchParams.status,
-        searchParams.productType,
-        searchParams.brand,
-        searchParams.method,
-        searchParams.salesChannel,
-        searchParams.terminal,
-        searchParams.valueMin,
-        searchParams.valueMax,
-        searchParams.merchant
-    );
+  const totalMerchants = await getTotalMerchants();
 
-    // 🔍 Função corrigida para exibir exportação apenas se o mês acabou ou hoje é o último dia do mês atual
-    function canShowExport(dateToStr: string) {
-        const dateTo = new Date(dateToStr);
-        const today = new Date();
+  const transactionsGroupedReport = await getTransactionsGroupedReport(
+    dateRange.start!,
+    dateRange.end!,
+    searchParams.status,
+    searchParams.productType,
+    searchParams.brand,
+    searchParams.method,
+    searchParams.salesChannel,
+    searchParams.terminal,
+    searchParams.valueMin,
+    searchParams.valueMax,
+    searchParams.merchant
+  );
 
-        // Mês já acabou
-        if (dateTo < today) return true;
+  // 🔍 Função corrigida para exibir exportação apenas se o mês acabou ou hoje é o último dia do mês atual
+  function canShowExport(dateToStr: string) {
+    const dateTo = new Date(dateToStr);
+    const today = new Date();
 
-        // Hoje é o último dia do mês atual
-        const isTodayLastDay =
-            today.getDate() === new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    // Mês já acabou
+    if (dateTo < today) return true;
 
-        const isSameMonthAndYear =
-            dateTo.getFullYear() === today.getFullYear() &&
-            dateTo.getMonth() === today.getMonth();
+    // Hoje é o último dia do mês atual
+    const isTodayLastDay =
+      today.getDate() ===
+      new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
 
-        if (isTodayLastDay && isSameMonthAndYear) return true;
+    const isSameMonthAndYear =
+      dateTo.getFullYear() === today.getFullYear() &&
+      dateTo.getMonth() === today.getMonth();
 
-        return false;
-    }
+    if (isTodayLastDay && isSameMonthAndYear) return true;
 
-    const showExport = canShowExport(searchParams.dateTo);
+    return false;
+  }
 
-    return (
-        <>
-            <BaseHeader
-                breadcrumbItems={[{ title: "Fechamento", url: "/portal/closing" }]}
+  const showExport = canShowExport(searchParams.dateTo);
+
+  return (
+    <>
+      <BaseHeader
+        breadcrumbItems={[{ title: "Fechamento", url: "/portal/closing" }]}
+      />
+      <BaseBody title="Fechamento" subtitle={``}>
+        <div className="mb-4 ml-1 flex items-center justify-between">
+          <DashboardFilters
+            dateRange={{
+              from: dateRange.start ?? period.from,
+              to: dateRange.end ?? period.to,
+            }}
+          />
+          <div>{showExport && <TransactionsExport />}</div>
+        </div>
+
+        <Suspense fallback={<div>Carregando...</div>}>
+          {totalTransactions[0]?.count === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
             />
-            <BaseBody title="Fechamento" subtitle={``}>
-                <div className="mb-4 ml-1 flex items-center justify-between">
-                    <DashboardFilters
-                        dateRange={{
-                            from: dateRange.start ?? period.from,
-                            to: dateRange.end ?? period.to,
-                        }}
+          ) : (
+            <Card className="w-full border-l-8 border-black bg-transparent">
+              <CardContent className="p-6">
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <CardValue
+                      title="Bruto total"
+                      description="Total bruto das transações"
+                      value={totalTransactions[0]?.sum || 0}
+                      percentage={
+                        totalTransactions[0]?.sum &&
+                        totalTransactionsPreviousPeriod[0]?.sum
+                          ? (
+                              ((totalTransactions[0]?.sum -
+                                totalTransactionsPreviousPeriod[0]?.sum) /
+                                totalTransactionsPreviousPeriod[0]?.sum) *
+                              100
+                            ).toFixed(2)
+                          : "0"
+                      }
+                      previousValue={totalTransactionsPreviousPeriod[0]?.sum}
+                      valueType="currency"
                     />
-                    <div>
-                        {showExport && <TransactionsExport />}
-                    </div>
+                    <CardValue
+                      title="Lucro total"
+                      description="Total de lucro realizado"
+                      value={totalTransactions[0]?.revenue || 0}
+                      percentage={
+                        totalTransactions[0]?.revenue &&
+                        totalTransactionsPreviousPeriod[0]?.revenue
+                          ? (
+                              ((totalTransactions[0]?.revenue -
+                                totalTransactionsPreviousPeriod[0]?.revenue) /
+                                totalTransactionsPreviousPeriod[0]?.revenue) *
+                              100
+                            ).toFixed(2)
+                          : "0"
+                      }
+                      previousValue={
+                        totalTransactionsPreviousPeriod[0]?.revenue
+                      }
+                      valueType="currency"
+                    />
+                    <CardValue
+                      title="Transações realizadas"
+                      description="Total de transações realizadas"
+                      value={totalTransactions[0]?.count || 0}
+                      percentage={
+                        totalTransactionsPreviousPeriod[0]?.count &&
+                        totalTransactions[0]?.count
+                          ? (
+                              ((totalTransactions[0]?.count -
+                                totalTransactionsPreviousPeriod[0]?.count) /
+                                totalTransactionsPreviousPeriod[0]?.count) *
+                              100
+                            ).toFixed(2)
+                          : "0"
+                      }
+                      previousValue={totalTransactionsPreviousPeriod[0]?.count}
+                      valueType="number"
+                    />
+                    <CardValue
+                      title="Estabelecimentos cadastrados"
+                      description="Total de estabelecimentos cadastrados"
+                      value={
+                        Array.isArray(totalMerchants)
+                          ? totalMerchants[0]?.total || 0
+                          : 0
+                      }
+                      percentage={"0"}
+                      previousValue={
+                        Array.isArray(totalMerchants)
+                          ? totalMerchants[0]?.total || 0
+                          : 0
+                      }
+                      valueType="number"
+                    />
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
 
-                <Suspense fallback={<div>Carregando...</div>}>
-                    <Card className="w-full border-l-8 border-black bg-transparent">
-                        <CardContent className="p-6">
-                            <div className="grid gap-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                                    <CardValue
-                                        title="Bruto total"
-                                        description="Total bruto das transações"
-                                        value={totalTransactions[0]?.sum || 0}
-                                        percentage={
-                                            totalTransactions[0]?.sum &&
-                                            totalTransactionsPreviousPeriod[0]?.sum
-                                                ? (
-                                                    ((totalTransactions[0]?.sum -
-                                                            totalTransactionsPreviousPeriod[0]?.sum) /
-                                                        totalTransactionsPreviousPeriod[0]?.sum) *
-                                                    100
-                                                ).toFixed(2)
-                                                : "0"
-                                        }
-                                        previousValue={totalTransactionsPreviousPeriod[0]?.sum}
-                                        valueType="currency"
-                                    />
-                                    <CardValue
-                                        title="Lucro total"
-                                        description="Total de lucro realizado"
-                                        value={totalTransactions[0]?.revenue || 0}
-                                        percentage={
-                                            totalTransactions[0]?.revenue &&
-                                            totalTransactionsPreviousPeriod[0]?.revenue
-                                                ? (
-                                                    ((totalTransactions[0]?.revenue -
-                                                            totalTransactionsPreviousPeriod[0]?.revenue) /
-                                                        totalTransactionsPreviousPeriod[0]?.revenue) *
-                                                    100
-                                                ).toFixed(2)
-                                                : "0"
-                                        }
-                                        previousValue={totalTransactionsPreviousPeriod[0]?.revenue}
-                                        valueType="currency"
-                                    />
-                                    <CardValue
-                                        title="Transações realizadas"
-                                        description="Total de transações realizadas"
-                                        value={totalTransactions[0]?.count || 0}
-                                        percentage={
-                                            totalTransactionsPreviousPeriod[0]?.count &&
-                                            totalTransactions[0]?.count
-                                                ? (
-                                                    ((totalTransactions[0]?.count -
-                                                            totalTransactionsPreviousPeriod[0]?.count) /
-                                                        totalTransactionsPreviousPeriod[0]?.count) *
-                                                    100
-                                                ).toFixed(2)
-                                                : "0"
-                                        }
-                                        previousValue={totalTransactionsPreviousPeriod[0]?.count}
-                                        valueType="number"
-                                    />
-                                    <CardValue
-                                        title="Estabelecimentos cadastrados"
-                                        description="Total de estabelecimentos cadastrados"
-                                        value={totalMerchants[0].total || 0}
-                                        percentage={"0"}
-                                        previousValue={totalMerchants[0].total || 0}
-                                        valueType="number"
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
-                        <BarChartCustom
-                            chartData={totalTransactionsByMonth}
-                            viewMode={viewMode}
-                        />
-                    </div>
-                    <div>
-                        <TransactionsDashboardTable
-                            transactions={transactionsGroupedReport}
-                        />
-                    </div>
-                </Suspense>
-            </BaseBody>
-        </>
-    );
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
+            <BarChartCustom
+              chartData={totalTransactionsByMonth}
+              viewMode={viewMode}
+            />
+          </div>
+          <div>
+            <TransactionsDashboardTable
+              transactions={transactionsGroupedReport}
+            />
+          </div>
+        </Suspense>
+      </BaseBody>
+    </>
+  );
 }

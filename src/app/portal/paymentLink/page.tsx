@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -6,6 +7,7 @@ import { PaymentLinkFilter } from "@/features/paymentLink/_components/payment-li
 import PaymentLinkList from "@/features/paymentLink/_components/paymentLink-list";
 import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -62,7 +64,15 @@ export default async function PaymentLinkPage({
             permissions={permissions}
           />
         </div>
-        <PaymentLinkList links={paymentLinks} />
+        {paymentLinks.linksObject.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="Nenhum resultado encontrado"
+            description=""
+          />
+        ) : (
+          <PaymentLinkList links={paymentLinks} />
+        )}
 
         {totalRecords > 0 && (
           <div className="flex items-center justify-between mt-4">

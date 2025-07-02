@@ -203,7 +203,7 @@ export default function Categoriesform({ categories }: CategoriesProps) {
         </CardContent>
       </Card>
       {categories?.id && categories?.idSolicitationFee && feeDetail && (
-        <div className="mt-8">
+        <div className="mt-8 overflow-x-hidden">
           <FeeView feeDetail={feeDetail} />
         </div>
       )}

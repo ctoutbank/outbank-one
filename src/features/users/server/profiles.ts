@@ -60,6 +60,7 @@ export async function getProfiles(
   page: number,
   pageSize: number
 ): Promise<ProfileList> {
+  
   const offset = (page - 1) * pageSize;
 
   const result = await db.execute(sql`

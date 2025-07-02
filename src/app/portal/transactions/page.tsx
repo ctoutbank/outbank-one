@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -12,6 +13,7 @@ import {
 } from "@/features/transactions/serverActions/transaction";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { getEndOfDay } from "@/lib/datetime-utils";
+import { Search } from "lucide-react";
 import { Suspense } from "react";
 import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
 
@@ -114,7 +116,15 @@ async function TransactionsContent({
           />
         </div>
 
-        <TransactionsList transactions={transactionList.transactions} />
+        {transactionList.transactions.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="Nenhum resultado encontrado"
+            description=""
+          />
+        ) : (
+          <TransactionsList transactions={transactionList.transactions} />
+        )}
 
         {transactionList.totalCount > 0 && (
           <div className="flex items-center justify-between mt-4">

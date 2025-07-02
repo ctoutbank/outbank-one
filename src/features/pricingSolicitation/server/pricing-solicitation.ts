@@ -3,6 +3,7 @@ import {
   getUserEmail,
   sendPricingSolicitationEmail,
 } from "@/app/utils/send-email-adtivo";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
@@ -68,6 +69,15 @@ export async function getPricingSolicitations(
   page: number,
   pageSize: number
 ): Promise<PricingSolicitationList | null> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      pricingSolicitations: [],
+      totalCount: 0,
+    };
+  }
+
   const offset = (page - 1) * pageSize;
   const limit = pageSize;
   const conditions = [];
@@ -117,6 +127,12 @@ export async function getPricingSolicitations(
 export async function getPricingSolicitationById(
   id: number
 ): Promise<PricingSolicitationForm | null> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return null;
+  }
+
   console.log("getPricingSolicitationById", id);
   const pricingSolicitation = await db.execute(sql`
     SELECT 
@@ -377,7 +393,7 @@ export async function insertPricingSolicitation(
 }
 
 export async function updatePricingSolicitation(
-  pricingSolicitation: PricingSolicitationForm,
+  pricingSolicitation: PricingSolicitationForm
 ) {
   if (!pricingSolicitation.id) {
     throw new Error("Solicitation ID is required for updates");
@@ -390,7 +406,8 @@ export async function updatePricingSolicitation(
   }
 
   try {
-    const { brands, id, slug, idCustomers, ...solicitationData } = pricingSolicitation;
+    const { brands, id, slug, idCustomers, ...solicitationData } =
+      pricingSolicitation;
     console.log("solicitationData", slug, id, idCustomers);
     // 1. Update the main solicitation fee record
     await db

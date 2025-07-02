@@ -1,3 +1,5 @@
+import { getUserMerchantsAccess } from "@/features/users/server/users";
+
 // Tipo para os dados de EDIS
 type EdisFile = {
   id: number;
@@ -27,6 +29,21 @@ export async function getEdis(
   status?: string,
   date?: string
 ): Promise<EdisListResponse> {
+
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      data: [],
+      totalCount: 0,
+      active_count: 0,
+      inactive_count: 0,
+      pending_count: 0,
+      processed_count: 0,
+      error_count: 0,
+    };
+  }
   // Simulação de delay de rede
   await new Promise((resolve) => setTimeout(resolve, 300));
 
