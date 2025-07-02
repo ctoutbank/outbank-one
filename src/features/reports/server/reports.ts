@@ -1,5 +1,6 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { and, count, desc, eq, like, sql } from "drizzle-orm";
 import {
   fileFormats,
@@ -51,6 +52,15 @@ export async function getReports(
   email?: string,
   creationDate?: string
 ): Promise<ReportsList> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      reports: [],
+      totalCount: 0,
+    };
+  }
+
   const offset = (page - 1) * pageSize;
 
   const conditions = [like(reports.title, `%${search}%`)];
@@ -295,6 +305,27 @@ export type ReportStats = {
 };
 
 export async function getReportStats(): Promise<ReportStats> {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      totalReports: 0,
+      recurrenceStats: {
+        daily: 0,
+        weekly: 0,
+        monthly: 0,
+      },
+      formatStats: {
+        pdf: 0,
+        excel: 0,
+      },
+      typeStats: {
+        sales: 0,
+        schedule: 0,
+      },
+    };
+  }
   // Contagem total de relatórios
   const totalCountResult = await db.select({ count: count() }).from(reports);
   const totalReports = totalCountResult[0]?.count || 0;

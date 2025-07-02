@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 
+import { EmptyState } from "@/components/empty-state";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { CategoriesDashboardContent } from "@/features/categories/_components/ca
 import { CategoriesFilter } from "@/features/categories/_components/categories-filter";
 import { getCategories } from "@/features/categories/server/category";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import Categorylist from "../../../features/categories/_components/categories-list";
 
@@ -95,11 +96,19 @@ export default async function CategoriesPage({
             </div>
           </div>
 
-          <Categorylist
-            Categories={categories}
-            sortField={sortField}
-            sortOrder={sortOrder}
-          />
+          {categories.categories.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <Categorylist
+              Categories={categories}
+              sortField={sortField}
+              sortOrder={sortOrder}
+            />
+          )}
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

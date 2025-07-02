@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { currentDateTimeUTC, getDateUTC } from "@/lib/datetime-utils";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -17,23 +18,29 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   // Inicializa o estado do mês atual a partir do dateRange
   const initial = React.useMemo(() => {
     try {
-      return DateTime.fromISO(dateRange.from).startOf("month");
+      return DateTime.fromISO(dateRange.from).month;
     } catch {
-      return DateTime.utc().startOf("month");
+      return DateTime.utc().month;
     }
   }, [dateRange.from]);
 
   const [currentMonth, setCurrentMonth] = React.useState(initial);
-
-  // Calcula o primeiro e último dia do mês selecionado
- 
+  const [isLoading, setIsLoading] = React.useState(false);
 
   // Mês máximo permitido (mês atual)
-  const nowMonth = DateTime.utc().startOf("month");
+  const nowMonthISO = getDateUTC(currentDateTimeUTC(), "America/Sao_Paulo");
+  const nowMonth = nowMonthISO
+    ? DateTime.fromISO(nowMonthISO).month
+    : DateTime.utc().month;
+
   const canNext = currentMonth < nowMonth;
 
   // Atualiza a URL com os parâmetros de filtro
-  const updateUrl = (dt: DateTime) => {
+  const updateUrl = (month: number) => {
+    setIsLoading(true);
+    // Obtém o ano atual
+    const year = DateTime.fromISO(dateRange.from).year;
+    const dt = DateTime.utc(year, month);
     const f = dt.startOf("month").toISO({ suppressMilliseconds: true });
     const t = dt.endOf("month").toISO({ suppressMilliseconds: true });
     router.push(
@@ -44,33 +51,49 @@ export default function DashboardFilters({ dateRange }: DashboardFiltersProps) {
   };
 
   const handlePrev = () => {
-    const prev = currentMonth.minus({ months: 1 }).startOf("month");
+    if (isLoading) return;
+    const prev = currentMonth - 1 < 1 ? 12 : currentMonth - 1;
     setCurrentMonth(prev);
     updateUrl(prev);
   };
 
   const handleNext = () => {
-    if (!canNext) return;
-    const next = currentMonth.plus({ months: 1 }).startOf("month");
+    if (!canNext || isLoading) return;
+    const next = currentMonth + 1 > 12 ? 1 : currentMonth + 1;
     setCurrentMonth(next);
     updateUrl(next);
   };
 
   return (
     <div className="flex items-center space-x-2">
-      <Button size="sm" variant="outline" onClick={handlePrev}>
-        <ChevronLeft className="h-4 w-4" />
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={handlePrev}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
       </Button>
       <span className="text-sm font-medium">
-        {currentMonth.setLocale("pt-BR").toFormat("LLLL yyyy")}
+        {DateTime.fromObject({ month: currentMonth })
+          .setLocale("pt-BR")
+          .toFormat("LLLL yyyy")}
       </span>
       <Button
         size="sm"
         variant="outline"
         onClick={handleNext}
-        disabled={!canNext}
+        disabled={!canNext || isLoading}
       >
-        <ChevronRight className="h-4 w-4" />
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
       </Button>
     </div>
   );

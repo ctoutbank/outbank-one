@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
@@ -11,7 +12,7 @@ import {
   getFinancialAdjustments,
   getFinancialAdjustmentStats,
 } from "@/features/financialAdjustmet/server/financialAdjustments";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 0;
@@ -117,13 +118,29 @@ export default async function FinancialAdjustmentsPage({
             </TabsList>
 
             <TabsContent value="lancamentos" className="mt-4">
-              <FinancialAdjustmentsList adjustments={singleAdjustments} />
+              {singleAdjustments.financialAdjustments.length === 0 ? (
+                <EmptyState
+                  icon={Search}
+                  title="Nenhum resultado encontrado"
+                  description=""
+                />
+              ) : (
+                <FinancialAdjustmentsList adjustments={singleAdjustments} />
+              )}
             </TabsContent>
 
             <TabsContent value="recorrencia" className="mt-4">
-              <FinancialAdjustmentsListRecurrence
-                adjustments={recurringAdjustments}
-              />
+              {recurringAdjustments.financialAdjustments.length === 0 ? (
+                <EmptyState
+                  icon={Search}
+                  title="Nenhum resultado encontrado"
+                  description=""
+                />
+              ) : (
+                <FinancialAdjustmentsListRecurrence
+                  adjustments={recurringAdjustments}
+                />
+              )}
             </TabsContent>
           </Tabs>
 

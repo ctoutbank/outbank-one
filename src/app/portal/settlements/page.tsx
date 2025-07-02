@@ -5,6 +5,7 @@ import BaseHeader from "@/components/layout/base-header";
 import PaginationRecords from "@/components/pagination-Records";
 import MerchantSettlementsList from "../../../features/settlements/_components/settlements-list";
 
+import { EmptyState } from "@/components/empty-state";
 import ExcelExport from "@/components/excelExport";
 import PageSizeSelector from "@/components/page-size-selector";
 import FinancialOverview from "@/features/settlements/_components/overview";
@@ -15,6 +16,7 @@ import {
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { formatDate } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
+import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -144,9 +146,11 @@ export default async function SettlementsPage({
         )}
         <ListFilter pageName="portal/settlements" search={search} />
         {merchantSettlements.merchant_settlements.length == 0 ? (
-          <div className="flex justify-center items-center mt-10">
-            Nenhum item encontrado
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Nenhum resultado encontrado"
+            description=""
+          />
         ) : (
           <>
             <MerchantSettlementsList

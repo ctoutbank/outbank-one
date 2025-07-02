@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -6,6 +7,7 @@ import { EdisDashboardContent } from "@/features/edis/_components/edis-dashboard
 import { EdisFilter } from "@/features/edis/_components/edis-filter";
 import EdisList from "@/features/edis/_components/edis-list";
 import { getEdis } from "@/features/edis/server/edis";
+import { Search } from "lucide-react";
 
 type EdisProps = {
   page?: string;
@@ -71,7 +73,15 @@ export default async function EdisPage({
             </div>
           </div>
 
-          <EdisList list={edis} />
+          {edis.data.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <EdisList list={edis} />
+          )}
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

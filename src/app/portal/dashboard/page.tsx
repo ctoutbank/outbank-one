@@ -43,7 +43,9 @@ async function ChartSection({
         transactionsData={totalTransactionsByDay}
         viewMode="custom"
         totalTransactions={totalTransactions[0]}
-        totalMerchants={totalMerchants[0]?.total || 0}
+        totalMerchants={
+          Array.isArray(totalMerchants) ? totalMerchants[0]?.total || 0 : 0
+        }
         dateRange={{ start: dateRange.start, end: dateRange.end }}
         canceledTransactions={canceledTransactions[0]?.count || 0}
       />

@@ -48,7 +48,7 @@ export default async function MerchantDetail({
 
   // Buscar fees disponíveis para quando não há merchantPriceId
   const feesResult = await getFeesAction(1, 100); // Buscar até 100 fees
-  const availableFees = feesResult.fees;
+  const availableFees = feesResult?.fees || [];
 
   console.log("merchantBankAccount:", merchantBankAccount);
 

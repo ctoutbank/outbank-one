@@ -1,5 +1,6 @@
 "use client";
 
+import { NotificationIcon } from "@/components/notification";
 import {
   Collapsible,
   CollapsibleContent,
@@ -36,7 +37,6 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {NotificationIcon} from "@/components/notification";
 
 // Icon mapping
 const iconMap: { [key: string]: LucideIcon } = {
@@ -199,27 +199,31 @@ export function AppSidebar() {
         {/* Header */}
         <div className="flex h-16 items-center border-b px-4">
           <div
-            className={`flex items-center gap-2 ${!isOpen && "justify-center w-full"}`}
+            className={`flex items-center gap-2 ${!isOpen && "justify-center w-full"} ${isOpen && "justify-between w-full"}`}
           >
-            <div
-              className={`bg-primary rounded-md p-2 bg-cover bg-no-repeat bg-center overflow-hidden ${isOpen && "h-10 w-10"} ${!isOpen && "h-6 w-6"}`}
-              style={{ backgroundImage: `url(${menuData.teams[0]?.logo})` }}
-            >
-              {/* Imagem de fundo aplicada via CSS */}
+            <div className="flex items-center gap-2">
+              <div
+                className={`bg-primary rounded-md p-2 bg-cover bg-no-repeat bg-center overflow-hidden ${isOpen && "h-10 w-10"} ${!isOpen && "h-6 w-6"}`}
+                style={{ backgroundImage: `url(${menuData.teams[0]?.logo})` }}
+              >
+                {/* Imagem de fundo aplicada via CSS */}
+              </div>
+              {isOpen && (
+                <div className="flex flex-col">
+                  <span className="font-semibold text-sm">
+                    {menuData.teams[0]?.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {menuData.teams[0]?.plan}
+                  </span>
+                </div>
+              )}
             </div>
             {isOpen && (
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">
-                  {menuData.teams[0]?.name}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {menuData.teams[0]?.plan}
-                </span>
+              <div className="p-4">
+                <NotificationIcon />
               </div>
             )}
-            <div className="p-4">
-              <NotificationIcon/>
-            </div>
           </div>
         </div>
 
