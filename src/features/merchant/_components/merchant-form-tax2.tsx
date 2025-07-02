@@ -4,6 +4,10 @@ import {
   updateMerchantPriceFormAction,
   updateMultipleTransactionPricesFormAction,
 } from "@/features/merchant/_actions/merchant-price-formActions";
+import {
+  buscarMerchantCompletoRealParaAPI,
+  InsertMerchant1,
+} from "@/features/merchant/server/merchant";
 import { type FeeData } from "@/features/newTax/server/fee-db";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -335,11 +339,9 @@ export default function MerchantFormTax2({
         toast.success("Taxa atribuída ao estabelecimento com sucesso!");
 
         // 🎯 PASSO FINAL: Buscar TODOS os dados do banco local e enviar para API
-        /* try {
-         
-
+        try {
           // GET: Buscar dados completos do merchant do banco local
-         
+
           const merchantAPIData =
             await buscarMerchantCompletoRealParaAPI(merchantId);
           console.log("merchantAPIData", merchantAPIData);
@@ -361,19 +363,8 @@ export default function MerchantFormTax2({
           });
 
           // POST: Enviar todos os dados para API
-          console.log("📤 Enviando dados completos para API...");
-          const apiResponse = await InsertMerchant1(merchantAPIData);
-          console.log("✅ Resposta da API:", apiResponse);
-
-          if (apiResponse && apiResponse.slug) {
-            toast.success(
-              `🎉 Estabelecimento cadastrado com sucesso na API! Slug: ${apiResponse.slug}`
-            );
-          } else {
-            toast.success(
-              "Taxa atribuída com sucesso! No entanto, não foi possível obter confirmação da API."
-            );
-          }
+          await InsertMerchant1(merchantAPIData);
+          toast.success("Taxa atribuída com sucesso! ");
         } catch (apiError) {
           console.error(
             "❌ Erro ao enviar merchant completo para API:",
@@ -382,9 +373,8 @@ export default function MerchantFormTax2({
           toast.error(
             "Taxa atribuída com sucesso, mas houve um erro ao enviar para API. Verifique o console para mais detalhes."
           );
-          
         }
-*/
+
         // Avançar para a próxima aba (documents)
         if (activeTab && setActiveTab && merchantId) {
           refreshPage(merchantId);

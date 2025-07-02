@@ -18,7 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { legalPersonTypes } from "@/lib/lookuptables/lookuptables";
+import {
+  accountTypes,
+  legalPersonTypes,
+} from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Landmark } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -397,7 +400,7 @@ export default function MerchantFormBankAccount({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {accountTypeDD.map((item) => (
+                          {accountTypes.map((item) => (
                             <SelectItem key={item.value} value={item.value}>
                               {item.label}
                             </SelectItem>
