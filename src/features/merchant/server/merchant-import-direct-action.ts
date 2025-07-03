@@ -584,16 +584,95 @@ async function createMerchant(merchantData: ImportData): Promise<{
       ? formatBrazilianDateToISO(merchantData.establishment.openingDate)
       : null;
 
+    console.log(
+      `[createMerchant] Data de abertura original: ${merchantData.establishment.openingDate}`
+    );
+    console.log(`[createMerchant] Data de abertura formatada: ${openingDate}`);
+
     // Formatar a data de nascimento
-    const birthDate = merchantData.responsible.birthDate
-      ? {
-          day: merchantData.responsible.birthDate.split("/")[0],
-          month: merchantData.responsible.birthDate.split("/")[1],
-          year: merchantData.responsible.birthDate.split("/")[2],
-        }
-      : null;
+    let birthDateFormatted = null;
+    if (merchantData.responsible.birthDate) {
+      birthDateFormatted = formatBrazilianDateToISO(
+        merchantData.responsible.birthDate
+      );
+      console.log(
+        `[createMerchant] Data de nascimento original: ${merchantData.responsible.birthDate}`
+      );
+      console.log(
+        `[createMerchant] Data de nascimento formatada: ${birthDateFormatted}`
+      );
+    }
 
     const feeTableCode = await getFeeTableCode(merchantData.tax.tableCode);
+
+    // Passo 3.1: Criar conta bancária primeiro se disponível
+    let bankAccountId = null;
+    if (merchantData.bankData && merchantData.bankData.account) {
+      try {
+        // Verificar se temos os valores necessários
+        const bankNumber = merchantData.bankData.bankCode || "";
+        const bankName = merchantData.bankData.bank || "";
+
+        if (!bankNumber) {
+          console.warn(
+            "[createMerchant] Código do banco não fornecido, usando valor padrão"
+          );
+        }
+
+        if (!bankName) {
+          console.warn(
+            "[createMerchant] Nome do banco não fornecido, usando valor padrão"
+          );
+        }
+
+        // Criar conta bancária para o merchant (sem o ID do merchant ainda)
+        const bankAccountData = {
+          slug: "",
+          active: true,
+          dtinsert: new Date().toISOString(),
+          dtupdate: new Date().toISOString(),
+          corporateName: merchantData.establishment.corporateName,
+          legalPerson: merchantData.establishment.establishmentType
+            ?.toLowerCase()
+            ?.includes("f")
+            ? "PF"
+            : "PJ",
+          documentId: merchantData.establishment.taxId.replace(/[^0-9]/g, ""),
+          bankBranchNumber: merchantData.bankData.agency || "",
+          bankBranchCheckDigit: merchantData.bankData.agencyDigit || "",
+          accountNumber: merchantData.bankData.account || "",
+          accountNumberCheckDigit: merchantData.bankData.accountDigit || "",
+          accountType: merchantData.bankData.accountType || "CHECKING", // Padrão para conta corrente
+          compeCode: merchantData.bankData.bankCode || "",
+          // Não definimos idMerchant ainda, será atualizado depois
+        };
+
+        // Garantir que temos um tipo de conta válido
+        if (!bankAccountData.accountType) {
+          console.warn(
+            "[createMerchant] Tipo de conta não fornecido, usando CHECKING como padrão"
+          );
+          bankAccountData.accountType = "CHECKING";
+        }
+
+        // Inserir na tabela merchantbankaccount
+        const [insertedBankAccount] = await db
+          .insert(merchantBankAccounts)
+          .values(bankAccountData)
+          .returning({ id: merchantBankAccounts.id });
+
+        bankAccountId = insertedBankAccount.id;
+        console.log(
+          `[createMerchant] Conta bancária criada com ID: ${bankAccountId}`
+        );
+      } catch (errorBank) {
+        console.error(
+          "[createMerchant] Erro ao criar dados bancários:",
+          errorBank
+        );
+        // Não falhar a criação do merchant se houver erro nos dados bancários
+      }
+    }
 
     // Preparar payload do merchant com todos os campos necessários
     const merchantPayload = {
@@ -608,7 +687,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
       email: merchantData.contact.email,
       areaCode: merchantData.contact.areaCode,
       number: merchantData.contact.phoneNumber,
-      birthDate: birthDate ? birthDate.toString() : null,
+      birthDate: birthDateFormatted ? birthDateFormatted.toString() : null,
       phoneType,
       language: "pt-BR",
       timezone: "-0300",
@@ -641,6 +720,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
       idConfiguration: null,
       slugConfiguration: configurationSlug || "",
       idAddress: addressId, // ID do endereço criado no passo 1
+      idMerchantBankAccount: bankAccountId, // Associar a conta bancária se foi criada
     };
 
     // Usar a função existente para inserir o merchant
@@ -950,6 +1030,25 @@ async function createMerchant(merchantData: ImportData): Promise<{
       }
     }
 
+    // Passo 5: Atualizar a conta bancária com o ID do merchant se necessário
+    if (bankAccountId) {
+      try {
+        await db
+          .update(merchantBankAccounts)
+          .set({ idMerchant: merchantId })
+          .where(eq(merchantBankAccounts.id, bankAccountId));
+
+        console.log(
+          `[createMerchant] Conta bancária ${bankAccountId} atualizada com o ID do merchant ${merchantId}`
+        );
+      } catch (errorBankUpdate) {
+        console.error(
+          `[createMerchant] Erro ao atualizar conta bancária com ID do merchant:`,
+          errorBankUpdate
+        );
+      }
+    }
+
     // Passo 6: Clonar tabela de taxas automaticamente se foi fornecido um código de taxa
     if (merchantData.tax?.tableCode) {
       try {
@@ -1009,6 +1108,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
           console.log(
             `[createMerchant] Dados completos do merchant ${merchantId} obtidos, enviando para API`
           );
+          console.log(merchantAPIData);
 
           // 6.3: Enviar todos os dados para a API
           await InsertMerchant1(merchantAPIData, merchantId);
