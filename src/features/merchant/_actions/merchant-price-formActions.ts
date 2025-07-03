@@ -62,6 +62,10 @@ export async function updateMerchantTransactionPriceFormAction(
     producttype: data.producttype || "",
     dtinsert: data.dtinsert?.toISOString() || new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    cardCompulsoryAnticipationMdr:
+      data.cardCompulsoryAnticipationMdr?.toString() || "0",
+    noCardCompulsoryAnticipationMdr:
+      data.noCardCompulsoryAnticipationMdr?.toString() || "0",
   };
 
   const result = await updateMerchantTransactionPrice(transactionPriceUpdate);
@@ -77,6 +81,10 @@ export async function updateMultipleTransactionPricesFormAction(
       ...update.data,
       cardTransactionMdr: update.data.cardTransactionMdr?.toString(),
       nonCardTransactionMdr: update.data.nonCardTransactionMdr?.toString(),
+      cardCompulsoryAnticipationMdr:
+        update.data.cardCompulsoryAnticipationMdr?.toString(),
+      noCardCompulsoryAnticipationMdr:
+        update.data.noCardCompulsoryAnticipationMdr?.toString(),
       dtinsert: update.data.dtinsert?.toISOString(),
       dtupdate: new Date().toISOString(),
     },

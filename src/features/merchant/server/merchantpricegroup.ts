@@ -83,8 +83,9 @@ export async function getMerchantPriceGroupsBymerchantPricetId(
                     'fee', ${merchantTransactionPrice.cardTransactionFee},
                     'nonCardTransactionFee', ${merchantTransactionPrice.nonCardTransactionFee},
                     'nonCardTransactionMdr', ${merchantTransactionPrice.nonCardTransactionMdr},
-                    'producttype', ${merchantTransactionPrice.producttype}
-                    
+                    'producttype', ${merchantTransactionPrice.producttype},
+                    'cardCompulsoryAnticipationMdr', ${merchantTransactionPrice.cardCompulsoryAnticipationMdr},
+                    'nonCardCompulsoryAnticipationMdr', ${merchantTransactionPrice.noCardCompulsoryAnticipationMdr}
                 )
             ) FILTER (WHERE ${merchantTransactionPrice.id} IS NOT NULL), '[]'::json)`,
     })

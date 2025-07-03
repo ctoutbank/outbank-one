@@ -213,7 +213,10 @@ function getPaymentModeFromProductType(
 }
 
 // Função para buscar todas as taxas
-export async function getFees(page: number, pageSize: number): Promise<{
+export async function getFees(
+  page: number,
+  pageSize: number
+): Promise<{
   fees: FeeData[];
   totalRecords: number;
   currentPage: number;
@@ -223,35 +226,33 @@ export async function getFees(page: number, pageSize: number): Promise<{
     const offset = (page - 1) * pageSize;
 
     // 1. Contar total de registros
-    const totalFees = await db
-        .select({ id: fee.id })
-        .from(fee);
+    const totalFees = await db.select({ id: fee.id }).from(fee);
 
     const totalRecords = totalFees.length;
 
     // 2. Buscar apenas a página atual
     const paginatedFees = await db
-        .select()
-        .from(fee)
-        .limit(pageSize)
-        .offset(offset);
+      .select()
+      .from(fee)
+      .limit(pageSize)
+      .offset(offset);
 
     const feeDataList: FeeData[] = [];
 
     for (const f of paginatedFees) {
       const brands = await db
-          .select()
-          .from(feeBrand)
-          .where(eq(feeBrand.idFee, f.id));
+        .select()
+        .from(feeBrand)
+        .where(eq(feeBrand.idFee, f.id));
 
       const brandIds = brands.map((b) => b.id);
 
       const productTypes = brandIds.length
-          ? await db
-              .select()
-              .from(feeBrandProductType)
-              .where(inArray(feeBrandProductType.idFeeBrand, brandIds))
-          : [];
+        ? await db
+            .select()
+            .from(feeBrandProductType)
+            .where(inArray(feeBrandProductType.idFeeBrand, brandIds))
+        : [];
 
       feeDataList.push(mapDbDataToFeeData(f, brands, productTypes));
     }

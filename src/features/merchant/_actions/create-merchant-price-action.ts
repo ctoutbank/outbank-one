@@ -198,6 +198,14 @@ export async function createMerchantPriceFromFeeAction(
               "merchantTransactionPrices"
             );
 
+            // Criar um mapa dos feeCredits para acesso rápido por feeBrandProductTypeId
+            const feeCreditMap = new Map<number, any>();
+            if (fee.feeCredit) {
+              for (const credit of fee.feeCredit) {
+                feeCreditMap.set(credit.idFeeBrandProductType, credit);
+              }
+            }
+
             const transactionPrices = feeBrandItem.feeBrandProductType.map(
               (productType: any, ptIndex: number) => {
                 // Mapear o producttype descritivo para o valor correto do banco
@@ -211,6 +219,13 @@ export async function createMerchantPriceFromFeeAction(
                 } else if (productType.producttype?.includes("Voucher")) {
                   dbProductType = "VOUCHER";
                 }
+
+                // Buscar o feeCredit correspondente a este feeBrandProductType
+                const relatedFeeCredit = feeCreditMap.get(productType.id);
+                console.log(
+                  `FeeCredit para productType ${productType.id}:`,
+                  relatedFeeCredit
+                );
 
                 const transactionData = {
                   slug: `mtp-${dbProductType}-${Date.now()}-${index}-${ptIndex}`,
@@ -231,6 +246,13 @@ export async function createMerchantPriceFromFeeAction(
                   ),
                   producttype: dbProductType,
                   idMerchantPriceGroup: newMerchantPriceGroup.id,
+
+                  cardCompulsoryAnticipationMdr: parseNumericValue(
+                    relatedFeeCredit?.compulsoryAnticipation || 0
+                  ),
+                  noCardCompulsoryAnticipationMdr: parseNumericValue(
+                    relatedFeeCredit?.noCardCompulsoryAnticipation || 0
+                  ),
                 };
 
                 console.log(

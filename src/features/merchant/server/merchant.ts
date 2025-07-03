@@ -4,8 +4,10 @@ import { CategoryDetail } from "@/features/categories/server/category";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
 import { UserMerchantsAccess } from "@/features/users/server/users";
+import { getDateUTC } from "@/lib/datetime-utils";
 import { states } from "@/lib/lookuptables/lookuptables"; // ajuste o path se necessário
 import { db } from "@/server/db";
+import { currentUser } from "@clerk/nextjs/server";
 import {
   and,
   count,
@@ -25,6 +27,7 @@ import {
   categories,
   configurations,
   contacts,
+  customers,
   establishmentFormat,
   legalNatures,
   merchantBankAccounts,
@@ -34,6 +37,7 @@ import {
   merchants,
   merchantTransactionPrice,
   salesAgents,
+  users,
 } from "../../../../drizzle/schema";
 import {
   MerchantRegistrationChart,
@@ -41,7 +45,6 @@ import {
   MerchantTransactionChart,
   MerchantTypeChart,
 } from "./merchant-dashboard";
-import {getDateUTC} from "@/lib/datetime-utils";
 
 // Função helper para criar condições de filtro de estado
 function createStateCondition(state: string, addresses: any) {
@@ -2142,7 +2145,11 @@ export async function getMerchantsWithDashboardData(
     whereClauses.length > 0 ? whereClauses.join(" AND ") : "1=1";
 
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const nextMonthFirstDay = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+  const nextMonthFirstDay = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1
+  ).toISOString();
 
   const rawFirstDay = getDateUTC(firstDay, "America/Sao_Paulo");
   const rawNextMonth = getDateUTC(nextMonthFirstDay, "America/Sao_Paulo");
@@ -2151,8 +2158,8 @@ export async function getMerchantsWithDashboardData(
     throw new Error("Falha ao converter datas para UTC");
   }
 
-  const firstDayOfMonthUTC = rawFirstDay
-  const firstDayNextMonthUTC = rawNextMonth
+  const firstDayOfMonthUTC = rawFirstDay;
+  const firstDayNextMonthUTC = rawNextMonth;
 
   // Consulta principal para obter merchants com paginação
   const merchantResult = await db
@@ -3586,26 +3593,37 @@ async function InsertAPIMerchant(data: InsertMerchantAPI) {
       body: JSON.stringify(data),
     }
   );
+  console.log("response:", response);
   if (!response.ok) {
     const errorMessage = `Failed to save data: ${response.statusText}`;
     console.error(response);
     throw new Error(errorMessage);
   }
+
   const responseData = await response.json();
   return responseData;
 }
 
 export async function InsertMerchant1(
-  data: InsertMerchantAPI & { id?: number }
+  data: InsertMerchantAPI,
+  merchantId: number
 ) {
   try {
-    // Se um ID foi fornecido, busca o merchant completo com todos os relacionamentos
+    console.log("=== INICIANDO InsertMerchant1 ===");
 
-    // Se não existe ou não foi fornecido ID, cria um novo na API
+    console.log("merchantId:", merchantId);
+
+    // Chama a API para inserir/atualizar o merchant
     const response = await InsertAPIMerchant(data);
+    console.log("Resposta da API recebida:", response);
+
+    await updateMerchantSlugsFromAPI(merchantId, response);
+
+    console.log("=== InsertMerchant1 CONCLUÍDO ===");
     return response;
   } catch (error) {
-    console.error("Erro ao inserir merchant:", error);
+    console.error("=== ERRO em InsertMerchant1 ===");
+    console.error("Erro ao processar merchant:", error);
     throw error;
   }
 }
@@ -3845,6 +3863,7 @@ export async function buscarMerchantCompletoRealParaAPI(
       "| tipo:",
       typeof data.merchant.openingDays
     );
+
     console.log("=== FIM DEBUG ===");
 
     // 🔧 TRATAMENTO DOS DADOS ANTES DA VALIDAÇÃO
@@ -4266,6 +4285,440 @@ export async function buscarMerchantCompletoRealParaAPI(
     return apiPayload;
   } catch (error) {
     console.error(`Erro ao buscar merchant completo REAL ID ${id}:`, error);
+    throw error;
+  }
+}
+
+// Start of Selection
+export type APIMerchantResponse = {
+  slug: string;
+  active: boolean;
+  merchantId: string;
+  dtInsert: string;
+  dtUpdate: string;
+  name: string;
+  documentId: string;
+  corporateName: string;
+  email: string;
+  timezone: string;
+  areaCode: string;
+  number: string;
+  phoneType: "C" | "P";
+  contacts: Array<{
+    name: string;
+    jobPosition: string | null;
+    documentId: string;
+    email: string;
+    countryCode: string | null;
+    areaCode: string;
+    number: string;
+    phoneType: "C" | "P";
+    address: {
+      streetAddress: string;
+      streetNumber: string;
+      complement: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      country: string;
+      zipCode: string;
+      addressType: string | null;
+    };
+    genderType: string | null;
+    birthDate: string;
+    mothersName: string;
+    isPartnerContact: boolean;
+    isPep: boolean;
+    icNumber: string | null;
+    icDateIssuance: string | null;
+    icDispatcher: string | null;
+    icFederativeUnit: string | null;
+    slugRole: string | null;
+  }>;
+  address: {
+    streetAddress: string;
+    streetNumber: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    cityCode: string;
+    state: string;
+    country: string;
+    zipCode: string;
+    addressType: string | null;
+  };
+  merchantPrice: {
+    slug: string;
+    name: string;
+    tableType: "SIMPLE";
+    anticipationType: "NONE";
+    listMerchantPriceGroup: Array<{
+      slug: string;
+      brand: string;
+      groupId: number;
+      listMerchantTransactionPrice: Array<{
+        slug: string;
+        installmentTransactionFeeStart: number;
+        installmentTransactionFeeEnd: number;
+        cardTransactionFee: number;
+        cardTransactionMdr: number;
+        nonCardTransactionFee: number;
+        nonCardTransactionMdr: number;
+        productType: "DEBIT" | "CREDIT" | "VOUCHER" | "PREPAID";
+        cardCompulsoryAnticipationMdr: number | null;
+        nonCardCompulsoryAnticipationMdr: number | null;
+      }>;
+    }>;
+    compulsoryAnticipationConfig: number | null;
+    eventualAnticipationFee: number;
+    cardPixMdr: number;
+    cardPixCeilingFee: number;
+    cardPixMinimumCostFee: number;
+    nonCardPixMdr: number;
+    nonCardPixCeilingFee: number;
+    nonCardPixMinimumCostFee: number;
+    dtUpdate: string;
+  };
+  merchantBankAccount: {
+    slug: string;
+    documentId: string;
+    corporateName: string;
+    legalPerson: "JURIDICAL";
+    providerAccountId: string | null;
+    bankBranchNumber: string;
+    bankBranchCheckDigit: string;
+    accountNumber: string;
+    accountNumberCheckDigit: string;
+    accountType: "CHECKING" | "SAVINGS";
+    compeCode: string;
+  };
+  slugCustomer: string;
+  category: {
+    slug: string;
+    mcc: string;
+    cnae: string;
+  };
+  legalNature: {
+    slug: string;
+    code: string;
+    name: string | null;
+  };
+  legalPerson: "JURIDICAL";
+  openingDate: string;
+  municipalRegistration: string;
+  inclusion: string;
+  openingDays: string;
+  openingHour: string;
+  closingHour: string;
+  riskAnalysisStatus: string;
+  configuration: {
+    slug: string | null;
+    lockCpAnticipationOrder: string | null;
+    lockCnpAnticipationOrder: string | null;
+    anticipationRiskFactorCp: string | null;
+    anticipationRiskFactorCnp: string | null;
+    waitingPeriodCp: string | null;
+    waitingPeriodCnp: string | null;
+    url: string;
+  };
+  hasTef: boolean;
+  hasTop: boolean;
+  hasPix: boolean;
+  establishmentFormat: "EI" | "LTDA" | "SA" | "MEI" | "EIRELI";
+  revenue: number;
+  formattedDocumentId: string;
+};
+
+export async function updateMerchantSlugsFromAPI(
+  merchantId: number,
+  apiResponse: APIMerchantResponse
+): Promise<void> {
+  try {
+    console.log(
+      `=== INICIANDO UPDATE SLUGS para merchant ID ${merchantId} ===`
+    );
+    console.log(
+      "Dados da API recebidos:",
+      JSON.stringify(apiResponse, null, 2)
+    );
+
+    // Validar se o merchant existe antes de tentar atualizar
+    const existingMerchant = await db
+      .select({ id: merchants.id })
+      .from(merchants)
+      .where(eq(merchants.id, merchantId))
+      .limit(1);
+
+    if (existingMerchant.length === 0) {
+      throw new Error(
+        `Merchant com ID ${merchantId} não encontrado no banco de dados`
+      );
+    }
+
+    // 1. Atualizar slug principal do merchant
+    console.log(`Atualizando slug principal: ${apiResponse.slug}`);
+    await db
+      .update(merchants)
+      .set({
+        slug: apiResponse.slug,
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(merchants.id, merchantId));
+
+    // 2. Atualizar slug da categoria se existir
+    if (apiResponse.category?.slug) {
+      console.log(
+        `Atualizando slug da categoria: ${apiResponse.category.slug}`
+      );
+      const merchant = await db
+        .select({ idCategory: merchants.idCategory })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idCategory) {
+        await db
+          .update(categories)
+          .set({
+            slug: apiResponse.category.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(categories.id, merchant[0].idCategory));
+        console.log(
+          `✅ Categoria atualizada com ID: ${merchant[0].idCategory}`
+        );
+      } else {
+        console.log("❌ Merchant não possui categoria associada");
+      }
+    }
+
+    // 3. Atualizar slug da natureza jurídica se existir
+    if (apiResponse.legalNature?.slug) {
+      console.log(
+        `Atualizando slug da natureza jurídica: ${apiResponse.legalNature.slug}`
+      );
+      const merchant = await db
+        .select({ idLegalNature: merchants.idLegalNature })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idLegalNature) {
+        await db
+          .update(legalNatures)
+          .set({
+            slug: apiResponse.legalNature.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(legalNatures.id, merchant[0].idLegalNature));
+        console.log(
+          `✅ Natureza jurídica atualizada com ID: ${merchant[0].idLegalNature}`
+        );
+      } else {
+        console.log("❌ Merchant não possui natureza jurídica associada");
+      }
+    }
+
+    // 4. Atualizar slug da conta bancária se existir
+    if (apiResponse.merchantBankAccount?.slug) {
+      console.log(
+        `Atualizando slug da conta bancária: ${apiResponse.merchantBankAccount.slug}`
+      );
+      const merchant = await db
+        .select({ idMerchantBankAccount: merchants.idMerchantBankAccount })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idMerchantBankAccount) {
+        await db
+          .update(merchantBankAccounts)
+          .set({
+            slug: apiResponse.merchantBankAccount.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(
+            eq(merchantBankAccounts.id, merchant[0].idMerchantBankAccount)
+          );
+        console.log(
+          `✅ Conta bancária atualizada com ID: ${merchant[0].idMerchantBankAccount}`
+        );
+      } else {
+        console.log("❌ Merchant não possui conta bancária associada");
+      }
+    }
+
+    // 5. Atualizar slug da configuração se existir (pode ser null)
+    if (
+      apiResponse.configuration?.slug &&
+      apiResponse.configuration.slug !== null
+    ) {
+      console.log(
+        `Atualizando slug da configuração: ${apiResponse.configuration.slug}`
+      );
+      const merchant = await db
+        .select({ idConfiguration: merchants.idConfiguration })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idConfiguration) {
+        await db
+          .update(configurations)
+          .set({
+            slug: apiResponse.configuration.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(configurations.id, merchant[0].idConfiguration));
+      }
+    } else {
+      console.log("Configuração não possui slug válido - pulando atualização");
+    }
+
+    // 6. Atualizar slug da tabela de preços se existir
+    if (apiResponse.merchantPrice?.slug) {
+      console.log(
+        `Atualizando slug da tabela de preços: ${apiResponse.merchantPrice.slug}`
+      );
+      const merchant = await db
+        .select({ idMerchantPrice: merchants.idMerchantPrice })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idMerchantPrice) {
+        await db
+          .update(merchantPrice)
+          .set({
+            slug: apiResponse.merchantPrice.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(merchantPrice.id, merchant[0].idMerchantPrice));
+        console.log(
+          `✅ Tabela de preços atualizada com ID: ${merchant[0].idMerchantPrice}`
+        );
+
+        // 7. Atualizar slugs dos grupos de preços se existirem
+        if (apiResponse.merchantPrice.listMerchantPriceGroup) {
+          console.log(
+            `Processando ${apiResponse.merchantPrice.listMerchantPriceGroup.length} grupos de preços`
+          );
+          const existingGroups = await db
+            .select({ id: merchantPriceGroup.id })
+            .from(merchantPriceGroup)
+            .where(
+              eq(
+                merchantPriceGroup.idMerchantPrice,
+                merchant[0].idMerchantPrice
+              )
+            )
+            .orderBy(merchantPriceGroup.id);
+
+          console.log(
+            `Encontrados ${existingGroups.length} grupos existentes no banco`
+          );
+
+          for (
+            let i = 0;
+            i < apiResponse.merchantPrice.listMerchantPriceGroup.length &&
+            i < existingGroups.length;
+            i++
+          ) {
+            const groupAPI =
+              apiResponse.merchantPrice.listMerchantPriceGroup[i];
+
+            if (groupAPI.slug) {
+              console.log(`  ➤ Atualizando grupo ${i + 1}: ${groupAPI.slug}`);
+              await db
+                .update(merchantPriceGroup)
+                .set({
+                  slug: groupAPI.slug,
+                  dtupdate: new Date().toISOString(),
+                })
+                .where(eq(merchantPriceGroup.id, existingGroups[i].id));
+
+              // 8. Atualizar slugs das taxas de transação se existirem
+              if (groupAPI.listMerchantTransactionPrice) {
+                console.log(
+                  `    ➤ Processando ${groupAPI.listMerchantTransactionPrice.length} taxas do grupo ${i + 1}`
+                );
+                const existingPrices = await db
+                  .select({ id: merchantTransactionPrice.id })
+                  .from(merchantTransactionPrice)
+                  .where(
+                    eq(
+                      merchantTransactionPrice.idMerchantPriceGroup,
+                      existingGroups[i].id
+                    )
+                  )
+                  .orderBy(merchantTransactionPrice.id);
+
+                for (
+                  let j = 0;
+                  j < groupAPI.listMerchantTransactionPrice.length &&
+                  j < existingPrices.length;
+                  j++
+                ) {
+                  const priceAPI = groupAPI.listMerchantTransactionPrice[j];
+
+                  if (priceAPI.slug) {
+                    console.log(`      ✅ Taxa ${j + 1}: ${priceAPI.slug}`);
+                    await db
+                      .update(merchantTransactionPrice)
+                      .set({
+                        slug: priceAPI.slug,
+                        dtupdate: new Date().toISOString(),
+                      })
+                      .where(
+                        eq(merchantTransactionPrice.id, existingPrices[j].id)
+                      );
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          console.log("❌ Nenhum grupo de preços encontrado para atualizar");
+        }
+      } else {
+        console.log("❌ Merchant não possui tabela de preços associada");
+      }
+    } else {
+      console.log("❌ API não retornou slug para tabela de preços");
+    }
+
+    console.log(
+      `=== SLUGS DO MERCHANT ID ${merchantId} ATUALIZADOS COM SUCESSO ===`
+    );
+  } catch (error) {
+    console.error(
+      `=== ERRO ao atualizar slugs do merchant ID ${merchantId} ===`
+    );
+    console.error("Detalhes do erro:", error);
+    throw error;
+  }
+}
+
+export async function getCurrentUserCustomerSlug(): Promise<string | null> {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    const result = await db
+      .select({
+        customerSlug: customers.slug,
+      })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .where(eq(users.idClerk, userClerk.id))
+      .limit(1);
+
+    return result.length > 0 ? result[0].customerSlug : null;
+  } catch (error) {
+    console.error("Erro ao buscar slug do customer:", error);
     throw error;
   }
 }

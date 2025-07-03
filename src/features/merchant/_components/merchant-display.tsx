@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MerchantFormBank from "@/features/merchant/_components/merchant-form-bank";
 import MerchantFormBankAccount from "@/features/merchant/_components/merchant-form-bank-account";
 import { MerchantTabsProps } from "@/features/merchant/server/types";
+import { accountTypes } from "@/lib/lookuptables/lookuptables";
 import { Edit, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -645,7 +646,7 @@ export default function MerchantDisplay({
                     <InfoItem
                       label="Tipo de Conta"
                       value={
-                        DDAccountType.find(
+                        accountTypes.find(
                           (t) =>
                             t.value ===
                             merchantBankAccount?.merchantBankAccount
