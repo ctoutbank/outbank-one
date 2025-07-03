@@ -642,6 +642,7 @@ export async function insertMerchant(
       idAddress: merchant.idAddress,
       idLegalNature: merchant.idLegalNature,
       slugLegalNature: merchant.slugLegalNature,
+      idMerchantBankAccount: merchant.idMerchantBankAccount,
     })
     .returning({ id: merchants.id });
 

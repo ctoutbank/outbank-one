@@ -101,40 +101,6 @@ function formatTimeString(timeString: string | undefined | null): string {
   return "09:00";
 }
 
-// Função para validar e converter datas com segurança
-function safeParseDate(dateString: string | undefined | null): string | null {
-  if (!dateString) return null;
-
-  try {
-    // Verificar se a data parece estar em um formato válido
-    if (
-      dateString.includes("+045757") ||
-      dateString.length > 30 ||
-      !dateString.match(/^\d{4}[-/]?\d{1,2}[-/]?\d{1,2}/) ||
-      new Date(dateString).toString() === "Invalid Date"
-    ) {
-      console.warn(`Data inválida detectada: ${dateString}, usando null`);
-      return null;
-    }
-
-    // Converter para ISO string, mas remover a parte do timezone se estiver problemática
-    const date = new Date(dateString);
-    const isoString = date.toISOString();
-
-    // Verificar se o resultado é razoável (não muito no passado ou futuro)
-    const year = date.getFullYear();
-    if (year < 1900 || year > 2100) {
-      console.warn(`Ano fora do intervalo razoável: ${year}, usando null`);
-      return null;
-    }
-
-    return isoString;
-  } catch (error) {
-    console.error(`Erro ao processar data "${dateString}":`, error);
-    return null;
-  }
-}
-
 // Função para converter data do formato DD/MM/YYYY para YYYY-MM-DD
 function formatBrazilianDateToISO(
   dateString: string | undefined | null
@@ -589,17 +555,17 @@ async function createMerchant(merchantData: ImportData): Promise<{
     );
     console.log(`[createMerchant] Data de abertura formatada: ${openingDate}`);
 
-    // Formatar a data de nascimento
-    let birthDateFormatted = null;
+    // Formatar a data de nascimento do responsável (será usada no merchant se for PF)
+    let responsibleBirthDateFormatted = null;
     if (merchantData.responsible.birthDate) {
-      birthDateFormatted = formatBrazilianDateToISO(
+      responsibleBirthDateFormatted = formatBrazilianDateToISO(
         merchantData.responsible.birthDate
       );
       console.log(
         `[createMerchant] Data de nascimento original: ${merchantData.responsible.birthDate}`
       );
       console.log(
-        `[createMerchant] Data de nascimento formatada: ${birthDateFormatted}`
+        `[createMerchant] Data de nascimento formatada: ${responsibleBirthDateFormatted}`
       );
     }
 
@@ -687,7 +653,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
       email: merchantData.contact.email,
       areaCode: merchantData.contact.areaCode,
       number: merchantData.contact.phoneNumber,
-      birthDate: birthDateFormatted ? birthDateFormatted.toString() : null,
+      birthDate: responsibleBirthDateFormatted || null,
       phoneType,
       language: "pt-BR",
       timezone: "-0300",
@@ -699,7 +665,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
         ?.includes("f")
         ? "PF"
         : "PJ",
-      openingDate: openingDate ? new Date(openingDate) : null,
+      openingDate: openingDate || null,
       inclusion: "",
       openingDays: processBusinessDays(merchantData.establishment.businessDays),
       ...processBusinessHours(merchantData.establishment.businessHours),
@@ -830,9 +796,9 @@ async function createMerchant(merchantData: ImportData): Promise<{
           }
 
           // Formatar a data de nascimento
-          let birthDate = null;
+          let contactBirthDate = null;
           if (merchantData.responsible.birthDate) {
-            birthDate = formatBrazilianDateToISO(
+            contactBirthDate = formatBrazilianDateToISO(
               merchantData.responsible.birthDate
             );
           }
@@ -885,7 +851,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
               merchantData.contact.phoneNumber ||
               "",
             phoneType: responsiblePhoneType,
-            birthDate: birthDate ? new Date(birthDate) : null,
+            birthDate: contactBirthDate ? new Date(contactBirthDate) : null,
             mothersName: merchantData.responsible.motherName || "",
             isPartnerContact: true, // Define como sócio por padrão
             isPep: merchantData.responsible.pep || true,
@@ -901,7 +867,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
           // Garantir que os tipos de dados estejam corretos
           const formattedContactData = {
             ...contactData,
-            birthDate: birthDate ? new Date(birthDate) : null,
+            birthDate: contactBirthDate ? new Date(contactBirthDate) : null,
             isPep: Boolean(contactData.isPep),
             isPartnerContact: Boolean(contactData.isPartnerContact),
             idMerchant: Number(contactData.idMerchant),
@@ -915,9 +881,8 @@ async function createMerchant(merchantData: ImportData): Promise<{
             // Inserir o contato formatado na tabela
             await db.insert(contacts).values({
               ...formattedContactData,
-              birthDate: formattedContactData.birthDate?.toISOString() || null,
-              icDateIssuance:
-                formattedContactData.icDateIssuance?.toISOString() || null,
+              birthDate: contactBirthDate || null,
+              icDateIssuance: icDateIssuance || null,
             });
 
             // Verificar se o contato foi inserido corretamente
@@ -1030,25 +995,6 @@ async function createMerchant(merchantData: ImportData): Promise<{
       }
     }
 
-    // Passo 5: Atualizar a conta bancária com o ID do merchant se necessário
-    if (bankAccountId) {
-      try {
-        await db
-          .update(merchantBankAccounts)
-          .set({ idMerchant: merchantId })
-          .where(eq(merchantBankAccounts.id, bankAccountId));
-
-        console.log(
-          `[createMerchant] Conta bancária ${bankAccountId} atualizada com o ID do merchant ${merchantId}`
-        );
-      } catch (errorBankUpdate) {
-        console.error(
-          `[createMerchant] Erro ao atualizar conta bancária com ID do merchant:`,
-          errorBankUpdate
-        );
-      }
-    }
-
     // Passo 6: Clonar tabela de taxas automaticamente se foi fornecido um código de taxa
     if (merchantData.tax?.tableCode) {
       try {
@@ -1056,7 +1002,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
           `[createMerchant] Iniciando processo de atribuição de taxa para merchant ${merchantId}`
         );
 
-        // DEBUG: Verificar código da tabela de taxas
+        // DEBUG: Verificar código da tabela de taxasInsertMerchant1
         console.log(
           `[createMerchant] Código da tabela fornecido: "${merchantData.tax.tableCode}"`
         );
