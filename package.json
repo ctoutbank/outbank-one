@@ -42,6 +42,7 @@
     "@radix-ui/react-tooltip": "^1.2.0",
     "@tanstack/react-table": "^8.20.6",
     "@types/pdfkit": "^0.13.9",
+    "axios": "^1.10.0",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -804,3 +804,5 @@ export async function getMerchantsWithDDD(): Promise<
     })
     .from(merchants);
 }
+
+

@@ -6,7 +6,6 @@ import {useEffect, useRef, useState} from "react";
 import { TerminalsFilterButton } from "./terminals-filter-button";
 
 type TerminalsFilterProps = {
-  dateFromIn?: string;
   dateToIn?: string;
   numeroLogicoIn?: string;
   numeroSerialIn?: string;
@@ -47,8 +46,7 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
 
 
   const handleFilter = (filters: {
-    dateFrom?: Date;
-    dateTo?: Date;
+    dateTo?: string;
     numeroLogico: string;
     numeroSerial: string;
     estabelecimento: string;
@@ -56,14 +54,9 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
     status: string;
     provedor: string;
   }) => {
-    console.log(filters.dateFrom, filters.dateTo)
-    if (filters.dateFrom) {
-      params.set("dateFrom", filters.dateFrom.toISOString());
-    } else {
-      params.delete("dateFrom");
-    }
+  
     if (filters.dateTo) {
-      params.set("dateTo", filters.dateTo.toISOString());
+      params.set("dateTo", filters.dateTo);
     } else {
       params.delete("dateTo");
     }
@@ -116,7 +109,6 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
   };
 
   const activeFiltersCount =
-    (props.dateFromIn ? 1 : 0) +
     (props.dateToIn ? 1 : 0) +
     (props.numeroLogicoIn ? 1 : 0) +
     (props.numeroSerialIn ? 1 : 0) +
@@ -134,7 +126,6 @@ export function TerminalsFilter(props: TerminalsFilterProps) {
       onVisibilityChange={setIsFiltersVisible}
     >
       <TerminalsFilterContent
-        dateFromIn={props.dateFromIn ? new Date(props.dateFromIn) : undefined}
         dateToIn={props.dateToIn ? new Date(props.dateToIn) : undefined}
         numeroLogicoIn={props.numeroLogicoIn}
         numeroSerialIn={props.numeroSerialIn}

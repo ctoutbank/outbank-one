@@ -48,7 +48,7 @@ export default async function MerchantsPage({
   await checkPagePermission("Estabelecimentos");
 
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
+  const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
 
   const userAccess = await getUserMerchantsAccess();
@@ -179,7 +179,6 @@ export default async function MerchantsPage({
       <BaseBody
         title="Estabelecimentos"
         subtitle={`Visualização de Todos os Estabelecimentos`}
-        // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-2 justify-between mb-1">

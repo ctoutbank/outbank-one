@@ -32,14 +32,14 @@ export function CategoriesDashboardContent({
                     <div className="flex items-center gap-2 mb-3">
                       <Tags className="h-4 w-4 text-muted-foreground" />
                       <span className="text-base font-medium">
-                        Total de Categorias
+                        Total de CNAEs
                       </span>
                     </div>
                     <div className="text-2xl font-bold text-zinc-900">
                       {totalCategories}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Total de Categorias
+                      Total de CNAEs
                     </div>
                   </div>
 
@@ -49,7 +49,7 @@ export function CategoriesDashboardContent({
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <div className="h-2 w-2 rounded-full bg-emerald-500" />
                         <span className="text-xs font-medium text-zinc-600">
-                          Ativas
+                          Ativos
                         </span>
                       </div>
                       <div className="text-sm font-semibold text-zinc-900">
@@ -61,7 +61,7 @@ export function CategoriesDashboardContent({
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <div className="h-2 w-2 rounded-full bg-red-500" />
                         <span className="text-xs font-medium text-zinc-600">
-                          Inativas
+                          Inativos
                         </span>
                       </div>
                       <div className="text-sm font-semibold text-zinc-900">

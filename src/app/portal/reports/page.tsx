@@ -30,7 +30,7 @@ export default async function ReportsPage({
   searchParams: ReportsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
+  const pageSize = parseInt(searchParams.pageSize || "10");
 
   const reports = await getReports(
     searchParams.search || "",

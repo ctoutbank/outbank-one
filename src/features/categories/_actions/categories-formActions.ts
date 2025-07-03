@@ -1,5 +1,6 @@
-import { toast } from "@/components/use-toast";
-import { CategoriesSchema } from "../schema/schema";
+"use server";
+
+import { generateSlug } from "@/lib/utils";
 import {
   CategoryDetail,
   CategoryInsert,
@@ -7,36 +8,32 @@ import {
   updateCategory,
 } from "../server/category";
 
-export async function insertCategoryFormAction(data: CategoriesSchema) {
-  const categoryInsert: CategoryInsert = {
-    slug: data.slug || "",
-    name: data.name || "",
-    active: data.active ?? true,
-    dtinsert: (data.dtinsert || new Date()).toISOString(),
-    dtupdate: (data.dtupdate || new Date()).toISOString(),
-    mcc: data.mcc || "",
-    cnae: data.cnae || "",
-    anticipationRiskFactorCp: Number(data.anticipation_risk_factor_cp) ?? 0,
-    anticipationRiskFactorCnp: Number(data.anticipation_risk_factor_cnp) ?? 0,
-    waitingPeriodCp: Number(data.waiting_period_cp) ?? 0,
-    waitingPeriodCnp: Number(data.waiting_period_cnp) ?? 0,
-    idSolicitationFee: data.idSolicitationFee
-      ? Number(data.idSolicitationFee)
-      : undefined,
-  };
+export async function insertCategoryFormAction(data: CategoryInsert) {
+  try {
+    console.log("data", data);
+    const categoryInsert: CategoryInsert = {
+      slug: generateSlug(),
+      name: data.name || "",
+      active: data.active ?? true,
+      dtinsert: new Date().toISOString(),
+      dtupdate: new Date().toISOString(),
+      mcc: data.mcc || "",
+      cnae: data.cnae || "",
+      anticipationRiskFactorCp: data.anticipationRiskFactorCp ?? 0,
+      anticipationRiskFactorCnp: data.anticipationRiskFactorCnp ?? 0,
+      waitingPeriodCp: data.waitingPeriodCp ?? 0,
+      waitingPeriodCnp: data.waitingPeriodCnp ?? 0,
+    };
 
-  const newId = await insertCategory(categoryInsert);
-  toast({
-    title: "sucesso",
-    description: "Categoria cadastrada com sucesso",
-
-    variant: "destructive",
-  });
-
-  return newId;
+    const newId = await insertCategory(categoryInsert);
+    return newId;
+  } catch (error) {
+    console.log("Ocorreu um erro ao cadastrar a categoria", error);
+    return null;
+  }
 }
 
-export async function updateCategoryFormAction(data: CategoriesSchema) {
+export async function updateCategoryFormAction(data: CategoryDetail) {
   if (!data.id) {
     throw new Error("Category ID is required to update");
   }
@@ -44,23 +41,16 @@ export async function updateCategoryFormAction(data: CategoriesSchema) {
     id: data.id,
     name: data.name || "",
     active: data.active ?? true,
-    dtinsert: (data.dtinsert || new Date()).toISOString(),
-    dtupdate: (data.dtupdate || new Date()).toISOString(),
-    anticipationRiskFactorCp: Number(data.anticipation_risk_factor_cp),
-    anticipationRiskFactorCnp: Number(data.anticipation_risk_factor_cnp),
-    waitingPeriodCp: Number(data.waiting_period_cp),
-    waitingPeriodCnp: Number(data.waiting_period_cnp),
+    dtupdate: new Date().toISOString(),
+    dtinsert: data.dtinsert || new Date().toISOString(),
+    anticipationRiskFactorCp: Number(data.anticipationRiskFactorCp),
+    anticipationRiskFactorCnp: Number(data.anticipationRiskFactorCnp),
+    waitingPeriodCp: Number(data.waitingPeriodCp),
+    waitingPeriodCnp: Number(data.waitingPeriodCnp),
     mcc: data.mcc || "",
     cnae: data.cnae || "",
     slug: data.slug || "",
-    idSolicitationFee: data.idSolicitationFee
-      ? Number(data.idSolicitationFee)
-      : null,
+    idSolicitationFee: data.idSolicitationFee || null,
   };
   await updateCategory(categoryUpdate);
-  toast({
-    title: "Success",
-    description: "Category updated successfully",
-    variant: "destructive",
-  });
 }
