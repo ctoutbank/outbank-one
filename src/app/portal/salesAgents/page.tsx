@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -7,7 +8,7 @@ import { SalesAgentDashboardContent } from "@/features/salesAgents/_components/s
 import { SalesAgentsFilter } from "@/features/salesAgents/_components/salesAgents-filter";
 import { getSalesAgents } from "@/features/salesAgents/server/salesAgent";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
 
@@ -111,7 +112,15 @@ export default async function SalesAgentsPage({
             </div>
           </div>
 
-          <SalesAgentlist SalesAgents={salesAgents} />
+          {salesAgents?.salesAgents.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <SalesAgentlist SalesAgents={salesAgents} />
+          )}
 
           {totalRecords && totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

@@ -1,6 +1,7 @@
 "use server";
 
 import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import { eq, inArray, sql } from "drizzle-orm";
 import {
@@ -12,6 +13,12 @@ import {
 
 export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
   try {
+    const userAccess = await getUserMerchantsAccess();
+
+    // If user has no access and no full access, return empty result
+    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return null;
+    }
     return await getFeeById(id);
   } catch (error) {
     console.error(`Erro ao buscar taxa com ID ${id}:`, error);
@@ -21,6 +28,12 @@ export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
 
 export async function getFeesAction(page = 1, pageSize = 10) {
   try {
+    const userAccess = await getUserMerchantsAccess();
+
+    // If user has no access and no full access, return empty result
+    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return null;
+    }
     return await getFees(page, pageSize);
   } catch (error) {
     console.error("Erro ao buscar taxas:", error);
@@ -223,6 +236,17 @@ export async function getFees(
   pageSize: number;
 }> {
   try {
+    const userAccess = await getUserMerchantsAccess();
+
+    // If user has no access and no full access, return empty result
+    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return {
+        fees: [],
+        totalRecords: 0,
+        currentPage: page,
+        pageSize,
+      };
+    }
     const offset = (page - 1) * pageSize;
 
     // 1. Contar total de registros
@@ -277,7 +301,12 @@ export async function getFees(
 // Função para buscar uma taxa específica pelo ID
 export async function getFeeById(id: string): Promise<FeeData | null> {
   try {
-    // Se for ID 0, retorna um objeto padrão para nova taxa
+    const userAccess = await getUserMerchantsAccess();
+
+    // If user has no access and no full access, return empty result
+    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return createEmptyFee();
+    }
     if (id === "0") {
       return createEmptyFee();
     }
@@ -651,6 +680,7 @@ export interface FeeCredit {
 export async function getFeeCreditsByFeeBrandProductTypeIds(
   ids: number[]
 ): Promise<FeeCredit[]> {
+
   if (!ids.length) return [];
   const { feeCredit } = await import("../../../../drizzle/schema");
   const { inArray } = await import("drizzle-orm");

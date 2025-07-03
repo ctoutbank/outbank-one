@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import MerchantAgendaReceipts from "@/features/merchantAgenda/_components/merchantAgendaReceipts";
@@ -7,6 +8,7 @@ import {
   getMerchantAgendaReceipts,
 } from "@/features/merchantAgenda/server/merchantAgenda";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -59,10 +61,18 @@ export default async function ReceiptsPage({
         subtitle={`Visualização dos Recebimentos`}
         //actions={<SyncButton syncType="payout" />}
       >
-        <MerchantAgendaReceipts
-          monthlyData={dailyAmounts}
-          dailyData={dailyData}
-        ></MerchantAgendaReceipts>
+        {dailyAmounts.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="Nenhum resultado encontrado"
+            description=""
+          />
+        ) : (
+          <MerchantAgendaReceipts
+            monthlyData={dailyAmounts}
+            dailyData={dailyData}
+          />
+        )}
       </BaseBody>
     </>
   );

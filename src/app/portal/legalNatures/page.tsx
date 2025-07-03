@@ -2,6 +2,7 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
 
+import { EmptyState } from "@/components/empty-state";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
 import { LegalNatureDashboardContent } from "@/features/legalNature/_components/legalNature-dashboard-content";
@@ -9,7 +10,7 @@ import { LegalNatureFilter } from "@/features/legalNature/_components/legalNatur
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
 import { getLegalNatures } from "@/features/legalNature/server/legalNature-db";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 0;
@@ -86,7 +87,15 @@ export default async function LegalNaturesPage({
               />
             </div>
           </div>
-          <LegalNaturelist LegalNatures={legalNatures} />
+          {legalNatures.legalNatures.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado encontrado"
+              description=""
+            />
+          ) : (
+            <LegalNaturelist LegalNatures={legalNatures} />
+          )}
 
           {totalRecords > 0 && (
             <div className="flex items-center justify-between mt-4">

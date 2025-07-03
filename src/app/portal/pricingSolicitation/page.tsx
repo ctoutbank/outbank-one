@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
@@ -6,6 +7,7 @@ import { PricingSolicitationFilter } from "@/features/pricingSolicitation/_compo
 import PricingSolicitationList from "@/features/pricingSolicitation/_components/pricing-solicitation-list";
 import { getPricingSolicitations } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
+import { Search } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -38,6 +40,41 @@ export default async function PricingSolicitationPage({
 
   const totalRecords = pricingSolicitations?.totalCount || 0;
 
+  if (
+    !pricingSolicitations ||
+    pricingSolicitations.pricingSolicitations.length === 0
+  ) {
+    return (
+      <>
+        <BaseHeader
+          breadcrumbItems={[
+            {
+              title: "Solicitação de Taxas",
+              url: "/portal/pricingSolicitation",
+            },
+          ]}
+        />
+        <BaseBody
+          title="Solicitação de Taxa"
+          subtitle={`Visualização de Todas as Solicitações de Taxas`}
+        >
+          <div className="mb-4">
+            <PricingSolicitationFilter
+              cnae={cnae}
+              status={status}
+              permissions={permissions}
+            />
+          </div>
+          <EmptyState
+            icon={Search}
+            title="Nenhum resultado encontrado"
+            description=""
+          />
+        </BaseBody>
+      </>
+    );
+  }
+
   return (
     <>
       <BaseHeader
@@ -57,9 +94,7 @@ export default async function PricingSolicitationPage({
             permissions={permissions}
           />
         </div>
-        {pricingSolicitations && (
-          <PricingSolicitationList solicitations={pricingSolicitations} />
-        )}
+        <PricingSolicitationList solicitations={pricingSolicitations} />
         {totalRecords > 0 && (
           <div className="flex items-center justify-between mt-4">
             <PageSizeSelector

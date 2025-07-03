@@ -2,7 +2,11 @@
 
 import { hashPassword } from "@/app/utils/password";
 import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
-import { DD, generateRandomPassword } from "@/features/users/server/users";
+import {
+  DD,
+  generateRandomPassword,
+  getUserMerchantsAccess,
+} from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { clerkClient } from "@clerk/nextjs/server";
 import { and, count, desc, eq, gte, like, lte, max, or } from "drizzle-orm";
@@ -81,6 +85,15 @@ export async function getSalesAgents(
   email?: string
 ): Promise<SalesAgentsList | undefined> {
   try {
+    // Get user's merchant access
+    const userAccess = await getUserMerchantsAccess();
+    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      return {
+        salesAgents: [],
+        totalCount: 0,
+      };
+    }
+
     const offset = (page - 1) * pageSize;
 
     const conditions = [
@@ -106,6 +119,9 @@ export async function getSalesAgents(
     if (dateTo) {
       conditions.push(lte(salesAgents.dtinsert, dateTo));
     }
+
+    // Adicionar filtro de merchants se não tiver fullAccess
+
 
     const result = await db
       .select()
@@ -302,6 +318,12 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
 export async function getSalesAgentById(
   id: number
 ): Promise<SalesAgentDetail | null> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return null;
+  }
+
   const result = await db
     .select({
       id: salesAgents.id,

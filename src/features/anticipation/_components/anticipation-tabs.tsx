@@ -43,6 +43,7 @@ export function AnticipationTabs({
   endDate,
   expectedSettlementStartDate,
   expectedSettlementEndDate,
+  
 }: AnticipationTabsProps) {
   const [activeTab, setActiveTab] = useState("compulsory");
 

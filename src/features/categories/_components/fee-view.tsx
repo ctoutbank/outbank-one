@@ -60,7 +60,6 @@ function normalizeString(str: string | undefined | null): string {
 }
 
 export function FeeView({ feeDetail }: FeeViewProps) {
-  console.log("detalhe aqui fee ",feeDetail);
   const form = useForm();
 
   // Map brands for display
@@ -118,7 +117,6 @@ export function FeeView({ feeDetail }: FeeViewProps) {
 
   // FeeDetail fields
   const {
-
     eventualAnticipationFee,
 
     nonCardEventualAnticipationFee,
@@ -129,7 +127,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
     nonCardPixCeilingFee,
     nonCardPixMinimumCostFee,
   } = feeDetail;
-  console.log(feeDetail);
+  console.log("feeDetail", feeDetail);
   return (
     <div className="w-full min-h-screen box-border relative overflow-x-hidden">
       <Form {...form}>
@@ -150,7 +148,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                       <TableHead
                         key="brand"
                         className="sticky left-0 z-20 bg-white w-20"
-                        style={{ width: "20%", minWidth: "100 px" }}
+                        style={{ width: "2%", minWidth: "30px" }}
                       >
                         Bandeiras
                       </TableHead>
@@ -158,7 +156,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                         <TableHead
                           key={`${type.value}-cardTransactionFee-${index}`}
                           className="text-center"
-                          style={{ width: "9%", minWidth: "50px" }}
+                          style={{ width: "3%", minWidth: "30px" }}
                         >
                           {type.label}
                         </TableHead>
@@ -170,7 +168,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                       <TableRow key={item.brand.value}>
                         <TableCell
                           className="font-medium sticky left-0 z-20 bg-white"
-                          style={{ minWidth: "120px" }}
+                          style={{ minWidth: "30px" }}
                         >
                           <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                             {getCardImage(item.brand.value) && (
@@ -222,7 +220,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                     <TableRow>
                       <TableHead
                         className="sticky left-0 z-20 bg-white w-20"
-                        style={{ width: "20%", minWidth: "100px" }}
+                        style={{ width: "2%", minWidth: "30px" }}
                       >
                         Bandeiras
                       </TableHead>
@@ -230,7 +228,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                         <TableHead
                           key={`${type.value}-nonCardTransactionFee-${index}`}
                           className="text-center"
-                          style={{ width: "9%" }}
+                          style={{ width: "3%", minWidth: "30px" }}
                         >
                           {type.label}
                         </TableHead>
@@ -242,7 +240,7 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                       <TableRow key={item.brand.value}>
                         <TableCell
                           className="font-medium sticky left-0 z-20 bg-white"
-                          style={{ minWidth: "120px" }}
+                          style={{ minWidth: "30px" }}
                         >
                           <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                             {getCardImage(item.brand.value) && (

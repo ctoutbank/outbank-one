@@ -3,12 +3,14 @@ import BaseBody from "@/components/layout/base-body";
 import FeeList from "@/features/newTax/_components/new-tax-list";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { getFeesAction } from "@/features/newTax/server/fee-db"
+import { EmptyState } from "@/components/empty-state";
+import { Search } from "lucide-react";
 
 export default async function NewTaxPage({ searchParams }: { searchParams: { page?: string; pageSize?: string } }) {
     const page = parseInt(searchParams.page || "1");
     const pageSize = parseInt(searchParams.pageSize || "20");
 
-    const { fees, totalRecords, currentPage, pageSize: returnedPageSize } = await getFeesAction(page, pageSize);
+    const { fees, totalRecords, currentPage, pageSize: returnedPageSize } = await getFeesAction(page, pageSize) || { fees: [], totalRecords: 0, currentPage: 1, pageSize: 20 };
 
     return (
         <>
@@ -21,7 +23,16 @@ export default async function NewTaxPage({ searchParams }: { searchParams: { pag
                 title="Cadastro de Taxas de Cobrança"
                 subtitle="Taxas de cobrança que serão aplicadas nas transações"
             >
-                <FeeList fees={fees} />
+                {fees.length === 0 && (
+                    <EmptyState
+                        icon={Search}
+                        title="Nenhuma taxa encontrada"
+                        description="Nenhuma taxa encontrada"
+                    />
+                )}
+                {fees.length > 0 && (
+                    <FeeList fees={fees} />
+                )}
 
                 {totalRecords > 0 && (
                     <div className="mt-2">

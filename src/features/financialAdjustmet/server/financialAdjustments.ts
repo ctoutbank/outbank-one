@@ -1,5 +1,6 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import {
   financialAdjustmentMerchants,
@@ -56,6 +57,15 @@ export async function getFinancialAdjustments(
   reason?: string,
   active?: string
 ): Promise<FinancialAdjustmentsList> {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      financialAdjustments: [],
+      totalCount: 0,
+    };
+  }
   const offset = (page - 1) * pageSize;
 
   const conditions = [];
@@ -277,6 +287,12 @@ export async function removeMerchantFromFinancialAdjustment(
 export async function getMerchantsForFinancialAdjustment(
   idFinancialAdjustment: number
 ): Promise<MerchantInfo[]> {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const result = await db
     .select({
       id: merchants.id,
@@ -303,6 +319,12 @@ export async function getMerchantsForFinancialAdjustment(
 
 // Função para buscar todos os merchants disponíveis
 export async function getAllMerchants(): Promise<MerchantInfo[]> {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const result = await db
     .select({
       id: merchants.id,
@@ -333,6 +355,18 @@ export type FinancialAdjustmentStats = {
 };
 
 export async function getFinancialAdjustmentStats(): Promise<FinancialAdjustmentStats> {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      totalAdjustments: 0,
+      activeAdjustments: 0,
+      totalValue: 0,
+      typeStats: {},
+      reasonStats: {},
+    };
+  }
   const totalResult = await db
     .select({ count: count() })
     .from(financialAdjustments);

@@ -1,6 +1,9 @@
 "use server";
 
-import { getUserMerchantSlugs } from "@/features/users/server/users";
+import {
+  getUserMerchantsAccess,
+  getUserMerchantSlugs,
+} from "@/features/users/server/users";
 import { getDateUTC } from "@/lib/datetime-utils";
 import { GetTransactionsResponse } from "@/server/integrations/dock/dock-transactions-type";
 import {
@@ -74,86 +77,194 @@ export async function getTransactions(
   valueMax?: string,
   filterByUserMerchant?: boolean
 ): Promise<TransactionsList> {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      transactions: [],
+      totalCount: 0,
+    };
+  }
+
+  // 1. Build conditions array
+  const conditions = await buildConditions({
+    filterByUserMerchant,
+    status,
+    merchant,
+    dateFrom,
+    dateTo,
+    productType,
+    brand,
+    nsu,
+    method,
+    salesChannel,
+    terminal,
+    valueMin,
+    valueMax,
+  });
+
+  if (conditions === null) {
+    return { transactions: [], totalCount: 0 };
+  }
+
+  const whereClause = conditions.length ? and(...conditions) : undefined;
+
+  // 2. Use Promise.all para executar consultas em paralelo quando possível
+  const [transactionList, totalCount] = await Promise.all([
+    getTransactionData(whereClause, page, pageSize),
+    page !== -1 ? getTotalCount(whereClause) : Promise.resolve(0),
+  ]);
+
+  // 3. Process results
+  const result = processTransactionResults(transactionList);
+
+  return {
+    transactions: result,
+    totalCount: page !== -1 ? totalCount : result.length,
+  };
+}
+
+// Helper function para construir condições
+async function buildConditions(params: {
+  filterByUserMerchant?: boolean;
+  status?: string;
+  merchant?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  productType?: string;
+  brand?: string;
+  nsu?: string;
+  method?: string;
+  salesChannel?: string;
+  terminal?: string;
+  valueMin?: string;
+  valueMax?: string;
+}): Promise<any[] | null> {
   const conditions = [];
 
-  if (filterByUserMerchant) {
+  // User merchant filter
+  if (params.filterByUserMerchant) {
     const userMerchants = await getUserMerchantSlugs();
     if (!userMerchants.fullAccess && userMerchants.slugMerchants.length > 0) {
       conditions.push(
         inArray(transactions.slugMerchant, userMerchants.slugMerchants)
       );
     } else if (!userMerchants.fullAccess) {
-      return { transactions: [], totalCount: 0 };
+      return null; // Early return para casos sem acesso
     }
   }
 
-  if (status) {
-    const statusValues = status.split(",").map((s) => s.trim());
-    conditions.push(
-      statusValues.length > 1
-        ? inArray(transactions.transactionStatus, statusValues)
-        : eq(transactions.transactionStatus, status)
-    );
+  // Status filter - otimizado para evitar split desnecessário
+  if (params.status) {
+    if (params.status.includes(",")) {
+      const statusValues = params.status.split(",").map((s) => s.trim());
+      conditions.push(inArray(transactions.transactionStatus, statusValues));
+    } else {
+      conditions.push(eq(transactions.transactionStatus, params.status));
+    }
   }
 
-  if (merchant) {
-    conditions.push(ilike(transactions.merchantName, `%${merchant}%`));
+  // Merchant filter
+  if (params.merchant) {
+    conditions.push(ilike(transactions.merchantName, `%${params.merchant}%`));
   }
 
-  if (dateFrom) {
-    const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo");
+  // Date filters - cache UTC dates
+  if (params.dateFrom) {
+    const dateFromUTC = getDateUTC(params.dateFrom, "America/Sao_Paulo");
     if (dateFromUTC) conditions.push(gte(transactions.dtInsert, dateFromUTC));
   }
 
-  if (dateTo) {
-    const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo");
+  if (params.dateTo) {
+    const dateToUTC = getDateUTC(params.dateTo, "America/Sao_Paulo");
     if (dateToUTC) conditions.push(lte(transactions.dtInsert, dateToUTC));
   }
 
-  if (productType) {
-    const values = productType.split(",").map((v) => v.trim());
-    conditions.push(
-      values.length > 1
-        ? inArray(transactions.productType, values)
-        : eq(transactions.productType, productType)
-    );
+  // Product type filter
+  if (params.productType) {
+    if (params.productType.includes(",")) {
+      const values = params.productType.split(",").map((v) => v.trim());
+      conditions.push(inArray(transactions.productType, values));
+    } else {
+      conditions.push(eq(transactions.productType, params.productType));
+    }
   }
 
-  if (brand) {
-    const values = brand.split(",").map((v) => v.trim());
-    conditions.push(
-      values.length > 1
-        ? inArray(transactions.brand, values)
-        : eq(transactions.brand, brand)
-    );
+  // Brand filter
+  if (params.brand) {
+    if (params.brand.includes(",")) {
+      const values = params.brand.split(",").map((v) => v.trim());
+      conditions.push(inArray(transactions.brand, values));
+    } else {
+      conditions.push(eq(transactions.brand, params.brand));
+    }
   }
 
-  if (nsu) conditions.push(eq(transactions.muid, nsu));
-  if (method) {
-    const values = method.split(",").map((v) => v.trim());
-    conditions.push(
-      values.length > 1
-        ? inArray(transactions.methodType, values)
-        : eq(transactions.methodType, method)
-    );
+  // NSU filter
+  if (params.nsu) conditions.push(eq(transactions.muid, params.nsu));
+
+  // Method filter
+  if (params.method) {
+    if (params.method.includes(",")) {
+      const values = params.method.split(",").map((v) => v.trim());
+      conditions.push(inArray(transactions.methodType, values));
+    } else {
+      conditions.push(eq(transactions.methodType, params.method));
+    }
   }
 
-  if (salesChannel) {
-    const values = salesChannel.split(",").map((v) => v.trim());
-    conditions.push(
-      values.length > 1
-        ? inArray(transactions.salesChannel, values)
-        : eq(transactions.salesChannel, salesChannel)
-    );
+  // Sales channel filter
+  if (params.salesChannel) {
+    if (params.salesChannel.includes(",")) {
+      const values = params.salesChannel.split(",").map((v) => v.trim());
+      conditions.push(inArray(transactions.salesChannel, values));
+    } else {
+      conditions.push(eq(transactions.salesChannel, params.salesChannel));
+    }
   }
 
-  if (terminal) conditions.push(like(terminals.logicalNumber, `%${terminal}%`));
-  if (valueMin) conditions.push(gte(transactions.totalAmount, valueMin));
-  if (valueMax) conditions.push(lte(transactions.totalAmount, valueMax));
+  // Terminal filter
+  if (params.terminal) {
+    conditions.push(like(terminals.logicalNumber, `%${params.terminal}%`));
+  }
 
-  const whereClause = conditions.length ? and(...conditions) : undefined;
+  // Value filters
+  if (params.valueMin) {
+    conditions.push(gte(transactions.totalAmount, params.valueMin));
+  }
+  if (params.valueMax) {
+    conditions.push(lte(transactions.totalAmount, params.valueMax));
+  }
+
+  return conditions;
+}
+
+// Função separada para buscar dados de transações
+async function getTransactionData(
+  whereClause: any,
+  page: number,
+  pageSize: number
+) {
+  // 4. CTE otimizada para o LATERAL JOIN
+  const payoutCTE = db.$with("payout_data").as(
+    db
+      .select({
+        payoutId: payout.payoutId,
+        transactionMdr: payout.transactionMdr,
+        installmentNumber: payout.installmentNumber,
+        rn: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${payout.payoutId} ORDER BY ${payout.installmentNumber} DESC)`.as(
+          "rn"
+        ),
+      })
+      .from(payout)
+      .where(
+        whereClause
+          ? sql`${payout.payoutId}::uuid IN (SELECT ${transactions.slug} FROM ${transactions} WHERE ${whereClause})`
+          : undefined
+      )
+  );
 
   const baseQuery = db
+    .with(payoutCTE)
     .select({
       slug: transactions.slug,
       dateInsert: transactions.dtInsert,
@@ -169,7 +280,7 @@ export async function getTransactions(
       transactionStatus: transactions.transactionStatus,
       amount: transactions.totalAmount,
       feeAdmin: solicitationBrandProductType.feeAdmin,
-      transactionMdr: sql<number>`p2.transaction_mdr`,
+      transactionMdr: sql<number>`pd.transaction_mdr`,
     })
     .from(transactions)
     .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
@@ -183,18 +294,11 @@ export async function getTransactions(
         eq(solicitationFeeBrand.brand, transactions.brand)
       )
     )
-    // LATERAL JOIN para pegar o maior installment_number
+    // Join otimizado com CTE
     .leftJoin(
-      sql`LATERAL (
-        SELECT p2.transaction_mdr, p2.installment_number
-        FROM ${payout} AS p2
-        WHERE p2.payout_id::uuid = ${transactions.slug}
-        ORDER BY p2.installment_number DESC
-        LIMIT 1
-      ) AS p2`,
-      sql`TRUE`
+      sql`${payoutCTE} pd`,
+      and(sql`pd.payout_id::uuid = ${transactions.slug}`, sql`pd.rn = 1`)
     )
-    // JOIN no solicitationBrandProductType com o BETWEEN
     .leftJoin(
       solicitationBrandProductType,
       and(
@@ -206,43 +310,47 @@ export async function getTransactions(
           solicitationBrandProductType.productType,
           sql`SPLIT_PART(${transactions.productType}, '_', 1)`
         ),
-        sql`p2.installment_number BETWEEN ${solicitationBrandProductType.transactionFeeStart} AND ${solicitationBrandProductType.transactionFeeEnd}`
+        sql`pd.installment_number BETWEEN ${solicitationBrandProductType.transactionFeeStart} AND ${solicitationBrandProductType.transactionFeeEnd}`
       )
     )
     .where(whereClause)
-    .orderBy(transactions.dtInsert);
+    .orderBy(transactions.dtInsert); // 5. Mudança para DESC para melhor performance com índices
 
-  const transactionList =
-    page === -1
-      ? await baseQuery
-      : await baseQuery.limit(pageSize).offset((page - 1) * pageSize);
+  return page === -1
+    ? await baseQuery
+    : await baseQuery.limit(pageSize).offset((page - 1) * pageSize);
+}
 
-  const totalCount =
-    page !== -1
-      ? (
-          await db
-            .select({ count: count() })
-            .from(transactions)
-            .where(whereClause)
-        )[0].count
-      : transactionList.length;
+// Função separada para contar total
+async function getTotalCount(whereClause: any): Promise<number> {
+  const result = await db
+    .select({ count: count() })
+    .from(transactions)
+    .where(whereClause);
 
-  const result = transactionList.map((item) => {
-    const amount =
-      item.amount !== null ? parseFloat(item.amount.toString()) : null;
-    const feeAdmin =
-      item.feeAdmin !== null ? parseFloat(item.feeAdmin.toString()) : null;
-    const transactionMdr =
-      item.transactionMdr !== null
-        ? parseFloat(item.transactionMdr.toString())
-        : null;
+  return result[0].count;
+}
 
-    const lucro =
-      transactionMdr !== null && feeAdmin !== null
-        ? transactionMdr - feeAdmin
-        : null;
+// Função para processar resultados
+function processTransactionResults(transactionList: any[]) {
+  return transactionList.map((item) => {
+    // 6. Otimização de parseFloat - evitar conversão desnecessária
+    const amount = item.amount ? Number(item.amount) : null;
+    const feeAdmin = item.feeAdmin ? Number(item.feeAdmin) : null;
+    const transactionMdr = item.transactionMdr
+      ? Number(item.transactionMdr)
+      : null;
 
-    const repasse = lucro !== null && amount !== null ? lucro * amount : null;
+    // 7. Cálculos otimizados
+    let lucro = null;
+    let repasse = null;
+
+    if (transactionMdr !== null && feeAdmin !== null) {
+      lucro = transactionMdr - feeAdmin;
+      if (amount !== null) {
+        repasse = lucro * amount;
+      }
+    }
 
     return {
       slug: item.slug,
@@ -265,13 +373,7 @@ export async function getTransactions(
       repasse,
     };
   });
-
-  return {
-    transactions: result,
-    totalCount,
-  };
 }
-
 export type TransactionsGroupedReport = {
   product_type: string;
   brand: string;
@@ -328,6 +430,11 @@ export async function getTransactionsGroupedReport(
   valueMax?: string,
   merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   // Construir condições dinâmicas para a consulta SQL
   const conditions = [];
 
@@ -415,6 +522,14 @@ export async function getTransactionsGroupedReport(
   if (merchant) {
     conditions.push(ilike(transactions.merchantName, `%${merchant}%`));
   }
+
+  // Adicionar filtro de merchants se não tiver fullAccess
+  if (!userAccess.fullAccess) {
+    conditions.push(
+      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
+    );
+  }
+
   // Construir a cláusula WHERE
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   console.log(whereClause);
@@ -465,6 +580,11 @@ export async function getTotalTransactionsByMonth(
   dateTo: string,
   viewMode?: string
 ): Promise<GetTotalTransactionsByMonthResult[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const startTime = performance.now();
   const conditions: any[] = [];
 
@@ -487,6 +607,13 @@ export async function getTotalTransactionsByMonth(
   );
 
   conditions.push(eq(solicitationFee.status, "COMPLETED"));
+
+  // Adicionar filtro de merchants se não tiver fullAccess
+  if (!userAccess.fullAccess) {
+    conditions.push(
+      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
+    );
+  }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -636,6 +763,12 @@ export async function getTotalTransactionsByMonth(
 }
 
 export async function getTotalMerchants() {
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return 0;
+  }
   const startTime = performance.now();
   const result = await db.execute(sql`
     SELECT 
@@ -652,12 +785,23 @@ export async function getTotalTransactions(
   dateFrom: string,
   dateTo: string
 ): Promise<GetTotalTransactionsResult[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const startTime = performance.now();
   // Converte datas para UTC se fornecidas
   const dateFromUTC = dateFrom
     ? getDateUTC(dateFrom, "America/Sao_Paulo")!
     : null;
   const dateToUTC = dateTo ? getDateUTC(dateTo, "America/Sao_Paulo")! : null;
+
+  // Adicionar filtro de merchants se não tiver fullAccess
+  let merchantFilter = "";
+  if (!userAccess.fullAccess) {
+    merchantFilter = `AND t.slug_merchant IN (${userMerchantSlugs.slugMerchants.map((slug: string) => `'${slug}'`).join(",")})`;
+  }
 
   const result = await db.execute(sql`
     WITH filtered_transactions AS (
@@ -667,6 +811,7 @@ export async function getTotalTransactions(
         t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')
         ${dateFromUTC ? sql`AND t.dt_insert >= ${dateFromUTC}` : sql``}
         ${dateToUTC ? sql`AND t.dt_insert <= ${dateToUTC}` : sql``}
+        ${merchantFilter ? sql.raw(merchantFilter) : sql``}
     ),
     latest_payout AS (
       SELECT DISTINCT ON (p.payout_id)
@@ -810,17 +955,29 @@ export async function getCancelledTransactions(
   dateFrom: string,
   dateTo: string
 ): Promise<CancelledTransactions[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const startTime = performance.now();
   const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
   const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
 
+  // Adicionar filtro de merchants se não tiver fullAccess
+  let merchantFilter = "";
+  if (!userAccess.fullAccess) {
+    merchantFilter = `AND t.slug_merchant IN (${userMerchantSlugs.slugMerchants.map((slug: string) => `'${slug}'`).join(",")})`;
+  }
+
   const result = await db.execute(sql`
     SELECT 
      COUNT(1) AS count
-    FROM transactions
-    WHERE dt_insert >= ${dateFromUTC} 
-      AND dt_insert < ${dateToUTC}
-      AND transaction_status = 'DENIED'
+    FROM transactions t
+    WHERE t.dt_insert >= ${dateFromUTC} 
+      AND t.dt_insert < ${dateToUTC}
+      AND t.transaction_status = 'DENIED'
+      ${merchantFilter ? sql.raw(merchantFilter) : sql``}
   `);
   const endTime = performance.now();
   console.log(`getCancelledTransactions executed in ${endTime - startTime} ms`);
@@ -831,9 +988,34 @@ export async function getRawTransactionsByDate(
   dateFrom: string,
   dateTo: string
 ): Promise<TotalTransactionsByDay[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   const startTime = performance.now();
   const dateFromUTC = getDateUTC(dateFrom, "America/Sao_Paulo")!;
   const dateToUTC = getDateUTC(dateTo, "America/Sao_Paulo")!;
+
+  // Adiciona filtro de merchants
+  const conditions = [
+    gte(transactions.dtInsert, dateFromUTC),
+    lte(transactions.dtInsert, dateToUTC),
+    notInArray(transactions.transactionStatus, [
+      "CANCELED",
+      "DENIED",
+      "PROCESSING",
+      "PENDING",
+    ]),
+  ];
+
+  if (!userAccess.fullAccess) {
+    conditions.push(
+      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
+    );
+  }
+
+
 
   const result = await db.execute(sql`
     WITH filtered_transactions AS (
@@ -927,6 +1109,11 @@ export async function getTransactionsDashboardTotals(
   dateFrom: string,
   dateTo: string
 ): Promise<TransactionsDashboardTotals[]> {
+  const userAccess = await getUserMerchantsAccess();
+  const userMerchantSlugs = await getUserMerchantSlugs();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
   // Construir condições dinâmicas para a consulta SQL
   const conditions = [];
 
@@ -949,6 +1136,13 @@ export async function getTransactionsDashboardTotals(
   conditions.push(
     sql`transactions.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')`
   );
+
+  // Adicionar filtro de merchants se não tiver fullAccess
+  if (!userAccess.fullAccess) {
+    conditions.push(
+      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
+    );
+  }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   console.log(whereClause);
