@@ -680,7 +680,6 @@ export interface FeeCredit {
 export async function getFeeCreditsByFeeBrandProductTypeIds(
   ids: number[]
 ): Promise<FeeCredit[]> {
-
   if (!ids.length) return [];
   const { feeCredit } = await import("../../../../drizzle/schema");
   const { inArray } = await import("drizzle-orm");
@@ -811,4 +810,12 @@ export async function getFeeAdminByCnaeMccAction(cnae: string, mcc: string) {
     console.error("Erro detalhado:", error);
     return {};
   }
+}
+
+export async function getFeeTableCode(code: string): Promise<number> {
+  const result = await db
+    .select({ id: fee.id })
+    .from(fee)
+    .where(eq(fee.code, code));
+  return result[0].id;
 }

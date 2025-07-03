@@ -1,6 +1,6 @@
 "use server";
 
-import { generateSlug } from "@/lib/utils";
+import { getFeeTableCode } from "@/features/newTax/server/fee-db";
 import { db } from "@/server/db";
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -9,11 +9,18 @@ import {
   categories,
   contacts,
   legalNatures,
-  merchantpixaccount,
+  merchantBankAccounts,
   merchants,
 } from "../../../../drizzle/schema";
+import { createMerchantPriceFromFeeAction } from "../_actions/create-merchant-price-action";
 import { ImportData } from "../_components/merchant-import";
-import { getSlugById, insertAddress, insertMerchant } from "./merchant";
+import {
+  buscarMerchantCompletoRealParaAPI,
+  getSlugById,
+  insertAddress,
+  insertMerchant,
+  InsertMerchant1,
+} from "./merchant";
 
 interface ProcessedResult {
   success: boolean;
@@ -122,6 +129,65 @@ function safeParseDate(dateString: string | undefined | null): string | null {
     }
 
     return isoString;
+  } catch (error) {
+    console.error(`Erro ao processar data "${dateString}":`, error);
+    return null;
+  }
+}
+
+// Função para converter data do formato DD/MM/YYYY para YYYY-MM-DD
+function formatBrazilianDateToISO(
+  dateString: string | undefined | null
+): string | null {
+  if (!dateString) return null;
+
+  try {
+    // Verificar se está no formato DD/MM/YYYY
+    const brazilianDateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = dateString.trim().match(brazilianDateRegex);
+
+    if (!match) {
+      console.warn(
+        `Formato de data inválido: "${dateString}". Esperado DD/MM/YYYY`
+      );
+      return null;
+    }
+
+    const [, day, month, year] = match;
+
+    // Validar se os valores são válidos
+    const dayNum = parseInt(day);
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+
+    if (dayNum < 1 || dayNum > 31) {
+      console.warn(`Dia inválido: ${day}`);
+      return null;
+    }
+
+    if (monthNum < 1 || monthNum > 12) {
+      console.warn(`Mês inválido: ${month}`);
+      return null;
+    }
+
+    if (yearNum < 1900 || yearNum > 2100) {
+      console.warn(`Ano fora do intervalo razoável: ${year}`);
+      return null;
+    }
+
+    // Verificar se a data é válida criando um objeto Date
+    const testDate = new Date(yearNum, monthNum - 1, dayNum);
+    if (
+      testDate.getFullYear() !== yearNum ||
+      testDate.getMonth() !== monthNum - 1 ||
+      testDate.getDate() !== dayNum
+    ) {
+      console.warn(`Data inválida: ${dateString}`);
+      return null;
+    }
+
+    // Retornar no formato YYYY-MM-DD
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   } catch (error) {
     console.error(`Erro ao processar data "${dateString}":`, error);
     return null;
@@ -239,13 +305,13 @@ function processBusinessHours(businessHours: string | undefined | null): {
     parts = businessHours.split("às");
   } else {
     // Se não há separador claro, tente verificar padrões comuns
-    if (businessHours.toLowerCase().includes("manhã")) {
+    if (businessHours.toLowerCase().includes("Manhã")) {
       parts = ["8:00", "12:00"];
-    } else if (businessHours.toLowerCase().includes("tarde")) {
+    } else if (businessHours.toLowerCase().includes("Tarde")) {
       parts = ["13:00", "18:00"];
-    } else if (businessHours.toLowerCase().includes("noite")) {
+    } else if (businessHours.toLowerCase().includes("Noite")) {
       parts = ["18:00", "22:00"];
-    } else if (businessHours.toLowerCase().includes("comercial")) {
+    } else if (businessHours.toLowerCase().includes("Horário Comercial")) {
       parts = ["09:00", "18:00"];
     } else {
       // Se não conseguir identificar, use horário comercial padrão
@@ -350,6 +416,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
         phoneNumber: "",
         phoneType: "",
         motherName: "",
+
         address: {
           street: "",
           number: "",
@@ -509,14 +576,24 @@ async function createMerchant(merchantData: ImportData): Promise<{
       ?.startsWith("P")
       ? "P"
       : merchantData.contact.phoneType?.toUpperCase()?.startsWith("R")
-      ? "R"
-      : "C";
+        ? "R"
+        : "C";
 
     // Formatar a data de abertura
-    let openingDate = null;
-    if (merchantData.establishment.openingDate) {
-      openingDate = safeParseDate(merchantData.establishment.openingDate);
-    }
+    const openingDate = merchantData.establishment.openingDate
+      ? formatBrazilianDateToISO(merchantData.establishment.openingDate)
+      : null;
+
+    // Formatar a data de nascimento
+    const birthDate = merchantData.responsible.birthDate
+      ? {
+          day: merchantData.responsible.birthDate.split("/")[0],
+          month: merchantData.responsible.birthDate.split("/")[1],
+          year: merchantData.responsible.birthDate.split("/")[2],
+        }
+      : null;
+
+    const feeTableCode = await getFeeTableCode(merchantData.tax.tableCode);
 
     // Preparar payload do merchant com todos os campos necessários
     const merchantPayload = {
@@ -531,12 +608,10 @@ async function createMerchant(merchantData: ImportData): Promise<{
       email: merchantData.contact.email,
       areaCode: merchantData.contact.areaCode,
       number: merchantData.contact.phoneNumber,
+      birthDate: birthDate ? birthDate.toString() : null,
       phoneType,
       language: "pt-BR",
-      timezone: (merchantData.operation?.terminalTimezone || "-0300").substring(
-        0,
-        10
-      ),
+      timezone: "-0300",
       slugCustomer: "",
       riskAnalysisStatus: "PENDING",
       riskAnalysisStatusJustification: "",
@@ -545,7 +620,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
         ?.includes("f")
         ? "PF"
         : "PJ",
-      openingDate: openingDate ? openingDate.toString() : null,
+      openingDate: openingDate ? new Date(openingDate) : null,
       inclusion: "",
       openingDays: processBusinessDays(merchantData.establishment.businessDays),
       ...processBusinessHours(merchantData.establishment.businessHours),
@@ -556,6 +631,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
       hasTop: merchantData.operation?.tapOnPhoneEnabled || false,
       establishmentFormat: merchantData.establishment.legalFormat || "",
       revenue: processRevenue(merchantData.establishment.revenue),
+      idMerchantPrice: feeTableCode,
       idCategory: categoryId,
       slugCategory: categorySlug || "",
       idLegalNature: legalNatureId,
@@ -568,7 +644,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
     };
 
     // Usar a função existente para inserir o merchant
-    const merchantId = await insertMerchant(merchantPayload);
+    const merchantId = await insertMerchant(merchantPayload as any);
 
     // Verificar se o merchant foi criado com o endereço correto
     const verifyMerchant = await db
@@ -676,7 +752,17 @@ async function createMerchant(merchantData: ImportData): Promise<{
           // Formatar a data de nascimento
           let birthDate = null;
           if (merchantData.responsible.birthDate) {
-            birthDate = safeParseDate(merchantData.responsible.birthDate);
+            birthDate = formatBrazilianDateToISO(
+              merchantData.responsible.birthDate
+            );
+          }
+
+          // Formatar a data de emissão do documento
+          let icDateIssuance = null;
+          if (merchantData.responsible.idIssueDate) {
+            icDateIssuance = formatBrazilianDateToISO(
+              merchantData.responsible.idIssueDate
+            );
           }
 
           // Formatar o tipo de telefone
@@ -690,14 +776,14 @@ async function createMerchant(merchantData: ImportData): Promise<{
             ?.startsWith("P")
             ? "P"
             : (
-                merchantData.responsible.phoneType ||
-                merchantData.contact.phoneType ||
-                ""
-              )
-                ?.toUpperCase()
-                ?.startsWith("R")
-            ? "R"
-            : "C";
+                  merchantData.responsible.phoneType ||
+                  merchantData.contact.phoneType ||
+                  ""
+                )
+                  ?.toUpperCase()
+                  ?.startsWith("R")
+              ? "R"
+              : "C";
 
           // Criar contato para o responsável
 
@@ -719,17 +805,15 @@ async function createMerchant(merchantData: ImportData): Promise<{
               merchantData.contact.phoneNumber ||
               "",
             phoneType: responsiblePhoneType,
-            birthDate,
+            birthDate: birthDate ? new Date(birthDate) : null,
             mothersName: merchantData.responsible.motherName || "",
             isPartnerContact: true, // Define como sócio por padrão
-            isPep: merchantData.responsible.pep || false,
+            isPep: merchantData.responsible.pep || true,
             idMerchant: merchantId,
             slugMerchant: "",
             idAddress: responsibleAddressId,
             icNumber: merchantData.responsible.idNumber || "",
-            icDateIssuance: merchantData.responsible.idIssueDate
-              ? safeParseDate(merchantData.responsible.idIssueDate)
-              : null,
+            icDateIssuance: icDateIssuance ? new Date(icDateIssuance) : null,
             icDispatcher: merchantData.responsible.issuingAuthority || "",
             icFederativeUnit: merchantData.responsible.idState || "",
           };
@@ -824,33 +908,39 @@ async function createMerchant(merchantData: ImportData): Promise<{
           );
         }
 
-        // Criar conta PIX para o merchant
-        const pixAccountData = {
-          slug: generateSlug(),
+        // Criar conta bancária para o merchant
+        const bankAccountData = {
+          slug: "",
           active: true,
           dtinsert: new Date().toISOString(),
           dtupdate: new Date().toISOString(),
-          bankNumber: bankNumber,
+          corporateName: merchantData.establishment.corporateName,
+          legalPerson: merchantData.establishment.establishmentType
+            ?.toLowerCase()
+            ?.includes("f")
+            ? "PF"
+            : "PJ",
+          documentId: merchantData.establishment.taxId.replace(/[^0-9]/g, ""),
           bankBranchNumber: merchantData.bankData.agency || "",
-          bankBranchDigit: merchantData.bankData.agencyDigit || "",
-          bankAccountNumber: merchantData.bankData.account || "",
-          bankAccountDigit: merchantData.bankData.accountDigit || "",
-          bankAccountType: merchantData.bankData.accountType || "CHECKING", // Padrão para conta corrente
-          bankName: bankName,
+          bankBranchCheckDigit: merchantData.bankData.agencyDigit || "",
+          accountNumber: merchantData.bankData.account || "",
+          accountNumberCheckDigit: merchantData.bankData.accountDigit || "",
+          accountType: merchantData.bankData.accountType || "CHECKING", // Padrão para conta corrente
+
+          compeCode: merchantData.bankData.bankCode || "",
           idMerchant: merchantId,
-          slugMerchant: "",
         };
 
         // Garantir que temos um tipo de conta válido
-        if (!pixAccountData.bankAccountType) {
+        if (!bankAccountData.accountType) {
           console.warn(
             "[createMerchant] Tipo de conta não fornecido, usando CHECKING como padrão"
           );
-          pixAccountData.bankAccountType = "CHECKING";
+          bankAccountData.accountType = "CHECKING";
         }
 
-        // Inserir na tabela merchantpixaccount
-        await db.insert(merchantpixaccount).values(pixAccountData);
+        // Inserir na tabela merchantbankaccount
+        await db.insert(merchantBankAccounts).values(bankAccountData);
       } catch (errorBank) {
         console.error(
           "[createMerchant] Erro ao criar dados bancários:",
@@ -859,6 +949,258 @@ async function createMerchant(merchantData: ImportData): Promise<{
         // Não falhar a criação do merchant se houver erro nos dados bancários
       }
     }
+
+    // Passo 6: Clonar tabela de taxas automaticamente se foi fornecido um código de taxa
+    if (merchantData.tax?.tableCode) {
+      try {
+        console.log(
+          `[createMerchant] Iniciando processo de atribuição de taxa para merchant ${merchantId}`
+        );
+
+        // DEBUG: Verificar código da tabela de taxas
+        console.log(
+          `[createMerchant] Código da tabela fornecido: "${merchantData.tax.tableCode}"`
+        );
+        console.log(
+          `[createMerchant] Tipo do código da tabela: ${typeof merchantData.tax.tableCode}`
+        );
+
+        // Buscar o ID da tabela de taxas
+        const feeTableCode = await getFeeTableCode(merchantData.tax.tableCode);
+        console.log(
+          `[createMerchant] ID da tabela de taxas encontrado: ${feeTableCode}`
+        );
+
+        try {
+          // 6.1: Clonar a fee e criar merchantPrice
+          const cloneResult = await createMerchantPriceFromFeeAction({
+            feeId: feeTableCode.toString(),
+            merchantId: merchantId,
+          });
+
+          if (!cloneResult.success) {
+            console.error(
+              `[createMerchant] Erro ao clonar taxa: ${cloneResult.error}`
+            );
+            throw new Error(`Erro ao atribuir taxa: ${cloneResult.error}`);
+          }
+
+          console.log(
+            `[createMerchant] Taxa clonada com sucesso para merchant ${merchantId}`
+          );
+        } catch (cloneError) {
+          console.error(
+            `[createMerchant] Erro específico na clonagem da taxa: ${cloneError instanceof Error ? cloneError.message : "Erro desconhecido"}`
+          );
+          throw cloneError; // Re-throw para ser capturado pelo catch externo
+        }
+
+        try {
+          // 6.2: Buscar todos os dados completos do merchant criado
+          const merchantAPIData =
+            await buscarMerchantCompletoRealParaAPI(merchantId);
+
+          if (!merchantAPIData) {
+            throw new Error(
+              "Merchant não encontrado ou dados incompletos no banco local após criação"
+            );
+          }
+
+          console.log(
+            `[createMerchant] Dados completos do merchant ${merchantId} obtidos, enviando para API`
+          );
+
+          // 6.3: Enviar todos os dados para a API
+          await InsertMerchant1(merchantAPIData, merchantId);
+
+          console.log(
+            `[createMerchant] Merchant ${merchantId} enviado para API com sucesso`
+          );
+        } catch (apiError) {
+          console.error(
+            `[createMerchant] Erro específico na busca/envio para API: ${apiError instanceof Error ? apiError.message : "Erro desconhecido"}`
+          );
+          throw apiError; // Re-throw para ser capturado pelo catch externo
+        }
+      } catch (taxError) {
+        console.error(
+          `[createMerchant] Erro no processo de taxa/API para merchant ${merchantId}:`,
+          taxError
+        );
+        // Não falhar a criação do merchant se houver erro na taxa ou API
+        // O merchant já foi criado com sucesso no banco local
+        console.warn(
+          `[createMerchant] Merchant ${merchantId} criado no banco local, mas houve erro na taxa/API: ${taxError instanceof Error ? taxError.message : "Erro desconhecido"}`
+        );
+      }
+    } else {
+      console.log(
+        `[createMerchant] Nenhum código de taxa fornecido para merchant ${merchantId}, pulando atribuição automática`
+      );
+    }
+
+    // Log detalhado da estrutura completa criada no Excel/Importação
+    console.log("=".repeat(80));
+    console.log(`🎉 ESTABELECIMENTO CRIADO COM SUCESSO - ID: ${merchantId}`);
+    console.log("=".repeat(80));
+    console.log("📋 ESTRUTURA COMPLETA DO MERCHANT IMPORTADO:");
+    console.log("");
+
+    console.log("🏢 DADOS DO ESTABELECIMENTO:");
+    console.log(`   Nome Fantasia: ${merchantData.establishment.name}`);
+    console.log(`   Razão Social: ${merchantData.establishment.corporateName}`);
+    console.log(`   CNPJ/CPF: ${merchantData.establishment.taxId}`);
+    console.log(
+      `   Tipo: ${merchantData.establishment.establishmentType || "N/A"}`
+    );
+    console.log(
+      `   Código Natureza Jurídica: ${merchantData.establishment.legalNatureCode || "N/A"}`
+    );
+    console.log(`   CNAE: ${merchantData.establishment.cnae || "N/A"}`);
+    console.log(
+      `   Data de Abertura: ${merchantData.establishment.openingDate || "N/A"}`
+    );
+    console.log(`   Receita: ${merchantData.establishment.revenue || "N/A"}`);
+    console.log(
+      `   Dias de Funcionamento: ${merchantData.establishment.businessDays || "N/A"}`
+    );
+    console.log(
+      `   Horário de Funcionamento: ${merchantData.establishment.businessHours || "N/A"}`
+    );
+    console.log("");
+
+    console.log("📍 ENDEREÇO DO ESTABELECIMENTO:");
+    console.log(
+      `   Rua: ${merchantData.establishment.address1.street || "N/A"}`
+    );
+    console.log(
+      `   Número: ${merchantData.establishment.address1.number || "N/A"}`
+    );
+    console.log(
+      `   Complemento: ${merchantData.establishment.address1.complement || "N/A"}`
+    );
+    console.log(
+      `   Bairro: ${merchantData.establishment.address1.neighborhood || "N/A"}`
+    );
+    console.log(
+      `   Cidade: ${merchantData.establishment.address1.city || "N/A"}`
+    );
+    console.log(
+      `   Estado: ${merchantData.establishment.address1.state || "N/A"}`
+    );
+    console.log(
+      `   CEP: ${merchantData.establishment.address1.postalCode || "N/A"}`
+    );
+    console.log(
+      `   País: ${merchantData.establishment.address1.country || "N/A"}`
+    );
+    console.log("");
+
+    console.log("📞 DADOS DE CONTATO:");
+    console.log(`   Email: ${merchantData.contact.email || "N/A"}`);
+    console.log(`   DDD: ${merchantData.contact.areaCode || "N/A"}`);
+    console.log(`   Telefone: ${merchantData.contact.phoneNumber || "N/A"}`);
+    console.log(`   Tipo Telefone: ${merchantData.contact.phoneType || "N/A"}`);
+    console.log("");
+
+    console.log("👤 DADOS DO RESPONSÁVEL:");
+    console.log(
+      `   Nome Completo: ${merchantData.responsible?.fullName || "N/A"}`
+    );
+    console.log(`   CPF: ${merchantData.responsible?.cpf || "N/A"}`);
+    console.log(
+      `   Data Nascimento: ${merchantData.responsible?.birthDate || "N/A"}`
+    );
+    console.log(`   Email: ${merchantData.responsible?.email || "N/A"}`);
+    console.log(`   DDD: ${merchantData.responsible?.areaCode || "N/A"}`);
+    console.log(
+      `   Telefone: ${merchantData.responsible?.phoneNumber || "N/A"}`
+    );
+    console.log(
+      `   Nome da Mãe: ${merchantData.responsible?.motherName || "N/A"}`
+    );
+    console.log(`   PEP: ${merchantData.responsible?.pep ? "Sim" : "Não"}`);
+    console.log(
+      `   Número Documento: ${merchantData.responsible?.idNumber || "N/A"}`
+    );
+    console.log(
+      `   Data Emissão: ${merchantData.responsible?.idIssueDate || "N/A"}`
+    );
+    console.log(
+      `   Órgão Emissor: ${merchantData.responsible?.issuingAuthority || "N/A"}`
+    );
+    console.log(
+      `   UF Documento: ${merchantData.responsible?.idState || "N/A"}`
+    );
+    console.log("");
+
+    if (merchantData.responsible?.address) {
+      console.log("📍 ENDEREÇO DO RESPONSÁVEL:");
+      console.log(
+        `   Rua: ${merchantData.responsible.address.street || "N/A"}`
+      );
+      console.log(
+        `   Número: ${merchantData.responsible.address.number || "N/A"}`
+      );
+      console.log(
+        `   Complemento: ${merchantData.responsible.address.complement || "N/A"}`
+      );
+      console.log(
+        `   Bairro: ${merchantData.responsible.address.neighborhood || "N/A"}`
+      );
+      console.log(
+        `   Cidade: ${merchantData.responsible.address.city || "N/A"}`
+      );
+      console.log(
+        `   Estado: ${merchantData.responsible.address.state || "N/A"}`
+      );
+      console.log(
+        `   CEP: ${merchantData.responsible.address.postalCode || "N/A"}`
+      );
+      console.log(
+        `   País: ${merchantData.responsible.address.country || "N/A"}`
+      );
+      console.log("");
+    }
+
+    console.log("🏦 DADOS BANCÁRIOS:");
+    console.log(`   Banco: ${merchantData.bankData?.bank || "N/A"}`);
+    console.log(
+      `   Código do Banco: ${merchantData.bankData?.bankCode || "N/A"}`
+    );
+    console.log(`   Agência: ${merchantData.bankData?.agency || "N/A"}`);
+    console.log(
+      `   Dígito Agência: ${merchantData.bankData?.agencyDigit || "N/A"}`
+    );
+    console.log(`   Conta: ${merchantData.bankData?.account || "N/A"}`);
+    console.log(
+      `   Dígito Conta: ${merchantData.bankData?.accountDigit || "N/A"}`
+    );
+    console.log(
+      `   Tipo de Conta: ${merchantData.bankData?.accountType || "N/A"}`
+    );
+    console.log("");
+
+    console.log("💰 DADOS DE TAXA:");
+    console.log(`   Código da Tabela: ${merchantData.tax?.tableCode || "N/A"}`);
+    console.log("");
+
+    console.log("⚙️ OPERAÇÕES:");
+    console.log(
+      `   TEF Habilitado: ${merchantData.operation?.tefEnabled ? "Sim" : "Não"}`
+    );
+    console.log(
+      `   PIX Habilitado: ${merchantData.operation?.pixEnabled ? "Sim" : "Não"}`
+    );
+    console.log(
+      `   Tap on Phone Habilitado: ${merchantData.operation?.tapOnPhoneEnabled ? "Sim" : "Não"}`
+    );
+    console.log("");
+
+    console.log("🆔 DADOS GERADOS:");
+    console.log(`   Merchant ID: ${merchantId}`);
+    console.log(`   Status: CRIADO COM SUCESSO`);
+    console.log("=".repeat(80));
 
     return {
       success: true,
@@ -1025,6 +1367,9 @@ export async function processMerchantImportDirect(
       const createResult = await createMerchant(merchantData);
       if (createResult.success) {
         result.created++;
+        console.log(
+          `✅ [IMPORTAÇÃO] Merchant criado com sucesso: ${merchantData.establishment.name} (ID: ${createResult.merchantId})`
+        );
       } else {
         result.skipped.total++;
         result.skipped.reasons.systemError++;
