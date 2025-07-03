@@ -369,7 +369,7 @@ export default function TaxManagementView({
                 Taxa Pix
               </h2>
               <div className="flex gap-10">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-left">
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
@@ -837,7 +837,7 @@ export default function TaxManagementView({
                 Taxa Pix
               </h2>
               <div className="flex gap-10">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-left">
                   <p className="text-sm text-gray-600 mb-2">MDR</p>
                   {isEditing ? (
                     <Input
