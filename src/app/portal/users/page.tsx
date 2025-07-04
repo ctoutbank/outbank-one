@@ -136,8 +136,8 @@ export default async function UsersPage({
         title={activeTab == "users" ? "Gestão de Usuários" : "Gestão de Perfis"}
         subtitle={
           activeTab == "users"
-            ? "Visualização de todos os Usuários"
-            : "Visualização de todos os Perfis"
+            ? "Visualização de Todos os Usuários"
+            : "Visualização de Todos os Perfis"
         }
       >
         <UserTabs

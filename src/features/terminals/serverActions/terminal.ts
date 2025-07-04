@@ -1,9 +1,8 @@
 import { getUserMerchantSlugs } from "@/features/users/server/users";
-import { convertUTCToSaoPaulo, getDateUTC } from "@/lib/datetime-utils";
+import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { db } from "@/server/db";
 import {
   and,
-  asc,
   count,
   desc,
   eq,
@@ -13,7 +12,27 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import { customers, merchants, terminals } from "../../../../drizzle/schema";
+import { merchants, terminals } from "../../../../drizzle/schema";
+
+// Mapeamento de mês para sigla em português
+const MESES_PT = [
+  "",
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+function getMesAbreviado(mes: number): string {
+  return MESES_PT[mes] || "";
+}
 
 export async function getTerminalss(
   search?: string,
@@ -142,7 +161,7 @@ export type TerminalFull = {
   slug: string | null;
   logicalNumber: string | null;
   model: string | null;
-  dtinsert: Date | null;
+  dtinsert: string | null;
   serialNumber: string | null;
   type: string | null;
   status: string | null;
@@ -163,6 +182,11 @@ export type ModeloAtivo = {
   quantidade: number;
 };
 
+export type EvolucaoMensal = {
+  mes: string;
+  valor: number;
+};
+
 export interface TerminallsList {
   terminals: TerminalFull[];
   totalCount: number;
@@ -171,10 +195,8 @@ export interface TerminallsList {
   pendingCount: number;
   approvedCount: number;
   rejectedCount: number;
-  desativadosCount: number;
-  totalModelosAtivos: number;
-  modelosAtivos: string[];
   modelosAtivosDetalhes: ModeloAtivo[];
+  evolucaoData: EvolucaoMensal[];
 }
 
 export type TerminalesDetail = typeof terminals.$inferSelect;
@@ -185,7 +207,6 @@ export async function getTerminals(
   pageSize: number,
   filters?: {
     status?: string;
-    dateFrom?: string;
     dateTo?: string;
     numeroLogico?: string;
     numeroSerial?: string;
@@ -216,10 +237,8 @@ export async function getTerminals(
           pendingCount: 0,
           approvedCount: 0,
           rejectedCount: 0,
-          desativadosCount: 0,
-          totalModelosAtivos: 0,
-          modelosAtivos: [],
           modelosAtivosDetalhes: [],
+          evolucaoData: [],
         };
       }
     }
@@ -242,22 +261,9 @@ export async function getTerminals(
       console.log(`Filtro status aplicado: ${filters.status}`);
     }
 
-    if (filters?.dateFrom && filters.dateFrom.trim() !== "") {
-      const dateFromUTC = getDateUTC(filters.dateFrom, "America/Sao_Paulo");
-      if (dateFromUTC) {
-        conditions.push(sql`${terminals.dtinsert} >= ${dateFromUTC}`);
-        console.log(`Filtro dateFrom aplicado: ${dateFromUTC}`);
-      }
-    }
-
     if (filters?.dateTo && filters.dateTo.trim() !== "") {
-      const dateTo = new Date(filters.dateTo);
-      dateTo.setHours(23, 59, 59, 999);
-      const dateToUTC = getDateUTC(dateTo.toISOString(), "America/Sao_Paulo");
-      if (dateToUTC) {
-        conditions.push(sql`${terminals.dtinsert} <= ${dateToUTC}`);
-        console.log(`Filtro dateTo aplicado: ${dateToUTC}`);
-      }
+      console.log(filters.dateTo);
+      conditions.push(sql`DATE(${terminals.dtinsert})  = ${filters.dateTo}`);
     }
 
     if (filters?.numeroLogico && filters.numeroLogico.trim() !== "") {
@@ -275,7 +281,7 @@ export async function getTerminals(
     }
 
     if (filters?.estabelecimento && filters.estabelecimento.trim() !== "") {
-      conditions.push(like(merchants.name, `%${filters.estabelecimento}%`));
+      conditions.push(ilike(merchants.name, `%${filters.estabelecimento}%`));
       console.log(
         `Filtro estabelecimento aplicado: ${filters.estabelecimento}`
       );
@@ -296,8 +302,6 @@ export async function getTerminals(
       conditions.push(eq(terminals.id, terminals.id)); // condição sempre verdadeira
     }
 
-    console.log("Condições de filtro aplicadas:", conditions.length);
-
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const result = await db
@@ -317,7 +321,6 @@ export async function getTerminals(
       })
       .from(terminals)
       .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
-
       .where(whereClause)
       .orderBy(desc(terminals.id))
       .limit(pageSize)
@@ -326,6 +329,7 @@ export async function getTerminals(
     const totalCountResult = await db
       .select({ count: count() })
       .from(terminals)
+      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
       .where(whereClause);
     const totalCount = totalCountResult[0]?.count || 0;
 
@@ -333,6 +337,7 @@ export async function getTerminals(
     const activeCountResult = await db
       .select({ count: count() })
       .from(terminals)
+      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
       .where(
         and(
           eq(terminals.active, true),
@@ -346,28 +351,9 @@ export async function getTerminals(
     const inactiveCountResult = await db
       .select({ count: count() })
       .from(terminals)
+      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
       .where(and(eq(terminals.status, "INACTIVE"), ...conditions));
     const totalInactiveCount = inactiveCountResult[0]?.count || 0;
-
-    // Contagem precisa de terminais desativados
-    const desativadosCountResult = await db
-      .select({ count: count() })
-      .from(terminals)
-      .where(and(eq(terminals.active, false), ...conditions));
-    const totalDesativadosCount = desativadosCountResult[0]?.count || 0;
-
-    // Contagem de modelos ativos distintos
-    const activeModelsCountResult = await db
-      .select({ count: count(sql`DISTINCT ${terminals.model}`) })
-      .from(terminals)
-      .where(
-        and(
-          eq(terminals.active, true),
-          eq(terminals.status, "ACTIVE"),
-          ...conditions
-        )
-      );
-    const activeModelsCount = activeModelsCountResult[0]?.count || 0;
 
     // Obter lista de modelos ativos distintos com contagem
     const activeModelsDetailResult = await db
@@ -376,6 +362,7 @@ export async function getTerminals(
         count: count(),
       })
       .from(terminals)
+      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
       .where(
         and(
           eq(terminals.active, true),
@@ -393,18 +380,42 @@ export async function getTerminals(
         quantidade: Number(item.count) || 0,
       }));
 
-    const activeModels = activeModelsDetails
-      .map((item) => item.nome)
-      .filter(Boolean);
+    const evolucaoDataRaw = await db
+      .select({
+        mes: sql<number>`EXTRACT(MONTH FROM ${terminals.dtinsert})`,
+        ano: sql<number>`EXTRACT(YEAR FROM ${terminals.dtinsert})`,
+        valor: sql<number>`COUNT(*)`,
+      })
+      .from(terminals)
+      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .where(
+        and(
+          eq(terminals.active, true),
+          eq(terminals.status, "ACTIVE"),
+          ...conditions
+        )
+      )
+      .groupBy(
+        sql`EXTRACT(YEAR FROM ${terminals.dtinsert})`,
+        sql`EXTRACT(MONTH FROM ${terminals.dtinsert})`
+      )
+      .orderBy(
+        sql`EXTRACT(YEAR FROM ${terminals.dtinsert})`,
+        sql`EXTRACT(MONTH FROM ${terminals.dtinsert})`
+      );
+
+    const evolucaoData = evolucaoDataRaw.map((item) => ({
+      mes: getMesAbreviado(item.mes),
+      ano: item.ano,
+      valor: item.valor,
+    }));
 
     return {
       terminals: result.map((terminal) => ({
         slug: terminal.slug || "",
         logicalNumber: terminal.logicalNumber || "",
         model: terminal.model || "",
-        dtinsert: terminal.dtinsert
-          ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
-          : new Date(),
+        dtinsert: terminal.dtinsert,
         serialNumber: terminal.serialNumber || "",
         type: terminal.type || "",
         isActive: terminal.isActive || null,
@@ -417,13 +428,11 @@ export async function getTerminals(
       totalCount,
       activeCount: totalActiveCount,
       inactiveCount: totalInactiveCount,
-      desativadosCount: totalDesativadosCount,
-      totalModelosAtivos: activeModelsCount,
-      modelosAtivos: activeModels,
       modelosAtivosDetalhes: activeModelsDetails,
       pendingCount: result.filter((t) => t.status === "PENDING").length,
       approvedCount: result.filter((t) => t.status === "APPROVED").length,
       rejectedCount: result.filter((t) => t.status === "REJECTED").length,
+      evolucaoData: evolucaoData,
     };
   } catch (error) {
     console.error("Erro ao buscar terminais:", error);
@@ -433,14 +442,14 @@ export async function getTerminals(
 
 export async function getTerminalsPorModelo() {
   const result = await db
-      .select({
-        nome: terminals.model,
-        quantidade: sql<number>`COUNT(*)`,
-      })
-      .from(terminals)
-      .groupBy(terminals.model)
+    .select({
+      nome: terminals.model,
+      quantidade: sql<number>`COUNT(*)`,
+    })
+    .from(terminals)
+    .groupBy(terminals.model);
 
-  return result.filter((item) => item.nome !== null)
+  return result.filter((item) => item.nome !== null);
 }
 
 export async function getTerminalBySlug(slug: string) {
@@ -460,7 +469,6 @@ export async function getTerminalsForExport(
   search: string,
   filters?: {
     status?: string;
-    dateFrom?: string;
     dateTo?: string;
     numeroLogico?: string;
     numeroSerial?: string;
@@ -471,241 +479,114 @@ export async function getTerminalsForExport(
 ): Promise<TerminalsExportList> {
   try {
     const userMerchants = await getUserMerchantSlugs();
+    const whereParts: any[] = [];
 
-    // Construir condições de filtro
-    const conditions = [];
-
-    // Aplicar filtros de acesso por merchant
+    // Montar partes do WHERE usando sql``
     if (!userMerchants.fullAccess) {
       if (userMerchants.slugMerchants.length > 0) {
-        conditions.push(
-          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
+        whereParts.push(
+          sql`t.slug_merchant IN (${sql.join(userMerchants.slugMerchants, sql`, `)})`
         );
       } else {
-        return {
-          terminals: [],
-          totalCount: 0,
-        };
+        return { terminals: [], totalCount: 0 };
       }
     }
-
-    // Aplicar filtros da pesquisa
     if (search && search.trim() !== "") {
-      conditions.push(
-        or(
-          ilike(terminals.logicalNumber, `%${search}%`),
-          ilike(terminals.serialNumber, `%${search}%`),
-          ilike(terminals.model, `%${search}%`),
-          ilike(merchants.name, `%${search}%`)
-        )
-      );
+      const s = `%${search}%`;
+      whereParts.push(sql`(
+        t.logical_number ILIKE ${s} OR
+        t.serial_number ILIKE ${s} OR
+        t.model ILIKE ${s} OR
+        m.name ILIKE ${s}
+      )`);
     }
-
-    // Aplicar filtros específicos
     if (filters?.status && filters.status.trim() !== "") {
-      conditions.push(ilike(terminals.status, `%${filters.status}%`));
+      whereParts.push(sql`t.status ILIKE ${`%${filters.status}%`}`);
     }
-
     if (filters?.numeroLogico && filters.numeroLogico.trim() !== "") {
-      conditions.push(
-        ilike(terminals.logicalNumber, `%${filters.numeroLogico}%`)
+      whereParts.push(
+        sql`t.logical_number ILIKE ${`%${filters.numeroLogico}%`}`
       );
     }
-
     if (filters?.numeroSerial && filters.numeroSerial.trim() !== "") {
-      conditions.push(
-        ilike(terminals.serialNumber, `%${filters.numeroSerial}%`)
+      whereParts.push(
+        sql`t.serial_number ILIKE ${`%${filters.numeroSerial}%`}`
       );
     }
-
     if (filters?.estabelecimento && filters.estabelecimento.trim() !== "") {
-      conditions.push(ilike(merchants.name, `%${filters.estabelecimento}%`));
+      whereParts.push(sql`m.name ILIKE ${`%${filters.estabelecimento}%`}`);
     }
-
     if (filters?.modelo && filters.modelo.trim() !== "") {
-      conditions.push(ilike(terminals.model, `%${filters.modelo}%`));
+      whereParts.push(sql`t.model ILIKE ${`%${filters.modelo}%`}`);
     }
-
-    // Adicionar filtro de provedor
     if (filters?.provedor && filters.provedor.trim() !== "") {
-      conditions.push(ilike(terminals.manufacturer, `%${filters.provedor}%`));
+      whereParts.push(sql`t.manufacturer ILIKE ${`%${filters.provedor}%`}`);
     }
-
-    // Filtro de data
-    if (filters?.dateFrom && filters.dateFrom.trim() !== "") {
-      console.log(filters?.dateFrom);
-      const dateFromUTC = getDateUTC(filters.dateFrom, "America/Sao_Paulo");
-      console.log(dateFromUTC);
-      if (dateFromUTC) {
-        conditions.push(sql`${terminals.dtinsert} >= ${dateFromUTC}`);
-      }
-    }
-
     if (filters?.dateTo && filters.dateTo.trim() !== "") {
-      console.log(filters?.dateTo);
-      const dateTo = new Date(filters.dateTo);
-      dateTo.setHours(23, 59, 59, 999);
-      const dateToUTC = getDateUTC(dateTo.toISOString(), "America/Sao_Paulo");
-      console.log(dateToUTC);
-      if (dateToUTC) {
-        conditions.push(sql`${terminals.dtinsert} <= ${dateToUTC}`);
-      }
+      whereParts.push(sql`t.dtinsert::date = ${filters.dateTo}`);
     }
+    const whereClause =
+      whereParts.length > 0
+        ? sql`WHERE ${sql.join(whereParts, sql` AND `)}`
+        : sql``;
 
-    console.log("Condições de filtro para exportação:", conditions.length);
-
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-    // Usar agregação para evitar duplicações
-    const terminalsQuery = db
-      .select({
-        slug: terminals.slug,
-        logicalNumber: terminals.logicalNumber,
-        model: terminals.model,
-        dtinsert: terminals.dtinsert,
-        serialNumber: terminals.serialNumber,
-        type: terminals.type,
-        status: terminals.status,
-        isActive: terminals.active,
-        slugMerchant: terminals.slugMerchant,
-        merchantName: merchants.name,
-        merchantDocumentId: merchants.idDocument,
-        slugCustomer: terminals.slugCustomer,
-        customerName: customers.name,
-        inactivationDate: terminals.inactivationDate,
-        manufacturer: terminals.manufacturer,
-      })
-      .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
-      .leftJoin(customers, eq(terminals.slugCustomer, customers.slug))
-      .where(whereClause)
-      .orderBy(asc(terminals.logicalNumber));
-
-    // Executar a consulta principal e contar os resultados
-    const result = await terminalsQuery;
-    const totalCount = result.length;
-
-    // Inicializar o mapa de últimas transações
-    const ultimasTransacoesMap = new Map<string, string>();
-
-    // Buscar as datas das últimas transações se houver terminais no resultado
-    if (result.length > 0) {
-      const slugsTerminais = result
-        .map((terminal) => terminal.slug)
-        .filter(Boolean);
-
-      if (slugsTerminais.length > 0) {
-        try {
-          // Limite a quantidade de slugs para evitar consultas muito grandes
-          const slugsParaConsulta = slugsTerminais
-            .filter(
-              (slug): slug is string =>
-                typeof slug === "string" && slug !== null && slug !== ""
-            )
-            .slice(0, 500);
-
-          if (slugsParaConsulta.length > 0) {
-            // Escape dos slugs para evitar SQL injection
-            const terminaisString = slugsParaConsulta
-              .map((slug) => `'${slug.replace(/'/g, "''")}'`)
-              .join(",");
-
-            if (terminaisString && terminaisString.trim() !== "") {
-              console.log(
-                `Consultando últimas transações para ${slugsParaConsulta.length} terminais`
-              );
-
-              // Consulta SQL direta
-              const consultaSQL = `
-                SELECT 
-                  slug_terminal, 
-                  MAX(dt_insert) AS ultima_transacao
-                FROM 
-                  transactions
-                WHERE 
-                  slug_terminal IN (${terminaisString})
-                GROUP BY 
-                  slug_terminal
-              `;
-
-              try {
-                // Executa a consulta SQL com tratamento de erro
-                const resultadoConsulta = await db.execute(
-                  sql.raw(consultaSQL)
-                );
-
-                if (resultadoConsulta && resultadoConsulta.rows) {
-                  console.log(
-                    "Resultados encontrados:",
-                    resultadoConsulta.rows.length
-                  );
-
-                  // Preenche o mapa com os resultados
-                  resultadoConsulta.rows.forEach((row: any) => {
-                    if (row.slug_terminal && row.ultima_transacao) {
-                      ultimasTransacoesMap.set(
-                        row.slug_terminal,
-                        row.ultima_transacao
-                      );
-                    }
-                  });
-
-                  console.log(
-                    "Mapa de últimas transações construído, tamanho:",
-                    ultimasTransacoesMap.size
-                  );
-                } else {
-                  console.log("Nenhum resultado obtido da consulta SQL");
-                }
-              } catch (sqlError) {
-                console.error("Erro na execução da consulta SQL:", sqlError);
-              }
-            }
-          }
-        } catch (error) {
-          console.error(
-            "Erro ao processar consulta de últimas transações:",
-            error
-          );
-        }
-      }
-    }
-
-    return {
-      terminals: result.map((terminal) => {
-        // Obter a data da última transação do mapa
-        const dtUltimaTransacao = ultimasTransacoesMap.get(terminal.slug || "");
-
-        return {
-          slug: terminal.slug || "",
-          logicalNumber: terminal.logicalNumber || "",
-          model: terminal.model || "",
-          dtinsert: terminal.dtinsert
-            ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
-            : new Date(),
-          serialNumber: terminal.serialNumber || "",
-          type: terminal.type || "",
-          isActive: terminal.isActive || null,
-          slugMerchant: terminal.slugMerchant || "",
-          merchantName: terminal.merchantName?.toUpperCase() || "",
-          merchantDocumentId: terminal.merchantDocumentId || "",
-          slugCustomer: terminal.slugCustomer || "",
-          status: terminal.status || "",
-          customerName: terminal.customerName || "",
-          manufacturer: terminal.manufacturer || "",
-          inactivationDate: terminal.inactivationDate
-            ? new Date(convertUTCToSaoPaulo(terminal.inactivationDate))
-            : null,
-          dtUltimaTransacao: dtUltimaTransacao
-            ? new Date(convertUTCToSaoPaulo(dtUltimaTransacao))
-            : terminal.dtinsert
-              ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
-              : null,
-          versao: null, // Campo não disponível no schema atual
-        };
-      }),
-      totalCount,
-    };
+    const result = await db.execute(sql`
+      WITH ultimas_transacoes AS (
+        SELECT slug_terminal, MAX(dt_insert) AS dt_ultima_transacao
+        FROM transactions
+        GROUP BY slug_terminal
+      )
+      SELECT
+        t.slug,
+        t.logical_number,
+        t.model,
+        t.dtinsert,
+        t.serial_number,
+        t.type,
+        t.status,
+        t.active,
+        t.slug_merchant,
+        m.name AS merchant_name,
+        m.id_document AS merchant_document_id,
+        t.slug_customer,
+        c.name AS customer_name,
+        t.inactivation_date,
+        t.manufacturer,
+        ut.dt_ultima_transacao
+      FROM terminals t
+      LEFT JOIN ultimas_transacoes ut ON ut.slug_terminal = t.slug
+      LEFT JOIN merchants m ON t.slug_merchant = m.slug
+      LEFT JOIN customers c ON t.slug_customer = c.slug
+      ${whereClause}
+      ORDER BY t.logical_number ASC
+    `);
+    const rows = result.rows as any[];
+    const terminals = rows.map((terminal) => ({
+      slug: terminal.slug || "",
+      logicalNumber: terminal.logical_number || "",
+      model: terminal.model || "",
+      dtinsert: terminal.dtinsert,
+      serialNumber: terminal.serial_number || "",
+      type: terminal.type || "",
+      isActive: terminal.active ?? null,
+      slugMerchant: terminal.slug_merchant || "",
+      merchantName: terminal.merchant_name?.toUpperCase() || "",
+      merchantDocumentId: terminal.merchant_document_id || "",
+      slugCustomer: terminal.slug_customer || "",
+      status: terminal.status || "",
+      customerName: terminal.customer_name || "",
+      manufacturer: terminal.manufacturer || "",
+      inactivationDate: terminal.inactivation_date
+        ? new Date(convertUTCToSaoPaulo(terminal.inactivation_date))
+        : null,
+      dtUltimaTransacao: terminal.dt_ultima_transacao
+        ? new Date(convertUTCToSaoPaulo(terminal.dt_ultima_transacao))
+        : terminal.dtinsert
+          ? new Date(convertUTCToSaoPaulo(terminal.dtinsert))
+          : null,
+      versao: null, // Campo não disponível no schema atual
+    }));
+    return { terminals, totalCount: terminals.length };
   } catch (error) {
     console.error("Erro ao buscar terminais para exportação:", error);
     throw new Error("Erro ao buscar terminais para exportação");

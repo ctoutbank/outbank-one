@@ -15,11 +15,11 @@ export default async function CategoryDetail({
   return (
     <>
       <BaseHeader
-        breadcrumbItems={[{ title: "Categorias", url: "/portal/categories" }]}
+        breadcrumbItems={[{ title: "CNAE", url: "/portal/categories" }]}
       />
       <BaseBody
-        title="Categorias"
-        subtitle={category?.id ? "Editar Categoria" : "Adicionar Categoria"}
+        title="CNAE"
+        subtitle={category?.id ? "Editar CNAE" : "Adicionar CNAE"}
       >
         <Categoriesform
           categories={{
@@ -37,13 +37,12 @@ export default async function CategoryDetail({
             mcc: category?.mcc || "",
             cnae: category?.cnae || "",
             anticipation_risk_factor_cp:
-              category?.anticipationRiskFactorCp?.toString() || undefined,
+              category?.anticipationRiskFactorCp?.toString() || "",
             anticipation_risk_factor_cnp:
-              category?.anticipationRiskFactorCnp?.toString() || undefined,
-            waiting_period_cp: category?.waitingPeriodCp?.toString(),
-            waiting_period_cnp:
-              category?.waitingPeriodCnp?.toString() || undefined,
-            idSolicitationFee: category?.idSolicitationFee?.toString() || "0",
+              category?.anticipationRiskFactorCnp?.toString() || "",
+            waiting_period_cp: category?.waitingPeriodCp?.toString() || "",
+            waiting_period_cnp: category?.waitingPeriodCnp?.toString() || "",
+            idSolicitationFee: category?.idSolicitationFee?.toString() || undefined,
           }}
         />
       </BaseBody>

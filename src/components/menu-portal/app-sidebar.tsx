@@ -175,7 +175,12 @@ export function AppSidebar() {
           <div className="flex h-16 items-center border-b px-4">
             <div
               className="bg-primary rounded-md p-2 h-10 w-10 bg-cover bg-center overflow-hidden"
-              style={{ backgroundImage: `url(${menuData?.teams[0]?.logo})` }}
+              style={{
+                backgroundImage: `url(${menuData?.teams[0]?.logo})`,
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }}
             >
               {/* Imagem de fundo aplicada via CSS */}
             </div>
@@ -204,7 +209,12 @@ export function AppSidebar() {
             <div className="flex items-center gap-2">
               <div
                 className={`bg-primary rounded-md p-2 bg-cover bg-no-repeat bg-center overflow-hidden ${isOpen && "h-10 w-10"} ${!isOpen && "h-6 w-6"}`}
-                style={{ backgroundImage: `url(${menuData.teams[0]?.logo})` }}
+                style={{
+                  backgroundImage: `url(${menuData.teams[0]?.logo})`,
+                  backgroundSize: "contain",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                }}
               >
                 {/* Imagem de fundo aplicada via CSS */}
               </div>

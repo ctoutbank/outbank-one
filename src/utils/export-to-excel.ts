@@ -1,0 +1,94 @@
+import ExcelJS, { Alignment, Fill, Font } from "exceljs";
+
+export async function exportToExcel({
+  data,
+  globalStyles,
+  sheetName,
+  fileName,
+}: {
+  data: any[];
+  globalStyles?: {
+    header?: { fill?: Fill; font?: Font; alignment?: Alignment };
+    row?: { fill?: Fill; font?: Font; alignment?: Alignment };
+  };
+  sheetName: string;
+  fileName: string;
+}) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(sheetName);
+
+  const headers = Object.keys(data[0] as object);
+  const headerRow = worksheet.addRow(headers);
+
+  if (globalStyles?.header) {
+    headerRow.eachCell((cell) => {
+      cell.fill = globalStyles.header?.fill || ({} as Fill);
+      cell.font = globalStyles.header?.font || ({} as Font);
+      cell.alignment = globalStyles.header?.alignment || ({} as Alignment);
+    });
+  }
+
+  headerRow.eachCell((cell) => {
+    cell.border = {
+      left: { style: "thin" },
+      right: { style: "thin" },
+    };
+  });
+
+  data.forEach((rowData) => {
+    const rowValues = headers.map((header) => (rowData as any)[header] ?? "");
+    const row = worksheet.addRow(rowValues);
+
+    if (globalStyles?.row) {
+      row.eachCell((cell) => {
+        cell.font = globalStyles.row?.font || {};
+        cell.alignment = globalStyles.row?.alignment || {};
+      });
+    }
+
+    const rowStyles = (rowData as any).style?.row;
+    if (rowStyles) {
+      row.eachCell((cell) => {
+        cell.font = rowStyles.font || {};
+        cell.fill = rowStyles.fill || {};
+        cell.alignment = rowStyles.alignment || {};
+      });
+    }
+  });
+
+  worksheet.columns.forEach((column) => {
+    if (column) {
+      let maxLength = 0;
+      column.eachCell?.({ includeEmpty: true }, (cell) => {
+        const cellValue = cell.value ? cell.value.toString() : "";
+        maxLength = Math.max(maxLength, cellValue.length);
+      });
+      column.width = maxLength + 5;
+    }
+  });
+
+  worksheet.eachRow((row) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

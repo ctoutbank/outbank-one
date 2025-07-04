@@ -38,7 +38,7 @@ export default function DashboardFilters() {
             <PopoverTrigger asChild>
                 <Button
                     variant="ghost"
-                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-white/20 border"
+                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:text-white text-white border-white/20 border "
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     <span className="text-sm">Personalizado...</span>

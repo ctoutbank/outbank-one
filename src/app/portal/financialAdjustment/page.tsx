@@ -33,7 +33,7 @@ export default async function FinancialAdjustmentsPage({
   searchParams: FinancialAdjustmentsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
+  const pageSize = parseInt(searchParams.pageSize || "10");
 
   const adjustments = await getFinancialAdjustments(
     searchParams.search || "",
