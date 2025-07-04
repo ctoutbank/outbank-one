@@ -18,7 +18,6 @@ import {
   ilike,
   inArray,
   isNotNull,
-  lte,
   or,
   sql,
 } from "drizzle-orm";
@@ -210,23 +209,15 @@ export async function getMerchants(
   }
 
   if (dateFrom) {
-    // Quando um dateFrom é fornecido, vamos interpretar como "cadastrado em"
-    // e criar um filtro para pegar registros daquele dia específico
+    // Quando um dateFrom é fornecido, vamos interpretar como 'a partir da data escolhida até hoje'
     const date = new Date(dateFrom);
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    // Início e fim do dia específico
+    // Início do dia selecionado (a partir desta data até hoje)
     const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
-    const endOfDay = new Date(year, month, day, 23, 59, 59, 999).toISOString();
-
-    conditions.push(
-      and(
-        gte(merchants.dtinsert, startOfDay),
-        lte(merchants.dtinsert, endOfDay)
-      )
-    );
+    conditions.push(gte(merchants.dtinsert, startOfDay));
   }
 
   // Novos filtros
@@ -245,7 +236,13 @@ export async function getMerchants(
   }
 
   if (salesAgent) {
-    conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
+    conditions.push(
+      or(
+        ilike(salesAgents.firstName, `%${salesAgent}%`),
+        ilike(salesAgents.lastName, `%${salesAgent}%`),
+        ilike(salesAgents.documentId, `%${salesAgent}%`)
+      )
+    );
   }
 
   const result = await db
@@ -1935,17 +1932,6 @@ export async function getMerchantsWithDashboardData(
       )
     );
   }
-  console.log(
-    search,
-    establishment,
-    status,
-    state,
-    dateFrom,
-    email,
-    cnpj,
-    active,
-    salesAgent
-  );
 
   if (establishment) {
     conditions.push(ilike(merchants.name, `%${establishment}%`));
@@ -1982,23 +1968,15 @@ export async function getMerchantsWithDashboardData(
   }
 
   if (dateFrom) {
-    // Quando um dateFrom é fornecido, vamos interpretar como "cadastrado em"
-    // e criar um filtro para pegar registros daquele dia específico
+    // Quando um dateFrom é fornecido, vamos interpretar como 'a partir da data escolhida até hoje'
     const date = new Date(dateFrom);
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    // Início e fim do dia específico
+    // Início do dia selecionado (a partir desta data até hoje)
     const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
-    const endOfDay = new Date(year, month, day, 23, 59, 59, 999).toISOString();
-
-    conditions.push(
-      and(
-        gte(merchants.dtinsert, startOfDay),
-        lte(merchants.dtinsert, endOfDay)
-      )
-    );
+    conditions.push(gte(merchants.dtinsert, startOfDay));
   }
 
   // Novos filtros
@@ -2017,7 +1995,13 @@ export async function getMerchantsWithDashboardData(
   }
 
   if (salesAgent) {
-    conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
+    conditions.push(
+      or(
+        ilike(salesAgents.firstName, `%${salesAgent}%`),
+        ilike(salesAgents.lastName, `%${salesAgent}%`),
+        ilike(salesAgents.documentId, `%${salesAgent}%`)
+      )
+    );
   }
 
   // 1. Obter a lista de merchants com paginação e todas as contagens em uma única consulta
@@ -2059,20 +2043,30 @@ export async function getMerchantsWithDashboardData(
   );
   const lastDayPreviousMonthStr = lastDayPreviousMonth.toISOString();
 
-  // Construir WHERE clause simples para a query SQL bruta
-  const whereClauses: string[] = [];
+  const whereClausesMain: string[] = [];
+  const whereClausesAllMerchants: string[] = [];
 
-  // Filtro de busca
+  // Filtros que só usam merchants
   if (search) {
-    whereClauses.push(`(
+    whereClausesMain.push(`(
+      merchants.name ILIKE '%${search}%' OR 
+      merchants.corporate_name ILIKE '%${search}%' OR 
+      merchants.id_document ILIKE '%${search}%' OR 
+      merchants.email ILIKE '%${search}%'
+    )`);
+    whereClausesAllMerchants.push(`(
       merchants.name ILIKE '%${search}%' OR 
       merchants.corporate_name ILIKE '%${search}%' OR 
       merchants.id_document ILIKE '%${search}%' OR 
       merchants.email ILIKE '%${search}%'
     )`);
   }
+  if (establishment) {
+    whereClausesMain.push(`merchants.name ILIKE '%${establishment}%'`);
+    whereClausesAllMerchants.push(`merchants.name ILIKE '%${establishment}%'`);
+  }
 
-  // Filtro de estado
+  // Filtro de estado (usa addresses)
   if (state) {
     // Primeiro, verifica se é um valor de UF exato (AC, AL, etc.)
     const exactStateMatch = states.find(
@@ -2081,7 +2075,7 @@ export async function getMerchantsWithDashboardData(
 
     if (exactStateMatch) {
       // Se encontrou correspondência exata com UF, usa o valor
-      whereClauses.push(`a.state = '${exactStateMatch.value}'`);
+      whereClausesAllMerchants.push(`a.state = '${exactStateMatch.value}'`);
     } else {
       // Busca por correspondência parcial no nome do estado
       const partialMatches = states.filter((s) =>
@@ -2091,59 +2085,99 @@ export async function getMerchantsWithDashboardData(
       if (partialMatches.length > 0) {
         // Se encontrou correspondências parciais, cria um IN com todas as UFs correspondentes
         const stateValues = partialMatches.map((s) => `'${s.value}'`).join(",");
-        whereClauses.push(`a.state IN (${stateValues})`);
+        whereClausesAllMerchants.push(`a.state IN (${stateValues})`);
       } else {
         // Se não encontrou correspondência direta, faz busca livre
-        whereClauses.push(
+        whereClausesAllMerchants.push(
           `(a.state = '${state}' OR a.state ILIKE '%${state}%')`
         );
       }
     }
   }
 
-  // Filtro de status
+  // Filtro de status - CORRIGIDO
   if (status && status !== "all") {
-    if (status === "pending") {
-      whereClauses.push(
+    if (status === "PENDING") {
+      whereClausesMain.push(
         `merchants.risk_analysis_status IN ('PENDING', 'WAITINGDOCUMENTS', 'NOTANALYSED')`
       );
-    } else if (status === "approved") {
-      whereClauses.push(`merchants.risk_analysis_status = 'APPROVED'`);
-    } else if (status === "rejected") {
-      whereClauses.push(
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status IN ('PENDING', 'WAITINGDOCUMENTS', 'NOTANALYSED')`
+      );
+    } else if (status === "APPROVED") {
+      whereClausesMain.push(`merchants.risk_analysis_status = 'APPROVED'`);
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status = 'APPROVED'`
+      );
+    } else if (status === "DECLINED") {
+      whereClausesMain.push(
         `merchants.risk_analysis_status IN ('DECLINED', 'KYCOFFLINE')`
+      );
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status IN ('DECLINED', 'KYCOFFLINE')`
+      );
+    } else {
+      whereClausesMain.push(`merchants.risk_analysis_status = '${status}'`);
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status = '${status}'`
       );
     }
   }
 
-  // Filtro de ativo
-  if (active && active !== "all") {
-    whereClauses.push(`merchants.active = ${active === "true"}`);
+  // Filtro de ativo - CORRIGIDO
+  if (active === "true") {
+    whereClausesMain.push(`merchants.active = true`);
+    whereClausesAllMerchants.push(`merchants.active = true`);
+  } else if (active === "false") {
+    whereClausesMain.push(`merchants.active = false`);
+    whereClausesAllMerchants.push(`merchants.active = false`);
   }
 
-  // Filtro de email
+  // Filtro de email - CORRIGIDO
   if (email) {
-    whereClauses.push(`merchants.email ILIKE '%${email}%'`);
+    whereClausesMain.push(`merchants.email ILIKE '%${email}%'`);
+    // Aplicar o mesmo filtro na consulta SQL bruta
+    whereClausesAllMerchants.push(`merchants.email ILIKE '%${email}%'`);
   }
 
-  // Filtro de CNPJ
+  // Filtro de CNPJ - CORRIGIDO
   if (cnpj) {
-    whereClauses.push(`merchants.id_document ILIKE '%${cnpj}%'`);
+    whereClausesMain.push(`merchants.id_document ILIKE '%${cnpj}%'`);
+    // Aplicar o mesmo filtro na consulta SQL bruta
+    whereClausesAllMerchants.push(`merchants.id_document ILIKE '%${cnpj}%'`);
   }
 
-  // Filtro de data
+  // Filtro de data - CORRIGIDO (a partir da data selecionada até hoje)
   if (dateFrom) {
-    whereClauses.push(`merchants.dtinsert >= '${dateFrom}'`);
+    // A data já vem como ISO string, vamos extrair apenas a data (YYYY-MM-DD)
+    const date = new Date(dateFrom);
+    // Verificar se a data é válida
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      // Início do dia selecionado (a partir desta data até hoje)
+      const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
+      whereClausesMain.push(`(
+        merchants.dtinsert >= '${startOfDay}'
+      )`);
+      // Aplicar o mesmo filtro na consulta SQL bruta
+      whereClausesAllMerchants.push(`(
+        merchants.dtinsert >= '${startOfDay}'
+      )`);
+    }
   }
 
-  // Filtro de consultor de vendas
+  // Filtro de consultor de vendas - CORRIGIDO
   if (salesAgent) {
-    whereClauses.push(`sa.document_id = '${salesAgent}'`);
+    whereClausesAllMerchants.push(`sa.first_name ILIKE '%${salesAgent}%'`);
   }
 
-  // Montar WHERE final
-  const whereSqlFinal =
-    whereClauses.length > 0 ? whereClauses.join(" AND ") : "1=1";
+  // WHERE para o CTE
+  const whereSqlAllMerchants =
+    whereClausesAllMerchants.length > 0
+      ? whereClausesAllMerchants.join(" AND ")
+      : "1=1";
 
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const nextMonthFirstDay = new Date(
@@ -2243,7 +2277,7 @@ export async function getMerchantsWithDashboardData(
       LEFT JOIN addresses a ON merchants.id_address = a.id
       LEFT JOIN configurations c ON merchants.id_configuration = c.id
       LEFT JOIN sales_agents sa ON merchants.id_sales_agent = sa.id
-      WHERE ${sql.raw(whereSqlFinal)}
+      WHERE ${sql.raw(whereSqlAllMerchants)}
     ),
     date_counts AS (
       SELECT 
@@ -2267,14 +2301,14 @@ export async function getMerchantsWithDashboardData(
       COUNT(*) FILTER (WHERE t.total_transacoes > 0) AS transacionam,
       COUNT(*) FILTER (WHERE t.total_transacoes = 0) AS nao_transacionam
     FROM (
-      SELECT m.slug, COUNT(tr.slug_merchant) AS total_transacoes
-      FROM merchants m
+      SELECT am.id, COUNT(tr.slug_merchant) AS total_transacoes
+      FROM all_merchants am
+      LEFT JOIN merchants m ON am.id = m.id
       LEFT JOIN transactions tr
       ON m.slug = tr.slug_merchant
       AND tr.dt_insert >= ${firstDayOfMonthUTC}
       AND tr.dt_insert < ${firstDayNextMonthUTC}
-      WHERE ${sql.raw(whereSqlFinal)}
-      GROUP BY m.slug
+      GROUP BY am.id
       ) t
       ),
     merchant_types AS (
