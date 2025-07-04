@@ -591,6 +591,21 @@ async function createMerchant(merchantData: ImportData): Promise<{
           );
         }
 
+        const accountType = (() => {
+          switch (merchantData.bankData.accountType?.toLowerCase()) {
+            case "corrente":
+              return "CHECKING";
+            case "poupança":
+              return "SAVINGS";
+            case "depósito":
+              return "DEPOSIT";
+            case "pagamento":
+              return "PAYMENT";
+            default:
+              return "CHECKING";
+          }
+        })();
+
         // Criar conta bancária para o merchant (sem o ID do merchant ainda)
         const bankAccountData = {
           slug: "",
@@ -608,7 +623,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
           bankBranchCheckDigit: merchantData.bankData.agencyDigit || "",
           accountNumber: merchantData.bankData.account || "",
           accountNumberCheckDigit: merchantData.bankData.accountDigit || "",
-          accountType: merchantData.bankData.accountType || "CHECKING", // Padrão para conta corrente
+          accountType: accountType,
           compeCode: merchantData.bankData.bankCode || "",
           // Não definimos idMerchant ainda, será atualizado depois
         };
@@ -851,7 +866,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
               merchantData.contact.phoneNumber ||
               "",
             phoneType: responsiblePhoneType,
-            birthDate: contactBirthDate ? new Date(contactBirthDate) : null,
+            birthDate: contactBirthDate || null,
             mothersName: merchantData.responsible.motherName || "",
             isPartnerContact: true, // Define como sócio por padrão
             isPep: merchantData.responsible.pep || true,
@@ -859,7 +874,7 @@ async function createMerchant(merchantData: ImportData): Promise<{
             slugMerchant: "",
             idAddress: responsibleAddressId,
             icNumber: merchantData.responsible.idNumber || "",
-            icDateIssuance: icDateIssuance ? new Date(icDateIssuance) : null,
+            icDateIssuance: icDateIssuance || null,
             icDispatcher: merchantData.responsible.issuingAuthority || "",
             icFederativeUnit: merchantData.responsible.idState || "",
           };
@@ -867,14 +882,12 @@ async function createMerchant(merchantData: ImportData): Promise<{
           // Garantir que os tipos de dados estejam corretos
           const formattedContactData = {
             ...contactData,
-            birthDate: contactBirthDate ? new Date(contactBirthDate) : null,
+            birthDate: contactBirthDate || null,
             isPep: Boolean(contactData.isPep),
             isPartnerContact: Boolean(contactData.isPartnerContact),
             idMerchant: Number(contactData.idMerchant),
             idAddress: Number(contactData.idAddress),
-            icDateIssuance: contactData.icDateIssuance
-              ? new Date(contactData.icDateIssuance)
-              : null,
+            icDateIssuance: contactData.icDateIssuance || null,
           };
 
           try {
