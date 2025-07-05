@@ -10,6 +10,7 @@ import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -1880,7 +1881,9 @@ export async function getMerchantsWithDashboardData(
   email?: string,
   cnpj?: string,
   active?: string,
-  salesAgent?: string
+  salesAgent?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<MerchantsWithDashboardData> {
   // Definir condições para os filtros - este código é comum a todas as consultas
   const conditions = [];
@@ -2196,9 +2199,27 @@ export async function getMerchantsWithDashboardData(
   const firstDayOfMonthUTC = rawFirstDay;
   const firstDayNextMonthUTC = rawNextMonth;
 
+  // Lógica de ordenação
+  let orderByClause = desc(merchants.dtinsert); // Ordenação padrão
+
+  if (sortBy && sortOrder) {
+    const orderDirection = sortOrder.toLowerCase() === "desc" ? desc : asc;
+
+    switch (sortBy) {
+      case "name":
+        orderByClause = orderDirection(merchants.name);
+        break;
+      case "dtinsert":
+        orderByClause = orderDirection(merchants.dtinsert);
+        break;
+      default:
+        orderByClause = desc(merchants.dtinsert); // Fallback para ordenação padrão
+    }
+  }
+
   // Consulta principal para obter merchants com paginação
   const merchantResult = await db
-    .select({
+    .selectDistinct({
       merchantid: merchants.id,
       corporate_name: merchants.corporateName,
       name: merchants.name,
@@ -2255,7 +2276,7 @@ export async function getMerchantsWithDashboardData(
       eq(merchants.id, merchantpixaccount.idMerchant)
     )
     .where(and(...conditions))
-    .orderBy(desc(merchants.dtinsert))
+    .orderBy(orderByClause)
     .offset(offset)
     .limit(pageSize);
 
@@ -2373,8 +2394,21 @@ export async function getMerchantsWithDashboardData(
     };
   };
 
-  // Processar dados de merchants
-  const merchantsList = merchantResult.map((merchant) => ({
+  // Processar dados de merchants - Remover duplicados baseado no merchantid
+  const uniqueMerchants = merchantResult.reduce(
+    (acc, merchant) => {
+      const existingIndex = acc.findIndex(
+        (m) => m.merchantid === merchant.merchantid
+      );
+      if (existingIndex === -1) {
+        acc.push(merchant);
+      }
+      return acc;
+    },
+    [] as typeof merchantResult
+  );
+
+  const merchantsList = uniqueMerchants.map((merchant) => ({
     merchantid: merchant.merchantid,
     slug: merchant.slug ?? "N/A",
     active: merchant.active ?? false,
@@ -2421,7 +2455,7 @@ export async function getMerchantsWithDashboardData(
   return {
     merchants: {
       merchants: merchantsList,
-      totalCount: stats.status.total_count,
+      totalCount: stats.status.total_count, // Manter o total original para paginação
       active_count: stats.status.active_count,
       inactive_count: stats.status.inactive_count,
       pending_kyc_count: stats.status.pending_kyc_count,
