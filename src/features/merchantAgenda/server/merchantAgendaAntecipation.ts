@@ -10,6 +10,7 @@ import {
   gte,
   ilike,
   inArray,
+  isNotNull,
   lte,
   or,
   sql,
@@ -57,7 +58,11 @@ export async function getMerchantAgendaAnticipation(
   settlementDateFrom?: string,
   settlementDateTo?: string,
   expectedSettlementDateFrom?: string,
-  expectedSettlementDateTo?: string
+  expectedSettlementDateTo?: string,
+  saleDateFrom?: string,
+  saleDateTo?: string,
+  nsu?: string,
+  orderId?: string
 ): Promise<MerchantAgendaAnticipationList> {
   const offset = (page - 1) * pageSize;
 
@@ -72,7 +77,38 @@ export async function getMerchantAgendaAnticipation(
     };
   }
 
-  const conditions = [or(ilike(merchants.name, `%${search}%`))];
+  // Verifica se há algum filtro aplicado (incluindo busca por texto)
+  const hasFilters = !!(
+    (search && search.trim() !== "") ||
+    dateFrom ||
+    dateTo ||
+    establishment ||
+    (status && status !== "all") ||
+    (cardBrand && cardBrand !== "all") ||
+    settlementDateFrom ||
+    settlementDateTo ||
+    expectedSettlementDateFrom ||
+    expectedSettlementDateTo ||
+    saleDateFrom ||
+    saleDateTo ||
+    nsu ||
+    orderId
+  );
+
+  // Se não há filtros aplicados, retorna dados vazios
+  if (!hasFilters) {
+    return {
+      merchantAgendaAnticipations: [],
+      totalCount: 0,
+    };
+  }
+
+  const conditions = [];
+
+  // Add search condition only if search term is provided
+  if (search && search.trim() !== "") {
+    conditions.push(or(ilike(merchants.name, `%${search}%`)));
+  }
 
   // Add merchant access filter if user doesn't have full access
   if (!userAccess.fullAccess) {
@@ -106,27 +142,78 @@ export async function getMerchantAgendaAnticipation(
   }
 
   if (settlementDateFrom) {
-    conditions.push(
-      gte(payoutAntecipations.settlementDate, settlementDateFrom)
-    );
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = settlementDateFrom.split("T")[0];
+    conditions.push(gte(payoutAntecipations.settlementDate, dateOnly));
   }
 
   if (settlementDateTo) {
-    conditions.push(lte(payoutAntecipations.settlementDate, settlementDateTo));
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = settlementDateTo.split("T")[0];
+    conditions.push(lte(payoutAntecipations.settlementDate, dateOnly));
   }
 
   if (expectedSettlementDateFrom) {
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = expectedSettlementDateFrom.split("T")[0];
+    conditions.push(gte(payoutAntecipations.expectedSettlementDate, dateOnly));
+  }
+
+  if (expectedSettlementDateTo) {
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = expectedSettlementDateTo.split("T")[0];
+    conditions.push(lte(payoutAntecipations.expectedSettlementDate, dateOnly));
+  }
+
+  if (saleDateFrom) {
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = saleDateFrom.split("T")[0];
+    // Usa effectivePaymentDate se não for null, senão usa transactionDate
     conditions.push(
-      gte(
-        payoutAntecipations.expectedSettlementDate,
-        expectedSettlementDateFrom
+      or(
+        and(
+          isNotNull(payoutAntecipations.effectivePaymentDate),
+          gte(payoutAntecipations.effectivePaymentDate, dateOnly)
+        ),
+        and(
+          isNotNull(payoutAntecipations.transactionDate),
+          gte(
+            payoutAntecipations.transactionDate,
+            new Date(dateOnly).toISOString()
+          )
+        )
       )
     );
   }
 
-  if (expectedSettlementDateTo) {
+  if (saleDateTo) {
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = saleDateTo.split("T")[0];
+    // Usa effectivePaymentDate se não for null, senão usa transactionDate
     conditions.push(
-      lte(payoutAntecipations.expectedSettlementDate, expectedSettlementDateTo)
+      or(
+        and(
+          isNotNull(payoutAntecipations.effectivePaymentDate),
+          lte(payoutAntecipations.effectivePaymentDate, dateOnly)
+        ),
+        and(
+          isNotNull(payoutAntecipations.transactionDate),
+          lte(
+            payoutAntecipations.transactionDate,
+            new Date(dateOnly + "T23:59:59.999Z").toISOString()
+          )
+        )
+      )
+    );
+  }
+
+  if (nsu) {
+    conditions.push(ilike(payoutAntecipations.rrn, `%${nsu}%`));
+  }
+
+  if (orderId) {
+    conditions.push(
+      ilike(payoutAntecipations.anticipationCode, `%${orderId}%`)
     );
   }
 
@@ -271,6 +358,37 @@ export async function getMerchantAgendaAnticipationStats(
     };
   }
 
+  // Verifica se há algum filtro aplicado
+  const hasFilters = !!(
+    dateFrom ||
+    dateTo ||
+    establishment ||
+    (status && status !== "all") ||
+    (cardBrand && cardBrand !== "all") ||
+    settlementDateFrom ||
+    settlementDateTo ||
+    saleDateFrom ||
+    saleDateTo ||
+    nsu ||
+    orderId
+  );
+
+  // Se não há filtros aplicados, retorna dados vazios
+  if (!hasFilters) {
+    return {
+      totalEstablishments: 0,
+      totalAnticipationRequests: 0,
+      totalParcels: 0,
+      fullyAnticipatedParcels: 0,
+      partiallyAnticipatedParcels: 0,
+      totalNetAnticipated: 0,
+      totalGrossAnticipated: 0,
+      totalAnticipationFees: 0,
+      firstTransactionDate: undefined,
+      lastTransactionDate: undefined,
+    };
+  }
+
   const conditions = [];
 
   // Adiciona filtro de acesso ao comerciante se o usuário não tiver acesso total
@@ -278,6 +396,24 @@ export async function getMerchantAgendaAnticipationStats(
     conditions.push(
       inArray(payoutAntecipations.idMerchants, userAccess.idMerchants)
     );
+  }
+
+  // Determina qual campo de data usar para o período baseado nos filtros aplicados
+  let minDateSql: any;
+  let maxDateSql: any;
+
+  if (saleDateFrom || saleDateTo) {
+    // Se filtrou por Data de Venda, usa effectivePaymentDate
+    minDateSql = sql<string>`MIN(${payoutAntecipations.effectivePaymentDate})`;
+    maxDateSql = sql<string>`MAX(${payoutAntecipations.effectivePaymentDate})`;
+  } else if (settlementDateFrom || settlementDateTo) {
+    // Se filtrou por Data de Liquidação, usa settlementDate
+    minDateSql = sql<string>`MIN(${payoutAntecipations.settlementDate})`;
+    maxDateSql = sql<string>`MAX(${payoutAntecipations.settlementDate})`;
+  } else {
+    // Caso contrário, usa transactionDate como padrão
+    minDateSql = sql<string>`MIN(${payoutAntecipations.transactionDate})`;
+    maxDateSql = sql<string>`MAX(${payoutAntecipations.transactionDate})`;
   }
 
   // Filtro por data de transação (início)
@@ -311,26 +447,60 @@ export async function getMerchantAgendaAnticipationStats(
 
   // Filtro por data de liquidação (início)
   if (settlementDateFrom) {
-    conditions.push(
-      gte(payoutAntecipations.settlementDate, settlementDateFrom)
-    );
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = settlementDateFrom.split("T")[0];
+    conditions.push(gte(payoutAntecipations.settlementDate, dateOnly));
   }
 
   // Filtro por data de liquidação (fim)
   if (settlementDateTo) {
-    conditions.push(lte(payoutAntecipations.settlementDate, settlementDateTo));
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = settlementDateTo.split("T")[0];
+    conditions.push(lte(payoutAntecipations.settlementDate, dateOnly));
   }
 
   // Filtro por data de pagamento efetivo (início)
   if (saleDateFrom) {
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = saleDateFrom.split("T")[0];
+    // Usa effectivePaymentDate se não for null, senão usa transactionDate
     conditions.push(
-      gte(payoutAntecipations.effectivePaymentDate, saleDateFrom)
+      or(
+        and(
+          isNotNull(payoutAntecipations.effectivePaymentDate),
+          gte(payoutAntecipations.effectivePaymentDate, dateOnly)
+        ),
+        and(
+          isNotNull(payoutAntecipations.transactionDate),
+          gte(
+            payoutAntecipations.transactionDate,
+            new Date(dateOnly).toISOString()
+          )
+        )
+      )
     );
   }
 
   // Filtro por data de pagamento efetivo (fim)
   if (saleDateTo) {
-    conditions.push(lte(payoutAntecipations.effectivePaymentDate, saleDateTo));
+    // Extrai apenas a parte da data (YYYY-MM-DD) da string ISO
+    const dateOnly = saleDateTo.split("T")[0];
+    // Usa effectivePaymentDate se não for null, senão usa transactionDate
+    conditions.push(
+      or(
+        and(
+          isNotNull(payoutAntecipations.effectivePaymentDate),
+          lte(payoutAntecipations.effectivePaymentDate, dateOnly)
+        ),
+        and(
+          isNotNull(payoutAntecipations.transactionDate),
+          lte(
+            payoutAntecipations.transactionDate,
+            new Date(dateOnly + "T23:59:59.999Z").toISOString()
+          )
+        )
+      )
+    );
   }
 
   // Filtro por número de referência (RRN)
@@ -352,8 +522,8 @@ export async function getMerchantAgendaAnticipationStats(
       totalNetAnticipated: sum(payoutAntecipations.netAmount),
       totalGrossAnticipated: sum(payoutAntecipations.anticipatedAmount),
       totalAnticipationFees: sum(payoutAntecipations.anticipationFee),
-      minTransactionDate: sql<string>`MIN(${payoutAntecipations.transactionDate})`,
-      maxTransactionDate: sql<string>`MAX(${payoutAntecipations.transactionDate})`,
+      minTransactionDate: minDateSql,
+      maxTransactionDate: maxDateSql,
     })
     .from(payoutAntecipations)
     .leftJoin(merchants, eq(payoutAntecipations.idMerchants, merchants.id))

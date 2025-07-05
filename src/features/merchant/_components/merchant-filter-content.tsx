@@ -26,7 +26,7 @@ import { useState, type KeyboardEvent } from "react";
 interface FilterMerchantsContentProps {
   onClose: () => void;
   onFilter: (filters: any) => void;
-  StatusKyc: { value: string; label: string }[] | undefined;
+
   dateFromIn: Date | undefined;
   establishmentIn: string | undefined;
   statusIn: string | undefined;
@@ -48,7 +48,6 @@ export function FilterMerchantsContent({
   salesAgentIn,
   onFilter,
   onClose,
-  StatusKyc,
 }: FilterMerchantsContentProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [establishment, setEstablishment] = useState(establishmentIn || "");

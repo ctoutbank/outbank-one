@@ -381,6 +381,14 @@ export function MerchantAgendaTabs({
                 lastTransactionDate={
                   anticipationDashboardStats.lastTransactionDate
                 }
+                settlementDateFrom={
+                  merchantAgendaTabsProps.searchParams.settlementDateFrom
+                }
+                settlementDateTo={
+                  merchantAgendaTabsProps.searchParams.settlementDateTo
+                }
+                saleDateFrom={merchantAgendaTabsProps.searchParams.saleDateFrom}
+                saleDateTo={merchantAgendaTabsProps.searchParams.saleDateTo}
               />
             </div>
 
