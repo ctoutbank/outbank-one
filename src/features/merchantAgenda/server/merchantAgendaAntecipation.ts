@@ -80,7 +80,7 @@ export async function getMerchantAgendaAnticipation(
       inArray(payoutAntecipations.idMerchants, userAccess.idMerchants)
     );
   }
-
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
   if (dateFrom) {
     conditions.push(
       gte(payoutAntecipations.transactionDate, new Date(dateFrom).toISOString())
@@ -279,6 +279,7 @@ export async function getMerchantAgendaAnticipationStats(
       inArray(payoutAntecipations.idMerchants, userAccess.idMerchants)
     );
   }
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   // Filtro por data de transação (início)
   if (dateFrom) {

@@ -5,7 +5,7 @@ import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
 import {
   DD,
   generateRandomPassword,
-  getUserMerchantsAccess,
+  getCustomerByTentant
 } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -86,13 +86,7 @@ export async function getSalesAgents(
 ): Promise<SalesAgentsList | undefined> {
   try {
     // Get user's merchant access
-    const userAccess = await getUserMerchantsAccess();
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-      return {
-        salesAgents: [],
-        totalCount: 0,
-      };
-    }
+    const customer = await getCustomerByTentant()
 
     const offset = (page - 1) * pageSize;
 
@@ -120,8 +114,9 @@ export async function getSalesAgents(
       conditions.push(lte(salesAgents.dtinsert, dateTo));
     }
 
-    // Adicionar filtro de merchants se não tiver fullAccess
-
+    if (customer) {
+      conditions.push(eq(salesAgents.slugCustomer, customer.slug));
+    }
 
     const result = await db
       .select()
@@ -319,10 +314,7 @@ export async function getSalesAgentById(
   id: number
 ): Promise<SalesAgentDetail | null> {
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return null;
-  }
+  const customer = await getCustomerByTentant()
 
   const result = await db
     .select({
@@ -356,7 +348,7 @@ export async function getSalesAgentById(
     .leftJoin(users, eq(salesAgents.idUsers, users.id))
     .leftJoin(profiles, eq(users.idProfile, profiles.id))
     .leftJoin(addresses, eq(users.idAddress, addresses.id))
-    .where(eq(salesAgents.id, id))
+    .where(and(eq(salesAgents.id, id), eq(salesAgents.slugCustomer, customer.slug)))
     .limit(1);
 
   const userMerchantResult = await db

@@ -1,8 +1,12 @@
 "use server";
 
-import { getUserMerchantsAccess } from "@/features/users/server/users";
-import { and, count, desc, eq, sql } from "drizzle-orm";
 import {
+  getCustomerByTentant,
+  getUserMerchantsAccess,
+} from "@/features/users/server/users";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import {
+  customers,
   financialAdjustmentMerchants,
   financialAdjustments,
   merchants,
@@ -57,10 +61,10 @@ export async function getFinancialAdjustments(
   reason?: string,
   active?: string
 ): Promise<FinancialAdjustmentsList> {
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
   // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  if (!customer) {
     return {
       financialAdjustments: [],
       totalCount: 0,
@@ -88,6 +92,8 @@ export async function getFinancialAdjustments(
     conditions.push(eq(financialAdjustments.active, active === "true"));
   }
 
+  conditions.push(eq(customers.slug, customer.slug));
+
   // Primeiro, buscar os ajustes financeiros únicos
   const adjustmentsResult = await db
     .select({
@@ -109,6 +115,7 @@ export async function getFinancialAdjustments(
       dtupdate: financialAdjustments.dtupdate,
     })
     .from(financialAdjustments)
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(financialAdjustments.id))
     .limit(pageSize)
@@ -128,8 +135,15 @@ export async function getFinancialAdjustments(
           merchants,
           eq(financialAdjustmentMerchants.idMerchant, merchants.id)
         )
+        .innerJoin(customers, eq(merchants.idCustomer, customers.id))
         .where(
-          eq(financialAdjustmentMerchants.idFinancialAdjustment, adjustment.id)
+          and(
+            eq(
+              financialAdjustmentMerchants.idFinancialAdjustment,
+              adjustment.id
+            ),
+            eq(customers.slug, customer.slug)
+          )
         );
 
       return {
@@ -159,6 +173,7 @@ export async function getFinancialAdjustments(
   const totalCountResult = await db
     .select({ count: count() })
     .from(financialAdjustments)
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   const totalCount = totalCountResult[0]?.count || 0;
@@ -172,10 +187,37 @@ export async function getFinancialAdjustments(
 export async function getFinancialAdjustmentById(
   id: number
 ): Promise<FinancialAdjustmentFull | null> {
+  const customer = await getCustomerByTentant();
   const result = await db
-    .select()
+    .select({
+      id: financialAdjustments.id,
+      externalId: financialAdjustments.externalId,
+      slug: financialAdjustments.slug,
+      active: financialAdjustments.active,
+      expectedSettlementDate: financialAdjustments.expectedSettlementDate,
+      reason: financialAdjustments.reason,
+      title: financialAdjustments.title,
+      description: financialAdjustments.description,
+      rrn: financialAdjustments.rrn,
+      grossValue: financialAdjustments.grossValue,
+      recurrence: financialAdjustments.recurrence,
+      type: financialAdjustments.type,
+      startDate: financialAdjustments.startDate,
+      endDate: financialAdjustments.endDate,
+      dtinsert: financialAdjustments.dtinsert,
+      dtupdate: financialAdjustments.dtupdate,
+      idCustomer: financialAdjustments.idCustomer,
+      idMerchant: financialAdjustmentMerchants.idMerchant,
+      idFinancialAdjustment: financialAdjustmentMerchants.idFinancialAdjustment,
+    })
     .from(financialAdjustments)
-    .where(eq(financialAdjustments.id, id))
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(
+      and(
+        eq(financialAdjustments.id, id),
+        eq(customers.slug, customer.slug)
+      )
+    )
     .limit(1);
 
   if (!result[0]) return null;
@@ -188,11 +230,17 @@ export async function getFinancialAdjustmentById(
       idDocument: merchants.idDocument,
     })
     .from(financialAdjustmentMerchants)
+    .innerJoin(customers, eq(merchants.idCustomer, customers.id))
     .innerJoin(
       merchants,
       eq(financialAdjustmentMerchants.idMerchant, merchants.id)
     )
-    .where(eq(financialAdjustmentMerchants.idFinancialAdjustment, id));
+    .where(
+      and(
+        eq(financialAdjustmentMerchants.idFinancialAdjustment, id),
+        eq(customers.slug, customer.slug)
+      )
+    );
 
   return {
     ...result[0],
@@ -305,9 +353,15 @@ export async function getMerchantsForFinancialAdjustment(
       eq(financialAdjustmentMerchants.idMerchant, merchants.id)
     )
     .where(
-      eq(
-        financialAdjustmentMerchants.idFinancialAdjustment,
-        idFinancialAdjustment
+      and(
+        eq(
+          financialAdjustmentMerchants.idFinancialAdjustment,
+          idFinancialAdjustment
+        ),
+        eq(merchants.idCustomer, userAccess.idCustomer),
+        userAccess.idMerchants.length > 0
+          ? inArray(merchants.id, userAccess.idMerchants)
+          : undefined
       )
     );
 
@@ -332,7 +386,15 @@ export async function getAllMerchants(): Promise<MerchantInfo[]> {
       idDocument: merchants.idDocument,
     })
     .from(merchants)
-    .where(eq(merchants.active, true))
+    .where(
+      and(
+        eq(merchants.active, true),
+        eq(merchants.idCustomer, userAccess.idCustomer),
+        userAccess.idMerchants.length > 0
+          ? inArray(merchants.id, userAccess.idMerchants)
+          : undefined
+      )
+    )
     .orderBy(merchants.name);
 
   return result.map((merchant) => ({
@@ -355,10 +417,10 @@ export type FinancialAdjustmentStats = {
 };
 
 export async function getFinancialAdjustmentStats(): Promise<FinancialAdjustmentStats> {
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
   // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  if (!customer) {
     return {
       totalAdjustments: 0,
       activeAdjustments: 0,
@@ -369,19 +431,33 @@ export async function getFinancialAdjustmentStats(): Promise<FinancialAdjustment
   }
   const totalResult = await db
     .select({ count: count() })
-    .from(financialAdjustments);
+    .from(financialAdjustments)
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(eq(customers.slug, customer.slug));
 
   const activeResult = await db
     .select({ count: count() })
     .from(financialAdjustments)
-    .where(eq(financialAdjustments.active, true));
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(
+      and(
+        eq(financialAdjustments.active, true),
+        eq(customers.slug, customer.slug)
+      )
+    );
 
   const valueResult = await db
     .select({
       total: sql<number>`COALESCE(SUM(CAST(${financialAdjustments.grossValue} AS DECIMAL)), 0)`,
     })
     .from(financialAdjustments)
-    .where(eq(financialAdjustments.active, true));
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(
+      and(
+        eq(financialAdjustments.active, true),
+        eq(customers.slug, customer.slug)
+      )
+    );
 
   const typeStatsResult = await db
     .select({
@@ -389,7 +465,13 @@ export async function getFinancialAdjustmentStats(): Promise<FinancialAdjustment
       count: count(),
     })
     .from(financialAdjustments)
-    .where(eq(financialAdjustments.active, true))
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(
+      and(
+        eq(financialAdjustments.active, true),
+        eq(customers.slug, customer.slug)
+      )
+    )
     .groupBy(financialAdjustments.type);
 
   const reasonStatsResult = await db
@@ -398,7 +480,13 @@ export async function getFinancialAdjustmentStats(): Promise<FinancialAdjustment
       count: count(),
     })
     .from(financialAdjustments)
-    .where(eq(financialAdjustments.active, true))
+    .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
+    .where(
+      and(
+        eq(financialAdjustments.active, true),
+        eq(customers.slug, customer.slug)
+      )
+    )
     .groupBy(financialAdjustments.reason);
 
   const typeStats: { [key: string]: number } = {};

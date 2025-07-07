@@ -1,4 +1,4 @@
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { getCustomerByTentant } from "@/features/users/server/users";
 
 // Tipo para os dados de EDIS
 type EdisFile = {
@@ -29,11 +29,10 @@ export async function getEdis(
   status?: string,
   date?: string
 ): Promise<EdisListResponse> {
-
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
   // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  if (!customer || customer.slug !== "B68046D590EB402288F90E1147B6BC9F") {
     return {
       data: [],
       totalCount: 0,

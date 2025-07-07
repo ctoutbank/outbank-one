@@ -170,6 +170,14 @@ export async function getSettlements(
           WHERE ((${status} = '0') OR s.status = ANY(string_to_array(${status}, ',')))
             AND (s.payment_date >= ${dateF})
             AND (s.payment_date <= ${dateT})
+            AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = s.id
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )
           ORDER BY s.payment_date DESC
             LIMIT ${pageSize} OFFSET ${offset};`
   );
@@ -380,13 +388,7 @@ export async function getMerchantSettlements(
 ): Promise<MerchantSettlementList> {
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return {
-      merchant_settlements: [],
-      totalCount: 0,
-    };
-  }
-
+ 
   const offset = (page - 1) * pageSize;
   const currentDay = new Date();
 
@@ -464,6 +466,7 @@ export async function getMerchantSettlements(
       WHERE ((${settlementSlug} = '' AND s.payment_date = ${currentDay}) OR s.slug = ${settlementSlug}) 
         AND (${search} = '' OR m.name ILIKE '%' || ${search} || '%')
         ${sql.raw(merchantAccessCondition)}
+        ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
       ORDER BY ms.id ASC
       LIMIT ${pageSize}
       OFFSET ${offset}`

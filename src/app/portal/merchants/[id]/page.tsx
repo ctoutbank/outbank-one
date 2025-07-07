@@ -44,7 +44,7 @@ export default async function MerchantDetail({
   const merchantBankAccount = await getMerchantBankAccountById(
     merchant?.merchants.idMerchantBankAccount || 0
   );
-  const DDSalesAgent = await getSalesAgentForDropdown();
+  const DDSalesAgent = await getSalesAgentForDropdown(userAccess);
 
   // Buscar fees disponíveis para quando não há merchantPriceId
   const feesResult = await getFeesAction(1, 100); // Buscar até 100 fees

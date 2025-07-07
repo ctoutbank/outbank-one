@@ -70,6 +70,7 @@ export async function updateFinancialAdjustmentFormAction(
     endDate: data.endDate || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    idCustomer: 0 || null,
   };
 
   console.log("Dados a serem atualizados:", adjustmentUpdate);

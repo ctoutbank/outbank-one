@@ -9,6 +9,7 @@ import {
   merchants,
   merchantTransactionPrice,
 } from "../../../../drizzle/schema";
+import { getCustomerByTentant } from "@/features/users/server/users";
 
 interface CreateMerchantPriceInput {
   feeId: string;
@@ -23,9 +24,9 @@ export async function createMerchantPriceFromFeeAction(
 
     console.log("=== DEBUG: Iniciando createMerchantPriceFromFeeAction ===");
     console.log("Input:", { feeId, merchantId });
-
+    const customer = await getCustomerByTentant();
     // 1. Buscar a fee completa
-    const fee = await getFeeById(feeId);
+    const fee = await getFeeById(feeId, customer.slug);
     if (!fee) {
       console.log("ERROR: Taxa não encontrada para feeId:", feeId);
       return { success: false, error: "Taxa não encontrada" };

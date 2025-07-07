@@ -1,11 +1,12 @@
 "use server";
 
 import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import { getCustomerByTentant } from "@/features/users/server/users";
 import { db } from "@/server/db";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   categories,
+  customers,
   fee,
   feeBrand,
   feeBrandProductType,
@@ -13,13 +14,9 @@ import {
 
 export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
   try {
-    const userAccess = await getUserMerchantsAccess();
+    const customer = await getCustomerByTentant();
 
-    // If user has no access and no full access, return empty result
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-      return null;
-    }
-    return await getFeeById(id);
+    return await getFeeById(id, customer.slug);
   } catch (error) {
     console.error(`Erro ao buscar taxa com ID ${id}:`, error);
     return null;
@@ -28,13 +25,12 @@ export async function getFeeByIdAction(id: string): Promise<FeeData | null> {
 
 export async function getFeesAction(page = 1, pageSize = 10) {
   try {
-    const userAccess = await getUserMerchantsAccess();
+    const customer = await getCustomerByTentant();
 
-    // If user has no access and no full access, return empty result
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    if (!customer) {
       return null;
     }
-    return await getFees(page, pageSize);
+    return await getFees(page, pageSize, customer.slug);
   } catch (error) {
     console.error("Erro ao buscar taxas:", error);
     return {
@@ -228,7 +224,8 @@ function getPaymentModeFromProductType(
 // Função para buscar todas as taxas
 export async function getFees(
   page: number,
-  pageSize: number
+  pageSize: number,
+  customerSlug: string
 ): Promise<{
   fees: FeeData[];
   totalRecords: number;
@@ -236,10 +233,7 @@ export async function getFees(
   pageSize: number;
 }> {
   try {
-    const userAccess = await getUserMerchantsAccess();
-
-    // If user has no access and no full access, return empty result
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    if (!customerSlug) {
       return {
         fees: [],
         totalRecords: 0,
@@ -256,8 +250,31 @@ export async function getFees(
 
     // 2. Buscar apenas a página atual
     const paginatedFees = await db
-      .select()
+      .select({
+        id: fee.id,
+        name: fee.name,
+        tableType: fee.tableType,
+        code: fee.code,
+        mcc: fee.mcc,
+        cnae: fee.cnae,
+        compulsoryAnticipationConfig: fee.compulsoryAnticipationConfig,
+        eventualAnticipationFee: fee.eventualAnticipationFee,
+        anticipationType: fee.anticipationType,
+        slug: fee.slug,
+        active: fee.active,
+        dtinsert: fee.dtinsert,
+        dtupdate: fee.dtupdate,
+        idCustomer: fee.idCustomer,
+        cardPixMdr: fee.cardPixMdr,
+        cardPixCeilingFee: fee.cardPixCeilingFee,
+        cardPixMinimumCostFee: fee.cardPixMinimumCostFee,
+        nonCardPixMdr: fee.nonCardPixMdr,
+        nonCardPixCeilingFee: fee.nonCardPixCeilingFee,
+        nonCardPixMinimumCostFee: fee.nonCardPixMinimumCostFee,
+      })
       .from(fee)
+      .innerJoin(customers, eq(fee.idCustomer, customers.id))
+      .where(eq(customers.slug, customerSlug))
       .limit(pageSize)
       .offset(offset);
 
@@ -299,12 +316,10 @@ export async function getFees(
 }
 
 // Função para buscar uma taxa específica pelo ID
-export async function getFeeById(id: string): Promise<FeeData | null> {
+export async function getFeeById(id: string, customerSlug: string): Promise<FeeData | null> {
   try {
-    const userAccess = await getUserMerchantsAccess();
 
-    // If user has no access and no full access, return empty result
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    if (!customerSlug) {
       return createEmptyFee();
     }
     if (id === "0") {
@@ -313,9 +328,31 @@ export async function getFeeById(id: string): Promise<FeeData | null> {
 
     // Buscar a taxa específica
     const [feeData] = await db
-      .select()
+      .select({
+        anticipationType: fee.anticipationType,
+        id: fee.id,
+        name: fee.name,
+        tableType: fee.tableType,
+        code: fee.code,
+        mcc: fee.mcc,
+        cnae: fee.cnae,
+        compulsoryAnticipationConfig: fee.compulsoryAnticipationConfig,
+        eventualAnticipationFee: fee.eventualAnticipationFee,
+        cardPixMdr: fee.cardPixMdr,
+        cardPixCeilingFee: fee.cardPixCeilingFee,
+        cardPixMinimumCostFee: fee.cardPixMinimumCostFee,
+        nonCardPixMdr: fee.nonCardPixMdr,
+        nonCardPixCeilingFee: fee.nonCardPixCeilingFee,
+        nonCardPixMinimumCostFee: fee.nonCardPixMinimumCostFee,
+        slug: fee.slug,
+        active: fee.active,
+        dtinsert: fee.dtinsert,
+        dtupdate: fee.dtupdate,
+        idCustomer: fee.idCustomer,
+      })
       .from(fee)
-      .where(eq(fee.id, parseInt(id)));
+      .innerJoin(customers, eq(fee.idCustomer, customers.id))
+      .where(and(eq(fee.id, parseInt(id)), eq(customers.slug, customerSlug)));
 
     if (!feeData) {
       return null;

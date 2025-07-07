@@ -248,6 +248,8 @@ export async function getMerchants(
     conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
   }
 
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+
   const result = await db
     .select({
       merchantid: merchants.id,
@@ -522,7 +524,7 @@ export async function getMerchantById(
   if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
     throw new Error("You don't have access to this merchant");
   }
-
+  
   const result = await db
     .select({
       merchants: { ...getTableColumns(merchants) },
@@ -535,7 +537,12 @@ export async function getMerchantById(
       pixaccounts: { ...getTableColumns(merchantpixaccount) },
     })
     .from(merchants)
-    .where(eq(merchants.id, Number(id)))
+    .where(
+      and(
+        eq(merchants.id, Number(id)),
+        eq(merchants.idCustomer, userAccess.idCustomer)
+      )
+    )
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
@@ -1742,7 +1749,7 @@ export type SalesAgentDropdown = {
   label: string;
 };
 
-export async function getSalesAgentForDropdown(): Promise<
+export async function getSalesAgentForDropdown(userAccess: UserMerchantsAccess): Promise<
   SalesAgentDropdown[]
 > {
   const result = await db
@@ -1751,6 +1758,8 @@ export async function getSalesAgentForDropdown(): Promise<
       label: salesAgents.firstName,
     })
     .from(salesAgents)
+    .innerJoin(customers, eq(salesAgents.slugCustomer, customers.slug))
+    .where(eq(customers.id, userAccess.idCustomer))
     .orderBy(salesAgents.id);
 
   return result.map((item) => ({
@@ -2018,7 +2027,7 @@ export async function getMerchantsWithDashboardData(
   if (salesAgent) {
     conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
   }
-
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
   // 1. Obter a lista de merchants com paginação e todas as contagens em uma única consulta
   // Isso evita fazer várias consultas separadas para cada contagem
   const now = new Date();

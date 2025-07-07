@@ -2,9 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { DD } from "../server/users";
 import { FilterUserButton } from "./filter-user-button";
 import { FilterUserContent } from "./filter-user-content";
-import { DD } from "../server/users";
 
 type UserFilterProps = {
   // Filter values
@@ -37,14 +37,12 @@ export function UserFilter({
 
   // Dropdown options
   merchantOptions = [],
-  customerOptions = [],
   profileOptions = [],
 }: UserFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams?.toString() || "");
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-
 
   const handleFilter = (filters: {
     merchant: string;
@@ -131,7 +129,6 @@ export function UserFilter({
           lastNameIn={lastName}
           profileIn={profile}
           merchantOptions={merchantOptions}
-          customerOptions={customerOptions}
           profileOptions={profileOptions}
           onFilter={handleFilter}
         />

@@ -101,8 +101,10 @@ export async function createFilterConditions(
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
   } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     // Se o usuário não tem acesso, retorna uma condição impossível
-    conditions.push(eq(merchants.id, -1));
+    return "error";
   }
+
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   if (search) {
     conditions.push(
@@ -229,7 +231,9 @@ export async function getMerchantRegistrationsByPeriod(
     active,
     salesAgent
   );
-
+  if (filterConditions === "error") {
+    return [];
+  }
   // Garantir que pelo menos mostre dados dos últimos dois meses
   // se não estiver filtrando por "Cadastrado Em"
   if (!dateFrom) {
@@ -327,7 +331,14 @@ export async function getMerchantRegistrationSummary(
     active,
     salesAgent
   );
-
+  if (baseFilterConditions === "error") {
+    return {
+      currentMonth: 0,
+      previousMonth: 0,
+      currentWeek: 0,
+      today: 0,
+    };
+  }
   // Criar queries para cada período em paralelo
   const [
     currentMonthResult,
@@ -429,6 +440,9 @@ export async function getMerchantTransactionData(
       active,
       salesAgent
   );
+  if (filterConditions === "error") {
+    return [];
+  }
 
   const transacionamResult = await countMerchantsWithTransactions(
       filterConditions,
@@ -528,7 +542,9 @@ export async function getMerchantTypeData(
     active,
     salesAgent
   );
-
+  if (filterConditions === "error") {
+    return [];
+  }
   // Executar consultas em paralelo
   const [compulsoriaResult, eventualResult] = await Promise.all([
     // Consulta para estabelecimentos de compra compulsória
@@ -652,7 +668,9 @@ export async function getMerchantsGroupedByRegion(
     active,
     salesAgent
   );
-
+  if (filterConditions === "error") {
+    return [];
+  }
   const query = db
     .select({
       state: addresses.state,
@@ -711,7 +729,9 @@ export async function getTransactionsGroupedByShift(
       active,
       salesAgent
   );
-
+  if (filterConditions === "error") {
+    return [];
+  }
   const merchantSlugsResult = await db
       .select({ slug: merchants.slug })
       .from(merchants)
@@ -807,7 +827,9 @@ export async function getTransactionStatusData(
       active,
       salesAgent
   );
-
+  if (filterConditions === "error") {
+    return [];
+  }
   const merchantSlugsResult = await db
       .select({ slug: merchants.slug })
       .from(merchants)

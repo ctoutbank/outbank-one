@@ -156,6 +156,7 @@ export async function getPaymentLinks(
   if (!userAccess.fullAccess) {
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   const result = await db
     .select({
@@ -170,7 +171,7 @@ export async function getPaymentLinks(
       dtinsert: paymentLink.dtinsert,
     })
     .from(paymentLink)
-    .leftJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
+    .innerJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
     .where(and(...conditions))
     .orderBy(desc(paymentLink.id))
     .limit(pageSize)
@@ -229,15 +230,17 @@ export async function getPaymentLinkById(
       JSON_AGG(s.*) FILTER (WHERE s.id IS NOT NULL) AS "shoppingItems"
     FROM payment_link p
     LEFT JOIN shopping_items s ON s.id_payment_link = p.id
+    INNER JOIN merchants m ON m.id = p.id_merchant
     WHERE p.id = ${id}
     ${
       !userAccess.fullAccess
-        ? sql`AND p.id_merchant IN (${sql.join(
+        ? sql`AND m.id IN (${sql.join(
             userAccess.idMerchants,
             sql`, `
           )})`
         : sql``
     }
+    ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
     GROUP BY p.id
   `);
 

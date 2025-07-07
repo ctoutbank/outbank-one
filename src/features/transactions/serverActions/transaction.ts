@@ -1,9 +1,6 @@
 "use server";
 
-import {
-  getUserMerchantsAccess,
-  getUserMerchantSlugs,
-} from "@/features/users/server/users";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { getDateUTC } from "@/lib/datetime-utils";
 import { GetTransactionsResponse } from "@/server/integrations/dock/dock-transactions-type";
 import {
@@ -74,10 +71,10 @@ export async function getTransactions(
   salesChannel?: string,
   terminal?: string,
   valueMin?: string,
-  valueMax?: string,
-  filterByUserMerchant?: boolean
+  valueMax?: string
 ): Promise<TransactionsList> {
   const userAccess = await getUserMerchantsAccess();
+  console.log("userAccess", userAccess);
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return {
       transactions: [],
@@ -87,7 +84,6 @@ export async function getTransactions(
 
   // 1. Build conditions array
   const conditions = await buildConditions({
-    filterByUserMerchant,
     status,
     merchant,
     dateFrom,
@@ -100,6 +96,8 @@ export async function getTransactions(
     terminal,
     valueMin,
     valueMax,
+    userMerchants: userAccess.idMerchants,
+    customerId: userAccess.idCustomer,
   });
 
   if (conditions === null) {
@@ -123,9 +121,8 @@ export async function getTransactions(
   };
 }
 
-// Helper function para construir condições
+// Helper function to build conditions
 async function buildConditions(params: {
-  filterByUserMerchant?: boolean;
   status?: string;
   merchant?: string;
   dateFrom?: string;
@@ -138,22 +135,12 @@ async function buildConditions(params: {
   terminal?: string;
   valueMin?: string;
   valueMax?: string;
+  userMerchants?: number[];
+  customerId?: number;
 }): Promise<any[] | null> {
   const conditions = [];
 
-  // User merchant filter
-  if (params.filterByUserMerchant) {
-    const userMerchants = await getUserMerchantSlugs();
-    if (!userMerchants.fullAccess && userMerchants.slugMerchants.length > 0) {
-      conditions.push(
-        inArray(transactions.slugMerchant, userMerchants.slugMerchants)
-      );
-    } else if (!userMerchants.fullAccess) {
-      return null; // Early return para casos sem acesso
-    }
-  }
-
-  // Status filter - otimizado para evitar split desnecessário
+  // Status filter - optimized to avoid unnecessary split
   if (params.status) {
     if (params.status.includes(",")) {
       const statusValues = params.status.split(",").map((s) => s.trim());
@@ -229,10 +216,22 @@ async function buildConditions(params: {
 
   // Value filters
   if (params.valueMin) {
+    console.log("params.valueMin", params.valueMin);
     conditions.push(gte(transactions.totalAmount, params.valueMin));
   }
   if (params.valueMax) {
+    console.log("params.valueMax", params.valueMax);
     conditions.push(lte(transactions.totalAmount, params.valueMax));
+  }
+
+  if (params.userMerchants && params.userMerchants.length > 0) {
+    console.log("params.userMerchants", params.userMerchants);
+    conditions.push(inArray(merchants.id, params.userMerchants));
+  }
+
+  if (params.customerId) {
+    console.log("params.customerId", params.customerId);
+    conditions.push(eq(merchants.idCustomer, params.customerId));
   }
 
   return conditions;
@@ -256,13 +255,14 @@ async function getTransactionData(
         ),
       })
       .from(payout)
+      .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
       .where(
         whereClause
           ? sql`${payout.payoutId}::uuid IN (SELECT ${transactions.slug} FROM ${transactions} WHERE ${whereClause})`
           : undefined
       )
   );
-
+  console.log("payoutCTE", payoutCTE);
   const baseQuery = db
     .with(payoutCTE)
     .select({
@@ -283,7 +283,7 @@ async function getTransactionData(
       transactionMdr: sql<number>`pd.transaction_mdr`,
     })
     .from(transactions)
-    .leftJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
+    .innerJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
     .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
     .leftJoin(categories, eq(merchants.slugCategory, categories.slug))
     .leftJoin(solicitationFee, eq(categories.mcc, solicitationFee.mcc))
@@ -326,6 +326,7 @@ async function getTotalCount(whereClause: any): Promise<number> {
   const result = await db
     .select({ count: count() })
     .from(transactions)
+    .innerJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
     .where(whereClause);
 
   return result[0].count;
@@ -431,7 +432,6 @@ export async function getTransactionsGroupedReport(
   merchant?: string
 ): Promise<TransactionsGroupedReport[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -525,11 +525,11 @@ export async function getTransactionsGroupedReport(
 
   // Adicionar filtro de merchants se não tiver fullAccess
   if (!userAccess.fullAccess) {
-    conditions.push(
-      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
-    );
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
-
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+  }
   // Construir a cláusula WHERE
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   console.log(whereClause);
@@ -544,6 +544,7 @@ export async function getTransactionsGroupedReport(
       DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo') as date
     FROM transactions
     LEFT JOIN terminals ON transactions.slug_terminal = terminals.slug
+    INNER JOIN merchants ON transactions.slug_merchant = merchants.slug
     ${whereClause ? sql`WHERE ${whereClause}` : sql``}
     GROUP BY product_type, brand, DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo'), transaction_status
     ORDER BY DATE(dt_insert at time zone 'utc' at time zone 'America/Sao_Paulo') DESC
@@ -581,7 +582,6 @@ export async function getTotalTransactionsByMonth(
   viewMode?: string
 ): Promise<GetTotalTransactionsByMonthResult[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -610,9 +610,11 @@ export async function getTotalTransactionsByMonth(
 
   // Adicionar filtro de merchants se não tiver fullAccess
   if (!userAccess.fullAccess) {
-    conditions.push(
-      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
-    );
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -668,7 +670,7 @@ export async function getTotalTransactionsByMonth(
         END
       )::TEXT AS revenue
     FROM transactions
-    LEFT JOIN merchants
+    INNER JOIN merchants
       ON transactions.slug_merchant = merchants.slug
     LEFT JOIN categories
       ON merchants.id_category = categories.id
@@ -764,16 +766,25 @@ export async function getTotalTransactionsByMonth(
 
 export async function getTotalMerchants() {
   const userAccess = await getUserMerchantsAccess();
-
+  const conditions = [];
   // If user has no access and no full access, return empty result
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return 0;
   }
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   const startTime = performance.now();
+
   const result = await db.execute(sql`
     SELECT 
       COUNT(1) AS total
     FROM merchants
+    ${whereClause ? sql`WHERE ${whereClause}` : sql``}
   `);
   const endTime = performance.now();
   console.log(`getTotalMerchants executed in ${endTime - startTime} ms`);
@@ -786,7 +797,6 @@ export async function getTotalTransactions(
   dateTo: string
 ): Promise<GetTotalTransactionsResult[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -800,18 +810,21 @@ export async function getTotalTransactions(
   // Adicionar filtro de merchants se não tiver fullAccess
   let merchantFilter = "";
   if (!userAccess.fullAccess) {
-    merchantFilter = `AND t.slug_merchant IN (${userMerchantSlugs.slugMerchants.map((slug: string) => `'${slug}'`).join(",")})`;
+    merchantFilter = `AND m.id IN (${userAccess.idMerchants.join(",")})`;
   }
 
   const result = await db.execute(sql`
     WITH filtered_transactions AS (
-      SELECT *
+      SELECT t.*
       FROM transactions t
+      INNER JOIN merchants m ON t.slug_merchant = m.slug
       WHERE
         t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')
         ${dateFromUTC ? sql`AND t.dt_insert >= ${dateFromUTC}` : sql``}
         ${dateToUTC ? sql`AND t.dt_insert <= ${dateToUTC}` : sql``}
         ${merchantFilter ? sql.raw(merchantFilter) : sql``}
+        ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+
     ),
     latest_payout AS (
       SELECT DISTINCT ON (p.payout_id)
@@ -956,7 +969,7 @@ export async function getCancelledTransactions(
   dateTo: string
 ): Promise<CancelledTransactions[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
+
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -967,17 +980,19 @@ export async function getCancelledTransactions(
   // Adicionar filtro de merchants se não tiver fullAccess
   let merchantFilter = "";
   if (!userAccess.fullAccess) {
-    merchantFilter = `AND t.slug_merchant IN (${userMerchantSlugs.slugMerchants.map((slug: string) => `'${slug}'`).join(",")})`;
+    merchantFilter = `AND m.id IN (${userAccess.idMerchants.join(",")})`;
   }
 
   const result = await db.execute(sql`
     SELECT 
      COUNT(1) AS count
     FROM transactions t
+    INNER JOIN merchants m ON t.slug_merchant = m.slug
     WHERE t.dt_insert >= ${dateFromUTC} 
       AND t.dt_insert < ${dateToUTC}
       AND t.transaction_status = 'DENIED'
       ${merchantFilter ? sql.raw(merchantFilter) : sql``}
+      ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
   `);
   const endTime = performance.now();
   console.log(`getCancelledTransactions executed in ${endTime - startTime} ms`);
@@ -989,7 +1004,6 @@ export async function getRawTransactionsByDate(
   dateTo: string
 ): Promise<TotalTransactionsByDay[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -1010,21 +1024,19 @@ export async function getRawTransactionsByDate(
   ];
 
   if (!userAccess.fullAccess) {
-    conditions.push(
-      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
-    );
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
-
-
-
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  console.log(whereClause);
   const result = await db.execute(sql`
     WITH filtered_transactions AS (
-      SELECT *
-      FROM transactions t
-      WHERE
-        t.transaction_status NOT IN ('CANCELED', 'DENIED', 'PROCESSING', 'PENDING')
-        AND t.dt_insert >= ${dateFromUTC}
-        AND t.dt_insert < ${dateToUTC}
+      SELECT transactions.*
+      FROM transactions
+      INNER JOIN merchants ON transactions.slug_merchant = merchants.slug
+      ${whereClause ? sql`WHERE ${whereClause}` : sql``}
     ),
     latest_payout AS (
       SELECT DISTINCT ON (p.payout_id)
@@ -1110,7 +1122,7 @@ export async function getTransactionsDashboardTotals(
   dateTo: string
 ): Promise<TransactionsDashboardTotals[]> {
   const userAccess = await getUserMerchantsAccess();
-  const userMerchantSlugs = await getUserMerchantSlugs();
+
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
@@ -1139,11 +1151,11 @@ export async function getTransactionsDashboardTotals(
 
   // Adicionar filtro de merchants se não tiver fullAccess
   if (!userAccess.fullAccess) {
-    conditions.push(
-      inArray(transactions.slugMerchant, userMerchantSlugs.slugMerchants)
-    );
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
-
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+  }
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   console.log(whereClause);
   const result = await db.execute(sql`
@@ -1152,6 +1164,7 @@ export async function getTransactionsDashboardTotals(
       count(1) as count,
       sum(total_amount) as total_amount
     FROM transactions
+    INNER JOIN merchants ON transactions.slug_merchant = merchants.slug
     ${whereClause ? sql`WHERE ${whereClause}` : sql``}
     GROUP BY product_type
   `);

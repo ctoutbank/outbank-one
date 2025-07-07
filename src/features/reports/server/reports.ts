@@ -1,8 +1,11 @@
 "use server";
 
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import {
+  getCustomerByTentant
+} from "@/features/users/server/users";
 import { and, count, desc, eq, like, sql } from "drizzle-orm";
 import {
+  customers,
   fileFormats,
   periodTypes,
   recurrenceTypes,
@@ -53,8 +56,8 @@ export async function getReports(
   creationDate?: string
 ): Promise<ReportsList> {
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  const customer = await getCustomerByTentant();
+  if (!customer) {
     return {
       reports: [],
       totalCount: 0,
@@ -64,6 +67,7 @@ export async function getReports(
   const offset = (page - 1) * pageSize;
 
   const conditions = [like(reports.title, `%${search}%`)];
+  conditions.push(eq(customers.slug, customer.slug));
 
   if (type) {
     // Filtrar pelos tipos de relatório suportados: VN (Vendas) ou AL (Agenda dos Lojistas)
@@ -119,6 +123,7 @@ export async function getReports(
       dayMonth: reports.dayMonth,
     })
     .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
     .leftJoin(recurrenceTypes, eq(reports.recurrenceCode, recurrenceTypes.code))
     .leftJoin(periodTypes, eq(reports.periodCode, periodTypes.code))
     .leftJoin(fileFormats, eq(reports.formatCode, fileFormats.code))
@@ -131,6 +136,7 @@ export async function getReports(
   const totalCountResult = await db
     .select({ count: count() })
     .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
     .where(and(...conditions));
 
   const totalCount = totalCountResult[0]?.count || 0;
@@ -305,10 +311,10 @@ export type ReportStats = {
 };
 
 export async function getReportStats(): Promise<ReportStats> {
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
   // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  if (!customer) {
     return {
       totalReports: 0,
       recurrenceStats: {
@@ -327,7 +333,11 @@ export async function getReportStats(): Promise<ReportStats> {
     };
   }
   // Contagem total de relatórios
-  const totalCountResult = await db.select({ count: count() }).from(reports);
+  const totalCountResult = await db
+    .select({ count: count() })
+    .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
+    .where(eq(customers.slug, customer.slug));
   const totalReports = totalCountResult[0]?.count || 0;
 
   // Estatísticas por recorrência
@@ -337,6 +347,8 @@ export async function getReportStats(): Promise<ReportStats> {
       count: count(),
     })
     .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
+    .where(eq(customers.slug, customer.slug))
     .groupBy(reports.recurrenceCode);
 
   // Estatísticas por formato
@@ -346,6 +358,8 @@ export async function getReportStats(): Promise<ReportStats> {
       count: count(),
     })
     .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
+    .where(eq(customers.slug, customer.slug))
     .groupBy(reports.formatCode);
 
   // Estatísticas por tipo de relatório
@@ -355,6 +369,8 @@ export async function getReportStats(): Promise<ReportStats> {
       count: count(),
     })
     .from(reports)
+    .innerJoin(customers, eq(reports.idCustomer, customers.id))
+    .where(eq(customers.slug, customer.slug))
     .groupBy(reports.reportType);
 
   // Inicializar estatísticas com zero

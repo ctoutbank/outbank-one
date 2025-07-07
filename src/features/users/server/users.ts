@@ -7,8 +7,10 @@ import { db } from "@/server/db";
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import {
   addresses,
+  customerCustomization,
   customers,
   merchants,
   profiles,
@@ -75,20 +77,11 @@ export async function getUsers(
   firstName: string,
   lastName: string,
   profile: number,
-  merchant: number,
-  customer: number,
   page: number,
   pageSize: number
 ): Promise<UserList> {
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return {
-      userObject: [],
-      totalCount: 0,
-    };
-  }
   const offset = (page - 1) * pageSize;
 
   const userListParams = {
@@ -104,9 +97,8 @@ export async function getUsers(
 
   const clerk = await clerkClient();
   const clerkResult = (await clerk.users.getUserList(userListParams)).data;
-  console.log("clerkResult", clerkResult);
   const conditions = [
-    customer ? eq(users.idCustomer, customer) : undefined,
+    customer ? eq(customers.slug, customer.slug) : undefined,
     profile ? eq(users.idProfile, profile) : undefined,
   ].filter(Boolean);
 
@@ -133,7 +125,7 @@ export async function getUsers(
       idClerk: users.idClerk,
     })
     .from(users)
-    .leftJoin(customers, eq(users.idCustomer, customers.id))
+    .innerJoin(customers, eq(users.idCustomer, customers.id))
     .leftJoin(profiles, eq(users.idProfile, profiles.id))
     .where(and(...conditions))
     .orderBy(desc(users.id))
@@ -146,8 +138,6 @@ export async function getUsers(
       const clerkData = clerkResult.find(
         (clerk: any) => clerk.id === dbUser.idClerk
       );
-      console.log("clerkData", clerkData);
-
       // Get user's merchants
       const userMerchantsList = await db
         .select({
@@ -181,6 +171,7 @@ export async function getUsers(
   const totalCountResult = await db
     .select({ count: count() })
     .from(users)
+    .innerJoin(customers, eq(users.idCustomer, customers.id))
     .where(and(...conditions));
 
   const totalCount = totalCountResult[0]?.count || 0;
@@ -373,16 +364,25 @@ export async function updateUser(id: number, data: UserInsert) {
 export async function getUserById(
   idClerk: string
 ): Promise<UserDetailForm | null> {
-  const userAccess = await getUserMerchantsAccess();
+  const customer = await getCustomerByTentant();
 
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return null;
-  }
   const userDb = await db
-    .select()
+    .select({
+      id: users.id,
+      idClerk: users.idClerk,
+      idCustomer: users.idCustomer,
+      idProfile: users.idProfile,
+      active: users.active,
+      dtinsert: users.dtinsert,
+      dtupdate: users.dtupdate,
+      slug: users.slug,
+      hashedPassword: users.hashedPassword,
+      idAddress: users.idAddress,
+      fullAccess: users.fullAccess,
+    })
     .from(users)
-    .where(eq(users.idClerk, idClerk));
+    .innerJoin(customers, eq(users.idCustomer, customers.id))
+    .where(and(eq(users.idClerk, idClerk), eq(customers.slug, customer.slug)));
 
   if (userDb == undefined || userDb == null || userDb[0] == undefined) {
     return null;
@@ -424,12 +424,6 @@ export async function getUserById(
 }
 
 export async function getDDProfiles(): Promise<DD[]> {
-  const userAccess = await getUserMerchantsAccess();
-
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return [];
-  }
   const result = await db
     .select({ id: profiles.id, name: profiles.name })
     .from(profiles)
@@ -437,40 +431,25 @@ export async function getDDProfiles(): Promise<DD[]> {
   return result as DD[];
 }
 
-export async function getDDMerchants(customerId?: number): Promise<DD[]> {
+export async function getDDMerchants(): Promise<DD[]> {
   const userAccess = await getUserMerchantsAccess();
 
   // If user has no access and no full access, return empty result
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return [];
   }
-  console.log(customerId);
-
-  if (customerId == undefined || customerId == null) {
-    const userClerk = await currentUser();
-    const userId = userClerk?.id;
-
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.idClerk, userId || ""));
-
-    if (user && user.length > 0) {
-      customerId = user[0].idCustomer || 0;
-    }
-
-    if (customerId == undefined || customerId == null) {
-      return [];
-    }
-  }
+  const customerId = userAccess.idCustomer;
 
   const conditions = [eq(merchants.idCustomer, customerId)];
 
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
   const merchantResult = await db
     .select({ id: merchants.id, name: merchants.name })
     .from(merchants)
     .where(and(...conditions));
-  console.log(merchantResult);
+
   if (!merchantResult || merchantResult.length === 0) {
     return [];
   }
@@ -479,19 +458,6 @@ export async function getDDMerchants(customerId?: number): Promise<DD[]> {
     ...merchant,
     name: merchant.name?.toUpperCase() ?? null,
   })) as DD[];
-}
-
-export async function getDDCustomers(): Promise<DD[]> {
-  const userAccess = await getUserMerchantsAccess();
-
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return [];
-  }
-  const result = await db
-    .select({ id: customers.id, name: customers.name })
-    .from(customers);
-  return result as DD[];
 }
 
 export async function getUserGroupPermissions(
@@ -577,6 +543,7 @@ export async function UpdateMyProfile(data: {
 export interface UserMerchantsAccess {
   fullAccess: boolean;
   idMerchants: number[];
+  idCustomer: number;
 }
 
 export interface UserMerchantSlugs {
@@ -596,6 +563,7 @@ export async function getUserMerchantsAccess(): Promise<UserMerchantsAccess> {
       .select({
         id: users.id,
         fullAccess: users.fullAccess,
+        idCustomer: users.idCustomer,
       })
       .from(users)
       .where(eq(users.idClerk, userClerk.id));
@@ -608,6 +576,7 @@ export async function getUserMerchantsAccess(): Promise<UserMerchantsAccess> {
       return {
         fullAccess: true,
         idMerchants: [],
+        idCustomer: user[0].idCustomer || 0,
       };
     }
 
@@ -625,6 +594,7 @@ export async function getUserMerchantsAccess(): Promise<UserMerchantsAccess> {
       idMerchants: (merchantAccess as MerchantResult[])
         .map((merchant) => merchant.idMerchant)
         .filter((id): id is number => id !== null),
+      idCustomer: user[0].idCustomer || 0,
     };
   } catch (error) {
     console.error("Erro ao obter acesso aos comerciantes do usuário:", error);
@@ -674,12 +644,6 @@ export async function getUserMerchantSlugs(): Promise<UserMerchantSlugs> {
 }
 
 export async function getAddressById(id: number) {
-  const userAccess = await getUserMerchantsAccess();
-
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return null;
-  }
   const result = await db.select().from(addresses).where(eq(addresses.id, id));
 
   if (!result || result.length === 0) {
@@ -740,12 +704,6 @@ export async function updateAddressFormAction(data: AddressSchema) {
 }
 
 export async function getProfileById(id: number) {
-  const userAccess = await getUserMerchantsAccess();
-
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return null;
-  }
   const result = await db
     .select({
       id: profiles.id,
@@ -769,12 +727,6 @@ export async function createSalesAgent(
   email: string
 ) {
   try {
-    const userAccess = await getUserMerchantsAccess();
-
-  // If user has no access and no full access, return empty result
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return null;
-  }
     const result = await db
       .insert(salesAgents)
       .values({
@@ -795,14 +747,17 @@ export async function createSalesAgent(
     throw error;
   }
 }
-export async function getMerchantsWithDDD(): Promise<
-  { area_code: string | null }[]
-> {
-  return db
+
+export async function getCustomerByTentant() {
+  const cookieStore = cookies();
+  const tenant = cookieStore.get("tenant")?.value;
+  const customer = await db
     .select({
-      area_code: merchants.areaCode,
+      slug: customers.slug,
     })
-    .from(merchants);
+    .from(customerCustomization)
+    .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
+    .where(eq(customerCustomization.slug, tenant || ""))
+    .limit(1);
+  return customer[0];
 }
-
-

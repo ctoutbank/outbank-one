@@ -3,7 +3,9 @@ import {
   getUserEmail,
   sendPricingSolicitationEmail,
 } from "@/app/utils/send-email-adtivo";
-import { getUserMerchantsAccess } from "@/features/users/server/users";
+import {
+  getCustomerByTentant
+} from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
@@ -70,8 +72,8 @@ export async function getPricingSolicitations(
   pageSize: number
 ): Promise<PricingSolicitationList | null> {
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  const customer = await getCustomerByTentant();
+  if (!customer) {
     return {
       pricingSolicitations: [],
       totalCount: 0,
@@ -81,7 +83,8 @@ export async function getPricingSolicitations(
   const offset = (page - 1) * pageSize;
   const limit = pageSize;
   const conditions = [];
-  const user = await currentUser();
+
+  conditions.push(eq(customers.slug, customer.slug));
 
   if (cnae) {
     conditions.push(eq(solicitationFee.cnae, cnae));
@@ -90,12 +93,6 @@ export async function getPricingSolicitations(
     conditions.push(eq(solicitationFee.status, status));
   }
 
-  const userDB = await db
-    .select({ customersId: users.idCustomer })
-    .from(users)
-    .where(eq(users.idClerk, user?.id || ""));
-
-  conditions.push(eq(solicitationFee.idCustomers, userDB[0].customersId || 0));
   conditions.push(ne(solicitationFee.status, "SEND_DOCUMENTS"));
   conditions.push(ne(solicitationFee.status, "SEND_SOLICITATION"));
 
@@ -109,6 +106,7 @@ export async function getPricingSolicitations(
       dtinsert: solicitationFee.dtinsert,
     })
     .from(solicitationFee)
+    .innerJoin(customers, eq(solicitationFee.idCustomers, customers.id))
     .where(where)
     .limit(limit)
     .offset(offset)
@@ -117,6 +115,7 @@ export async function getPricingSolicitations(
   const totalCount = await db
     .select({ count: count() })
     .from(solicitationFee)
+    .innerJoin(customers, eq(solicitationFee.idCustomers, customers.id))
     .where(where);
   return {
     pricingSolicitations,
@@ -128,8 +127,8 @@ export async function getPricingSolicitationById(
   id: number
 ): Promise<PricingSolicitationForm | null> {
   // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  const customer = await getCustomerByTentant();
+  if (!customer) {
     return null;
   }
 
@@ -191,7 +190,8 @@ export async function getPricingSolicitationById(
       ) as brands
     FROM ${solicitationFee} sf
     LEFT JOIN ${solicitationFeeBrand} sfb ON sf.id = sfb.solicitation_fee_id
-    WHERE sf.id = ${id}
+    INNER JOIN ${customers} c ON sf.id_customers = c.id
+    WHERE sf.id = ${id} AND c.slug = ${customer.slug}
     GROUP BY sf.id
   `);
 
