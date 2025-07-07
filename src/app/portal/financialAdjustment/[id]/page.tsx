@@ -47,7 +47,7 @@ export default async function FinancialAdjustmentDetailPage({
       slug: adjustmentData.slug || undefined,
       active: adjustmentData.active || true,
       expectedSettlementDate: adjustmentData.expectedSettlementDate
-        ? adjustmentData.expectedSettlementDate.toISOString()
+        ? adjustmentData.expectedSettlementDate.toISOString().split("T")[0]
         : undefined,
       reason: adjustmentData.reason || "",
       title: adjustmentData.title || "",
@@ -57,9 +57,10 @@ export default async function FinancialAdjustmentDetailPage({
       recurrence: adjustmentData.recurrence || undefined,
       type: adjustmentData.type || "",
       startDate: adjustmentData.startDate
-        ? adjustmentData.startDate.toISOString()
+        ? adjustmentData.startDate.toISOString().split("T")[0]
         : undefined,
       endDate: adjustmentData.endDate || undefined,
+      idCustomer: adjustmentData.idCustomer?.toString() || undefined,
       merchants: associatedMerchants.map((merchant) => merchant.id) || [],
     };
   }

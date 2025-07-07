@@ -74,6 +74,7 @@ export default function FinancialAdjustmentForm({
       endDate: adjustment.endDate || "",
       active: adjustment.active ?? true,
       merchants: adjustment.merchants || [],
+      idCustomer: adjustment.idCustomer || "",
     },
   });
 

@@ -18,6 +18,7 @@ export const SchemaFinancialAdjustment = z.object({
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
   merchants: z.array(z.number()).optional(), // Array de IDs dos merchants
+  idCustomer: z.string().optional(),
 });
 
 export type FinancialAdjustmentSchema = z.infer<

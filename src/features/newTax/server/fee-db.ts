@@ -4,8 +4,10 @@ import { FeeNewSchema } from "@/features/newTax/schema/fee-new-Schema";
 import { getCustomerByTentant } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { cookies } from "next/headers";
 import {
   categories,
+  customerCustomization,
   customers,
   fee,
   feeBrand,
@@ -316,9 +318,11 @@ export async function getFees(
 }
 
 // Função para buscar uma taxa específica pelo ID
-export async function getFeeById(id: string, customerSlug: string): Promise<FeeData | null> {
+export async function getFeeById(
+  id: string,
+  customerSlug: string
+): Promise<FeeData | null> {
   try {
-
     if (!customerSlug) {
       return createEmptyFee();
     }
@@ -461,6 +465,22 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
       cnae: feeData.cnae,
     });
 
+    // Obter o customer ID usando a consulta especificada
+    const cookieStore = cookies();
+    const tenant = cookieStore.get("tenant")?.value;
+    const customer = await db
+      .select({
+        id: customers.id,
+      })
+      .from(customerCustomization)
+      .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
+      .where(eq(customerCustomization.slug, tenant || ""))
+      .limit(1);
+
+    if (!customer[0]) {
+      throw new Error("Customer não encontrado para o tenant atual");
+    }
+
     // Converter datas para ISO string
     const now = new Date().toISOString();
 
@@ -484,12 +504,14 @@ export async function insertFee(feeData: FeeNewSchema): Promise<number> {
       nonCardPixMinimumCostFee: sql`${feeData.nonCardPixMinimumCostFee || 0}`,
       mcc: feeData.mcc || "",
       cnae: feeData.cnae || "",
+      idCustomer: customer[0].id, // Associar o customer ID
     };
 
     // Verificar explicitamente se os valores de mcc e cnae estão presentes
     console.log("Valores finais para inserção:", {
       mcc: insertData.mcc,
       cnae: insertData.cnae,
+      idCustomer: insertData.idCustomer,
     });
 
     // Inserir a nova taxa

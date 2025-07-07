@@ -1,10 +1,10 @@
 "use server";
 
-import {
-  getCustomerByTentant
-} from "@/features/users/server/users";
+import { getCustomerByTentant } from "@/features/users/server/users";
 import { and, count, desc, eq, like, sql } from "drizzle-orm";
+import { cookies } from "next/headers";
 import {
+  customerCustomization,
   customers,
   fileFormats,
   periodTypes,
@@ -177,9 +177,31 @@ export async function getReportById(id: number): Promise<ReportDetail | null> {
 }
 
 export async function insertReport(report: ReportInsert): Promise<number> {
-  const result = await db.insert(reports).values(report).returning({
-    id: reports.id,
-  });
+  // Obter o customer ID usando a consulta especificada
+  const cookieStore = cookies();
+  const tenant = cookieStore.get("tenant")?.value;
+  const customer = await db
+    .select({
+      id: customers.id,
+    })
+    .from(customerCustomization)
+    .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
+    .where(eq(customerCustomization.slug, tenant || ""))
+    .limit(1);
+
+  if (!customer[0]) {
+    throw new Error("Customer não encontrado para o tenant atual");
+  }
+
+  const result = await db
+    .insert(reports)
+    .values({
+      ...report,
+      idCustomer: customer[0].id, // Associar o customer ID
+    })
+    .returning({
+      id: reports.id,
+    });
 
   console.log("Report inserted:", result[0].id);
 

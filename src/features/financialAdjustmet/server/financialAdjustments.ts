@@ -5,7 +5,9 @@ import {
   getUserMerchantsAccess,
 } from "@/features/users/server/users";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { cookies } from "next/headers";
 import {
+  customerCustomization,
   customers,
   financialAdjustmentMerchants,
   financialAdjustments,
@@ -31,6 +33,7 @@ export type FinancialAdjustmentFull = {
   dtinsert: Date | null;
   dtupdate: Date | null;
   merchants: MerchantInfo[];
+  idCustomer: number | null;
 };
 
 export type MerchantInfo = {
@@ -113,6 +116,7 @@ export async function getFinancialAdjustments(
       endDate: financialAdjustments.endDate,
       dtinsert: financialAdjustments.dtinsert,
       dtupdate: financialAdjustments.dtupdate,
+      idCustomer: financialAdjustments.idCustomer,
     })
     .from(financialAdjustments)
     .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
@@ -166,6 +170,7 @@ export async function getFinancialAdjustments(
         dtinsert: adjustment.dtinsert ? new Date(adjustment.dtinsert) : null,
         dtupdate: adjustment.dtupdate ? new Date(adjustment.dtupdate) : null,
         merchants: merchantsResult,
+        idCustomer: adjustment.idCustomer,
       };
     })
   );
@@ -207,16 +212,11 @@ export async function getFinancialAdjustmentById(
       dtinsert: financialAdjustments.dtinsert,
       dtupdate: financialAdjustments.dtupdate,
       idCustomer: financialAdjustments.idCustomer,
-      idMerchant: financialAdjustmentMerchants.idMerchant,
-      idFinancialAdjustment: financialAdjustmentMerchants.idFinancialAdjustment,
     })
     .from(financialAdjustments)
     .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
     .where(
-      and(
-        eq(financialAdjustments.id, id),
-        eq(customers.slug, customer.slug)
-      )
+      and(eq(financialAdjustments.id, id), eq(customers.slug, customer.slug))
     )
     .limit(1);
 
@@ -230,11 +230,11 @@ export async function getFinancialAdjustmentById(
       idDocument: merchants.idDocument,
     })
     .from(financialAdjustmentMerchants)
-    .innerJoin(customers, eq(merchants.idCustomer, customers.id))
     .innerJoin(
       merchants,
       eq(financialAdjustmentMerchants.idMerchant, merchants.id)
     )
+    .innerJoin(customers, eq(merchants.idCustomer, customers.id))
     .where(
       and(
         eq(financialAdjustmentMerchants.idFinancialAdjustment, id),
@@ -257,10 +257,27 @@ export async function getFinancialAdjustmentById(
 export async function insertFinancialAdjustment(
   adjustment: FinancialAdjustmentInsert
 ): Promise<number> {
+  // Obter o customer ID usando a consulta especificada
+  const cookieStore = cookies();
+  const tenant = cookieStore.get("tenant")?.value;
+  const customer = await db
+    .select({
+      id: customers.id,
+    })
+    .from(customerCustomization)
+    .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
+    .where(eq(customerCustomization.slug, tenant || ""))
+    .limit(1);
+
+  if (!customer[0]) {
+    throw new Error("Customer não encontrado para o tenant atual");
+  }
+
   const result = await db
     .insert(financialAdjustments)
     .values({
       ...adjustment,
+      idCustomer: customer[0].id, // Associar o customer ID
       dtinsert: new Date().toISOString(),
       dtupdate: new Date().toISOString(),
       active: adjustment.active ?? true,
