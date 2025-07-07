@@ -245,8 +245,12 @@ export async function getFees(
     }
     const offset = (page - 1) * pageSize;
 
-    // 1. Contar total de registros
-    const totalFees = await db.select({ id: fee.id }).from(fee);
+    // 1. Contar total de registros - CORRIGIDO: aplicar o mesmo filtro de customer
+    const totalFees = await db
+      .select({ id: fee.id })
+      .from(fee)
+      .innerJoin(customers, eq(fee.idCustomer, customers.id))
+      .where(eq(customers.slug, customerSlug));
 
     const totalRecords = totalFees.length;
 

@@ -6,7 +6,7 @@ import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
 import { SalesAgentDashboardContent } from "@/features/salesAgents/_components/salesAgents-dashboard-content";
 import { SalesAgentsFilter } from "@/features/salesAgents/_components/salesAgents-filter";
-import { getSalesAgents } from "@/features/salesAgents/server/salesAgent";
+import { getSalesAgentsWithDashboardData } from "@/features/salesAgents/server/salesAgent";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default async function SalesAgentsPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
 
-  const salesAgents = await getSalesAgents(
+  const salesAgents = await getSalesAgentsWithDashboardData(
     searchParams.name || "",
     page,
     pageSize,

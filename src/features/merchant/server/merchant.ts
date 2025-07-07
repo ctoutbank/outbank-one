@@ -522,7 +522,7 @@ export async function getMerchantById(
   if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
     throw new Error("You don't have access to this merchant");
   }
-  
+
   const result = await db
     .select({
       merchants: { ...getTableColumns(merchants) },
@@ -1748,9 +1748,9 @@ export type SalesAgentDropdown = {
   label: string;
 };
 
-export async function getSalesAgentForDropdown(userAccess: UserMerchantsAccess): Promise<
-  SalesAgentDropdown[]
-> {
+export async function getSalesAgentForDropdown(
+  userAccess: UserMerchantsAccess
+): Promise<SalesAgentDropdown[]> {
   const result = await db
     .select({
       value: salesAgents.id,
@@ -2185,7 +2185,50 @@ export async function getMerchantsWithDashboardData(
     whereClausesAllMerchants.push(`sa.first_name ILIKE '%${salesAgent}%'`);
   }
 
-  // WHERE para o CTE
+  // WHERE para o CTE - ADICIONAR CONTROLE DE ACESSO
+  // Adicionar filtro de acesso do usuário na consulta SQL bruta
+  if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+    const merchantIds = userAccess.idMerchants.join(",");
+    whereClausesAllMerchants.push(`merchants.id IN (${merchantIds})`);
+  } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    // Se o usuário não tem acesso, retornar dados vazios
+    return {
+      merchants: {
+        merchants: [],
+        totalCount: 0,
+        active_count: 0,
+        inactive_count: 0,
+        pending_kyc_count: 0,
+        approved_kyc_count: 0,
+        rejected_kyc_count: 0,
+        cp_anticipation_count: 0,
+        cnp_anticipation_count: 0,
+      },
+      dashboardData: {
+        registrationData: [],
+        registrationSummary: {
+          currentMonth: 0,
+          previousMonth: 0,
+          currentWeek: 0,
+          today: 0,
+        },
+        transactionData: [
+          { name: "Transacionam", value: 0 },
+          { name: "Não Transacionam", value: 0 },
+        ],
+        typeData: [
+          { name: "Compulsória", value: 0 },
+          { name: "Eventual", value: 0 },
+        ],
+      },
+    };
+  }
+
+  // Adicionar filtro de customer na consulta SQL bruta
+  whereClausesAllMerchants.push(
+    `merchants.id_customer = ${userAccess.idCustomer}`
+  );
+
   const whereSqlAllMerchants =
     whereClausesAllMerchants.length > 0
       ? whereClausesAllMerchants.join(" AND ")
