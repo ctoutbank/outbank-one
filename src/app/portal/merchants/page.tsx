@@ -38,6 +38,8 @@ type MerchantProps = {
   cnpj?: string;
   active?: string;
   salesAgent?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function MerchantsPage({
@@ -48,7 +50,7 @@ export default async function MerchantsPage({
   await checkPagePermission("Estabelecimentos");
 
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
+  const pageSize = parseInt(searchParams.pageSize || "20");
   const search = searchParams.search || "";
 
   const userAccess = await getUserMerchantsAccess();
@@ -66,7 +68,9 @@ export default async function MerchantsPage({
     searchParams.email,
     searchParams.cnpj,
     searchParams.active,
-    searchParams.salesAgent
+    searchParams.salesAgent,
+    searchParams.sortBy,
+    searchParams.sortOrder
   );
 
   // Buscar dados para exportação Excel

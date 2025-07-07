@@ -295,8 +295,8 @@ export default function ExcelImport<T>({
             importStatus.status === "success"
               ? "bg-green-50 text-green-800 border-green-200"
               : importStatus.status === "warning"
-              ? "bg-yellow-50 text-yellow-800 border-yellow-200"
-              : "bg-red-50 text-red-800 border-red-200"
+                ? "bg-yellow-50 text-yellow-800 border-yellow-200"
+                : "bg-red-50 text-red-800 border-red-200"
           }`}
         >
           <AlertCircle className="h-4 w-4" />
@@ -406,6 +406,46 @@ function formatCellValue(value: any, fieldType: string): any {
     value = value.text;
   } else if (typeof value === "object" && value.result !== undefined) {
     value = value.result;
+  }
+
+  // Tratamento específico para campos de data
+  if (
+    fieldType === "openingDate" ||
+    fieldType === "birthDate" ||
+    fieldType === "idIssueDate"
+  ) {
+    // Se for um número (serial do Excel), converter para data
+    if (typeof value === "number" && value > 1) {
+      // Excel serial date: dias desde 30/12/1899 (Excel epoch)
+      // Fórmula correta para conversão
+      const excelEpoch = new Date(1899, 11, 30); // 30/12/1899
+      const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+
+      // Formatar como DD/MM/YYYY
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+
+      console.log(
+        `[ExcelImport] Converting Excel serial ${value} to date: ${day}/${month}/${year}`
+      );
+
+      return `${day}/${month}/${year}`;
+    }
+
+    // Se for um objeto Date do JavaScript
+    if (value instanceof Date) {
+      const day = value.getDate().toString().padStart(2, "0");
+      const month = (value.getMonth() + 1).toString().padStart(2, "0");
+      const year = value.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    }
+
+    // Se já for string, retornar como está (pode já estar no formato correto)
+    if (typeof value === "string") {
+      return value.trim();
+    }
   }
 
   // Converter para string se não for

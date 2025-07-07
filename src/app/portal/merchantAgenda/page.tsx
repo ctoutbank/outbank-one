@@ -52,7 +52,24 @@ export default async function MerchantAgendaPage({
         searchParams.expectedSettlementDateFrom,
         searchParams.expectedSettlementDateTo
       ),
-      getMerchantAgendaAnticipation(search, page, pageSize, dateFrom, dateTo),
+      getMerchantAgendaAnticipation(
+        search,
+        page,
+        pageSize,
+        dateFrom,
+        dateTo,
+        establishmentIn,
+        statusIn,
+        searchParams.cardBrand,
+        searchParams.settlementDateFrom,
+        searchParams.settlementDateTo,
+        searchParams.expectedSettlementDateFrom,
+        searchParams.expectedSettlementDateTo,
+        searchParams.saleDateFrom,
+        searchParams.saleDateTo,
+        nsuIn,
+        orderIdIn
+      ),
       getMerchantAgendaAdjustment(
         search,
         page,

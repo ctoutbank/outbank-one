@@ -379,3 +379,87 @@ export function handleNumericInput(
     event.preventDefault();
   }
 }
+
+// Funções utilitárias para ordenação de tabelas
+export interface SortConfig {
+  sortBy: string | null;
+  sortOrder: "asc" | "desc" | null;
+}
+
+export function getSortConfig(
+  searchParams: URLSearchParams | null
+): SortConfig {
+  if (!searchParams) {
+    return { sortBy: null, sortOrder: null };
+  }
+
+  return {
+    sortBy: searchParams.get("sortBy"),
+    sortOrder: (searchParams.get("sortOrder") as "asc" | "desc" | null) || null,
+  };
+}
+
+export function createSortUrl(
+  currentSearchParams: URLSearchParams | null,
+  columnId: string,
+  basePath: string
+): string {
+  if (!currentSearchParams) {
+    const params = new URLSearchParams();
+    params.set("sortBy", columnId);
+    params.set("sortOrder", "asc");
+    params.set("page", "1");
+    return `${basePath}?${params.toString()}`;
+  }
+
+  const currentSortBy = currentSearchParams.get("sortBy");
+  const currentSortOrder = currentSearchParams.get("sortOrder");
+
+  const newSortBy = columnId;
+  let newSortOrder = "asc";
+
+  // Se já está ordenando por esta coluna, inverte a ordem
+  if (currentSortBy === columnId) {
+    newSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
+  }
+
+  // Criar nova URL com parâmetros de ordenação
+  const params = new URLSearchParams(currentSearchParams.toString());
+  params.set("sortBy", newSortBy);
+  params.set("sortOrder", newSortOrder);
+
+  // Resetar para página 1 quando ordenar
+  params.set("page", "1");
+
+  return `${basePath}?${params.toString()}`;
+}
+
+export function getSortIconInfo(
+  columnId: string,
+  searchParams: URLSearchParams | null
+): { icon: "up" | "down" | "default"; className: string } {
+  if (!searchParams) {
+    return { icon: "default", className: "ml-2 h-4 w-4 inline opacity-30" };
+  }
+
+  const currentSortBy = searchParams.get("sortBy");
+  const currentSortOrder = searchParams.get("sortOrder");
+
+  if (currentSortBy === columnId) {
+    return currentSortOrder === "asc"
+      ? { icon: "up", className: "ml-2 h-4 w-4 inline" }
+      : { icon: "down", className: "ml-2 h-4 w-4 inline" };
+  }
+  return { icon: "default", className: "ml-2 h-4 w-4 inline opacity-30" };
+}
+
+export function createSortHandler(
+  searchParams: URLSearchParams | null,
+  router: any,
+  basePath: string
+) {
+  return (columnId: string) => {
+    const newUrl = createSortUrl(searchParams, columnId, basePath);
+    router.push(newUrl);
+  };
+}
