@@ -64,7 +64,7 @@ async function TransactionsContent({
     searchParams.valueMin,
     searchParams.valueMax
   );
-  console.log("transactionList", transactionList);
+
   // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)
   // Esta consulta suporta os filtros principais
   const transactionsGroupedReport = await getTransactionsGroupedReport(
@@ -80,8 +80,6 @@ async function TransactionsContent({
     searchParams.valueMax,
     searchParams.merchant
   );
-
-  console.log("Transactions salesPage", transactionsGroupedReport);
 
   return (
     <>
