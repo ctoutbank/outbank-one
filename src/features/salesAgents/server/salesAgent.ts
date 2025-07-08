@@ -5,11 +5,23 @@ import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
 import {
   DD,
   generateRandomPassword,
-  getCustomerByTentant
+  getCustomerByTentant,
+  getUserMerchantsAccess,
 } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { clerkClient } from "@clerk/nextjs/server";
-import { and, count, desc, eq, gte, like, lte, max, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  like,
+  lte,
+  max,
+  or,
+} from "drizzle-orm";
 import {
   addresses,
   customers,
@@ -86,7 +98,7 @@ export async function getSalesAgents(
 ): Promise<SalesAgentsList | undefined> {
   try {
     // Get user's merchant access
-    const customer = await getCustomerByTentant()
+    const customer = await getCustomerByTentant();
 
     const offset = (page - 1) * pageSize;
 
@@ -314,7 +326,7 @@ export async function getSalesAgentById(
   id: number
 ): Promise<SalesAgentDetail | null> {
   // Get user's merchant access
-  const customer = await getCustomerByTentant()
+  const customer = await getCustomerByTentant();
 
   const result = await db
     .select({
@@ -348,7 +360,9 @@ export async function getSalesAgentById(
     .leftJoin(users, eq(salesAgents.idUsers, users.id))
     .leftJoin(profiles, eq(users.idProfile, profiles.id))
     .leftJoin(addresses, eq(users.idAddress, addresses.id))
-    .where(and(eq(salesAgents.id, id), eq(salesAgents.slugCustomer, customer.slug)))
+    .where(
+      and(eq(salesAgents.id, id), eq(salesAgents.slugCustomer, customer.slug))
+    )
     .limit(1);
 
   const userMerchantResult = await db
@@ -437,4 +451,203 @@ export async function getDDCustomers(): Promise<DD[]> {
     })
     .from(customers);
   return result;
+}
+
+export async function getSalesAgentsWithDashboardData(
+  search: string,
+  page: number,
+  pageSize: number,
+  status?: string,
+  dateFrom?: string,
+  dateTo?: string,
+  email?: string
+): Promise<SalesAgentsList | undefined> {
+  try {
+    // Get user's merchant access
+    const userAccess = await getUserMerchantsAccess();
+    const customer = await getCustomerByTentant();
+
+    const offset = (page - 1) * pageSize;
+
+    const conditions = [
+      or(
+        like(salesAgents.firstName, `%${search}%`),
+        like(salesAgents.lastName, `%${search}%`),
+        like(salesAgents.email, `%${search}%`)
+      ),
+    ];
+
+    if (email) {
+      conditions.push(like(salesAgents.email, `%${email}%`));
+    }
+
+    if (status) {
+      conditions.push(eq(salesAgents.active, status === "ACTIVE"));
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(salesAgents.dtinsert, dateFrom));
+    }
+
+    if (dateTo) {
+      conditions.push(lte(salesAgents.dtinsert, dateTo));
+    }
+
+    if (customer) {
+      conditions.push(eq(salesAgents.slugCustomer, customer.slug));
+    }
+
+    // Aplicar controle de acesso baseado nos merchants do usuário
+    if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+      // Se o usuário tem acesso a merchants específicos, filtrar sales agents que têm esses merchants
+      conditions.push(
+        inArray(
+          salesAgents.id,
+          db
+            .select({ id: merchants.idSalesAgent })
+            .from(merchants)
+            .where(inArray(merchants.id, userAccess.idMerchants))
+        )
+      );
+    } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      // Se o usuário não tem acesso a nenhum merchant, retornar dados vazios
+      return {
+        salesAgents: [],
+        totalCount: 0,
+      };
+    }
+
+    const result = await db
+      .select()
+      .from(salesAgents)
+      .where(and(...conditions))
+      .orderBy(desc(salesAgents.id))
+      .limit(pageSize)
+      .offset(offset);
+
+    const totalCountResult = await db
+      .select({ count: count() })
+      .from(salesAgents)
+      .where(and(...conditions));
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    // Calcular estatísticas de merchants para cada sales agent
+    const salesAgentsWithStats = await Promise.all(
+      result.map(async (salesAgent) => {
+        // Condições base para merchants deste sales agent
+        const merchantConditions = [eq(merchants.idSalesAgent, salesAgent.id)];
+
+        // Aplicar controle de acesso aos merchants
+        if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+          merchantConditions.push(
+            inArray(merchants.id, userAccess.idMerchants)
+          );
+        } else if (
+          !userAccess.fullAccess &&
+          userAccess.idMerchants.length === 0
+        ) {
+          // Se o usuário não tem acesso, retornar zeros
+          return {
+            id: salesAgent.id,
+            slug: salesAgent.slug || "",
+            firstName: salesAgent.firstName || "",
+            lastName: salesAgent.lastName || "",
+            email: salesAgent.email || "",
+            active: salesAgent.active || null,
+            dtinsert: salesAgent.dtinsert
+              ? new Date(salesAgent.dtinsert)
+              : new Date(),
+            dtupdate: salesAgent.dtupdate
+              ? new Date(salesAgent.dtupdate)
+              : new Date(),
+            documentId: salesAgent.documentId || "",
+            slugCustomer: salesAgent.slugCustomer || "",
+            totalMerchants: 0,
+            pendingMerchants: 0,
+            approvedMerchants: 0,
+            rejectedMerchants: 0,
+          };
+        }
+
+        // Contagem total de merchants
+        const totalMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(and(...merchantConditions));
+        const totalMerchants = totalMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants pendentes (KYC)
+        const pendingMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              or(
+                eq(merchants.riskAnalysisStatus, "PENDING"),
+                eq(merchants.riskAnalysisStatus, "WAITINGDOCUMENTS"),
+                eq(merchants.riskAnalysisStatus, "NOTANALYSED")
+              )
+            )
+          );
+        const pendingMerchants = pendingMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants aprovados
+        const approvedMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              eq(merchants.riskAnalysisStatus, "APPROVED")
+            )
+          );
+        const approvedMerchants = approvedMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants rejeitados
+        const rejectedMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              or(
+                eq(merchants.riskAnalysisStatus, "DECLINED"),
+                eq(merchants.riskAnalysisStatus, "KYCOFFLINE")
+              )
+            )
+          );
+        const rejectedMerchants = rejectedMerchantsResult[0]?.count || 0;
+
+        return {
+          id: salesAgent.id,
+          slug: salesAgent.slug || "",
+          firstName: salesAgent.firstName || "",
+          lastName: salesAgent.lastName || "",
+          email: salesAgent.email || "",
+          active: salesAgent.active || null,
+          dtinsert: salesAgent.dtinsert
+            ? new Date(salesAgent.dtinsert)
+            : new Date(),
+          dtupdate: salesAgent.dtupdate
+            ? new Date(salesAgent.dtupdate)
+            : new Date(),
+          documentId: salesAgent.documentId || "",
+          slugCustomer: salesAgent.slugCustomer || "",
+          totalMerchants,
+          pendingMerchants,
+          approvedMerchants,
+          rejectedMerchants,
+        };
+      })
+    );
+
+    return {
+      salesAgents: salesAgentsWithStats,
+      totalCount,
+    };
+  } catch (error) {
+    console.log("error ao buscar sales agent", error);
+    return;
+  }
 }
