@@ -648,6 +648,7 @@ export async function insertMerchant(
       idLegalNature: merchant.idLegalNature,
       slugLegalNature: merchant.slugLegalNature,
       idMerchantBankAccount: merchant.idMerchantBankAccount,
+      idCustomer: merchant.idCustomer,
     })
     .returning({ id: merchants.id });
 
@@ -4840,6 +4841,30 @@ export async function getCurrentUserCustomerSlug(): Promise<string | null> {
     return result.length > 0 ? result[0].customerSlug : null;
   } catch (error) {
     console.error("Erro ao buscar slug do customer:", error);
+    throw error;
+  }
+}
+
+export async function getCurrentUserCustomerId(): Promise<number | null> {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    const result = await db
+      .select({
+        customerId: customers.id,
+      })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .where(eq(users.idClerk, userClerk.id))
+      .limit(1);
+
+    return result.length > 0 ? result[0].customerId : null;
+  } catch (error) {
+    console.error("Erro ao buscar id do customer:", error);
     throw error;
   }
 }

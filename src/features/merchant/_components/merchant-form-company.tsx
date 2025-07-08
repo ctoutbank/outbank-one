@@ -48,7 +48,6 @@ import {
 import {
   CnaeMccDropdown,
   EstablishmentFormatDropdown,
-  getCurrentUserCustomerSlug,
   LegalNatureDropdown,
 } from "../server/merchant";
 
@@ -110,6 +109,7 @@ export default function MerchantFormCompany({
         : undefined,
       slugLegalNature: merchant?.slugLegalNature || "",
       idMerchantBankAccount: merchant?.idMerchantBankAccount || null,
+      idCustomer: merchant?.idCustomer || null,
       // campos do endereço virão de outra tabela
       // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
@@ -175,13 +175,10 @@ export default function MerchantFormCompany({
         data.idCategory = Number(data.cnae);
       }
 
-      const customerSlug = await getCurrentUserCustomerSlug();
-
       // Criar o merchant com o ID do endereço
       const merchantData = {
         ...data,
         idAddress: addressId,
-        slugCustomer: customerSlug || "",
       };
 
       let idMerchant = data.id;

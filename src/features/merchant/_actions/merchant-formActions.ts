@@ -14,6 +14,8 @@ import {
   AddressInsert,
   MerchantDetail,
   MerchantInsert,
+  getCurrentUserCustomerId,
+  getCurrentUserCustomerSlug,
   getSlugById,
   insertAddress,
   insertMerchant,
@@ -30,6 +32,10 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
       : null,
   ]);
 
+  const customerSlug = await getCurrentUserCustomerSlug();
+
+  const customerId = await getCurrentUserCustomerId();
+
   const merchantInsert: MerchantInsert = {
     slug: data.slug || "",
     active: data.active ?? true,
@@ -45,7 +51,7 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
     phoneType: data.phoneType || "",
     language: data.language || "",
     timezone: data.timezone || "",
-    slugCustomer: data.slugCustomer || "",
+    slugCustomer: customerSlug || "",
     riskAnalysisStatus: data.riskAnalysisStatus || "",
     riskAnalysisStatusJustification: data.riskAnalysisStatusJustification || "",
     legalPerson: data.legalPerson || "",
@@ -70,6 +76,7 @@ export async function insertMerchantFormAction(data: MerchantSchema) {
     idConfiguration: Number(data.idConfiguration) || null,
     slugConfiguration: configurationSlug || "",
     idAddress: Number(data.idAddress) || 0,
+    idCustomer: customerId || null,
   };
 
   console.log("Dados do merchant antes de inserir:", merchantInsert);
