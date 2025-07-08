@@ -4,6 +4,7 @@ import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { db } from "@/server/db";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import {
+  customers,
   merchants,
   merchantSettlements,
   settlements,
@@ -223,7 +224,15 @@ export async function getSettlements(
     .where(
       sql`((${status} = '0') OR ${settlements.status} = ANY(string_to_array(${status}, ',')))
               AND (${settlements.paymentDate} >= ${dateF})
-              AND (${settlements.paymentDate}<= ${dateT})`
+              AND (${settlements.paymentDate}<= ${dateT})
+              AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = ${settlements.id}
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )`
     );
 
   const totalCount = totalCountResult[0]?.count || 0;
@@ -237,6 +246,14 @@ export async function getSettlements(
             ((${status} = '0') OR status = ANY(string_to_array(${status}, ',')))
           AND (payment_date >= ${dateF})
           AND (payment_date <= ${dateT})
+          AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = settlements.id
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )
         GROUP BY status;
       `
   );
@@ -272,6 +289,14 @@ export async function getSettlements(
   WHERE ((${status} = '0') OR s.status = ANY(string_to_array(${status}, ',')))
     AND (s.payment_date >= ${dateF})
     AND (s.payment_date <= ${dateT})
+    AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = s.id
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )
 `
   );
 
@@ -294,6 +319,13 @@ export async function getSettlements(
 }
 
 export async function getSettlementBySlug(slug: string) {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      settlement: [],
+    };
+  }
+
   const currentDay = new Date();
   console.log(
     "Consultando settlement com slug:",
@@ -319,7 +351,15 @@ export async function getSettlementBySlug(slug: string) {
         s.total_debit_adjustment_amount,
         (COALESCE(s.total_credit_adjustment_amount, 0) + COALESCE(s.total_debit_adjustment_amount, 0)) AS total_adjustment_amount
         FROM settlements s
-        WHERE (${slug} = '' AND s.payment_date = ${currentDay}) OR s.slug = ${slug}`
+        WHERE (${slug} = '' AND s.payment_date = ${currentDay}) OR s.slug = ${slug}
+        AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = s.id
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )`
   );
 
   // Adicionando log para visualizar o resultado da query
@@ -388,7 +428,7 @@ export async function getMerchantSettlements(
 ): Promise<MerchantSettlementList> {
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
- 
+
   const offset = (page - 1) * pageSize;
   const currentDay = new Date();
 
@@ -481,7 +521,16 @@ export async function getMerchantSettlements(
             await db
               .select({ id: settlements.id })
               .from(settlements)
-              .where(eq(settlements.slug, settlementSlug))
+              .where(
+                sql`${settlements.slug} = ${settlementSlug} AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = ${settlements.id}
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )`
+              )
               .limit(1)
           )[0]?.id
         )
@@ -492,7 +541,15 @@ export async function getMerchantSettlements(
               .select({ id: settlements.id })
               .from(settlements)
               .where(
-                eq(settlements.paymentDate, sql`${currentDay.toISOString()}`)
+                sql`${settlements.paymentDate} = ${currentDay.toISOString()}  
+                AND EXISTS (
+              SELECT 1
+              FROM merchant_settlements ms
+              INNER JOIN merchants m ON m.id = ms.id_merchant
+              WHERE ms.id_settlement = ${settlements.id}
+                ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+                ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
+            )`
               )
               .limit(1)
           )[0]?.id
@@ -504,11 +561,15 @@ export async function getMerchantSettlements(
   if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
+  if (userAccess.idCustomer) {
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
+  }
 
   const totalCountResult = await db
     .select({ count: count() })
     .from(merchantSettlements)
-    .leftJoin(merchants, eq(merchantSettlements.idMerchant, merchants.id))
+    .innerJoin(merchants, eq(merchantSettlements.idMerchant, merchants.id))
+    .innerJoin(customers, eq(merchants.idCustomer, customers.id))
     .where(and(...conditions));
 
   const totalCount = totalCountResult[0]?.count || 0;
