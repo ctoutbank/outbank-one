@@ -4,6 +4,7 @@ import { exportToExcel } from "@/utils/export-to-excel";
 import axios from "axios";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface TerminalsExcelExportButtonProps {
   filters: Record<string, string | undefined>;
@@ -17,7 +18,6 @@ export function TerminalsExcelExportButton({
   globalStyles,
   sheetName,
   fileName,
-
 }: TerminalsExcelExportButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,6 +43,10 @@ export function TerminalsExcelExportButton({
         if (value) params.append(key, value);
       });
       const res = await axios.get(`/api/export-terminals?${params.toString()}`);
+      if (!res.data.terminals || res.data.terminals.length === 0) {
+        toast.error("Nenhum dado encontrado para exportar.");
+        return;
+      }
       const data = res.data.terminals.map((terminal: any) => ({
         "Data de Inclusão": terminal.dtinsert,
         "Data de Desativação": terminal.inactivationDate

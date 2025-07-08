@@ -1,4 +1,4 @@
-import { getUserMerchantSlugs } from "@/features/users/server/users";
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { db } from "@/server/db";
 import {
@@ -12,7 +12,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import { merchants, terminals } from "../../../../drizzle/schema";
+import { customers, merchants, terminals } from "../../../../drizzle/schema";
 
 // Mapeamento de mês para sigla em português
 const MESES_PT = [
@@ -34,87 +34,14 @@ function getMesAbreviado(mes: number): string {
   return MESES_PT[mes] || "";
 }
 
-export async function getTerminalss(
-  search?: string,
-  page: number = 1,
-  pageSize: number = 20
-) {
-  try {
-    const offset = (page - 1) * pageSize;
-    const conditions = [];
-
-    const userMerchants = await getUserMerchantSlugs();
-
-    if (userMerchants.fullAccess) {
-    } else {
-      if (userMerchants.slugMerchants.length > 0) {
-        conditions.push(
-          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
-        );
-      } else {
-        return {
-          terminals: [],
-          totalCount: 0,
-        };
-      }
-    }
-
-    conditions.push(eq(terminals.active, true));
-
-    if (search) {
-      conditions.push(
-        or(
-          ilike(terminals.slug, `%${search}%`),
-          ilike(terminals.logicalNumber, `%${search}%`),
-          ilike(terminals.model, `%${search}%`),
-          ilike(terminals.manufacturer, `%${search}%`)
-        )
-      );
-    }
-
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-    const [terminalsList, totalCount] = await Promise.all([
-      db
-        .select({
-          slug: terminals.slug,
-          logicalNumber: terminals.logicalNumber,
-          model: terminals.model,
-          manufacturer: terminals.manufacturer,
-        })
-        .from(terminals)
-        .where(whereClause)
-        .orderBy(desc(terminals.dtinsert))
-        .limit(pageSize)
-        .offset(offset),
-
-      db
-        .select({ count: terminals.id })
-        .from(terminals)
-        .where(whereClause)
-        .then((res: { count: number }[]) => res[0]?.count || 0),
-    ]);
-
-    return {
-      terminals: terminalsList,
-      totalCount,
-    };
-  } catch (error) {
-    console.error("Erro ao buscar terminais:", error);
-    throw new Error("Erro ao buscar terminais");
-  }
-}
-
 export async function getTerminalById(slug: string) {
   try {
-    const userMerchants = await getUserMerchantSlugs();
+    const userAccess = await getUserMerchantsAccess();
     const conditions = [eq(terminals.slug, slug), eq(terminals.active, true)];
-
-    if (!userMerchants.fullAccess) {
-      if (userMerchants.slugMerchants.length > 0) {
-        conditions.push(
-          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
-        );
+    conditions.push(eq(customers.id, userAccess.idCustomer));
+    if (!userAccess.fullAccess) {
+      if (userAccess.idMerchants.length > 0) {
+        conditions.push(inArray(merchants.id, userAccess.idMerchants));
       } else {
         return null;
       }
@@ -141,7 +68,8 @@ export async function getTerminalById(slug: string) {
         merchantEmail: merchants.email,
       })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(and(...conditions))
       .then((res) => res[0] || null);
 
@@ -221,12 +149,11 @@ export async function getTerminals(
     const conditions = [];
 
     // Verificar permissões de usuário
-    const userMerchants = await getUserMerchantSlugs();
-    if (!userMerchants.fullAccess) {
-      if (userMerchants.slugMerchants.length > 0) {
-        conditions.push(
-          inArray(terminals.slugMerchant, userMerchants.slugMerchants)
-        );
+    const userAccess = await getUserMerchantsAccess();
+    conditions.push(eq(customers.id, userAccess.idCustomer));
+    if (!userAccess.fullAccess) {
+      if (userAccess.idMerchants.length > 0) {
+        conditions.push(inArray(merchants.id, userAccess.idMerchants));
       } else {
         // Usuário sem acesso a nenhum merchant, retornar vazio
         return {
@@ -320,7 +247,8 @@ export async function getTerminals(
         status: terminals.status,
       })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(whereClause)
       .orderBy(desc(terminals.id))
       .limit(pageSize)
@@ -329,7 +257,8 @@ export async function getTerminals(
     const totalCountResult = await db
       .select({ count: count() })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(whereClause);
     const totalCount = totalCountResult[0]?.count || 0;
 
@@ -337,7 +266,8 @@ export async function getTerminals(
     const activeCountResult = await db
       .select({ count: count() })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(
         and(
           eq(terminals.active, true),
@@ -351,7 +281,8 @@ export async function getTerminals(
     const inactiveCountResult = await db
       .select({ count: count() })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(and(eq(terminals.status, "INACTIVE"), ...conditions));
     const totalInactiveCount = inactiveCountResult[0]?.count || 0;
 
@@ -362,7 +293,8 @@ export async function getTerminals(
         count: count(),
       })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(
         and(
           eq(terminals.active, true),
@@ -387,7 +319,8 @@ export async function getTerminals(
         valor: sql<number>`COUNT(*)`,
       })
       .from(terminals)
-      .leftJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+      .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(
         and(
           eq(terminals.active, true),
@@ -441,12 +374,24 @@ export async function getTerminals(
 }
 
 export async function getTerminalsPorModelo() {
+  const userAccess = await getUserMerchantsAccess();
+  const conditions = [];
+  conditions.push(eq(customers.id, userAccess.idCustomer));
+  if (!userAccess.fullAccess) {
+    if (userAccess.idMerchants.length > 0) {
+      conditions.push(inArray(merchants.id, userAccess.idMerchants));
+    }
+  }
+
   const result = await db
     .select({
       nome: terminals.model,
       quantidade: sql<number>`COUNT(*)`,
     })
     .from(terminals)
+    .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
+    .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
+    .where(and(...conditions))
     .groupBy(terminals.model);
 
   return result.filter((item) => item.nome !== null);
@@ -478,14 +423,14 @@ export async function getTerminalsForExport(
   }
 ): Promise<TerminalsExportList> {
   try {
-    const userMerchants = await getUserMerchantSlugs();
+    const userAccess = await getUserMerchantsAccess();
     const whereParts: any[] = [];
-
+    whereParts.push(sql`c.id = ${userAccess.idCustomer}`);
     // Montar partes do WHERE usando sql``
-    if (!userMerchants.fullAccess) {
-      if (userMerchants.slugMerchants.length > 0) {
+    if (!userAccess.fullAccess) {
+      if (userAccess.idMerchants.length > 0) {
         whereParts.push(
-          sql`t.slug_merchant IN (${sql.join(userMerchants.slugMerchants, sql`, `)})`
+          sql`m.id IN (${sql.join(userAccess.idMerchants, sql`, `)})`
         );
       } else {
         return { terminals: [], totalCount: 0 };
@@ -555,8 +500,8 @@ export async function getTerminalsForExport(
         ut.dt_ultima_transacao
       FROM terminals t
       LEFT JOIN ultimas_transacoes ut ON ut.slug_terminal = t.slug
-      LEFT JOIN merchants m ON t.slug_merchant = m.slug
-      LEFT JOIN customers c ON t.slug_customer = c.slug
+      INNER JOIN merchants m ON t.slug_merchant = m.slug
+      INNER JOIN customers c ON t.slug_customer = c.slug
       ${whereClause}
       ORDER BY t.logical_number ASC
     `);

@@ -317,7 +317,7 @@ export async function getMerchantAgenda(
       total_sales: Number(row?.total_sales) || 0,
       total_merchants: Number(row?.total_merchants) || 0,
       total_installments: Number(row?.total_installments) || 0,
-    }
+    },
   };
 }
 
@@ -351,7 +351,6 @@ export async function getMerchantAgendaExcel(
     };
   }
 
-
   const conditions = [];
 
   // Add merchant access filter if user doesn't have full access
@@ -375,11 +374,9 @@ export async function getMerchantAgendaExcel(
     conditions.push(ilike(merchants.name, `%${establishment}%`));
   }
 
-
   if (status && status !== "all") {
     conditions.push(eq(payout.status, status));
   }
-
 
   if (cardBrand && cardBrand !== "all") {
     conditions.push(eq(payout.brand, cardBrand));
@@ -390,7 +387,6 @@ export async function getMerchantAgendaExcel(
   } else {
     conditions.push(eq(payout.settlementDate, getStartOfDay()));
   }
-
 
   if (settlementDateTo) {
     conditions.push(lte(payout.settlementDate, settlementDateTo));
@@ -433,15 +429,12 @@ export async function getMerchantAgendaExcel(
     .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
     .where(and(...conditions))
     .orderBy(desc(payout.settlementDate));
- 
 
   const totalCountResult = await db
     .select({ count: count() })
     .from(payout)
     .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
     .where(and(...conditions));
- 
-
 
   const totalCount = totalCountResult[0]?.count || 0;
 
@@ -547,7 +540,7 @@ export async function getMerchantAgendaInfo(): Promise<{
 }> {
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
- 
+
   const maxDateResult = await db
     .select({
       maxDate: max(payout.expectedSettlementDate),
@@ -620,6 +613,12 @@ export async function getMerchantAgendaReceipts(
     return { start, end };
   })();
 
+  const userAccess = await getUserMerchantsAccess();
+
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
+
   // Se não há data válida retorna array vazio
   if (date && !whereDate.start) return [];
 
@@ -649,6 +648,8 @@ export async function getMerchantAgendaReceipts(
         AND EXTRACT(
               DOW FROM COALESCE(p.settlement_date, p.expected_settlement_date)
             ) NOT IN (0, 6)
+         ${userAccess.idCustomer ? sql`AND p.id_customer = ${userAccess.idCustomer}` : sql``}
+         ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
 
       UNION ALL
 
@@ -677,6 +678,9 @@ export async function getMerchantAgendaReceipts(
         AND EXTRACT(
               DOW FROM COALESCE(pa.settlement_date, pa.expected_settlement_date)
             ) NOT IN (0, 6)
+            ${userAccess.idCustomer ? sql`AND pa.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+
     ),
     daily_totals AS (
       SELECT
@@ -750,6 +754,11 @@ export async function getMerchantAgendaReceipts(
 export async function getMerchantAgendaTotal(
   date: Date
 ): Promise<{ total: string; status: string }[] | undefined> {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
+
   const firstDayOfMonth = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), 1)
   );
@@ -778,6 +787,8 @@ export async function getMerchantAgendaTotal(
             status
           FROM ${payout}
           WHERE COALESCE(settlement_date, expected_settlement_date) BETWEEN ${start} AND ${end}
+          ${userAccess.idCustomer ? sql`AND ${payout}.id_customer = ${userAccess.idCustomer}` : sql``}
+          ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ${payout}.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
         ),
         unique_sets AS (
           -- via MerchantSettlementOrders
@@ -788,7 +799,9 @@ export async function getMerchantAgendaTotal(
             ON ms.id = mso.id_merchant_settlements
           JOIN payout_range pr
             ON pr.settlement_unique_number = mso.settlement_unique_number
-  
+          WHERE 1 = 1 
+            ${userAccess.idCustomer ? sql`AND ms.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ms.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
           UNION
   
           -- via MerchantPixSettlementOrders
@@ -799,6 +812,9 @@ export async function getMerchantAgendaTotal(
             ON ms2.id = mpso.id_merchant_settlement
           JOIN payout_range pr2
             ON pr2.settlement_unique_number = mpso.settlement_unique_number
+          WHERE 1 = 1 
+            ${userAccess.idCustomer ? sql`AND ms2.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ms2.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
         ),
         total_payout AS (
           SELECT COALESCE(SUM(settlement_amount), 0) AS total,
@@ -914,11 +930,22 @@ export async function getGlobalSettlement(
   search: string | null,
   date: string
 ): Promise<GlobalSettlementResult> {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      globalSettlement: 0,
+      globalGross: 0,
+      globalAdjustments: 0,
+      status: "",
+      merchants: [],
+    };
+  }
+
   // 1) default da data para hoje, se não informado
   if (!date) {
     date = new Date().toISOString().slice(0, 10);
   }
-  const searchTerm = search ? `'${search}'` : "NULL";
+  const searchTerm = search ? search : "NULL";
 
   // 2) mapeamentos para tradução
   const productTypeMapping = transactionProductTypeList.reduce<
@@ -945,7 +972,9 @@ export async function getGlobalSettlement(
         (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
       )
       AND status NOT IN ('CANCELLED')
-
+      ${userAccess.idCustomer ? `AND payout.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND payout.id_merchant IN (${userAccess.idMerchants.join(",")})` : ""}
+    
       UNION ALL
       
       SELECT
@@ -957,6 +986,9 @@ export async function getGlobalSettlement(
       '' as status
       FROM payout_antecipations pa
       WHERE DATE(pa.settlement_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND pa.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND pa.id_merchants IN (${userAccess.idMerchants.join(",")})` : ""}
+   
     ),
 
     -- 2. Soma ajustes por merchant
@@ -971,6 +1003,8 @@ export async function getGlobalSettlement(
       AND ms.debit_financial_adjustment_amount > 0 
       AND s.status NOT IN ('CANCELLED') 
       AND DATE(s.payment_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND ms.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND ms.id_merchant IN (${userAccess.idMerchants.join(",")})` : ""}
       GROUP BY ms.id_merchant, ms.debit_financial_adjustment_amount
     ),
     -- Antecipações Eventuais
@@ -981,6 +1015,8 @@ export async function getGlobalSettlement(
       SUM(pa.settlement_amount)
       FROM payout_antecipations pa
       WHERE DATE(pa.settlement_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND pa.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND pa.id_merchants IN (${userAccess.idMerchants.join(",")})` : ""}
       GROUP BY pa.id_merchants
     ),
     -- 3. Totais globais
