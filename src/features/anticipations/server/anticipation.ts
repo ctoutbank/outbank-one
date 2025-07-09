@@ -1,8 +1,19 @@
 "use server";
 
+import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { translateStatus } from "@/lib/utils";
 import { db } from "@/server/db";
-import { and, count, desc, eq, ilike, ne, sql, SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  ne,
+  sql,
+  SQL,
+} from "drizzle-orm";
 import {
   categories,
   configurations,
@@ -42,8 +53,27 @@ export async function getAnticipations(
 ): Promise<AnticipationList> {
   const offset = (page - 1) * pageSize;
 
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      anticipations: [],
+      totalCount: 0,
+    };
+  }
+
   // Build the where conditions
   const conditions: SQL[] = [];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+
+  // Add customer filter
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   // Add search condition
   if (search) {
@@ -246,8 +276,26 @@ export async function getEventualAnticipations(
 ): Promise<EventualAnticipationList> {
   const offset = (page - 1) * pageSize;
 
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      anticipations: [],
+      totalCount: 0,
+    };
+  }
+
   // Build the where conditions
   const conditions: SQL[] = [];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+
+  // Add customer filter
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   // Add search condition
   if (search) {
