@@ -204,6 +204,10 @@ export async function getPaymentLinks(
 export async function getPaymentLinkById(
   id: number
 ): Promise<PaymentLinkById | null> {
+  if (isNaN(id) || id < 0) {
+    return null;
+  }
+
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
 
@@ -234,10 +238,7 @@ export async function getPaymentLinkById(
     WHERE p.id = ${id}
     ${
       !userAccess.fullAccess
-        ? sql`AND m.id IN (${sql.join(
-            userAccess.idMerchants,
-            sql`, `
-          )})`
+        ? sql`AND m.id IN (${sql.join(userAccess.idMerchants, sql`, `)})`
         : sql``
     }
     ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}

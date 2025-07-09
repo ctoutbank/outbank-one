@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaymentLinkForm from "@/features/paymentLink/_components/paymentLink-form";
+import { PaymentLinkNotFoundToast } from "@/features/paymentLink/_components/paymentLink-not-found-toast";
 import {
   getMerchants,
   getPaymentLinkById,
@@ -15,6 +16,10 @@ export default async function PaymentLinkDetail({
 }) {
   const paymentLinkById = await getPaymentLinkById(parseInt(params.id));
   const merchants = await getMerchants();
+
+  if (!paymentLinkById) {
+    return <PaymentLinkNotFoundToast />;
+  }
 
   return (
     <>

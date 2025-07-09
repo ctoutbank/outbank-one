@@ -325,7 +325,48 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
 export async function getSalesAgentById(
   id: number
 ): Promise<SalesAgentDetail | null> {
+  // Validar se o ID é um número válido (permitindo 0 para criação)
+  if (isNaN(id) || id < 0) {
+    return null;
+  }
+
+  // Se o ID é 0, retornar um objeto vazio para permitir criação
+  if (id === 0) {
+    return {
+      id: 0,
+      slug: null,
+      firstName: null,
+      lastName: null,
+      email: null,
+      active: true,
+      dtinsert: null,
+      dtupdate: null,
+      documentId: null,
+      slugCustomer: null,
+      cpf: null,
+      phone: null,
+      birthDate: null,
+      idUsers: null,
+      idProfile: null,
+      idCustomer: null,
+      idAddress: null,
+      streetAddress: null,
+      streetNumber: null,
+      complement: null,
+      neighborhood: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
+      selectedMerchants: [],
+    };
+  }
+
   // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
+    return null;
+  }
   const customer = await getCustomerByTentant();
 
   const result = await db
@@ -364,6 +405,11 @@ export async function getSalesAgentById(
       and(eq(salesAgents.id, id), eq(salesAgents.slugCustomer, customer.slug))
     )
     .limit(1);
+
+  // Se não encontrou nenhum resultado, retornar null
+  if (!result[0]) {
+    return null;
+  }
 
   const userMerchantResult = await db
     .select({

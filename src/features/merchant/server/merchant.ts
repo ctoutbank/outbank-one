@@ -518,9 +518,72 @@ export async function getMerchantById(
   id: number,
   userAccess: UserMerchantsAccess
 ) {
-  // Check if user has access to this merchant
-  if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
+  // Permitir acesso para criação de novo merchant (id = 0)
+  // Verificar acesso apenas para merchants existentes
+  if (
+    id !== 0 &&
+    !userAccess.fullAccess &&
+    !userAccess.idMerchants.includes(id)
+  ) {
     throw new Error("You don't have access to this merchant");
+  }
+
+  // Se o ID é 0, retornar um objeto vazio para permitir criação
+  if (id === 0) {
+    return {
+      merchants: {
+        id: 0,
+        slug: "",
+        name: "",
+        active: false,
+        dtinsert: "",
+        dtupdate: "",
+        idMerchant: "",
+        idDocument: "",
+        corporateName: "",
+        email: "",
+        areaCode: "",
+        number: "",
+        phoneType: "",
+        language: "",
+        timezone: "",
+        slugCustomer: "",
+        riskAnalysisStatus: "",
+        riskAnalysisStatusJustification: "",
+        legalPerson: "",
+        openingDate: null,
+        inclusion: "",
+        openingDays: "",
+        openingHour: "",
+        closingHour: "",
+        municipalRegistration: "",
+        stateSubcription: "",
+        hasTef: false,
+        hasPix: false,
+        hasTop: false,
+        establishmentFormat: "",
+        revenue: 0,
+        idCategory: 0,
+        slugCategory: "",
+        idConfiguration: 0,
+        slugConfiguration: "",
+        idAddress: 0,
+        idLegalNature: 0,
+        slugLegalNature: "",
+        idSalesAgent: 0,
+        slugSalesAgent: "",
+        idMerchantBankAccount: 0,
+        idMerchantPrice: 0,
+        idCustomer: userAccess.idCustomer,
+      },
+      categories: null,
+      addresses: null,
+      configurations: null,
+      salesAgents: null,
+      legalNatures: null,
+      contacts: null,
+      pixaccounts: null,
+    };
   }
 
   const result = await db

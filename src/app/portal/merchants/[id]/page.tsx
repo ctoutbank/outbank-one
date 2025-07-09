@@ -1,7 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import MerchantDisplay from "@/features/merchant/_components/merchant-display";
+import { MerchantNotFoundToast } from "@/features/merchant/_components/merchant-not-found-toast";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
@@ -37,73 +37,9 @@ export default async function MerchantDetail({
   const merchantId = parseInt(params.id);
   const userAccess = await getUserMerchantsAccess();
 
-  // 🔍 REGRA SIMPLES: Se não retorna dados, exibe erro
-  let merchant;
-  try {
-    merchant = await getMerchantById(merchantId, userAccess);
-  } catch {
-    // Se qualquer erro ocorrer (sem acesso), exibe mensagem única
-    return (
-      <>
-        <BaseHeader
-          breadcrumbItems={[
-            { title: "Estabelecimentos", url: "/portal/merchants" },
-            { title: "Detalhes", url: `/portal/merchants/${merchantId}` },
-          ]}
-        />
-
-        <BaseBody
-          title="Estabelecimento"
-          subtitle="Estabelecimento não encontrado"
-        >
-          <div className="flex flex-col items-center justify-center py-12">
-            <Alert variant="destructive" className="max-w-md">
-              <AlertTitle>Estabelecimento não encontrado</AlertTitle>
-              <AlertDescription>
-                O estabelecimento solicitado não foi encontrado ou você não tem
-                permissão para acessá-lo.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </BaseBody>
-      </>
-    );
-  }
-
-  // Verificar se o merchant existe (não é undefined e tem ID)
-  // ID 0 é especial - significa criar novo estabelecimento
-  if (
-    merchantId !== 0 &&
-    (!merchant || !merchant.merchants || !merchant.merchants.id)
-  ) {
-    return (
-      <>
-        <BaseHeader
-          breadcrumbItems={[
-            { title: "Estabelecimentos", url: "/portal/merchants" },
-            { title: "Detalhes", url: `/portal/merchants/${merchantId}` },
-          ]}
-        />
-
-        <BaseBody
-          title="Estabelecimento"
-          subtitle="Estabelecimento não encontrado"
-        >
-          <div className="flex flex-col items-center justify-center py-12">
-            <Alert variant="destructive" className="max-w-md">
-              <AlertTitle>Estabelecimento não encontrado</AlertTitle>
-              <AlertDescription>
-                O estabelecimento solicitado não foi encontrado.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </BaseBody>
-      </>
-    );
-  }
-
   const cnaeMccList = await getCnaeMccForDropdown();
   const establishmentFormatList = await getEstablishmentFormatForDropdown();
+  const merchant = await getMerchantById(merchantId, userAccess);
   const DDAccountType = await getAccountTypeForDropdown();
   const DDBank = await getBankForDropdown();
   const merchantBankAccount = await getMerchantBankAccountById(
@@ -135,21 +71,10 @@ export default async function MerchantDetail({
   const configurations = await getConfigurationsByMerchantId(
     merchant?.merchants.id || 0
   );
-  console.log("configurations:", configurations);
-  console.log("Valores de antecipação (debug):", {
-    anticipationRiskFactorCp: configurations?.anticipationRiskFactorCp,
-    anticipationRiskFactorCnp: configurations?.anticipationRiskFactorCnp,
-    waitingPeriodCp: configurations?.waitingPeriodCp,
-    waitingPeriodCnp: configurations?.waitingPeriodCnp,
-    tipoAnticipationRiskFactorCp:
-      typeof configurations?.anticipationRiskFactorCp,
-    tipoAnticipationRiskFactorCnp:
-      typeof configurations?.anticipationRiskFactorCnp,
-  });
+
   const pixaccount = await getMerchantPixAccountByMerchantId(
     merchant?.merchants.id || 0
   );
-  console.log("pixaccount:", pixaccount);
 
   const formattedMerchantPriceGroups = {
     merchantPrice: {
@@ -201,6 +126,10 @@ export default async function MerchantDetail({
             : group.transactionPrices || [],
       })) || [],
   };
+
+  if (!merchant) {
+    return <MerchantNotFoundToast />;
+  }
 
   return (
     <>
