@@ -406,3 +406,19 @@ export async function getModules(profileId?: number): Promise<ModuleSelect[]> {
 
   return modulesList;
 }
+
+export async function getProfileIdByName(
+  namePattern: string
+): Promise<number | null> {
+  const result = await db
+    .select({ id: profiles.id })
+    .from(profiles)
+    .where(sql`name ILIKE ${"%" + namePattern + "%"}`)
+    .limit(1);
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return result[0].id;
+}

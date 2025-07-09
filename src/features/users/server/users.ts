@@ -761,3 +761,22 @@ export async function getCustomerByTentant() {
     .limit(1);
   return customer[0];
 }
+
+export async function getCustomerIdByTentant() {
+  const cookieStore = cookies();
+  const tenant = cookieStore.get("tenant")?.value;
+  const customer = await db
+    .select({
+      id: customers.id,
+    })
+    .from(customerCustomization)
+    .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
+    .where(eq(customerCustomization.slug, tenant || ""))
+    .limit(1);
+
+  if (!customer || customer.length === 0) {
+    throw new Error(`Customer não encontrado para o tenant: ${tenant}`);
+  }
+
+  return customer[0].id;
+}

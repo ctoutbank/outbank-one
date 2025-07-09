@@ -2,10 +2,12 @@
 
 import { hashPassword } from "@/app/utils/password";
 import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
+import { getProfileIdByName } from "@/features/users/server/profiles";
 import {
   DD,
   generateRandomPassword,
   getCustomerByTentant,
+  getCustomerIdByTentant,
   getUserMerchantsAccess,
 } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
@@ -280,6 +282,9 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
   const hashedPassword = hashPassword(password);
   console.log(password);
 
+  const idCustomer = await getCustomerIdByTentant();
+  const idProfile = await getProfileIdByName("Consultor Comercial");
+
   const newUser = await db
     .insert(users)
     .values({
@@ -288,8 +293,8 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
       dtupdate: new Date().toISOString(),
       active: true,
       idClerk: clerkUser.id,
-      idCustomer: salesAgent.idCustomer,
-      idProfile: salesAgent.idProfile,
+      idCustomer: idCustomer,
+      idProfile: idProfile,
       idAddress: idAddress,
       fullAccess: false,
       hashedPassword: hashedPassword,
@@ -300,6 +305,8 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
 
   await sendWelcomePasswordEmail(salesAgent.email || "", password);
 
+  const idUsers = newUser[0].id;
+
   // Insert user-merchant relationships if any merchants are selected
   if (salesAgent.selectedMerchants && salesAgent.selectedMerchants.length > 0) {
     const userMerchantValues = salesAgent.selectedMerchants.map(
@@ -308,7 +315,7 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
         active: true,
-        idUser: newUser[0].id,
+        idUser: idUsers,
         idMerchant: Number(merchantId),
       })
     );
@@ -316,9 +323,16 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
     await db.insert(userMerchants).values(userMerchantValues);
   }
 
-  const result = await db.insert(salesAgents).values(salesAgent).returning({
-    id: salesAgents.id,
-  });
+  const slugCustomer = await getCustomerByTentant();
+
+  const result = await db
+    .insert(salesAgents)
+    .values({
+      ...salesAgent,
+      idUsers: idUsers,
+      slugCustomer: slugCustomer.slug,
+    })
+    .returning({ id: salesAgents.id });
   return result[0].id;
 }
 
