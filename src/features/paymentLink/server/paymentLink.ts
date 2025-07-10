@@ -101,7 +101,19 @@ export type PaymentLink = {
 };
 
 async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
-  console.log("json", JSON.stringify(data));
+  // Remover campos desnecessários dos shoppingItems
+  // Os valores monetários já foram validados e mantidos com ponto
+  const formattedData = {
+    ...data,
+    shoppingItems: data.shoppingItems?.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      // Removendo idPaymentLink pois a API não espera esse campo
+    })),
+  };
+
+  console.log("json", JSON.stringify(formattedData));
   const response = await fetch(
     `https://serviceorder.acquiring.dock.tech/v1/external_payment_links`,
     {
@@ -111,13 +123,24 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
         "Content-Type": "application/json",
         Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedData),
     }
   );
 
   if (!response.ok) {
-    const errorMessage = `Failed to save data: ${response.statusText}`;
-    console.error(response);
+    let errorDetails = `Status: ${response.status} - ${response.statusText}`;
+
+    try {
+      const errorResponse = await response.text();
+      errorDetails += `\nResponse: ${errorResponse}`;
+    } catch (e) {
+      errorDetails += `\nCould not read response body`;
+    }
+
+    console.error("API Error Details:", errorDetails);
+    console.error("Request Data:", JSON.stringify(formattedData, null, 2));
+
+    const errorMessage = `Failed to save data: ${errorDetails}`;
     throw new Error(errorMessage);
   }
 
@@ -290,16 +313,38 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
+    // Formatar data de expiração para incluir apenas a data (sem horas específicas)
+    const formatExpirationDate = (dateString: string) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toISOString().split("T")[0] + "T00:00:00.000Z";
+    };
+
+    // Validar valores monetários
+    const validateAndFormatAmount = (amount: string) => {
+      // Validar o valor numérico
+      const numAmount = parseFloat(amount);
+      if (numAmount < 0.01) {
+        throw new Error("Valor mínimo deve ser R$ 0,01");
+      }
+
+      // Manter o valor original (com ponto) - a API espera ponto, não vírgula
+      return amount;
+    };
+
     const insertAPI: InsertPaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
-      totalAmount: paymentLinks.totalAmount || "0",
+      totalAmount: validateAndFormatAmount(paymentLinks.totalAmount || "0"),
       documentId: merchantDoc[0]?.idDocument || "0MerchantDock1",
-      dtExpiration: paymentLinks.dtExpiration || "",
+      dtExpiration: formatExpirationDate(paymentLinks.dtExpiration || ""),
       installments: paymentLinks.installments || 0,
       productType: paymentLinks.productType || "",
       shoppingItems:
         paymentLinks.shoppingItems && paymentLinks.shoppingItems?.length > 0
-          ? paymentLinks.shoppingItems
+          ? paymentLinks.shoppingItems.map((item) => ({
+              ...item,
+              amount: validateAndFormatAmount(item.amount),
+            }))
           : undefined,
     };
 
@@ -440,7 +485,19 @@ export async function updateAPIPaymentLink(
   slug: string,
   data: UpdatePaymentLinkAPI
 ): Promise<PaymentLink> {
-  console.log("updateAPIPaymentLink", slug, JSON.stringify(data));
+  // Remover campos desnecessários dos shoppingItems
+  // Os valores monetários já foram validados e mantidos com ponto
+  const formattedData = {
+    ...data,
+    shoppingItems: data.shoppingItems?.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      // Removendo idPaymentLink pois a API não espera esse campo
+    })),
+  };
+
+  console.log("updateAPIPaymentLink", slug, JSON.stringify(formattedData));
 
   const response = await fetch(
     `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links/${slug}`,
@@ -451,7 +508,7 @@ export async function updateAPIPaymentLink(
         "Content-Type": "application/json",
         Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedData),
     }
   );
 
@@ -488,12 +545,31 @@ export async function updateCompletePaymentLink(
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
+    // Formatar data de expiração para incluir apenas a data (sem horas específicas)
+    const formatExpirationDate = (dateString: string) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toISOString().split("T")[0] + "T00:00:00.000Z";
+    };
+
+    // Validar valores monetários
+    const validateAndFormatAmount = (amount: string) => {
+      // Validar o valor numérico
+      const numAmount = parseFloat(amount);
+      if (numAmount < 0.01) {
+        throw new Error("Valor mínimo deve ser R$ 0,01");
+      }
+
+      // Manter o valor original (com ponto) - a API espera ponto, não vírgula
+      return amount;
+    };
+
     // 2. Prepara dados para atualização na API
     const updateData: UpdatePaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
-      totalAmount: paymentLinks.totalAmount || "0",
+      totalAmount: validateAndFormatAmount(paymentLinks.totalAmount || "0"),
       documentId: merchant[0]?.idDocument || "0MerchantDock1", // Valor padrão como fallback
-      dtExpiration: paymentLinks.dtExpiration || "",
+      dtExpiration: formatExpirationDate(paymentLinks.dtExpiration || ""),
       installments: paymentLinks.installments || 0,
       productType: paymentLinks.productType || "CREDIT",
     };
@@ -503,7 +579,7 @@ export async function updateCompletePaymentLink(
       updateData.shoppingItems = shoppingItemsIn.map((item) => ({
         name: item.name,
         quantity: item.quantity,
-        amount: item.amount,
+        amount: validateAndFormatAmount(item.amount),
       }));
     }
 
