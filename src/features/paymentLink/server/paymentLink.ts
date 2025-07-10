@@ -103,13 +103,13 @@ export type PaymentLink = {
 async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
   console.log("json", JSON.stringify(data));
   const response = await fetch(
-    `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links`,
+    `https://serviceorder.acquiring.dock.tech/v1/external_payment_links`,
     {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
       },
       body: JSON.stringify(data),
     }
@@ -208,6 +208,31 @@ export async function getPaymentLinkById(
     return null;
   }
 
+  // Se o ID é 0, retornar um objeto vazio para permitir criação
+  if (id === 0) {
+    return {
+      id: 0,
+      slug: null,
+      active: false,
+      dtinsert: null,
+      dtupdate: null,
+      linkName: null,
+      dtExpiration: null,
+      totalAmount: null,
+      idMerchant: null,
+      paymentLinkStatus: null,
+      productType: null,
+      installments: null,
+      linkUrl: null,
+      pixEnabled: null,
+      transactionSlug: null,
+      isFromServer: null,
+      modified: null,
+      isDeleted: null,
+      shoppingItems: [],
+    };
+  }
+
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
 
@@ -250,6 +275,16 @@ export async function getPaymentLinkById(
 
 export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
   try {
+    // Verificar se o usuário tem acesso ao merchant
+    const userAccess = await getUserMerchantsAccess();
+
+    if (
+      !userAccess.fullAccess &&
+      !userAccess.idMerchants.includes(paymentLinks.idMerchant || 0)
+    ) {
+      throw new Error("Você não tem acesso a este estabelecimento");
+    }
+
     const merchantDoc = await db
       .select({ idDocument: merchants.idDocument })
       .from(merchants)
@@ -368,7 +403,27 @@ export async function deletePaymentLink(id: number): Promise<void> {
 }
 
 export async function getMerchants(): Promise<DDMerchant[]> {
-  const result = await db.select().from(merchants);
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
+
+  const conditions = [eq(merchants.idCustomer, userAccess.idCustomer)];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+
+  const result = await db
+    .select({ id: merchants.id, name: merchants.name })
+    .from(merchants)
+    .where(and(...conditions))
+    .orderBy(merchants.name);
+
   return result.map((merchant) => ({
     id: merchant.id,
     name: merchant.name?.toUpperCase() ?? "",
