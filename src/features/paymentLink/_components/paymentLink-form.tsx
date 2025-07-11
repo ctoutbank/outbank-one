@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -100,23 +101,37 @@ export default function PaymentLinkForm({
 
   async function updatePaymentLinkFormAction(data: PaymentLinkSchema) {
     console.log("updatePaymentLinkFormAction", data);
+
+    // Calcular data de expiração baseada no horário atual em UTC
+    const currentTime = DateTime.utc().toISO() || new Date().toISOString();
+    const diffNumber = Number(data.diffNumber || 1);
+    const expiresAt = (data.expiresAt as "day" | "hour") || "hour";
+
+    console.log("Cálculo de expiração:", {
+      currentTime,
+      diffNumber,
+      expiresAt,
+      diffNumberType: typeof diffNumber,
+      expiresAtType: typeof expiresAt,
+    });
+
+    const expirationTime = addTimeToDate(currentTime, diffNumber, expiresAt);
+
+    console.log("Data de expiração calculada:", expirationTime);
+
     const paymentLinkDetailUpdate: PaymentLinkDetail = {
       id: data.id || 0,
       slug: data.slug || "",
       linkName: data.linkName || "",
       linkUrl: data.linkUrl || "",
       active: true,
-      dtExpiration: addTimeToDate(
-        new Date().toISOString(),
-        Number(data.diffNumber),
-        data.expiresAt as "day" | "hour"
-      ),
+      dtExpiration: expirationTime,
       idMerchant: Number(data.idMerchant),
       productType: data.productType || "",
       totalAmount: data.totalAmount?.toString() || "0",
       paymentLinkStatus: data.paymentLinkStatus || "",
-      dtinsert: data.dtinsert || new Date().toISOString(),
-      dtupdate: new Date().toISOString(),
+      dtinsert: data.dtinsert || currentTime,
+      dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       installments: Number(data.installments),
       pixEnabled: false,
       transactionSlug: data.transactionSlug || "",
@@ -143,21 +158,35 @@ export default function PaymentLinkForm({
 
   async function insertPaymentLinkFormAction(data: PaymentLinkSchema) {
     console.log("insertPaymentLinkFormAction", data);
+
+    // Calcular data de expiração baseada no horário atual em UTC
+    const currentTime = DateTime.utc().toISO() || new Date().toISOString();
+    const diffNumber = Number(data.diffNumber || 1);
+    const expiresAt = (data.expiresAt as "day" | "hour") || "hour";
+
+    console.log("Cálculo de expiração (insert):", {
+      currentTime,
+      diffNumber,
+      expiresAt,
+      diffNumberType: typeof diffNumber,
+      expiresAtType: typeof expiresAt,
+    });
+
+    const expirationTime = addTimeToDate(currentTime, diffNumber, expiresAt);
+
+    console.log("Data de expiração calculada (insert):", expirationTime);
+
     const newId = insertPaymentLink({
       linkName: data.linkName,
-      dtExpiration: addTimeToDate(
-        new Date().toISOString(),
-        Number(data.diffNumber),
-        data.expiresAt as "day" | "hour"
-      ),
+      dtExpiration: expirationTime,
       idMerchant: Number(data.idMerchant),
       linkUrl: data.linkUrl,
       productType: "CREDIT",
       totalAmount: data.totalAmount?.toString() || "0",
       paymentLinkStatus: "PENDING",
-      dtinsert: new Date().toISOString(),
+      dtinsert: currentTime,
       active: true,
-      dtupdate: new Date().toISOString(),
+      dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       installments: Number(data.installments),
       pixEnabled: false,
       shoppingItems: data.shoppingItems?.map((item) => ({
@@ -211,15 +240,27 @@ export default function PaymentLinkForm({
     value: number,
     type: "day" | "hour"
   ): string {
-    const newDate = new Date(date);
+    // Usar a data fornecida como base, convertendo para UTC se necessário
+    const baseDate = DateTime.fromISO(date, { zone: "utc" });
+    let newDate: DateTime;
 
     if (type === "day") {
-      newDate.setDate(newDate.getDate() + value);
+      newDate = baseDate.plus({ days: value });
     } else if (type === "hour") {
-      newDate.setHours(newDate.getHours() + value);
+      newDate = baseDate.plus({ hours: value });
+    } else {
+      // Fallback para a data base
+      newDate = baseDate;
     }
 
-    return newDate.toISOString();
+    // Garantir que o valor seja válido e retornar string
+    if (!newDate.isValid) {
+      console.error("Data inválida gerada:", { date, value, type });
+      return new Date().toISOString();
+    }
+
+    const isoString = newDate.toISO();
+    return isoString || new Date().toISOString();
   }
 
   const watch = form.watch;

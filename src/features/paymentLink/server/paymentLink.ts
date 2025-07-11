@@ -14,6 +14,7 @@ import {
   isNotNull,
   sql,
 } from "drizzle-orm";
+import { DateTime } from "luxon";
 import {
   merchants,
   paymentLink,
@@ -115,13 +116,13 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
 
   console.log("json", JSON.stringify(formattedData));
   const response = await fetch(
-    `https://serviceorder.acquiring.dock.tech/v1/external_payment_links`,
+    `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links`,
     {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
       },
       body: JSON.stringify(formattedData),
     }
@@ -133,7 +134,7 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
     try {
       const errorResponse = await response.text();
       errorDetails += `\nResponse: ${errorResponse}`;
-    } catch (e) {
+    } catch {
       errorDetails += `\nCould not read response body`;
     }
 
@@ -313,11 +314,25 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
-    // Formatar data de expiração para incluir apenas a data (sem horas específicas)
+    // Formatar data de expiração preservando as horas quando definidas
     const formatExpirationDate = (dateString: string) => {
       if (!dateString) return "";
-      const date = new Date(dateString);
-      return date.toISOString().split("T")[0] + "T00:00:00.000Z";
+
+      // Usar DateTime do Luxon para garantir processamento em UTC
+      const date = DateTime.fromISO(dateString, { zone: "utc" });
+
+      if (!date.isValid) {
+        console.error("Data inválida recebida:", dateString);
+        return "";
+      }
+
+      // Se a data tem horas específicas (não é meia-noite), preservar as horas
+      if (date.hour !== 0 || date.minute !== 0 || date.second !== 0) {
+        return date.toISO();
+      }
+
+      // Se é apenas uma data (meia-noite), manter o comportamento anterior
+      return date.toFormat("yyyy-MM-dd") + "T00:00:00.000Z";
     };
 
     // Validar valores monetários
@@ -359,8 +374,8 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       linkName: paymentLinks.linkName,
       paymentLinkStatus: response.paymentLinkStatus,
       idMerchant: paymentLinks.idMerchant,
-      dtinsert: new Date().toISOString(),
-      dtupdate: new Date().toISOString(),
+      dtinsert: DateTime.utc().toISO() || new Date().toISOString(),
+      dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       totalAmount: paymentLinks.totalAmount,
       dtExpiration: paymentLinks.dtExpiration,
       installments: paymentLinks.installments,
@@ -407,6 +422,13 @@ export async function updatePaymentLink(
   paymentLinks: PaymentLinkDetail,
   shoppingItemsIn?: ShoppingItemsUpdate[]
 ): Promise<void> {
+  // Se o link tem slug, usar a função completa que atualiza na API
+  if (paymentLinks.slug) {
+    await updateCompletePaymentLink(paymentLinks, shoppingItemsIn);
+    return;
+  }
+
+  // Caso contrário, apenas atualizar no banco local
   if (shoppingItemsIn && shoppingItemsIn.length > 0) {
     const modifiedItems = shoppingItemsIn.filter((item) => item.wasModified);
     const unmodifiedItems = shoppingItemsIn.filter((item) => !item.wasModified);
@@ -545,11 +567,23 @@ export async function updateCompletePaymentLink(
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
-    // Formatar data de expiração para incluir apenas a data (sem horas específicas)
+    // Formatar data de expiração preservando as horas quando definidas
     const formatExpirationDate = (dateString: string) => {
       if (!dateString) return "";
-      const date = new Date(dateString);
-      return date.toISOString().split("T")[0] + "T00:00:00.000Z";
+      const date = DateTime.fromISO(dateString, { zone: "utc" });
+
+      if (!date.isValid) {
+        console.error("Data inválida recebida:", dateString);
+        return "";
+      }
+
+      // Se a data tem horas específicas (não é meia-noite), preservar as horas
+      if (date.hour !== 0 || date.minute !== 0 || date.second !== 0) {
+        return date.toISO();
+      }
+
+      // Se é apenas uma data (meia-noite), manter o comportamento anterior
+      return date.toFormat("yyyy-MM-dd") + "T00:00:00.000Z";
     };
 
     // Validar valores monetários
@@ -635,7 +669,7 @@ export async function updateCompletePaymentLink(
       .update(paymentLink)
       .set({
         ...paymentLinks,
-        dtupdate: new Date().toISOString(),
+        dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       })
       .where(eq(paymentLink.id, paymentLinks.id));
   } catch (error) {
@@ -727,7 +761,7 @@ export async function verificarLinksExcluidos(): Promise<number> {
         .set({
           isDeleted: true,
           active: false,
-          dtupdate: new Date().toISOString(),
+          dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
         })
         .where(inArray(paymentLink.id, linksExcluidos));
 
@@ -795,7 +829,7 @@ export async function verificarLinksExcluidosComLista(): Promise<number> {
         .set({
           isDeleted: true,
           active: false,
-          dtupdate: new Date().toISOString(),
+          dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
         })
         .where(inArray(paymentLink.id, linksExcluidos));
 

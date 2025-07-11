@@ -14,6 +14,7 @@ import {
 import { formatCurrency, formatDate, translateCardType } from "@/lib/utils";
 import { Copy, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { PaymentLinkList } from "../server/paymentLink";
 import { EmailPaymentLinkDialog } from "./email-payment-link-dialog";
 
@@ -58,6 +59,31 @@ export default function PaymentLinksList({
     setSelectedLink(link);
     setIsEmailDialogOpen(true);
   };
+
+  const handleCopyLink = async (link: string) => {
+    try {
+      // Verificar se a API do clipboard está disponível
+      if (!navigator.clipboard) {
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toast.success("Link copiado para a área de transferência!");
+        return;
+      }
+
+      // Usar a API moderna do clipboard
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado para a área de transferência!");
+    } catch (error) {
+      console.error("Erro ao copiar link:", error);
+      toast.error("Erro ao copiar link. Tente novamente.");
+    }
+  };
+
   return (
     <div className="w-full rounded-md border">
       <ScrollArea className="w-full">
@@ -93,7 +119,7 @@ export default function PaymentLinksList({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full hover:bg-muted"
-                      onClick={() => navigator.clipboard.writeText(link.link)}
+                      onClick={() => handleCopyLink(link.link)}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
