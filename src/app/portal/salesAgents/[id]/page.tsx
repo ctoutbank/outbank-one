@@ -49,7 +49,9 @@ export default async function SalesAgentsDetail({
             email: agent?.email || "",
             cpf: agent?.cpf || "",
             phone: agent?.phone || "",
-            birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
+            birthDate: agent?.birthDate
+              ? new Date(agent.birthDate)
+              : new Date(),
             idProfile: agent?.idProfile?.toString() || undefined,
             idCustomer: agent?.idCustomer?.toString() || undefined,
             active: agent?.active ?? true,

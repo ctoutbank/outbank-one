@@ -155,7 +155,9 @@ export async function getPaymentLinks(
   identifier: string,
   status: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sortBy?: string,
+  sortOrder?: "asc" | "desc"
 ): Promise<PaymentLinkList> {
   const offset = (page - 1) * pageSize;
 
@@ -182,6 +184,21 @@ export async function getPaymentLinks(
   }
   conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
+  // Map sortBy to column
+  const sortMap: Record<string, any> = {
+    dtinsert: paymentLink.dtinsert,
+    name: paymentLink.linkName,
+    serial: paymentLink.id, // Ajuste se houver campo serial real
+    merchantName: merchants.name,
+    model: paymentLink.productType, // Ajuste se houver campo model real
+    status: paymentLink.paymentLinkStatus,
+  };
+  const sortColumn = sortMap[sortBy || "dtinsert"] || paymentLink.dtinsert;
+  const orderFn =
+    (sortOrder || "desc") === "asc"
+      ? (col: any) => col
+      : (col: any) => desc(col);
+
   const result = await db
     .select({
       id: paymentLink.id,
@@ -197,7 +214,7 @@ export async function getPaymentLinks(
     .from(paymentLink)
     .innerJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
     .where(and(...conditions))
-    .orderBy(desc(paymentLink.id))
+    .orderBy(orderFn(sortColumn))
     .limit(pageSize)
     .offset(offset);
 
