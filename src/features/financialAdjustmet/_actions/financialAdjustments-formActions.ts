@@ -119,3 +119,20 @@ export async function removeMerchantFromFinancialAdjustmentAction(
     idMerchant
   );
 }
+
+export async function deactivateFinancialAdjustmentFormAction(id: number) {
+  if (!id)
+    throw new Error("ID do ajuste financeiro é obrigatório para desativar");
+  await updateFinancialAdjustment({ id, active: false } as any);
+}
+
+export async function toggleFinancialAdjustmentActiveFormAction(
+  id: number,
+  active: boolean
+) {
+  if (!id)
+    throw new Error(
+      "ID do ajuste financeiro é obrigatório para ativar/desativar"
+    );
+  await updateFinancialAdjustment({ id, active } as any);
+}

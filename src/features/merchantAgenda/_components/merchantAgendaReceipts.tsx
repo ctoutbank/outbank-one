@@ -26,6 +26,7 @@ export default function MerchantAgendaReceipts({
 }) {
   const searchParams = useSearchParams();
   const [view, setView] = useState("month");
+  const [monthView, setMonthView] = useState<"calendar" | "table">("calendar");
 
   const [monthTotal, setMonthTotal] = useState<number>(0);
   const [actualDate, setActualDate] = useState<Date>(new Date());
@@ -60,11 +61,17 @@ export default function MerchantAgendaReceipts({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const monthData = await getMerchantAgendaTotal(actualDate);
+        const monthData = await getMerchantAgendaTotal(
+          searchParams?.get("search") || null,
+          actualDate
+        );
         setMonthTotal((monthData && Number(monthData[0].total)) || 0);
         setMonthStatus((monthData && monthData[0].status) || "SETTLED");
 
-        const receipts = await getMerchantAgendaReceipts(null, actualDate);
+        const receipts = await getMerchantAgendaReceipts(
+          searchParams?.get("search") || null,
+          actualDate
+        );
 
         const dailyAmounts: DailyAmount[] = receipts
           .map((receipt) => ({
@@ -84,7 +91,7 @@ export default function MerchantAgendaReceipts({
     };
 
     fetchData();
-  }, [actualDate]);
+  }, [actualDate, searchParams]);
 
   return (
     <div>
@@ -130,6 +137,9 @@ export default function MerchantAgendaReceipts({
           total={Number(monthTotal)}
           setView={setView}
           status={monthStatus || ""}
+          currentMonth={actualDate}
+          monthView={monthView}
+          setMonthView={setMonthView}
         />
       ) : (
         <DailyView

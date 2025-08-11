@@ -17,7 +17,7 @@ export const SchemaFinancialAdjustment = z.object({
   endDate: z.string().optional(),
   dtinsert: z.date().optional(),
   dtupdate: z.date().optional(),
-  merchants: z.array(z.number()).optional(), // Array de IDs dos merchants
+  merchants: z.array(z.number()).min(1, "Selecione ao menos um merchant"), // Array de IDs dos merchants
   idCustomer: z.string().optional(),
 });
 

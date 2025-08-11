@@ -292,13 +292,15 @@ export async function insertFinancialAdjustment(
 export async function updateFinancialAdjustment(
   adjustment: FinancialAdjustmentDetail
 ): Promise<void> {
+  // Remove o campo id do objeto de atualização
+  const { id, ...fieldsToUpdate } = adjustment;
   await db
     .update(financialAdjustments)
     .set({
-      ...adjustment,
+      ...fieldsToUpdate,
       dtupdate: new Date().toISOString(),
     })
-    .where(eq(financialAdjustments.id, adjustment.id));
+    .where(eq(financialAdjustments.id, id));
 }
 
 export async function deleteFinancialAdjustment(id: number): Promise<void> {

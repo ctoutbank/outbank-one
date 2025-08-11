@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -16,7 +15,6 @@ import {
   adjustmentReasons,
 } from "@/lib/lookuptables/lookuptables-adjustment";
 import { formatCNPJ } from "@/lib/utils";
-import { Edit, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { FinancialAdjustmentsList } from "../server/financialAdjustments";
 
@@ -49,7 +47,6 @@ export default function FinancialAdjustmentsList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
             <TableHead>Previsao de Liquidação</TableHead>
             <TableHead>Razao</TableHead>
             <TableHead>Título</TableHead>
@@ -58,7 +55,6 @@ export default function FinancialAdjustmentsList({
             <TableHead>Valor</TableHead>
             <TableHead>Estabelecimento</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -71,9 +67,13 @@ export default function FinancialAdjustmentsList({
           ) : (
             adjustments.financialAdjustments.map((adjustment) => (
               <TableRow key={adjustment.id}>
-                <TableCell className="font-medium">{adjustment.id}</TableCell>
                 <TableCell>
-                  {adjustment.expectedSettlementDate?.toLocaleDateString()}
+                  <Link
+                    href={`/portal/financialAdjustment/${adjustment.id}`}
+                    className="underline"
+                  >
+                    {adjustment.expectedSettlementDate?.toLocaleDateString()}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   {adjustment.reason
@@ -112,34 +112,6 @@ export default function FinancialAdjustmentsList({
                   >
                     {adjustment.active ? "Ativo" : "Inativo"}
                   </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/portal/financialAdjustment/${adjustment.id}`}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/portal/financialAdjustment/${adjustment.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        // TODO: Implementar função de deletar
-                        console.log("Delete adjustment:", adjustment.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </TableCell>
               </TableRow>
             ))
