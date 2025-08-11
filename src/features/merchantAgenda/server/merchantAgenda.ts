@@ -752,6 +752,7 @@ export async function getMerchantAgendaReceipts(
 }
 
 export async function getMerchantAgendaTotal(
+  search: string | null,
   date: Date
 ): Promise<{ total: string; status: string }[] | undefined> {
   const userAccess = await getUserMerchantsAccess();
@@ -786,7 +787,10 @@ export async function getMerchantAgendaTotal(
             settlement_amount,
             status
           FROM ${payout}
+          INNER JOIN ${merchants} m
+            ON m.id = ${payout}.id_merchant
           WHERE COALESCE(settlement_date, expected_settlement_date) BETWEEN ${start} AND ${end}
+          ${search ? sql`AND m.name ILIKE ${"%" + search + "%"}` : sql``}
           ${userAccess.idCustomer ? sql`AND ${payout}.id_customer = ${userAccess.idCustomer}` : sql``}
           ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ${payout}.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
         ),
@@ -945,7 +949,6 @@ export async function getGlobalSettlement(
   if (!date) {
     date = new Date().toISOString().slice(0, 10);
   }
-  const searchTerm = search ? search : "NULL";
 
   // 2) mapeamentos para tradução
   const productTypeMapping = transactionProductTypeList.reduce<
@@ -1145,8 +1148,7 @@ export async function getGlobalSettlement(
         ON mt.id_merchant = pp.id_merchant
       JOIN merchants m
         ON m.id = pp.id_merchant
-      WHERE (${searchTerm} IS NULL
-             OR m.name ILIKE '%' || ${searchTerm} || '%')
+      WHERE (${search ? `'${search}' IS NULL OR m.name ILIKE '%${search}%'` : "TRUE"})
       GROUP BY
         m.name, m.slug,
         mt.merchant_total,

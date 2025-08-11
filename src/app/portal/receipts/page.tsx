@@ -25,7 +25,7 @@ export default async function ReceiptsPage({
     : new Date();
 
   await checkPagePermission("Agenda de Antecipações");
-
+  console.log(searchParams.search);
   const merchantAgendaReceipts = await getMerchantAgendaReceipts(
     searchParams.search || null,
     currentDate
