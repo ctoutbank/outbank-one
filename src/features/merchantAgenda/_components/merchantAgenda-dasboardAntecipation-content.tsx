@@ -21,6 +21,10 @@ type MerchantAgendaAnticipationsDashboardContentProps = {
   totalAnticipationFees: number;
   firstTransactionDate?: string;
   lastTransactionDate?: string;
+  settlementDateFrom?: string;
+  settlementDateTo?: string;
+  saleDateFrom?: string;
+  saleDateTo?: string;
 };
 
 export function MerchantAgendaAnticipationsDashboardContent({
@@ -34,16 +38,67 @@ export function MerchantAgendaAnticipationsDashboardContent({
   totalAnticipationFees,
   firstTransactionDate,
   lastTransactionDate,
+  settlementDateFrom,
+  settlementDateTo,
+  saleDateFrom,
+  saleDateTo,
 }: MerchantAgendaAnticipationsDashboardContentProps) {
-  // Formatação das datas de transação para exibição
-  const formattedFirstDate = firstTransactionDate
-    ? new Date(firstTransactionDate).toLocaleDateString("pt-BR")
-    : "-";
-  const formattedLastDate = lastTransactionDate
-    ? new Date(lastTransactionDate).toLocaleDateString("pt-BR")
-    : "-";
+  // Lógica para determinar qual período mostrar e qual label usar
+  let periodText = "";
+  let periodLabel = "Período";
 
-  const periodText = `${formattedFirstDate} - ${formattedLastDate}`;
+  if (saleDateFrom || saleDateTo) {
+    // Se filtrou por Data de Venda, mostra as datas do filtro
+    periodLabel = "Período de Venda";
+    const fromDate = saleDateFrom
+      ? new Date(saleDateFrom).toLocaleDateString("pt-BR")
+      : "";
+    const toDate = saleDateTo
+      ? new Date(saleDateTo).toLocaleDateString("pt-BR")
+      : "";
+
+    if (fromDate && toDate) {
+      periodText = `${fromDate} - ${toDate}`;
+    } else if (fromDate) {
+      periodText = `A partir de ${fromDate}`;
+    } else if (toDate) {
+      periodText = `Até ${toDate}`;
+    }
+  } else if (settlementDateFrom || settlementDateTo) {
+    // Se filtrou por Data de Liquidação, mostra as datas do filtro
+    periodLabel = "Período de Liquidação";
+    const fromDate = settlementDateFrom
+      ? new Date(settlementDateFrom).toLocaleDateString("pt-BR")
+      : "";
+    const toDate = settlementDateTo
+      ? new Date(settlementDateTo).toLocaleDateString("pt-BR")
+      : "";
+
+    if (fromDate && toDate) {
+      periodText = `${fromDate} - ${toDate}`;
+    } else if (fromDate) {
+      periodText = `A partir de ${fromDate}`;
+    } else if (toDate) {
+      periodText = `Até ${toDate}`;
+    }
+  } else {
+    // Se não há filtros de data específicos, usa as datas calculadas do banco
+    periodLabel = "Período de Transações";
+    const formattedFirstDate = firstTransactionDate
+      ? new Date(firstTransactionDate).toLocaleDateString("pt-BR")
+      : null;
+    const formattedLastDate = lastTransactionDate
+      ? new Date(lastTransactionDate).toLocaleDateString("pt-BR")
+      : null;
+
+    if (formattedFirstDate && formattedLastDate) {
+      periodText = `${formattedFirstDate} - ${formattedLastDate}`;
+    }
+  }
+
+  if (!periodText) {
+    periodText = new Date().toLocaleDateString("pt-BR");
+  }
 
   return (
     <div className="w-full">
@@ -56,7 +111,7 @@ export function MerchantAgendaAnticipationsDashboardContent({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-base font-medium">Período</span>
+                    <span className="text-base font-medium">{periodLabel}</span>
                   </div>
 
                   <div className="text-center">

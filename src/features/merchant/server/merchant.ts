@@ -4,10 +4,13 @@ import { CategoryDetail } from "@/features/categories/server/category";
 import { LegalNatureDetail } from "@/features/legalNature/server/legalNature-db";
 import { getMerchantPriceGroupsBymerchantPricetId } from "@/features/merchant/server/merchantpricegroup";
 import { UserMerchantsAccess } from "@/features/users/server/users";
+import { getDateUTC } from "@/lib/datetime-utils";
 import { states } from "@/lib/lookuptables/lookuptables"; // ajuste o path se necessário
 import { db } from "@/server/db";
+import { currentUser } from "@clerk/nextjs/server";
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -16,7 +19,6 @@ import {
   ilike,
   inArray,
   isNotNull,
-  lte,
   or,
   sql,
 } from "drizzle-orm";
@@ -25,6 +27,7 @@ import {
   categories,
   configurations,
   contacts,
+  customers,
   establishmentFormat,
   legalNatures,
   merchantBankAccounts,
@@ -34,6 +37,7 @@ import {
   merchants,
   merchantTransactionPrice,
   salesAgents,
+  users,
 } from "../../../../drizzle/schema";
 import {
   MerchantRegistrationChart,
@@ -41,7 +45,6 @@ import {
   MerchantTransactionChart,
   MerchantTypeChart,
 } from "./merchant-dashboard";
-import {getDateUTC} from "@/lib/datetime-utils";
 
 // Função helper para criar condições de filtro de estado
 function createStateCondition(state: string, addresses: any) {
@@ -207,23 +210,15 @@ export async function getMerchants(
   }
 
   if (dateFrom) {
-    // Quando um dateFrom é fornecido, vamos interpretar como "cadastrado em"
-    // e criar um filtro para pegar registros daquele dia específico
+    // Quando um dateFrom é fornecido, vamos interpretar como 'a partir da data escolhida até hoje'
     const date = new Date(dateFrom);
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    // Início e fim do dia específico
+    // Início do dia selecionado (a partir desta data até hoje)
     const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
-    const endOfDay = new Date(year, month, day, 23, 59, 59, 999).toISOString();
-
-    conditions.push(
-      and(
-        gte(merchants.dtinsert, startOfDay),
-        lte(merchants.dtinsert, endOfDay)
-      )
-    );
+    conditions.push(gte(merchants.dtinsert, startOfDay));
   }
 
   // Novos filtros
@@ -242,8 +237,16 @@ export async function getMerchants(
   }
 
   if (salesAgent) {
-    conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
+    conditions.push(
+      or(
+        ilike(salesAgents.firstName, `%${salesAgent}%`),
+        ilike(salesAgents.lastName, `%${salesAgent}%`),
+        ilike(salesAgents.documentId, `%${salesAgent}%`)
+      )
+    );
   }
+
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
   const result = await db
     .select({
@@ -515,9 +518,72 @@ export async function getMerchantById(
   id: number,
   userAccess: UserMerchantsAccess
 ) {
-  // Check if user has access to this merchant
-  if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
+  // Permitir acesso para criação de novo merchant (id = 0)
+  // Verificar acesso apenas para merchants existentes
+  if (
+    id !== 0 &&
+    !userAccess.fullAccess &&
+    !userAccess.idMerchants.includes(id)
+  ) {
     throw new Error("You don't have access to this merchant");
+  }
+
+  // Se o ID é 0, retornar um objeto vazio para permitir criação
+  if (id === 0) {
+    return {
+      merchants: {
+        id: 0,
+        slug: "",
+        name: "",
+        active: false,
+        dtinsert: "",
+        dtupdate: "",
+        idMerchant: "",
+        idDocument: "",
+        corporateName: "",
+        email: "",
+        areaCode: "",
+        number: "",
+        phoneType: "",
+        language: "",
+        timezone: "",
+        slugCustomer: "",
+        riskAnalysisStatus: "",
+        riskAnalysisStatusJustification: "",
+        legalPerson: "",
+        openingDate: null,
+        inclusion: "",
+        openingDays: "",
+        openingHour: "",
+        closingHour: "",
+        municipalRegistration: "",
+        stateSubcription: "",
+        hasTef: false,
+        hasPix: false,
+        hasTop: false,
+        establishmentFormat: "",
+        revenue: 0,
+        idCategory: 0,
+        slugCategory: "",
+        idConfiguration: 0,
+        slugConfiguration: "",
+        idAddress: 0,
+        idLegalNature: 0,
+        slugLegalNature: "",
+        idSalesAgent: 0,
+        slugSalesAgent: "",
+        idMerchantBankAccount: 0,
+        idMerchantPrice: 0,
+        idCustomer: userAccess.idCustomer,
+      },
+      categories: null,
+      addresses: null,
+      configurations: null,
+      salesAgents: null,
+      legalNatures: null,
+      contacts: null,
+      pixaccounts: null,
+    };
   }
 
   const result = await db
@@ -532,7 +598,12 @@ export async function getMerchantById(
       pixaccounts: { ...getTableColumns(merchantpixaccount) },
     })
     .from(merchants)
-    .where(eq(merchants.id, Number(id)))
+    .where(
+      and(
+        eq(merchants.id, Number(id)),
+        eq(merchants.idCustomer, userAccess.idCustomer)
+      )
+    )
     .leftJoin(addresses, eq(merchants.idAddress, addresses.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
     .leftJoin(configurations, eq(merchants.idConfiguration, configurations.id))
@@ -639,6 +710,8 @@ export async function insertMerchant(
       idAddress: merchant.idAddress,
       idLegalNature: merchant.idLegalNature,
       slugLegalNature: merchant.slugLegalNature,
+      idMerchantBankAccount: merchant.idMerchantBankAccount,
+      idCustomer: merchant.idCustomer,
     })
     .returning({ id: merchants.id });
 
@@ -918,7 +991,7 @@ export async function createUpdateAPImerchantOnboarding(
 
     // Determinar o método HTTP e URL com base na presença de slug
     const method = merchantData.slug ? "PUT" : "POST";
-    let url = `https://merchant.acquiring.hml.dock.tech/v1/onboarding`;
+    let url = `https://merchant.acquiring.dock.tech/v1/onboarding`;
 
     // Se tiver slug, verificar se é válido antes de usar na URL
     if (merchantData.slug) {
@@ -932,7 +1005,7 @@ export async function createUpdateAPImerchantOnboarding(
         );
       }
 
-      url = `https://merchant.acquiring.hml.dock.tech/v1/onboarding/${merchantData.slug}`;
+      url = `https://merchant.acquiring.dock.tech/v1/onboarding/${merchantData.slug}`;
     }
 
     console.log(`Usando método ${method} para ${url}`);
@@ -944,7 +1017,7 @@ export async function createUpdateAPImerchantOnboarding(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
         },
         body: JSON.stringify(payload),
       });
@@ -1211,13 +1284,13 @@ export async function verificarStatusMerchantPorSlug(
 
     // Consultar a API da Dock para verificar o status
     const response = await fetch(
-      `https://merchant.acquiring.hml.dock.tech/v1/onboarding/${merchantSlug}`,
+      `https://merchant.acquiring.dock.tech/v1/onboarding/${merchantSlug}`,
       {
         method: "GET",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
         },
       }
     );
@@ -1621,13 +1694,13 @@ export async function criarFilialMerchant(
 
       // Enviar para a API
       const response = await fetch(
-        `https://merchant.acquiring.hml.dock.tech/v1/onboarding`,
+        `https://merchant.acquiring.dock.tech/v1/onboarding`,
         {
           method: "PUT",
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+            Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
           },
           body: JSON.stringify(payload),
         }
@@ -1739,15 +1812,17 @@ export type SalesAgentDropdown = {
   label: string;
 };
 
-export async function getSalesAgentForDropdown(): Promise<
-  SalesAgentDropdown[]
-> {
+export async function getSalesAgentForDropdown(
+  userAccess: UserMerchantsAccess
+): Promise<SalesAgentDropdown[]> {
   const result = await db
     .select({
       value: salesAgents.id,
       label: salesAgents.firstName,
     })
     .from(salesAgents)
+    .innerJoin(customers, eq(salesAgents.slugCustomer, customers.slug))
+    .where(eq(customers.id, userAccess.idCustomer))
     .orderBy(salesAgents.id);
 
   return result.map((item) => ({
@@ -1879,7 +1954,9 @@ export async function getMerchantsWithDashboardData(
   email?: string,
   cnpj?: string,
   active?: string,
-  salesAgent?: string
+  salesAgent?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<MerchantsWithDashboardData> {
   // Definir condições para os filtros - este código é comum a todas as consultas
   const conditions = [];
@@ -1931,17 +2008,6 @@ export async function getMerchantsWithDashboardData(
       )
     );
   }
-  console.log(
-    search,
-    establishment,
-    status,
-    state,
-    dateFrom,
-    email,
-    cnpj,
-    active,
-    salesAgent
-  );
 
   if (establishment) {
     conditions.push(ilike(merchants.name, `%${establishment}%`));
@@ -1978,23 +2044,15 @@ export async function getMerchantsWithDashboardData(
   }
 
   if (dateFrom) {
-    // Quando um dateFrom é fornecido, vamos interpretar como "cadastrado em"
-    // e criar um filtro para pegar registros daquele dia específico
+    // Quando um dateFrom é fornecido, vamos interpretar como 'a partir da data escolhida até hoje'
     const date = new Date(dateFrom);
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    // Início e fim do dia específico
+    // Início do dia selecionado (a partir desta data até hoje)
     const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
-    const endOfDay = new Date(year, month, day, 23, 59, 59, 999).toISOString();
-
-    conditions.push(
-      and(
-        gte(merchants.dtinsert, startOfDay),
-        lte(merchants.dtinsert, endOfDay)
-      )
-    );
+    conditions.push(gte(merchants.dtinsert, startOfDay));
   }
 
   // Novos filtros
@@ -2013,9 +2071,15 @@ export async function getMerchantsWithDashboardData(
   }
 
   if (salesAgent) {
-    conditions.push(ilike(salesAgents.firstName, `%${salesAgent}%`));
+    conditions.push(
+      or(
+        ilike(salesAgents.firstName, `%${salesAgent}%`),
+        ilike(salesAgents.lastName, `%${salesAgent}%`),
+        ilike(salesAgents.documentId, `%${salesAgent}%`)
+      )
+    );
   }
-
+  conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
   // 1. Obter a lista de merchants com paginação e todas as contagens em uma única consulta
   // Isso evita fazer várias consultas separadas para cada contagem
   const now = new Date();
@@ -2055,20 +2119,30 @@ export async function getMerchantsWithDashboardData(
   );
   const lastDayPreviousMonthStr = lastDayPreviousMonth.toISOString();
 
-  // Construir WHERE clause simples para a query SQL bruta
-  const whereClauses: string[] = [];
+  const whereClausesMain: string[] = [];
+  const whereClausesAllMerchants: string[] = [];
 
-  // Filtro de busca
+  // Filtros que só usam merchants
   if (search) {
-    whereClauses.push(`(
+    whereClausesMain.push(`(
+      merchants.name ILIKE '%${search}%' OR 
+      merchants.corporate_name ILIKE '%${search}%' OR 
+      merchants.id_document ILIKE '%${search}%' OR 
+      merchants.email ILIKE '%${search}%'
+    )`);
+    whereClausesAllMerchants.push(`(
       merchants.name ILIKE '%${search}%' OR 
       merchants.corporate_name ILIKE '%${search}%' OR 
       merchants.id_document ILIKE '%${search}%' OR 
       merchants.email ILIKE '%${search}%'
     )`);
   }
+  if (establishment) {
+    whereClausesMain.push(`merchants.name ILIKE '%${establishment}%'`);
+    whereClausesAllMerchants.push(`merchants.name ILIKE '%${establishment}%'`);
+  }
 
-  // Filtro de estado
+  // Filtro de estado (usa addresses)
   if (state) {
     // Primeiro, verifica se é um valor de UF exato (AC, AL, etc.)
     const exactStateMatch = states.find(
@@ -2077,7 +2151,7 @@ export async function getMerchantsWithDashboardData(
 
     if (exactStateMatch) {
       // Se encontrou correspondência exata com UF, usa o valor
-      whereClauses.push(`a.state = '${exactStateMatch.value}'`);
+      whereClausesAllMerchants.push(`a.state = '${exactStateMatch.value}'`);
     } else {
       // Busca por correspondência parcial no nome do estado
       const partialMatches = states.filter((s) =>
@@ -2087,62 +2161,149 @@ export async function getMerchantsWithDashboardData(
       if (partialMatches.length > 0) {
         // Se encontrou correspondências parciais, cria um IN com todas as UFs correspondentes
         const stateValues = partialMatches.map((s) => `'${s.value}'`).join(",");
-        whereClauses.push(`a.state IN (${stateValues})`);
+        whereClausesAllMerchants.push(`a.state IN (${stateValues})`);
       } else {
         // Se não encontrou correspondência direta, faz busca livre
-        whereClauses.push(
+        whereClausesAllMerchants.push(
           `(a.state = '${state}' OR a.state ILIKE '%${state}%')`
         );
       }
     }
   }
 
-  // Filtro de status
+  // Filtro de status - CORRIGIDO
   if (status && status !== "all") {
-    if (status === "pending") {
-      whereClauses.push(
+    if (status === "PENDING") {
+      whereClausesMain.push(
         `merchants.risk_analysis_status IN ('PENDING', 'WAITINGDOCUMENTS', 'NOTANALYSED')`
       );
-    } else if (status === "approved") {
-      whereClauses.push(`merchants.risk_analysis_status = 'APPROVED'`);
-    } else if (status === "rejected") {
-      whereClauses.push(
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status IN ('PENDING', 'WAITINGDOCUMENTS', 'NOTANALYSED')`
+      );
+    } else if (status === "APPROVED") {
+      whereClausesMain.push(`merchants.risk_analysis_status = 'APPROVED'`);
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status = 'APPROVED'`
+      );
+    } else if (status === "DECLINED") {
+      whereClausesMain.push(
         `merchants.risk_analysis_status IN ('DECLINED', 'KYCOFFLINE')`
+      );
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status IN ('DECLINED', 'KYCOFFLINE')`
+      );
+    } else {
+      whereClausesMain.push(`merchants.risk_analysis_status = '${status}'`);
+      whereClausesAllMerchants.push(
+        `merchants.risk_analysis_status = '${status}'`
       );
     }
   }
 
-  // Filtro de ativo
-  if (active && active !== "all") {
-    whereClauses.push(`merchants.active = ${active === "true"}`);
+  // Filtro de ativo - CORRIGIDO
+  if (active === "true") {
+    whereClausesMain.push(`merchants.active = true`);
+    whereClausesAllMerchants.push(`merchants.active = true`);
+  } else if (active === "false") {
+    whereClausesMain.push(`merchants.active = false`);
+    whereClausesAllMerchants.push(`merchants.active = false`);
   }
 
-  // Filtro de email
+  // Filtro de email - CORRIGIDO
   if (email) {
-    whereClauses.push(`merchants.email ILIKE '%${email}%'`);
+    whereClausesMain.push(`merchants.email ILIKE '%${email}%'`);
+    // Aplicar o mesmo filtro na consulta SQL bruta
+    whereClausesAllMerchants.push(`merchants.email ILIKE '%${email}%'`);
   }
 
-  // Filtro de CNPJ
+  // Filtro de CNPJ - CORRIGIDO
   if (cnpj) {
-    whereClauses.push(`merchants.id_document ILIKE '%${cnpj}%'`);
+    whereClausesMain.push(`merchants.id_document ILIKE '%${cnpj}%'`);
+    // Aplicar o mesmo filtro na consulta SQL bruta
+    whereClausesAllMerchants.push(`merchants.id_document ILIKE '%${cnpj}%'`);
   }
 
-  // Filtro de data
+  // Filtro de data - CORRIGIDO (a partir da data selecionada até hoje)
   if (dateFrom) {
-    whereClauses.push(`merchants.dtinsert >= '${dateFrom}'`);
+    // A data já vem como ISO string, vamos extrair apenas a data (YYYY-MM-DD)
+    const date = new Date(dateFrom);
+    // Verificar se a data é válida
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      // Início do dia selecionado (a partir desta data até hoje)
+      const startOfDay = new Date(year, month, day, 0, 0, 0).toISOString();
+      whereClausesMain.push(`(
+        merchants.dtinsert >= '${startOfDay}'
+      )`);
+      // Aplicar o mesmo filtro na consulta SQL bruta
+      whereClausesAllMerchants.push(`(
+        merchants.dtinsert >= '${startOfDay}'
+      )`);
+    }
   }
 
-  // Filtro de consultor de vendas
+  // Filtro de consultor de vendas - CORRIGIDO
   if (salesAgent) {
-    whereClauses.push(`sa.document_id = '${salesAgent}'`);
+    whereClausesAllMerchants.push(`sa.first_name ILIKE '%${salesAgent}%'`);
   }
 
-  // Montar WHERE final
-  const whereSqlFinal =
-    whereClauses.length > 0 ? whereClauses.join(" AND ") : "1=1";
+  // WHERE para o CTE - ADICIONAR CONTROLE DE ACESSO
+  // Adicionar filtro de acesso do usuário na consulta SQL bruta
+  if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+    const merchantIds = userAccess.idMerchants.join(",");
+    whereClausesAllMerchants.push(`merchants.id IN (${merchantIds})`);
+  } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    // Se o usuário não tem acesso, retornar dados vazios
+    return {
+      merchants: {
+        merchants: [],
+        totalCount: 0,
+        active_count: 0,
+        inactive_count: 0,
+        pending_kyc_count: 0,
+        approved_kyc_count: 0,
+        rejected_kyc_count: 0,
+        cp_anticipation_count: 0,
+        cnp_anticipation_count: 0,
+      },
+      dashboardData: {
+        registrationData: [],
+        registrationSummary: {
+          currentMonth: 0,
+          previousMonth: 0,
+          currentWeek: 0,
+          today: 0,
+        },
+        transactionData: [
+          { name: "Transacionam", value: 0 },
+          { name: "Não Transacionam", value: 0 },
+        ],
+        typeData: [
+          { name: "Compulsória", value: 0 },
+          { name: "Eventual", value: 0 },
+        ],
+      },
+    };
+  }
+
+  // Adicionar filtro de customer na consulta SQL bruta
+  whereClausesAllMerchants.push(
+    `merchants.id_customer = ${userAccess.idCustomer}`
+  );
+
+  const whereSqlAllMerchants =
+    whereClausesAllMerchants.length > 0
+      ? whereClausesAllMerchants.join(" AND ")
+      : "1=1";
 
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const nextMonthFirstDay = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+  const nextMonthFirstDay = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1
+  ).toISOString();
 
   const rawFirstDay = getDateUTC(firstDay, "America/Sao_Paulo");
   const rawNextMonth = getDateUTC(nextMonthFirstDay, "America/Sao_Paulo");
@@ -2151,12 +2312,30 @@ export async function getMerchantsWithDashboardData(
     throw new Error("Falha ao converter datas para UTC");
   }
 
-  const firstDayOfMonthUTC = rawFirstDay
-  const firstDayNextMonthUTC = rawNextMonth
+  const firstDayOfMonthUTC = rawFirstDay;
+  const firstDayNextMonthUTC = rawNextMonth;
+
+  // Lógica de ordenação
+  let orderByClause = desc(merchants.dtinsert); // Ordenação padrão
+
+  if (sortBy && sortOrder) {
+    const orderDirection = sortOrder.toLowerCase() === "desc" ? desc : asc;
+
+    switch (sortBy) {
+      case "name":
+        orderByClause = orderDirection(merchants.name);
+        break;
+      case "dtinsert":
+        orderByClause = orderDirection(merchants.dtinsert);
+        break;
+      default:
+        orderByClause = desc(merchants.dtinsert); // Fallback para ordenação padrão
+    }
+  }
 
   // Consulta principal para obter merchants com paginação
   const merchantResult = await db
-    .select({
+    .selectDistinct({
       merchantid: merchants.id,
       corporate_name: merchants.corporateName,
       name: merchants.name,
@@ -2213,7 +2392,7 @@ export async function getMerchantsWithDashboardData(
       eq(merchants.id, merchantpixaccount.idMerchant)
     )
     .where(and(...conditions))
-    .orderBy(desc(merchants.dtinsert))
+    .orderBy(orderByClause)
     .offset(offset)
     .limit(pageSize);
 
@@ -2235,7 +2414,7 @@ export async function getMerchantsWithDashboardData(
       LEFT JOIN addresses a ON merchants.id_address = a.id
       LEFT JOIN configurations c ON merchants.id_configuration = c.id
       LEFT JOIN sales_agents sa ON merchants.id_sales_agent = sa.id
-      WHERE ${sql.raw(whereSqlFinal)}
+      WHERE ${sql.raw(whereSqlAllMerchants)}
     ),
     date_counts AS (
       SELECT 
@@ -2259,14 +2438,14 @@ export async function getMerchantsWithDashboardData(
       COUNT(*) FILTER (WHERE t.total_transacoes > 0) AS transacionam,
       COUNT(*) FILTER (WHERE t.total_transacoes = 0) AS nao_transacionam
     FROM (
-      SELECT m.slug, COUNT(tr.slug_merchant) AS total_transacoes
-      FROM merchants m
+      SELECT am.id, COUNT(tr.slug_merchant) AS total_transacoes
+      FROM all_merchants am
+      LEFT JOIN merchants m ON am.id = m.id
       LEFT JOIN transactions tr
       ON m.slug = tr.slug_merchant
       AND tr.dt_insert >= ${firstDayOfMonthUTC}
       AND tr.dt_insert < ${firstDayNextMonthUTC}
-      WHERE ${sql.raw(whereSqlFinal)}
-      GROUP BY m.slug
+      GROUP BY am.id
       ) t
       ),
     merchant_types AS (
@@ -2331,8 +2510,21 @@ export async function getMerchantsWithDashboardData(
     };
   };
 
-  // Processar dados de merchants
-  const merchantsList = merchantResult.map((merchant) => ({
+  // Processar dados de merchants - Remover duplicados baseado no merchantid
+  const uniqueMerchants = merchantResult.reduce(
+    (acc, merchant) => {
+      const existingIndex = acc.findIndex(
+        (m) => m.merchantid === merchant.merchantid
+      );
+      if (existingIndex === -1) {
+        acc.push(merchant);
+      }
+      return acc;
+    },
+    [] as typeof merchantResult
+  );
+
+  const merchantsList = uniqueMerchants.map((merchant) => ({
     merchantid: merchant.merchantid,
     slug: merchant.slug ?? "N/A",
     active: merchant.active ?? false,
@@ -2379,7 +2571,7 @@ export async function getMerchantsWithDashboardData(
   return {
     merchants: {
       merchants: merchantsList,
-      totalCount: stats.status.total_count,
+      totalCount: stats.status.total_count, // Manter o total original para paginação
       active_count: stats.status.active_count,
       inactive_count: stats.status.inactive_count,
       pending_kyc_count: stats.status.pending_kyc_count,
@@ -2480,13 +2672,13 @@ export async function softDeleteMerchant(
 
         // Chamar a API da Dock para atualizar o status
         const response = await fetch(
-          `https://merchant.acquiring.hml.dock.tech/v1/onboarding/${merchantSlug}`,
+          `https://merchant.acquiring.dock.tech/v1/onboarding/${merchantSlug}`,
           {
             method: "PUT",
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
-              Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+              Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
             },
             body: JSON.stringify(payload),
           }
@@ -3367,13 +3559,13 @@ export async function sendMerchantToAPIV2(
 
     // 8. Enviar para a API
     const apiResponse = await fetch(
-      "https://merchant.acquiring.hml.dock.tech/v1/onboarding",
+      "https://merchant.acquiring.dock.tech/v1/onboarding",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
         },
         body: JSON.stringify(payload),
       }
@@ -3575,37 +3767,48 @@ export type InsertMerchantAPI = {
 async function InsertAPIMerchant(data: InsertMerchantAPI) {
   console.log("data", data);
   const response = await fetch(
-    "https://merchant.acquiring.hml.dock.tech/v1/onboarding",
+    "https://merchant.acquiring.dock.tech/v1/onboarding",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
       },
       body: JSON.stringify(data),
     }
   );
+  console.log("response:", response);
   if (!response.ok) {
     const errorMessage = `Failed to save data: ${response.statusText}`;
     console.error(response);
     throw new Error(errorMessage);
   }
+
   const responseData = await response.json();
   return responseData;
 }
 
 export async function InsertMerchant1(
-  data: InsertMerchantAPI & { id?: number }
+  data: InsertMerchantAPI,
+  merchantId: number
 ) {
   try {
-    // Se um ID foi fornecido, busca o merchant completo com todos os relacionamentos
+    console.log("=== INICIANDO InsertMerchant1 ===");
 
-    // Se não existe ou não foi fornecido ID, cria um novo na API
+    console.log("merchantId:", merchantId);
+
+    // Chama a API para inserir/atualizar o merchant
     const response = await InsertAPIMerchant(data);
+    console.log("Resposta da API recebida:", response);
+
+    await updateMerchantSlugsFromAPI(merchantId, response);
+
+    console.log("=== InsertMerchant1 CONCLUÍDO ===");
     return response;
   } catch (error) {
-    console.error("Erro ao inserir merchant:", error);
+    console.error("=== ERRO em InsertMerchant1 ===");
+    console.error("Erro ao processar merchant:", error);
     throw error;
   }
 }
@@ -3845,6 +4048,7 @@ export async function buscarMerchantCompletoRealParaAPI(
       "| tipo:",
       typeof data.merchant.openingDays
     );
+
     console.log("=== FIM DEBUG ===");
 
     // 🔧 TRATAMENTO DOS DADOS ANTES DA VALIDAÇÃO
@@ -4266,6 +4470,464 @@ export async function buscarMerchantCompletoRealParaAPI(
     return apiPayload;
   } catch (error) {
     console.error(`Erro ao buscar merchant completo REAL ID ${id}:`, error);
+    throw error;
+  }
+}
+
+// Start of Selection
+export type APIMerchantResponse = {
+  slug: string;
+  active: boolean;
+  merchantId: string;
+  dtInsert: string;
+  dtUpdate: string;
+  name: string;
+  documentId: string;
+  corporateName: string;
+  email: string;
+  timezone: string;
+  areaCode: string;
+  number: string;
+  phoneType: "C" | "P";
+  contacts: Array<{
+    name: string;
+    jobPosition: string | null;
+    documentId: string;
+    email: string;
+    countryCode: string | null;
+    areaCode: string;
+    number: string;
+    phoneType: "C" | "P";
+    address: {
+      streetAddress: string;
+      streetNumber: string;
+      complement: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      country: string;
+      zipCode: string;
+      addressType: string | null;
+    };
+    genderType: string | null;
+    birthDate: string;
+    mothersName: string;
+    isPartnerContact: boolean;
+    isPep: boolean;
+    icNumber: string | null;
+    icDateIssuance: string | null;
+    icDispatcher: string | null;
+    icFederativeUnit: string | null;
+    slugRole: string | null;
+  }>;
+  address: {
+    streetAddress: string;
+    streetNumber: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    cityCode: string;
+    state: string;
+    country: string;
+    zipCode: string;
+    addressType: string | null;
+  };
+  merchantPrice: {
+    slug: string;
+    name: string;
+    tableType: "SIMPLE";
+    anticipationType: "NONE";
+    listMerchantPriceGroup: Array<{
+      slug: string;
+      brand: string;
+      groupId: number;
+      listMerchantTransactionPrice: Array<{
+        slug: string;
+        installmentTransactionFeeStart: number;
+        installmentTransactionFeeEnd: number;
+        cardTransactionFee: number;
+        cardTransactionMdr: number;
+        nonCardTransactionFee: number;
+        nonCardTransactionMdr: number;
+        productType: "DEBIT" | "CREDIT" | "VOUCHER" | "PREPAID";
+        cardCompulsoryAnticipationMdr: number | null;
+        nonCardCompulsoryAnticipationMdr: number | null;
+      }>;
+    }>;
+    compulsoryAnticipationConfig: number | null;
+    eventualAnticipationFee: number;
+    cardPixMdr: number;
+    cardPixCeilingFee: number;
+    cardPixMinimumCostFee: number;
+    nonCardPixMdr: number;
+    nonCardPixCeilingFee: number;
+    nonCardPixMinimumCostFee: number;
+    dtUpdate: string;
+  };
+  merchantBankAccount: {
+    slug: string;
+    documentId: string;
+    corporateName: string;
+    legalPerson: "JURIDICAL";
+    providerAccountId: string | null;
+    bankBranchNumber: string;
+    bankBranchCheckDigit: string;
+    accountNumber: string;
+    accountNumberCheckDigit: string;
+    accountType: "CHECKING" | "SAVINGS";
+    compeCode: string;
+  };
+  slugCustomer: string;
+  category: {
+    slug: string;
+    mcc: string;
+    cnae: string;
+  };
+  legalNature: {
+    slug: string;
+    code: string;
+    name: string | null;
+  };
+  legalPerson: "JURIDICAL";
+  openingDate: string;
+  municipalRegistration: string;
+  inclusion: string;
+  openingDays: string;
+  openingHour: string;
+  closingHour: string;
+  riskAnalysisStatus: string;
+  configuration: {
+    slug: string | null;
+    lockCpAnticipationOrder: string | null;
+    lockCnpAnticipationOrder: string | null;
+    anticipationRiskFactorCp: string | null;
+    anticipationRiskFactorCnp: string | null;
+    waitingPeriodCp: string | null;
+    waitingPeriodCnp: string | null;
+    url: string;
+  };
+  hasTef: boolean;
+  hasTop: boolean;
+  hasPix: boolean;
+  establishmentFormat: "EI" | "LTDA" | "SA" | "MEI" | "EIRELI";
+  revenue: number;
+  formattedDocumentId: string;
+};
+
+export async function updateMerchantSlugsFromAPI(
+  merchantId: number,
+  apiResponse: APIMerchantResponse
+): Promise<void> {
+  try {
+    console.log(
+      `=== INICIANDO UPDATE SLUGS para merchant ID ${merchantId} ===`
+    );
+    console.log(
+      "Dados da API recebidos:",
+      JSON.stringify(apiResponse, null, 2)
+    );
+
+    // Validar se o merchant existe antes de tentar atualizar
+    const existingMerchant = await db
+      .select({ id: merchants.id })
+      .from(merchants)
+      .where(eq(merchants.id, merchantId))
+      .limit(1);
+
+    if (existingMerchant.length === 0) {
+      throw new Error(
+        `Merchant com ID ${merchantId} não encontrado no banco de dados`
+      );
+    }
+
+    // 1. Atualizar slug principal do merchant
+    console.log(`Atualizando slug principal: ${apiResponse.slug}`);
+    await db
+      .update(merchants)
+      .set({
+        slug: apiResponse.slug,
+        dtupdate: new Date().toISOString(),
+      })
+      .where(eq(merchants.id, merchantId));
+
+    // 2. Atualizar slug da categoria se existir
+    if (apiResponse.category?.slug) {
+      console.log(
+        `Atualizando slug da categoria: ${apiResponse.category.slug}`
+      );
+      const merchant = await db
+        .select({ idCategory: merchants.idCategory })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idCategory) {
+        await db
+          .update(categories)
+          .set({
+            slug: apiResponse.category.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(categories.id, merchant[0].idCategory));
+        console.log(
+          `✅ Categoria atualizada com ID: ${merchant[0].idCategory}`
+        );
+      } else {
+        console.log("❌ Merchant não possui categoria associada");
+      }
+    }
+
+    // 3. Atualizar slug da natureza jurídica se existir
+    if (apiResponse.legalNature?.slug) {
+      console.log(
+        `Atualizando slug da natureza jurídica: ${apiResponse.legalNature.slug}`
+      );
+      const merchant = await db
+        .select({ idLegalNature: merchants.idLegalNature })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idLegalNature) {
+        await db
+          .update(legalNatures)
+          .set({
+            slug: apiResponse.legalNature.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(legalNatures.id, merchant[0].idLegalNature));
+        console.log(
+          `✅ Natureza jurídica atualizada com ID: ${merchant[0].idLegalNature}`
+        );
+      } else {
+        console.log("❌ Merchant não possui natureza jurídica associada");
+      }
+    }
+
+    // 4. Atualizar slug da conta bancária se existir
+    if (apiResponse.merchantBankAccount?.slug) {
+      console.log(
+        `Atualizando slug da conta bancária: ${apiResponse.merchantBankAccount.slug}`
+      );
+      const merchant = await db
+        .select({ idMerchantBankAccount: merchants.idMerchantBankAccount })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idMerchantBankAccount) {
+        await db
+          .update(merchantBankAccounts)
+          .set({
+            slug: apiResponse.merchantBankAccount.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(
+            eq(merchantBankAccounts.id, merchant[0].idMerchantBankAccount)
+          );
+        console.log(
+          `✅ Conta bancária atualizada com ID: ${merchant[0].idMerchantBankAccount}`
+        );
+      } else {
+        console.log("❌ Merchant não possui conta bancária associada");
+      }
+    }
+
+    // 5. Atualizar slug da configuração se existir (pode ser null)
+    if (
+      apiResponse.configuration?.slug &&
+      apiResponse.configuration.slug !== null
+    ) {
+      console.log(
+        `Atualizando slug da configuração: ${apiResponse.configuration.slug}`
+      );
+      const merchant = await db
+        .select({ idConfiguration: merchants.idConfiguration })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idConfiguration) {
+        await db
+          .update(configurations)
+          .set({
+            slug: apiResponse.configuration.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(configurations.id, merchant[0].idConfiguration));
+      }
+    } else {
+      console.log("Configuração não possui slug válido - pulando atualização");
+    }
+
+    // 6. Atualizar slug da tabela de preços se existir
+    if (apiResponse.merchantPrice?.slug) {
+      console.log(
+        `Atualizando slug da tabela de preços: ${apiResponse.merchantPrice.slug}`
+      );
+      const merchant = await db
+        .select({ idMerchantPrice: merchants.idMerchantPrice })
+        .from(merchants)
+        .where(eq(merchants.id, merchantId))
+        .limit(1);
+
+      if (merchant[0]?.idMerchantPrice) {
+        await db
+          .update(merchantPrice)
+          .set({
+            slug: apiResponse.merchantPrice.slug,
+            dtupdate: new Date().toISOString(),
+          })
+          .where(eq(merchantPrice.id, merchant[0].idMerchantPrice));
+        console.log(
+          `✅ Tabela de preços atualizada com ID: ${merchant[0].idMerchantPrice}`
+        );
+
+        // 7. Atualizar slugs dos grupos de preços se existirem
+        if (apiResponse.merchantPrice.listMerchantPriceGroup) {
+          console.log(
+            `Processando ${apiResponse.merchantPrice.listMerchantPriceGroup.length} grupos de preços`
+          );
+          const existingGroups = await db
+            .select({ id: merchantPriceGroup.id })
+            .from(merchantPriceGroup)
+            .where(
+              eq(
+                merchantPriceGroup.idMerchantPrice,
+                merchant[0].idMerchantPrice
+              )
+            )
+            .orderBy(merchantPriceGroup.id);
+
+          console.log(
+            `Encontrados ${existingGroups.length} grupos existentes no banco`
+          );
+
+          for (
+            let i = 0;
+            i < apiResponse.merchantPrice.listMerchantPriceGroup.length &&
+            i < existingGroups.length;
+            i++
+          ) {
+            const groupAPI =
+              apiResponse.merchantPrice.listMerchantPriceGroup[i];
+
+            if (groupAPI.slug) {
+              console.log(`  ➤ Atualizando grupo ${i + 1}: ${groupAPI.slug}`);
+              await db
+                .update(merchantPriceGroup)
+                .set({
+                  slug: groupAPI.slug,
+                  dtupdate: new Date().toISOString(),
+                })
+                .where(eq(merchantPriceGroup.id, existingGroups[i].id));
+
+              // 8. Atualizar slugs das taxas de transação se existirem
+              if (groupAPI.listMerchantTransactionPrice) {
+                console.log(
+                  `    ➤ Processando ${groupAPI.listMerchantTransactionPrice.length} taxas do grupo ${i + 1}`
+                );
+                const existingPrices = await db
+                  .select({ id: merchantTransactionPrice.id })
+                  .from(merchantTransactionPrice)
+                  .where(
+                    eq(
+                      merchantTransactionPrice.idMerchantPriceGroup,
+                      existingGroups[i].id
+                    )
+                  )
+                  .orderBy(merchantTransactionPrice.id);
+
+                for (
+                  let j = 0;
+                  j < groupAPI.listMerchantTransactionPrice.length &&
+                  j < existingPrices.length;
+                  j++
+                ) {
+                  const priceAPI = groupAPI.listMerchantTransactionPrice[j];
+
+                  if (priceAPI.slug) {
+                    console.log(`      ✅ Taxa ${j + 1}: ${priceAPI.slug}`);
+                    await db
+                      .update(merchantTransactionPrice)
+                      .set({
+                        slug: priceAPI.slug,
+                        dtupdate: new Date().toISOString(),
+                      })
+                      .where(
+                        eq(merchantTransactionPrice.id, existingPrices[j].id)
+                      );
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          console.log("❌ Nenhum grupo de preços encontrado para atualizar");
+        }
+      } else {
+        console.log("❌ Merchant não possui tabela de preços associada");
+      }
+    } else {
+      console.log("❌ API não retornou slug para tabela de preços");
+    }
+
+    console.log(
+      `=== SLUGS DO MERCHANT ID ${merchantId} ATUALIZADOS COM SUCESSO ===`
+    );
+  } catch (error) {
+    console.error(
+      `=== ERRO ao atualizar slugs do merchant ID ${merchantId} ===`
+    );
+    console.error("Detalhes do erro:", error);
+    throw error;
+  }
+}
+
+export async function getCurrentUserCustomerSlug(): Promise<string | null> {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    const result = await db
+      .select({
+        customerSlug: customers.slug,
+      })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .where(eq(users.idClerk, userClerk.id))
+      .limit(1);
+
+    return result.length > 0 ? result[0].customerSlug : null;
+  } catch (error) {
+    console.error("Erro ao buscar slug do customer:", error);
+    throw error;
+  }
+}
+
+export async function getCurrentUserCustomerId(): Promise<number | null> {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    const result = await db
+      .select({
+        customerId: customers.id,
+      })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .where(eq(users.idClerk, userClerk.id))
+      .limit(1);
+
+    return result.length > 0 ? result[0].customerId : null;
+  } catch (error) {
+    console.error("Erro ao buscar id do customer:", error);
     throw error;
   }
 }

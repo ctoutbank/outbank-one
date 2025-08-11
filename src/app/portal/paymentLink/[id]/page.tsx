@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaymentLinkForm from "@/features/paymentLink/_components/paymentLink-form";
+import { PaymentLinkNotFoundToast } from "@/features/paymentLink/_components/paymentLink-not-found-toast";
 import {
   getMerchants,
   getPaymentLinkById,
@@ -13,8 +14,20 @@ export default async function PaymentLinkDetail({
 }: {
   params: { id: string };
 }) {
-  const paymentLinkById = await getPaymentLinkById(parseInt(params.id));
+  // Validar se o ID é um número válido (permitindo 0 para criação)
+  const id = parseInt(params.id);
+  if (isNaN(id) || id < 0) {
+    return <PaymentLinkNotFoundToast />;
+  }
+
+  const paymentLinkById = await getPaymentLinkById(id);
   const merchants = await getMerchants();
+
+  if (!paymentLinkById) {
+    return <PaymentLinkNotFoundToast />;
+  }
+
+  const isNew = id === 0;
 
   return (
     <>
@@ -26,35 +39,13 @@ export default async function PaymentLinkDetail({
       <BaseBody
         title="Link de Pagamento"
         subtitle={
-          paymentLinkById?.id
-            ? "Editar Link de Pagamento"
-            : "Adicionar Link de Pagamento"
+          isNew
+            ? "Adicionar Link de Pagamento"
+            : "Editar Link de Pagamento"
         }
       >
         <PaymentLinkForm
-          paymentLink={
-            paymentLinkById ?? {
-              id: 0,
-              slug: null,
-              active: false,
-              dtinsert: null,
-              dtupdate: null,
-              linkName: null,
-              dtExpiration: null,
-              totalAmount: null,
-              idMerchant: null,
-              paymentLinkStatus: null,
-              productType: null,
-              installments: null,
-              linkUrl: null,
-              pixEnabled: null,
-              transactionSlug: null,
-              shoppingItems: [],
-              isDeleted: null,
-              isFromServer: null,
-              modified: null,
-            }
-          }
+          paymentLink={paymentLinkById}
           merchant={merchants}
         />
       </BaseBody>

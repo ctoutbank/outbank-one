@@ -8,18 +8,24 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
-import { formatCNPJ, translateStatus } from "@/lib/utils";
-import { ChevronDown, Settings } from "lucide-react";
+import {
+  createSortHandler,
+  formatCNPJ,
+  getSortIconInfo,
+  translateStatus,
+} from "@/lib/utils";
+import { ChevronDown, ChevronUp, Settings } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Merchantlist } from "../server/merchant";
 
@@ -30,6 +36,9 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
   console.log(list.merchants[0].idmerchantbankaccount);
   console.log(list.merchants[0].idcontact);
   console.log(list.merchants[0].idmerchantpixaccount);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Função para determinar a URL baseada nas condições
   const getMerchantUrl = (merchant: any) => {
@@ -66,62 +75,97 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
     return `${baseUrl}?tab=authorizers`;
   };
 
+  // Função para lidar com ordenação usando utilitário
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/merchants"
+  );
+
+  // Função para obter ícone de ordenação usando utilitário
+  const getSortIcon = (columnId: string) => {
+    const iconInfo = getSortIconInfo(columnId, searchParams);
+
+    if (iconInfo.icon === "up") {
+      return <ChevronUp className={iconInfo.className} />;
+    } else if (iconInfo.icon === "down") {
+      return <ChevronDown className={iconInfo.className} />;
+    } else {
+      return <ChevronDown className={iconInfo.className} />;
+    }
+  };
+
   const columns = [
     {
-      id: "nomeFantasia",
+      id: "name",
       name: "Nome Fantasia",
       defaultVisible: true,
       alwaysVisible: true,
+      sortable: true,
     },
     {
       id: "localidade",
       name: "Localidade",
       defaultVisible: true,
       alwaysVisible: false,
+      sortable: false,
     },
     {
       id: "statusKyc",
       name: "Status KYC",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
     {
       id: "phone",
       name: "Telefone",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
     {
       id: "email",
       name: "Email",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
     {
       id: "antCp",
       name: "Ant. CP",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
     {
       id: "antCnp",
       name: "Ant. CNP",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
     {
-      id: "cadastro",
+      id: "dtinsert",
       name: "Cadastro",
       defaultVisible: true,
       alwaysVisible: false,
+      sortable: true,
     },
     {
       id: "consultor",
       name: "Consultor",
       defaultVisible: false,
       alwaysVisible: false,
+      sortable: false,
     },
-    { id: "ativo", name: "Ativo", defaultVisible: true, alwaysVisible: false },
+    {
+      id: "ativo",
+      name: "Ativo",
+      defaultVisible: true,
+      alwaysVisible: false,
+      sortable: false,
+    },
   ];
 
   const [visibleColumns, setVisibleColumns] = useState(
@@ -169,21 +213,21 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
               {columns
                 .filter((column) => visibleColumns.includes(column.id))
                 .map((column) => (
-                  <TableHead key={column.id}>
-                    {column.name}
-                    {(column.id === "nomeFantasia" ||
-                      column.id === "localidade" ||
-                      column.id === "ativo") && (
-                      <ChevronDown className="ml-2 h-4 w-4 inline" />
-                    )}
-                  </TableHead>
+                  <SortableTableHead
+                    key={column.id}
+                    columnId={column.id}
+                    name={column.name}
+                    sortable={column.sortable}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {list.merchants.map((merchant) => (
               <TableRow key={merchant.merchantid}>
-                {visibleColumns.includes("nomeFantasia") && (
+                {visibleColumns.includes("name") && (
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Link
@@ -266,7 +310,7 @@ export default function MerchantList({ list }: { list: Merchantlist }) {
                     </Badge>
                   </TableCell>
                 )}
-                {visibleColumns.includes("cadastro") && (
+                {visibleColumns.includes("dtinsert") && (
                   <TableCell>
                     <div className="flex flex-col whitespace-nowrap">
                       <span>

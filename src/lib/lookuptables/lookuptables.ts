@@ -1629,3 +1629,12 @@ export const accountTypes: SelectItem[] = [
   { value: "PAYMENT", label: "Conta de Pagamento" },
   { value: "SAVINGS", label: "Conta Poupança" },
 ];
+
+export const StatusKic: SelectItem[] = [
+  { value: "PENDING", label: "Em Análise" },
+  { value: "DECLINED", label: "Recusado" },
+  { value: "NOTANALYSED", label: "Cadastrado" },
+  { value: "APPROVED", label: "Aprovado" },
+  { value: "WAITINGDOCUMENTS", label: "Incompleto" },
+  { value: "KYCOFFLINE", label: "KYC Desligado" },
+];

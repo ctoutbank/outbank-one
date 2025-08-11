@@ -41,7 +41,7 @@ async function TransactionsContent({
   searchParams: TransactionsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
+  const pageSize = parseInt(searchParams.pageSize || "10");
 
   const dateFrom = searchParams.dateFrom || "2024-09-01T00:00";
   const dateTo = searchParams.dateTo || getEndOfDay();
@@ -80,8 +80,6 @@ async function TransactionsContent({
     searchParams.valueMax,
     searchParams.merchant
   );
-
-  console.log("Transactions salesPage", transactionsGroupedReport);
 
   return (
     <>

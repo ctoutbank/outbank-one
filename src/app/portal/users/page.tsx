@@ -3,10 +3,9 @@ import BaseHeader from "@/components/layout/base-header";
 import UserTabs from "@/features/users/_components/user-tabs";
 import { getProfiles } from "@/features/users/server/profiles";
 import {
-  getDDCustomers,
   getDDMerchants,
   getDDProfiles,
-  getUsers,
+  getUsers
 } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { cache } from "react";
@@ -26,10 +25,8 @@ type UsersPageProps = {
   customer: string;
 };
 
-// Envolvendo as funções em cache
 const getCachedUsers = cache(getUsers);
 const getCachedProfiles = cache(getProfiles);
-const getCachedDDCustomers = cache(getDDCustomers);
 const getCachedDDProfiles = cache(getDDProfiles);
 const getCachedDDMerchants = cache(getDDMerchants);
 
@@ -39,8 +36,6 @@ async function UsersTabContent({
   firstName,
   lastName,
   profile,
-  customer,
-  merchant,
   page,
   pageSize,
 }: UsersPageProps) {
@@ -49,16 +44,13 @@ async function UsersTabContent({
     firstName,
     lastName,
     Number(profile),
-    Number(customer),
-    Number(merchant),
     Number(page),
     Number(pageSize)
   );
-  const DDCustomer = await getCachedDDCustomers();
   const DDProfile = await getCachedDDProfiles();
   const DDMerchant = await getCachedDDMerchants();
 
-  return { users, DDCustomer, DDProfile, DDMerchant };
+  return { users, DDProfile, DDMerchant };
 }
 
 async function ProfilesTabContent({
@@ -136,14 +128,13 @@ export default async function UsersPage({
         title={activeTab == "users" ? "Gestão de Usuários" : "Gestão de Perfis"}
         subtitle={
           activeTab == "users"
-            ? "Visualização de todos os Usuários"
-            : "Visualização de todos os Perfis"
+            ? "Visualização de Todos os Usuários"
+            : "Visualização de Todos os Perfis"
         }
       >
         <UserTabs
           users={usersData.users}
           profiles={profilesData.profiles}
-          DDCustomer={usersData.DDCustomer || []}
           DDProfile={usersData.DDProfile || []}
           DDMerchant={usersData.DDMerchant || []}
           totalUsersRecords={usersData.users?.totalCount || 0}
@@ -155,7 +146,6 @@ export default async function UsersPage({
           lastName={lastName}
           activeTab={activeTab}
           profileId={profileId}
-          customerId={customerId}
           merchantId={merchantId}
           profileName={profileName}
           permissions={permissions}

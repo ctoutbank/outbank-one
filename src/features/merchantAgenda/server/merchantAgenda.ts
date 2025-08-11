@@ -5,17 +5,17 @@ import { getEndOfDay, getStartOfDay } from "@/lib/datetime-utils";
 import { transactionProductTypeList } from "@/lib/lookuptables/lookuptables-transactions";
 import { db } from "@/server/db";
 import {
-    and,
-    count,
-    desc,
-    eq,
-    gte,
-    ilike,
-    inArray,
-    lte,
-    max,
-    sql,
-    sum,
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  max,
+  sql,
+  sum,
 } from "drizzle-orm";
 import { unionAll } from "drizzle-orm/pg-core";
 import {
@@ -100,13 +100,13 @@ export interface MerchantAgendaListType {
   merchantAgenda: MerchantAgenda[];
   totalCount: number;
   aggregates: {
-        gross_amount: number;
-        fee_amount: number;
-        net_amount: number;
-        total_sales: number;
-        total_merchants: number;
-        total_installments: number;
-    };
+    gross_amount: number;
+    fee_amount: number;
+    net_amount: number;
+    total_sales: number;
+    total_merchants: number;
+    total_installments: number;
+  };
 }
 export interface DailyAmount {
   date: string;
@@ -158,12 +158,12 @@ export async function getMerchantAgenda(
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return {
       aggregates: {
-          gross_amount: 0,
-          fee_amount: 0,
-          net_amount: 0,
-          total_sales: 0,
-          total_merchants: 0,
-          total_installments: 0,
+        gross_amount: 0,
+        fee_amount: 0,
+        net_amount: 0,
+        total_sales: 0,
+        total_merchants: 0,
+        total_installments: 0,
       },
       merchantAgenda: [],
       totalCount: 0,
@@ -176,7 +176,7 @@ export async function getMerchantAgenda(
   if (!userAccess.fullAccess) {
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
-
+  conditions.push(eq(payout.idCustomer, userAccess.idCustomer));
   if (dateFrom) {
     conditions.push(
       gte(payout.transactionDate, new Date(dateFrom).toISOString())
@@ -259,9 +259,10 @@ export async function getMerchantAgenda(
 
   const totalCount = totalCountResult[0]?.count || 0;
 
-  const conditionSql = conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
+  const conditionSql =
+    conditions.length > 0 ? sql`WHERE ${and(...conditions)}` : sql``;
 
-        const qr = sql`
+  const qr = sql`
     SELECT
       SUM(distinct_payouts.installments) AS total_installments,
       COUNT(*) AS total_sales,
@@ -278,14 +279,12 @@ export async function getMerchantAgenda(
         payout.transaction_mdr_fee,
         payout.settlement_amount
       FROM payout
-      INNER JOIN merchants m ON payout.id_merchant = m.id
+      INNER JOIN merchants ON payout.id_merchant = merchants.id
       ${conditionSql}
     ) AS distinct_payouts;
   `;
-        const aggregateResult = await db.execute(qr);
-        const row = aggregateResult.rows[0];
-
-
+  const aggregateResult = await db.execute(qr);
+  const row = aggregateResult.rows[0];
 
   return {
     merchantAgenda: result.map((merchantAgendaMap) => ({
@@ -312,167 +311,166 @@ export async function getMerchantAgenda(
     })),
     totalCount,
     aggregates: {
-        gross_amount: Number(row?.total_gross_amount) || 0,
-        fee_amount: Number(row?.total_fee_amount) || 0,
-        net_amount: Number(row?.total_net_amount) || 0,
-        total_sales: Number(row?.total_sales) || 0,
-        total_merchants: Number(row?.total_merchants) || 0,
-        total_installments: Number(row?.total_installments) || 0,
-    }
+      gross_amount: Number(row?.total_gross_amount) || 0,
+      fee_amount: Number(row?.total_fee_amount) || 0,
+      net_amount: Number(row?.total_net_amount) || 0,
+      total_sales: Number(row?.total_sales) || 0,
+      total_merchants: Number(row?.total_merchants) || 0,
+      total_installments: Number(row?.total_installments) || 0,
+    },
   };
 }
 
 export async function getMerchantAgendaExcel(
-    dateFrom?: string,
-    dateTo?: string,
-    establishment?: string,
-    status?: string,
-    cardBrand?: string,
-    settlementDateFrom?: string,
-    settlementDateTo?: string,
-    expectedSettlementDateFrom?: string,
-    expectedSettlementDateTo?: string
+  dateFrom?: string,
+  dateTo?: string,
+  establishment?: string,
+  status?: string,
+  cardBrand?: string,
+  settlementDateFrom?: string,
+  settlementDateTo?: string,
+  expectedSettlementDateFrom?: string,
+  expectedSettlementDateTo?: string
 ): Promise<MerchantAgendaListType> {
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
 
-    // Get user's merchant access
-    const userAccess = await getUserMerchantsAccess();
-
-    // If user has no access and no full access, return empty result
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-        return {
-            aggregates: {
-                gross_amount: 0,
-                fee_amount: 0,
-                net_amount: 0,
-                total_sales: 0,
-                total_merchants: 0,
-                total_installments: 0,
-            },
-            merchantAgenda: [],
-            totalCount: 0,
-        };
-    }
-
-    const conditions = [];
-
-    // Add merchant access filter if user doesn't have full access
-    if (!userAccess.fullAccess) {
-        conditions.push(inArray(merchants.id, userAccess.idMerchants));
-    }
-
-    if (dateFrom) {
-        conditions.push(
-            gte(payout.transactionDate, new Date(dateFrom).toISOString())
-        );
-    }
-
-    if (dateTo) {
-        conditions.push(
-            lte(payout.transactionDate, new Date(dateTo).toISOString())
-        );
-    }
-
-    if (establishment) {
-        conditions.push(ilike(merchants.name, `%${establishment}%`));
-    }
-
-    if (status && status !== "all") {
-        conditions.push(eq(payout.status, status));
-    }
-
-    if (cardBrand && cardBrand !== "all") {
-        conditions.push(eq(payout.brand, cardBrand));
-    }
-
-    if (settlementDateFrom) {
-        conditions.push(gte(payout.settlementDate, settlementDateFrom));
-    } else {
-        conditions.push(eq(payout.settlementDate, getStartOfDay()));
-    }
-
-    if (settlementDateTo) {
-        conditions.push(lte(payout.settlementDate, settlementDateTo));
-    } else {
-        conditions.push(eq(payout.settlementDate, getEndOfDay()));
-    }
-
-    if (expectedSettlementDateFrom) {
-        conditions.push(
-            gte(payout.expectedSettlementDate, expectedSettlementDateFrom)
-        );
-    }
-
-    if (expectedSettlementDateTo) {
-        conditions.push(
-            lte(payout.expectedSettlementDate, expectedSettlementDateTo)
-        );
-    }
-
-    const result = await db
-        .select({
-            merchant: merchants.name,
-            saleDate: payout.transactionDate,
-            type: payout.type,
-            brand: payout.brand,
-            installmentNumber: payout.installmentNumber,
-            installments: payout.installments,
-            grossAmount: payout.installmentAmount,
-            feePercentage: payout.transactionMdr,
-            feeAmount: payout.transactionMdrFee,
-            netAmount: payout.settlementAmount,
-            expectedSettlementDate: payout.expectedSettlementDate,
-            settledAmount: payout.receivableAmount,
-            settlementDate: payout.settlementDate,
-            effectivePaymentDate: payout.effectivePaymentDate,
-            paymentNumber: payout.settlementUniqueNumber,
-            rnn: payout.rrn,
-        })
-        .from(payout)
-        .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
-        .where(and(...conditions))
-        .orderBy(desc(payout.settlementDate))
-
-    const totalCountResult = await db
-        .select({ count: count() })
-        .from(payout)
-        .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
-        .where(and(...conditions));
-
-    const totalCount = totalCountResult[0]?.count || 0;
-
+  // If user has no access and no full access, return empty result
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
     return {
-        merchantAgenda: result.map((merchantAgendaMap) => ({
-            merchant: merchantAgendaMap.merchant || "",
-            saleDate: new Date(merchantAgendaMap.saleDate || ""),
-            type: merchantAgendaMap.type || "",
-            brand: merchantAgendaMap.brand || "",
-            installmentNumber: merchantAgendaMap.installmentNumber || 0,
-            installments: merchantAgendaMap.installments || 0,
-            grossAmount: Number(merchantAgendaMap.grossAmount) || 0,
-            feePercentage: Number(merchantAgendaMap.feePercentage) || 0,
-            feeAmount: Number(merchantAgendaMap.feeAmount) || 0,
-            netAmount: Number(merchantAgendaMap.netAmount) || 0,
-            expectedSettlementDate: new Date(
-                merchantAgendaMap.expectedSettlementDate || ""
-            ),
-            settledAmount: Number(merchantAgendaMap.settledAmount) || 0,
-            settlementDate: new Date(merchantAgendaMap.settlementDate || ""),
-            effectivePaymentDate: new Date(
-                merchantAgendaMap.effectivePaymentDate || ""
-            ),
-            paymentNumber: merchantAgendaMap.paymentNumber || "",
-            rnn: merchantAgendaMap.rnn || "",
-        })),
-        totalCount,
-        aggregates: {
-            gross_amount: 0,
-            fee_amount: 0,
-            net_amount: 0,
-            total_sales: 0,
-            total_merchants: 0,
-            total_installments: 0,
-        },
+      aggregates: {
+        gross_amount: 0,
+        fee_amount: 0,
+        net_amount: 0,
+        total_sales: 0,
+        total_merchants: 0,
+        total_installments: 0,
+      },
+      merchantAgenda: [],
+      totalCount: 0,
     };
+  }
+
+  const conditions = [];
+
+  // Add merchant access filter if user doesn't have full access
+  if (!userAccess.fullAccess) {
+    conditions.push(inArray(merchants.id, userAccess.idMerchants));
+  }
+  conditions.push(eq(payout.idCustomer, userAccess.idCustomer));
+  if (dateFrom) {
+    conditions.push(
+      gte(payout.transactionDate, new Date(dateFrom).toISOString())
+    );
+  }
+
+  if (dateTo) {
+    conditions.push(
+      lte(payout.transactionDate, new Date(dateTo).toISOString())
+    );
+  }
+
+  if (establishment) {
+    conditions.push(ilike(merchants.name, `%${establishment}%`));
+  }
+
+  if (status && status !== "all") {
+    conditions.push(eq(payout.status, status));
+  }
+
+  if (cardBrand && cardBrand !== "all") {
+    conditions.push(eq(payout.brand, cardBrand));
+  }
+
+  if (settlementDateFrom) {
+    conditions.push(gte(payout.settlementDate, settlementDateFrom));
+  } else {
+    conditions.push(eq(payout.settlementDate, getStartOfDay()));
+  }
+
+  if (settlementDateTo) {
+    conditions.push(lte(payout.settlementDate, settlementDateTo));
+  } else {
+    conditions.push(eq(payout.settlementDate, getEndOfDay()));
+  }
+
+  if (expectedSettlementDateFrom) {
+    conditions.push(
+      gte(payout.expectedSettlementDate, expectedSettlementDateFrom)
+    );
+  }
+
+  if (expectedSettlementDateTo) {
+    conditions.push(
+      lte(payout.expectedSettlementDate, expectedSettlementDateTo)
+    );
+  }
+
+  const result = await db
+    .select({
+      merchant: merchants.name,
+      saleDate: payout.transactionDate,
+      type: payout.type,
+      brand: payout.brand,
+      installmentNumber: payout.installmentNumber,
+      installments: payout.installments,
+      grossAmount: payout.installmentAmount,
+      feePercentage: payout.transactionMdr,
+      feeAmount: payout.transactionMdrFee,
+      netAmount: payout.settlementAmount,
+      expectedSettlementDate: payout.expectedSettlementDate,
+      settledAmount: payout.receivableAmount,
+      settlementDate: payout.settlementDate,
+      effectivePaymentDate: payout.effectivePaymentDate,
+      paymentNumber: payout.settlementUniqueNumber,
+      rnn: payout.rrn,
+    })
+    .from(payout)
+    .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
+    .where(and(...conditions))
+    .orderBy(desc(payout.settlementDate));
+
+  const totalCountResult = await db
+    .select({ count: count() })
+    .from(payout)
+    .innerJoin(merchants, eq(payout.idMerchant, merchants.id))
+    .where(and(...conditions));
+
+  const totalCount = totalCountResult[0]?.count || 0;
+
+  return {
+    merchantAgenda: result.map((merchantAgendaMap) => ({
+      merchant: merchantAgendaMap.merchant || "",
+      saleDate: new Date(merchantAgendaMap.saleDate || ""),
+      type: merchantAgendaMap.type || "",
+      brand: merchantAgendaMap.brand || "",
+      installmentNumber: merchantAgendaMap.installmentNumber || 0,
+      installments: merchantAgendaMap.installments || 0,
+      grossAmount: Number(merchantAgendaMap.grossAmount) || 0,
+      feePercentage: Number(merchantAgendaMap.feePercentage) || 0,
+      feeAmount: Number(merchantAgendaMap.feeAmount) || 0,
+      netAmount: Number(merchantAgendaMap.netAmount) || 0,
+      expectedSettlementDate: new Date(
+        merchantAgendaMap.expectedSettlementDate || ""
+      ),
+      settledAmount: Number(merchantAgendaMap.settledAmount) || 0,
+      settlementDate: new Date(merchantAgendaMap.settlementDate || ""),
+      effectivePaymentDate: new Date(
+        merchantAgendaMap.effectivePaymentDate || ""
+      ),
+      paymentNumber: merchantAgendaMap.paymentNumber || "",
+      rnn: merchantAgendaMap.rnn || "",
+    })),
+    totalCount,
+    aggregates: {
+      gross_amount: 0,
+      fee_amount: 0,
+      net_amount: 0,
+      total_sales: 0,
+      total_merchants: 0,
+      total_installments: 0,
+    },
+  };
 }
 
 export async function getMerchantAgendaExcelDailyData(
@@ -547,7 +545,8 @@ export async function getMerchantAgendaInfo(): Promise<{
     .select({
       maxDate: max(payout.expectedSettlementDate),
     })
-    .from(payout);
+    .from(payout)
+    .where(eq(payout.idCustomer, userAccess.idCustomer));
 
   const maxDate = new Date(maxDateResult[0]?.maxDate || 0);
 
@@ -562,6 +561,7 @@ export async function getMerchantAgendaInfo(): Promise<{
     }
     conditions.push(inArray(payout.idMerchant, userAccess.idMerchants));
   }
+  conditions.push(eq(payout.idCustomer, userAccess.idCustomer));
 
   const countResult = await db
     .selectDistinct({
@@ -613,6 +613,12 @@ export async function getMerchantAgendaReceipts(
     return { start, end };
   })();
 
+  const userAccess = await getUserMerchantsAccess();
+
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
+
   // Se não há data válida retorna array vazio
   if (date && !whereDate.start) return [];
 
@@ -642,6 +648,8 @@ export async function getMerchantAgendaReceipts(
         AND EXTRACT(
               DOW FROM COALESCE(p.settlement_date, p.expected_settlement_date)
             ) NOT IN (0, 6)
+         ${userAccess.idCustomer ? sql`AND p.id_customer = ${userAccess.idCustomer}` : sql``}
+         ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
 
       UNION ALL
 
@@ -670,6 +678,9 @@ export async function getMerchantAgendaReceipts(
         AND EXTRACT(
               DOW FROM COALESCE(pa.settlement_date, pa.expected_settlement_date)
             ) NOT IN (0, 6)
+            ${userAccess.idCustomer ? sql`AND pa.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
+
     ),
     daily_totals AS (
       SELECT
@@ -741,8 +752,14 @@ export async function getMerchantAgendaReceipts(
 }
 
 export async function getMerchantAgendaTotal(
+  search: string | null,
   date: Date
 ): Promise<{ total: string; status: string }[] | undefined> {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return [];
+  }
+
   const firstDayOfMonth = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), 1)
   );
@@ -770,7 +787,12 @@ export async function getMerchantAgendaTotal(
             settlement_amount,
             status
           FROM ${payout}
+          INNER JOIN ${merchants} m
+            ON m.id = ${payout}.id_merchant
           WHERE COALESCE(settlement_date, expected_settlement_date) BETWEEN ${start} AND ${end}
+          ${search ? sql`AND m.name ILIKE ${"%" + search + "%"}` : sql``}
+          ${userAccess.idCustomer ? sql`AND ${payout}.id_customer = ${userAccess.idCustomer}` : sql``}
+          ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ${payout}.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
         ),
         unique_sets AS (
           -- via MerchantSettlementOrders
@@ -781,7 +803,9 @@ export async function getMerchantAgendaTotal(
             ON ms.id = mso.id_merchant_settlements
           JOIN payout_range pr
             ON pr.settlement_unique_number = mso.settlement_unique_number
-  
+          WHERE 1 = 1 
+            ${userAccess.idCustomer ? sql`AND ms.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ms.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
           UNION
   
           -- via MerchantPixSettlementOrders
@@ -792,6 +816,9 @@ export async function getMerchantAgendaTotal(
             ON ms2.id = mpso.id_merchant_settlement
           JOIN payout_range pr2
             ON pr2.settlement_unique_number = mpso.settlement_unique_number
+          WHERE 1 = 1 
+            ${userAccess.idCustomer ? sql`AND ms2.id_customer = ${userAccess.idCustomer}` : sql``}
+            ${userAccess.fullAccess ? sql`` : userAccess.idMerchants.length > 0 ? sql`AND ms2.id_merchant IN (${userAccess.idMerchants.join(",")})` : sql``}
         ),
         total_payout AS (
           SELECT COALESCE(SUM(settlement_amount), 0) AS total,
@@ -907,11 +934,21 @@ export async function getGlobalSettlement(
   search: string | null,
   date: string
 ): Promise<GlobalSettlementResult> {
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+    return {
+      globalSettlement: 0,
+      globalGross: 0,
+      globalAdjustments: 0,
+      status: "",
+      merchants: [],
+    };
+  }
+
   // 1) default da data para hoje, se não informado
   if (!date) {
     date = new Date().toISOString().slice(0, 10);
   }
-  const searchTerm = search ? `'${search}'` : "NULL";
 
   // 2) mapeamentos para tradução
   const productTypeMapping = transactionProductTypeList.reduce<
@@ -938,7 +975,9 @@ export async function getGlobalSettlement(
         (settlement_date IS NULL AND DATE(expected_settlement_date) = DATE('${date}'))
       )
       AND status NOT IN ('CANCELLED')
-
+      ${userAccess.idCustomer ? `AND payout.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND payout.id_merchant IN (${userAccess.idMerchants.join(",")})` : ""}
+    
       UNION ALL
       
       SELECT
@@ -950,6 +989,9 @@ export async function getGlobalSettlement(
       '' as status
       FROM payout_antecipations pa
       WHERE DATE(pa.settlement_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND pa.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND pa.id_merchants IN (${userAccess.idMerchants.join(",")})` : ""}
+   
     ),
 
     -- 2. Soma ajustes por merchant
@@ -964,6 +1006,8 @@ export async function getGlobalSettlement(
       AND ms.debit_financial_adjustment_amount > 0 
       AND s.status NOT IN ('CANCELLED') 
       AND DATE(s.payment_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND ms.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND ms.id_merchant IN (${userAccess.idMerchants.join(",")})` : ""}
       GROUP BY ms.id_merchant, ms.debit_financial_adjustment_amount
     ),
     -- Antecipações Eventuais
@@ -974,6 +1018,8 @@ export async function getGlobalSettlement(
       SUM(pa.settlement_amount)
       FROM payout_antecipations pa
       WHERE DATE(pa.settlement_date) = DATE('${date}')
+      ${userAccess.idCustomer ? `AND pa.id_customer = '${userAccess.idCustomer}'` : ""}
+      ${userAccess.fullAccess ? "" : userAccess.idMerchants.length > 0 ? `AND pa.id_merchants IN (${userAccess.idMerchants.join(",")})` : ""}
       GROUP BY pa.id_merchants
     ),
     -- 3. Totais globais
@@ -1102,8 +1148,7 @@ export async function getGlobalSettlement(
         ON mt.id_merchant = pp.id_merchant
       JOIN merchants m
         ON m.id = pp.id_merchant
-      WHERE (${searchTerm} IS NULL
-             OR m.name ILIKE '%' || ${searchTerm} || '%')
+      WHERE (${search ? `'${search}' IS NULL OR m.name ILIKE '%${search}%'` : "TRUE"})
       GROUP BY
         m.name, m.slug,
         mt.merchant_total,

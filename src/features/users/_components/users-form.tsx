@@ -55,7 +55,6 @@ import {
   createSalesAgent,
   DD,
   getAddressById,
-  getDDMerchants,
   getProfileById,
   insertAddressFormAction,
   InsertUser,
@@ -68,14 +67,12 @@ import {
 interface UserFormProps {
   user?: UserDetailForm;
   profiles: DD[];
-  customers: DD[];
   permissions?: string[];
 }
 
 export default function UserForm({
   user,
   profiles,
-  customers,
   permissions,
 }: UserFormProps) {
   const router = useRouter();
@@ -83,17 +80,13 @@ export default function UserForm({
   const [selectedMerchants, setSelectedMerchants] = useState<string[]>(
     user?.selectedMerchants || []
   );
-  const [selectedCustomer, setSelectedCustomer] = useState<string | undefined>(
-    user?.idCustomer?.toString()
-  );
   const [merchantsList, setMerchantsList] = useState<DD[]>([]);
-
+  setMerchantsList([]);
   const filteredMerchants = useMemo(() => {
-    if (!selectedCustomer) return [];
     return merchantsList.filter(
       (merchant) => !selectedMerchants.includes(merchant.id.toString())
     );
-  }, [merchantsList, selectedMerchants, selectedCustomer]);
+  }, [merchantsList, selectedMerchants]);
   console.log("merchantsList", merchantsList);
   console.log("filteredMerchants", filteredMerchants);
 
@@ -102,16 +95,6 @@ export default function UserForm({
       selectedMerchants.includes(merchant.id.toString())
     );
   }, [merchantsList, selectedMerchants]);
-
-  const fetchMerchants = async (customerId: string) => {
-    try {
-      const merchants = await getDDMerchants(Number(customerId));
-      setMerchantsList(merchants);
-    } catch (error) {
-      console.error("Error fetching merchants:", error);
-      toast.error("Erro ao carregar estabelecimentos");
-    }
-  };
 
   const form = useForm<UserSchema>({
     resolver: zodResolver(schemaUser),
@@ -349,20 +332,7 @@ export default function UserForm({
     setSelectedMerchants((prev) => prev.filter((id) => id !== merchantId));
   };
 
-  const handleCustomerChange = (value: string) => {
-    setSelectedCustomer(value);
-    form.setValue("idCustomer", value);
-    setSelectedMerchants([]);
-    fetchMerchants(value);
-  };
-
   const hasFullAccess = form.watch("fullAccess");
-
-  useEffect(() => {
-    if (selectedCustomer) {
-      fetchMerchants(selectedCustomer);
-    }
-  }, []);
 
   return (
     <Form {...form}>
@@ -488,173 +458,136 @@ export default function UserForm({
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
-              name="idCustomer"
+              name="fullAccess"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    Cliente <span className="text-destructive ml-1">*</span>
-                  </FormLabel>
-                  <Select
-                    onValueChange={handleCustomerChange}
-                    defaultValue={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {customers.map((customer) => (
-                        <SelectItem
-                          key={customer.id}
-                          value={customer.id.toString()}
-                        >
-                          {customer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="flex items-center">
+                    <FormLabel className="font-medium m-0">
+                      Acesso Total
+                    </FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 ml-1 p-0"
+                          >
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Quando marcado, o usuário terá acesso a todos os
+                          estabelecimentos deste cliente.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </FormItem>
               )}
             />
 
-            {selectedCustomer && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="fullAccess"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+            {!hasFullAccess && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center">
+                    Estabelecimentos{" "}
+                    <span className="text-destructive ml-1">*</span>
+                  </FormLabel>
+
+                  <div className="flex items-center space-x-2">
+                    <Select
+                      onValueChange={handleMerchantSelection}
+                      value=""
+                      disabled={filteredMerchants.length === 0}
+                    >
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={
+                              filteredMerchants.length === 0
+                                ? "Todos os estabelecimentos já foram selecionados"
+                                : "Selecione o estabelecimento"
+                            }
+                          />
+                        </SelectTrigger>
                       </FormControl>
-                      <div className="flex items-center">
-                        <FormLabel className="font-medium m-0">
-                          Acesso Total
-                        </FormLabel>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 ml-1 p-0"
-                              >
-                                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              Quando marcado, o usuário terá acesso a todos os
-                              estabelecimentos deste cliente.
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        {filteredMerchants.map((merchant) => (
+                          <SelectItem
+                            key={merchant.id}
+                            value={merchant.id.toString()}
+                          >
+                            {merchant.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                {!hasFullAccess && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <FormLabel className="flex items-center">
-                        Estabelecimentos{" "}
-                        <span className="text-destructive ml-1">*</span>
-                      </FormLabel>
+                <Separator className="my-4" />
 
-                      <div className="flex items-center space-x-2">
-                        <Select
-                          onValueChange={handleMerchantSelection}
-                          value=""
-                          disabled={filteredMerchants.length === 0}
+                {selectedMerchantsList.length > 0 ? (
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="font-medium">
+                        Estabelecimentos selecionados
+                      </h3>
+                      <Badge variant="outline">
+                        {selectedMerchantsList.length}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMerchantsList.map((merchant) => (
+                        <div
+                          key={merchant.id}
+                          className="flex items-center justify-between py-1.5 px-3 rounded-md border bg-background hover:bg-accent/10 transition-colors"
                         >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue
-                                placeholder={
-                                  filteredMerchants.length === 0
-                                    ? "Todos os estabelecimentos já foram selecionados"
-                                    : "Selecione o estabelecimento"
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {filteredMerchants.map((merchant) => (
-                              <SelectItem
-                                key={merchant.id}
-                                value={merchant.id.toString()}
-                              >
-                                {merchant.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {selectedMerchantsList.length > 0 ? (
-                      <div>
-                        <div className="mb-2 flex items-center justify-between">
-                          <h3 className="font-medium">
-                            Estabelecimentos selecionados
-                          </h3>
-                          <Badge variant="outline">
-                            {selectedMerchantsList.length}
-                          </Badge>
+                          <span className="text-sm font-medium truncate">
+                            {merchant.name}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              handleRemoveMerchant(merchant.id.toString())
+                            }
+                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedMerchantsList.map((merchant) => (
-                            <div
-                              key={merchant.id}
-                              className="flex items-center justify-between py-1.5 px-3 rounded-md border bg-background hover:bg-accent/10 transition-colors"
-                            >
-                              <span className="text-sm font-medium truncate">
-                                {merchant.name}
-                              </span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  handleRemoveMerchant(merchant.id.toString())
-                                }
-                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center p-3 border border-dashed rounded-md">
-                        <p className="text-muted-foreground text-sm">
-                          Nenhum estabelecimento selecionado
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {hasFullAccess && (
-                  <div className="rounded-md border p-4 bg-muted/30">
-                    <div className="flex items-center text-sm">
-                      <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>
-                        O usuário terá acesso a todos os estabelecimentos deste
-                        cliente
-                      </span>
+                      ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="text-center p-3 border border-dashed rounded-md">
+                    <p className="text-muted-foreground text-sm">
+                      Nenhum estabelecimento selecionado
+                    </p>
+                  </div>
                 )}
-              </>
+              </div>
+            )}
+
+            {hasFullAccess && (
+              <div className="rounded-md border p-4 bg-muted/30">
+                <div className="flex items-center text-sm">
+                  <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span>
+                    O usuário terá acesso a todos os estabelecimentos deste
+                    cliente
+                  </span>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

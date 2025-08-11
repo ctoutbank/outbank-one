@@ -2,14 +2,28 @@
 
 import { hashPassword } from "@/app/utils/password";
 import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
+import { getProfileIdByName } from "@/features/users/server/profiles";
 import {
   DD,
   generateRandomPassword,
+  getCustomerByTentant,
+  getCustomerIdByTentant,
   getUserMerchantsAccess,
 } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { clerkClient } from "@clerk/nextjs/server";
-import { and, count, desc, eq, gte, like, lte, max, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  like,
+  lte,
+  max,
+  or,
+} from "drizzle-orm";
 import {
   addresses,
   customers,
@@ -86,13 +100,7 @@ export async function getSalesAgents(
 ): Promise<SalesAgentsList | undefined> {
   try {
     // Get user's merchant access
-    const userAccess = await getUserMerchantsAccess();
-    if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-      return {
-        salesAgents: [],
-        totalCount: 0,
-      };
-    }
+    const customer = await getCustomerByTentant();
 
     const offset = (page - 1) * pageSize;
 
@@ -120,8 +128,9 @@ export async function getSalesAgents(
       conditions.push(lte(salesAgents.dtinsert, dateTo));
     }
 
-    // Adicionar filtro de merchants se não tiver fullAccess
-
+    if (customer) {
+      conditions.push(eq(salesAgents.slugCustomer, customer.slug));
+    }
 
     const result = await db
       .select()
@@ -273,6 +282,9 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
   const hashedPassword = hashPassword(password);
   console.log(password);
 
+  const idCustomer = await getCustomerIdByTentant();
+  const idProfile = await getProfileIdByName("Consultor Comercial");
+
   const newUser = await db
     .insert(users)
     .values({
@@ -281,8 +293,8 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
       dtupdate: new Date().toISOString(),
       active: true,
       idClerk: clerkUser.id,
-      idCustomer: salesAgent.idCustomer,
-      idProfile: salesAgent.idProfile,
+      idCustomer: idCustomer,
+      idProfile: idProfile,
       idAddress: idAddress,
       fullAccess: false,
       hashedPassword: hashedPassword,
@@ -293,6 +305,8 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
 
   await sendWelcomePasswordEmail(salesAgent.email || "", password);
 
+  const idUsers = newUser[0].id;
+
   // Insert user-merchant relationships if any merchants are selected
   if (salesAgent.selectedMerchants && salesAgent.selectedMerchants.length > 0) {
     const userMerchantValues = salesAgent.selectedMerchants.map(
@@ -301,7 +315,7 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
         active: true,
-        idUser: newUser[0].id,
+        idUser: idUsers,
         idMerchant: Number(merchantId),
       })
     );
@@ -309,20 +323,65 @@ export async function insertSalesAgent(salesAgent: SalesAgentInsert) {
     await db.insert(userMerchants).values(userMerchantValues);
   }
 
-  const result = await db.insert(salesAgents).values(salesAgent).returning({
-    id: salesAgents.id,
-  });
+  const slugCustomer = await getCustomerByTentant();
+
+  const result = await db
+    .insert(salesAgents)
+    .values({
+      ...salesAgent,
+      idUsers: idUsers,
+      slugCustomer: slugCustomer.slug,
+    })
+    .returning({ id: salesAgents.id });
   return result[0].id;
 }
 
 export async function getSalesAgentById(
   id: number
 ): Promise<SalesAgentDetail | null> {
-  // Get user's merchant access
-  const userAccess = await getUserMerchantsAccess();
-  if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+  // Validar se o ID é um número válido (permitindo 0 para criação)
+  if (isNaN(id) || id < 0) {
     return null;
   }
+
+  // Se o ID é 0, retornar um objeto vazio para permitir criação
+  if (id === 0) {
+    return {
+      id: 0,
+      slug: null,
+      firstName: null,
+      lastName: null,
+      email: null,
+      active: true,
+      dtinsert: null,
+      dtupdate: null,
+      documentId: null,
+      slugCustomer: null,
+      cpf: null,
+      phone: null,
+      birthDate: null,
+      idUsers: null,
+      idProfile: null,
+      idCustomer: null,
+      idAddress: null,
+      streetAddress: null,
+      streetNumber: null,
+      complement: null,
+      neighborhood: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
+      selectedMerchants: [],
+    };
+  }
+
+  // Get user's merchant access
+  const userAccess = await getUserMerchantsAccess();
+  if (!userAccess.fullAccess && !userAccess.idMerchants.includes(id)) {
+    return null;
+  }
+  const customer = await getCustomerByTentant();
 
   const result = await db
     .select({
@@ -356,8 +415,15 @@ export async function getSalesAgentById(
     .leftJoin(users, eq(salesAgents.idUsers, users.id))
     .leftJoin(profiles, eq(users.idProfile, profiles.id))
     .leftJoin(addresses, eq(users.idAddress, addresses.id))
-    .where(eq(salesAgents.id, id))
+    .where(
+      and(eq(salesAgents.id, id), eq(salesAgents.slugCustomer, customer.slug))
+    )
     .limit(1);
+
+  // Se não encontrou nenhum resultado, retornar null
+  if (!result[0]) {
+    return null;
+  }
 
   const userMerchantResult = await db
     .select({
@@ -445,4 +511,203 @@ export async function getDDCustomers(): Promise<DD[]> {
     })
     .from(customers);
   return result;
+}
+
+export async function getSalesAgentsWithDashboardData(
+  search: string,
+  page: number,
+  pageSize: number,
+  status?: string,
+  dateFrom?: string,
+  dateTo?: string,
+  email?: string
+): Promise<SalesAgentsList | undefined> {
+  try {
+    // Get user's merchant access
+    const userAccess = await getUserMerchantsAccess();
+    const customer = await getCustomerByTentant();
+
+    const offset = (page - 1) * pageSize;
+
+    const conditions = [
+      or(
+        like(salesAgents.firstName, `%${search}%`),
+        like(salesAgents.lastName, `%${search}%`),
+        like(salesAgents.email, `%${search}%`)
+      ),
+    ];
+
+    if (email) {
+      conditions.push(like(salesAgents.email, `%${email}%`));
+    }
+
+    if (status) {
+      conditions.push(eq(salesAgents.active, status === "ACTIVE"));
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(salesAgents.dtinsert, dateFrom));
+    }
+
+    if (dateTo) {
+      conditions.push(lte(salesAgents.dtinsert, dateTo));
+    }
+
+    if (customer) {
+      conditions.push(eq(salesAgents.slugCustomer, customer.slug));
+    }
+
+    // Aplicar controle de acesso baseado nos merchants do usuário
+    if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+      // Se o usuário tem acesso a merchants específicos, filtrar sales agents que têm esses merchants
+      conditions.push(
+        inArray(
+          salesAgents.id,
+          db
+            .select({ id: merchants.idSalesAgent })
+            .from(merchants)
+            .where(inArray(merchants.id, userAccess.idMerchants))
+        )
+      );
+    } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
+      // Se o usuário não tem acesso a nenhum merchant, retornar dados vazios
+      return {
+        salesAgents: [],
+        totalCount: 0,
+      };
+    }
+
+    const result = await db
+      .select()
+      .from(salesAgents)
+      .where(and(...conditions))
+      .orderBy(desc(salesAgents.id))
+      .limit(pageSize)
+      .offset(offset);
+
+    const totalCountResult = await db
+      .select({ count: count() })
+      .from(salesAgents)
+      .where(and(...conditions));
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    // Calcular estatísticas de merchants para cada sales agent
+    const salesAgentsWithStats = await Promise.all(
+      result.map(async (salesAgent) => {
+        // Condições base para merchants deste sales agent
+        const merchantConditions = [eq(merchants.idSalesAgent, salesAgent.id)];
+
+        // Aplicar controle de acesso aos merchants
+        if (!userAccess.fullAccess && userAccess.idMerchants.length > 0) {
+          merchantConditions.push(
+            inArray(merchants.id, userAccess.idMerchants)
+          );
+        } else if (
+          !userAccess.fullAccess &&
+          userAccess.idMerchants.length === 0
+        ) {
+          // Se o usuário não tem acesso, retornar zeros
+          return {
+            id: salesAgent.id,
+            slug: salesAgent.slug || "",
+            firstName: salesAgent.firstName || "",
+            lastName: salesAgent.lastName || "",
+            email: salesAgent.email || "",
+            active: salesAgent.active || null,
+            dtinsert: salesAgent.dtinsert
+              ? new Date(salesAgent.dtinsert)
+              : new Date(),
+            dtupdate: salesAgent.dtupdate
+              ? new Date(salesAgent.dtupdate)
+              : new Date(),
+            documentId: salesAgent.documentId || "",
+            slugCustomer: salesAgent.slugCustomer || "",
+            totalMerchants: 0,
+            pendingMerchants: 0,
+            approvedMerchants: 0,
+            rejectedMerchants: 0,
+          };
+        }
+
+        // Contagem total de merchants
+        const totalMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(and(...merchantConditions));
+        const totalMerchants = totalMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants pendentes (KYC)
+        const pendingMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              or(
+                eq(merchants.riskAnalysisStatus, "PENDING"),
+                eq(merchants.riskAnalysisStatus, "WAITINGDOCUMENTS"),
+                eq(merchants.riskAnalysisStatus, "NOTANALYSED")
+              )
+            )
+          );
+        const pendingMerchants = pendingMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants aprovados
+        const approvedMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              eq(merchants.riskAnalysisStatus, "APPROVED")
+            )
+          );
+        const approvedMerchants = approvedMerchantsResult[0]?.count || 0;
+
+        // Contagem de merchants rejeitados
+        const rejectedMerchantsResult = await db
+          .select({ count: count() })
+          .from(merchants)
+          .where(
+            and(
+              ...merchantConditions,
+              or(
+                eq(merchants.riskAnalysisStatus, "DECLINED"),
+                eq(merchants.riskAnalysisStatus, "KYCOFFLINE")
+              )
+            )
+          );
+        const rejectedMerchants = rejectedMerchantsResult[0]?.count || 0;
+
+        return {
+          id: salesAgent.id,
+          slug: salesAgent.slug || "",
+          firstName: salesAgent.firstName || "",
+          lastName: salesAgent.lastName || "",
+          email: salesAgent.email || "",
+          active: salesAgent.active || null,
+          dtinsert: salesAgent.dtinsert
+            ? new Date(salesAgent.dtinsert)
+            : new Date(),
+          dtupdate: salesAgent.dtupdate
+            ? new Date(salesAgent.dtupdate)
+            : new Date(),
+          documentId: salesAgent.documentId || "",
+          slugCustomer: salesAgent.slugCustomer || "",
+          totalMerchants,
+          pendingMerchants,
+          approvedMerchants,
+          rejectedMerchants,
+        };
+      })
+    );
+
+    return {
+      salesAgents: salesAgentsWithStats,
+      totalCount,
+    };
+  } catch (error) {
+    console.log("error ao buscar sales agent", error);
+    return;
+  }
 }

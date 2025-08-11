@@ -218,6 +218,7 @@ export const searchMerchants = async (
     } else if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
       return [];
     }
+    conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
     // Add search condition if term exists
     if (normalizedTerm.length > 0) {

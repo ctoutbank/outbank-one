@@ -28,6 +28,9 @@ export default async function AntecipationsPage({
 }: {
   searchParams: AntecipationsProps;
 }) {
+  // Verificar permissões primeiro
+  await checkPagePermission("Antecipações de Recebíveis");
+
   const search = searchParams.search || "";
   const page = searchParams.page || "1";
   const pageSize = searchParams.pageSize || "10";
@@ -66,8 +69,6 @@ export default async function AntecipationsPage({
     expectedSettlementStartDate,
     expectedSettlementEndDate
   );
-
-  await checkPagePermission("Antecipações de Recebíveis");
 
   return (
     <>

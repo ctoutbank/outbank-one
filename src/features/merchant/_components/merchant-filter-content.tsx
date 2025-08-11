@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StatusKic } from "@/lib/lookuptables/lookuptables";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
@@ -25,7 +26,7 @@ import { useState, type KeyboardEvent } from "react";
 interface FilterMerchantsContentProps {
   onClose: () => void;
   onFilter: (filters: any) => void;
-  StatusKyc: { value: string; label: string }[] | undefined;
+
   dateFromIn: Date | undefined;
   establishmentIn: string | undefined;
   statusIn: string | undefined;
@@ -47,7 +48,6 @@ export function FilterMerchantsContent({
   salesAgentIn,
   onFilter,
   onClose,
-  StatusKyc,
 }: FilterMerchantsContentProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [establishment, setEstablishment] = useState(establishmentIn || "");
@@ -185,26 +185,38 @@ export function FilterMerchantsContent({
             </div>
           </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Data de cadastro</h3>
-              <div className="flex flex-col gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
-                    >
-                      <p></p>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "dd/mm/aaaa"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start" onMouseDown={(e) => e.stopPropagation()}>
-                    <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Data de cadastro</h3>
+            <div className="flex flex-col gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateFrom && "text-muted-foreground"
+                    )}
+                  >
+                    <p></p>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "dd/mm/aaaa"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  align="start"
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={setDateFrom}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+          </div>
 
           {/* Status KYC */}
           <div className="space-y-2">
@@ -215,8 +227,8 @@ export function FilterMerchantsContent({
               </SelectTrigger>
               <SelectContent onMouseDown={(e) => e.stopPropagation()}>
                 <SelectItem value="all">Todos</SelectItem>
-                {StatusKyc &&
-                  StatusKyc.map((statusOption) => (
+                {StatusKic &&
+                  StatusKic.map((statusOption) => (
                     <SelectItem
                       key={statusOption.value}
                       value={statusOption.value}

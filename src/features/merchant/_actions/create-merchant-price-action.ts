@@ -9,6 +9,7 @@ import {
   merchants,
   merchantTransactionPrice,
 } from "../../../../drizzle/schema";
+import { getCustomerByTentant } from "@/features/users/server/users";
 
 interface CreateMerchantPriceInput {
   feeId: string;
@@ -23,9 +24,9 @@ export async function createMerchantPriceFromFeeAction(
 
     console.log("=== DEBUG: Iniciando createMerchantPriceFromFeeAction ===");
     console.log("Input:", { feeId, merchantId });
-
+    const customer = await getCustomerByTentant();
     // 1. Buscar a fee completa
-    const fee = await getFeeById(feeId);
+    const fee = await getFeeById(feeId, customer.slug);
     if (!fee) {
       console.log("ERROR: Taxa não encontrada para feeId:", feeId);
       return { success: false, error: "Taxa não encontrada" };
@@ -198,6 +199,14 @@ export async function createMerchantPriceFromFeeAction(
               "merchantTransactionPrices"
             );
 
+            // Criar um mapa dos feeCredits para acesso rápido por feeBrandProductTypeId
+            const feeCreditMap = new Map<number, any>();
+            if (fee.feeCredit) {
+              for (const credit of fee.feeCredit) {
+                feeCreditMap.set(credit.idFeeBrandProductType, credit);
+              }
+            }
+
             const transactionPrices = feeBrandItem.feeBrandProductType.map(
               (productType: any, ptIndex: number) => {
                 // Mapear o producttype descritivo para o valor correto do banco
@@ -211,6 +220,13 @@ export async function createMerchantPriceFromFeeAction(
                 } else if (productType.producttype?.includes("Voucher")) {
                   dbProductType = "VOUCHER";
                 }
+
+                // Buscar o feeCredit correspondente a este feeBrandProductType
+                const relatedFeeCredit = feeCreditMap.get(productType.id);
+                console.log(
+                  `FeeCredit para productType ${productType.id}:`,
+                  relatedFeeCredit
+                );
 
                 const transactionData = {
                   slug: `mtp-${dbProductType}-${Date.now()}-${index}-${ptIndex}`,
@@ -231,6 +247,13 @@ export async function createMerchantPriceFromFeeAction(
                   ),
                   producttype: dbProductType,
                   idMerchantPriceGroup: newMerchantPriceGroup.id,
+
+                  cardCompulsoryAnticipationMdr: parseNumericValue(
+                    relatedFeeCredit?.compulsoryAnticipation || 0
+                  ),
+                  noCardCompulsoryAnticipationMdr: parseNumericValue(
+                    relatedFeeCredit?.noCardCompulsoryAnticipation || 0
+                  ),
                 };
 
                 console.log(

@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCNPJ } from "@/lib/utils";
-import { ChevronDown, Eye } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { TerminallsList } from "../serverActions/terminal";
 
@@ -48,7 +47,7 @@ export default function TerminalsList({
                 <ChevronDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
+             
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,18 +96,6 @@ export default function TerminalsList({
                           ? "Manutenção"
                           : terminal.status || "Desconhecido"}
                   </Badge>
-                </TableCell>
-
-                <TableCell>
-                  <Link href={`/portal/terminals/${terminal.slug}`}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title="Visualizar detalhes"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </Link>
                 </TableCell>
               </TableRow>
             ))}

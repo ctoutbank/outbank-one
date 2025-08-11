@@ -64,6 +64,7 @@ export async function updateReportFormAction(data: ReportSchema) {
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
     referenceDateType: data.referenceDateType || null,
+    idCustomer: null,
   };
 
   console.log("Dados a serem atualizados:", reportUpdate);

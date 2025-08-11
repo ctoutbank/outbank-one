@@ -1,6 +1,7 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import MerchantDisplay from "@/features/merchant/_components/merchant-display";
+import { MerchantNotFoundToast } from "@/features/merchant/_components/merchant-not-found-toast";
 import MerchantTabs from "@/features/merchant/_components/merchant-tabs";
 import { getConfigurationsByMerchantId } from "@/features/merchant/server/configurations";
 import { getContactByMerchantId } from "@/features/merchant/server/contact";
@@ -44,7 +45,7 @@ export default async function MerchantDetail({
   const merchantBankAccount = await getMerchantBankAccountById(
     merchant?.merchants.idMerchantBankAccount || 0
   );
-  const DDSalesAgent = await getSalesAgentForDropdown();
+  const DDSalesAgent = await getSalesAgentForDropdown(userAccess);
 
   // Buscar fees disponíveis para quando não há merchantPriceId
   const feesResult = await getFeesAction(1, 100); // Buscar até 100 fees
@@ -70,21 +71,10 @@ export default async function MerchantDetail({
   const configurations = await getConfigurationsByMerchantId(
     merchant?.merchants.id || 0
   );
-  console.log("configurations:", configurations);
-  console.log("Valores de antecipação (debug):", {
-    anticipationRiskFactorCp: configurations?.anticipationRiskFactorCp,
-    anticipationRiskFactorCnp: configurations?.anticipationRiskFactorCnp,
-    waitingPeriodCp: configurations?.waitingPeriodCp,
-    waitingPeriodCnp: configurations?.waitingPeriodCnp,
-    tipoAnticipationRiskFactorCp:
-      typeof configurations?.anticipationRiskFactorCp,
-    tipoAnticipationRiskFactorCnp:
-      typeof configurations?.anticipationRiskFactorCnp,
-  });
+
   const pixaccount = await getMerchantPixAccountByMerchantId(
     merchant?.merchants.id || 0
   );
-  console.log("pixaccount:", pixaccount);
 
   const formattedMerchantPriceGroups = {
     merchantPrice: {
@@ -136,6 +126,10 @@ export default async function MerchantDetail({
             : group.transactionPrices || [],
       })) || [],
   };
+
+  if (!merchant) {
+    return <MerchantNotFoundToast />;
+  }
 
   return (
     <>

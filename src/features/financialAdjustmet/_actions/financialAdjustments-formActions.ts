@@ -70,6 +70,7 @@ export async function updateFinancialAdjustmentFormAction(
     endDate: data.endDate || null,
     dtinsert: new Date().toISOString(),
     dtupdate: new Date().toISOString(),
+    idCustomer: Number(data.idCustomer),
   };
 
   console.log("Dados a serem atualizados:", adjustmentUpdate);
@@ -117,4 +118,21 @@ export async function removeMerchantFromFinancialAdjustmentAction(
     idFinancialAdjustment,
     idMerchant
   );
+}
+
+export async function deactivateFinancialAdjustmentFormAction(id: number) {
+  if (!id)
+    throw new Error("ID do ajuste financeiro é obrigatório para desativar");
+  await updateFinancialAdjustment({ id, active: false } as any);
+}
+
+export async function toggleFinancialAdjustmentActiveFormAction(
+  id: number,
+  active: boolean
+) {
+  if (!id)
+    throw new Error(
+      "ID do ajuste financeiro é obrigatório para ativar/desativar"
+    );
+  await updateFinancialAdjustment({ id, active } as any);
 }

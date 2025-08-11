@@ -3,6 +3,7 @@ import SalesAgentsForm from "../../../../features/salesAgents/_components/salesA
 
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { SalesAgentsNotFoundToast } from "@/features/salesAgents/_components/salesAgents-not-found-toast";
 import {
   getDDCustomers,
   getDDMerchants,
@@ -16,11 +17,20 @@ export default async function SalesAgentsDetail({
 }: {
   params: { id: string };
 }) {
-  const agent = await getSalesAgentById(parseInt(params.id));
+  // Validar se o ID é um número válido (permitindo 0 para criação)
+  const id = parseInt(params.id);
+  if (isNaN(id) || id < 0) {
+    return <SalesAgentsNotFoundToast />;
+  }
+
+  const agent = await getSalesAgentById(id);
   const merchantsList = await getDDMerchants(agent?.idCustomer || 0);
   const profilesList = await getDDProfiles();
   const customersList = await getDDCustomers();
-  
+
+  if (!agent) {
+    return <SalesAgentsNotFoundToast />;
+  }
 
   return (
     <>
@@ -39,7 +49,9 @@ export default async function SalesAgentsDetail({
             email: agent?.email || "",
             cpf: agent?.cpf || "",
             phone: agent?.phone || "",
-            birthDate: agent?.birthDate ? new Date(agent.birthDate) : undefined,
+            birthDate: agent?.birthDate
+              ? new Date(agent.birthDate)
+              : new Date(),
             idProfile: agent?.idProfile?.toString() || undefined,
             idCustomer: agent?.idCustomer?.toString() || undefined,
             active: agent?.active ?? true,

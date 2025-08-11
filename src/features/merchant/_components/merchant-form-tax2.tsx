@@ -339,41 +339,20 @@ export default function MerchantFormTax2({
         toast.success("Taxa atribuída ao estabelecimento com sucesso!");
 
         // 🎯 PASSO FINAL: Buscar TODOS os dados do banco local e enviar para API
-        try {
-          // GET: Buscar dados completos do merchant do banco local
+        // GET: Buscar dados completos do merchant do banco local
 
-          const merchantAPIData =
-            await buscarMerchantCompletoRealParaAPI(merchantId);
-          console.log("merchantAPIData", merchantAPIData);
-          if (!merchantAPIData) {
-            throw new Error(
-              "Merchant não encontrado ou dados incompletos no banco local"
-            );
-          }
-
-          console.log("✅ Dados completos obtidos do banco local:", {
-            merchantData: !!merchantAPIData.name,
-            addressData: !!merchantAPIData.address,
-            contactsData: merchantAPIData.contacts?.length || 0,
-            bankAccountData: !!merchantAPIData.merchantBankAccount,
-            merchantPriceData: !!merchantAPIData.merchantPrice,
-            priceGroupsData:
-              merchantAPIData.merchantPrice?.listMerchantPriceGroup?.length ||
-              0,
-          });
-
-          // POST: Enviar todos os dados para API
-          await InsertMerchant1(merchantAPIData);
-          toast.success("Taxa atribuída com sucesso! ");
-        } catch (apiError) {
-          console.error(
-            "❌ Erro ao enviar merchant completo para API:",
-            apiError
-          );
-          toast.error(
-            "Taxa atribuída com sucesso, mas houve um erro ao enviar para API. Verifique o console para mais detalhes."
+        const merchantAPIData =
+          await buscarMerchantCompletoRealParaAPI(merchantId);
+        console.log("merchantAPIData", merchantAPIData);
+        if (!merchantAPIData) {
+          throw new Error(
+            "Merchant não encontrado ou dados incompletos no banco local"
           );
         }
+        console.log("merchantId:", merchantId);
+        // POST: Enviar todos os dados para API
+        await InsertMerchant1(merchantAPIData, merchantId);
+        toast.success("Taxa atribuída com sucesso! ");
 
         // Avançar para a próxima aba (documents)
         if (activeTab && setActiveTab && merchantId) {

@@ -2,7 +2,6 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import UserForm from "@/features/users/_components/users-form";
 import {
-  getDDCustomers,
   getDDProfiles,
   getUserById,
 } from "@/features/users/server/users";
@@ -23,7 +22,6 @@ export default async function UserDetail({
   const userId = params.id;
   const user = await getUserById(userId);
   const DDProfiles = await getDDProfiles();
-  const DDCustomers = await getDDCustomers();
 
   return (
     <>
@@ -37,7 +35,7 @@ export default async function UserDetail({
         <UserForm
           user={user || undefined}
           profiles={DDProfiles}
-          customers={DDCustomers}
+        
           permissions={permissions}
         />
       </BaseBody>

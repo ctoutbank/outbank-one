@@ -27,11 +27,12 @@ import {
 } from "@/features/salesAgents/server/salesAgent";
 import { DD } from "@/features/users/server/users";
 import { states } from "@/lib/lookuptables/lookuptables";
-import {formatCep, formatCPF, formatPhone} from "@/lib/regex";
+import { formatCep, formatCPF, formatPhone } from "@/lib/regex";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   Building,
+  Calendar,
   Mail,
   MapPin,
   Phone,
@@ -39,6 +40,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -57,6 +59,7 @@ export default function SalesAgentsForm({
   salesAgent,
 }: UserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   // Garantir que salesAgent é do tipo SalesAgentFormSchema
   const defaultAgent: SalesAgentFormSchema = {
@@ -69,7 +72,7 @@ export default function SalesAgentsForm({
     birthDate:
       typeof salesAgent?.birthDate === "string"
         ? new Date(salesAgent.birthDate)
-        : salesAgent?.birthDate || undefined,
+        : salesAgent?.birthDate || (salesAgent?.birthDate as Date),
     idProfile: salesAgent?.idProfile ? String(salesAgent.idProfile) : undefined,
     idCustomer: salesAgent?.idCustomer
       ? String(salesAgent.idCustomer)
@@ -155,6 +158,8 @@ export default function SalesAgentsForm({
         idUsers: null,
       };
       await insertSalesAgent(salesAgentData);
+      toast.success("Consultor Comercial criado com sucesso.");
+      router.push(`/portal/salesAgents`);
     }
     setIsLoading(false);
   };
@@ -267,7 +272,7 @@ export default function SalesAgentsForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
-                      <Mail className="h-4 w-4 mr-1" />
+                      <Calendar className="h-4 w-4 mr-1" />
                       Data de nascimento{" "}
                       <span className="text-destructive ml-1">*</span>
                     </FormLabel>
@@ -378,11 +383,15 @@ export default function SalesAgentsForm({
                     CEP <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                      <Input
-                          placeholder="Digite o CEP do novo consultor"
-                          value={formatCep(field.value)}
-                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                      />
+                    <Input
+                      placeholder="Digite o CEP do novo consultor"
+                      value={formatCep(field.value)}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value.replace(/\D/g, "").slice(0, 11)
+                        )
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

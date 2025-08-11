@@ -1,5 +1,6 @@
 "use server";
 
+import { getCustomerByTentant } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { and, eq, sql } from "drizzle-orm";
@@ -60,7 +61,7 @@ export async function getProfiles(
   page: number,
   pageSize: number
 ): Promise<ProfileList> {
-  
+  const customer = await getCustomerByTentant();
   const offset = (page - 1) * pageSize;
 
   const result = await db.execute(sql`
@@ -71,7 +72,12 @@ export async function getProfiles(
       p.description,
       p.dtinsert,
       p.dtupdate,
-      (SELECT COUNT(*) FROM users u WHERE u.id_profile = p.id AND u.active = true) as users,
+      (SELECT COUNT(*) 
+      FROM users u
+      JOIN customers c ON c.id = u.id_customer
+      WHERE u.id_profile = p.id 
+      AND u.active = true 
+      AND c.slug = ${customer.slug}) as users,
       COALESCE(
         (
           SELECT json_agg(
@@ -399,4 +405,20 @@ export async function getModules(profileId?: number): Promise<ModuleSelect[]> {
   }));
 
   return modulesList;
+}
+
+export async function getProfileIdByName(
+  namePattern: string
+): Promise<number | null> {
+  const result = await db
+    .select({ id: profiles.id })
+    .from(profiles)
+    .where(sql`name ILIKE ${"%" + namePattern + "%"}`)
+    .limit(1);
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return result[0].id;
 }

@@ -103,7 +103,16 @@ export const schemaSalesAgentForm = z.object({
     .string()
     .min(11, "O número de telefone deve ter 11 dígitos (DDD incluso)")
     .max(11, "Deve ter 11 dígitos"),
-  birthDate: z.date().optional(),
+  birthDate: z
+    .date({
+      required_error: "Data de nascimento é obrigatória",
+      invalid_type_error: "Data de nascimento é obrigatória",
+    })
+    .refine((date) => {
+      const today = new Date();
+      const age = today.getFullYear() - date.getFullYear();
+      return age >= 18;
+    }, "Deve ser maior de 18 anos"),
   idProfile: z.string().optional(),
   idCustomer: z.string().optional(),
   active: z.boolean().optional(),

@@ -15,6 +15,8 @@ export const merchantTransactionPriceSchema = z.object({
   nonCardTransactionFee: z.number().optional(),
   nonCardTransactionMdr: z.number().optional(),
   producttype: z.string().max(20).optional(),
+  cardCompulsoryAnticipationMdr: z.number().optional(),
+  noCardCompulsoryAnticipationMdr: z.number().optional(),
 });
 
 // Schema para MerchantPriceGroup

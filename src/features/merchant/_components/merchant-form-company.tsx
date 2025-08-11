@@ -34,6 +34,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { legalPersonTypes, states } from "@/lib/lookuptables/lookuptables";
+import { formatCep } from "@/lib/regex";
 import { formatCNPJ, handleNumericInput } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -49,7 +50,6 @@ import {
   EstablishmentFormatDropdown,
   LegalNatureDropdown,
 } from "../server/merchant";
-import {formatCep} from "@/lib/regex";
 
 interface MerchantProps {
   merchant: typeof merchants.$inferSelect & { cnae: string; mcc: string };
@@ -109,8 +109,7 @@ export default function MerchantFormCompany({
         : undefined,
       slugLegalNature: merchant?.slugLegalNature || "",
       idMerchantBankAccount: merchant?.idMerchantBankAccount || null,
-      // campos do endereço virão de outra tabela
-      // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
+      idCustomer: merchant?.idCustomer || null,
     },
   });
   console.log("legalPerson", merchant?.legalPerson);
@@ -803,9 +802,15 @@ export default function MerchantFormCompany({
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                    placeholder="Digite o CEP"
-                                    value={formatCep(field.value)}
-                                    onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                  placeholder="Digite o CEP"
+                                  value={formatCep(field.value)}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value
+                                        .replace(/\D/g, "")
+                                        .slice(0, 8)
+                                    )
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />

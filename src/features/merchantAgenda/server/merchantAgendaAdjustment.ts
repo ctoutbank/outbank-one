@@ -94,6 +94,7 @@ export async function getMerchantAgendaAdjustment(
       inArray(merchantSettlements.idMerchant, userAccess.idMerchants)
     );
   }
+  conditions.push(eq(settlements.idCustomer, userAccess.idCustomer));
 
   if (dateFrom) {
     conditions.push(
@@ -247,6 +248,7 @@ export async function getMerchantAgendaAdjustmentStats(
       inArray(merchantSettlements.idMerchant, userAccess.idMerchants)
     );
   }
+  conditions.push(eq(settlements.idCustomer, userAccess.idCustomer));
 
   // Filtro por data de transação (início)
   if (dateFrom) {

@@ -17,6 +17,8 @@ type PaymentLinkProps = {
   merchant: string;
   identifier: string;
   status: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function PaymentLinkPage({
@@ -31,13 +33,20 @@ export default async function PaymentLinkPage({
   const merchant = searchParams.merchant || "";
   const identifier = searchParams.identifier || "";
   const status = searchParams.status || "";
+  const sortBy = searchParams.sortBy || "dtinsert";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   const paymentLinks = await getPaymentLinks(
     merchant,
     identifier,
     status,
     page,
-    pageSize
+    pageSize,
+    sortBy,
+    sortOrder
   );
 
   const totalRecords = paymentLinks.totalCount;
@@ -71,7 +80,11 @@ export default async function PaymentLinkPage({
             description=""
           />
         ) : (
-          <PaymentLinkList links={paymentLinks} />
+          <PaymentLinkList
+            links={paymentLinks}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+          />
         )}
 
         {totalRecords > 0 && (

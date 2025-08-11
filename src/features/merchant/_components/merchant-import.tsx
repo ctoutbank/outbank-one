@@ -355,14 +355,15 @@ export default function ExcelImportButton() {
     if (data.length === 0) {
       setImportResult({
         status: "error",
-        message: "No valid data found in the file.",
+        message:
+          "O arquivo enviado não contém dados válidos. Confira o preenchimento e envie novamente.",
       });
       return;
     }
 
     setImportResult({
       status: "success",
-      message: `${data.length} records successfully imported!`,
+      message: `${data.length} registros importados com sucesso!`,
     });
   };
 
@@ -506,7 +507,7 @@ export default function ExcelImportButton() {
                   </Button>
                   <div
                     className="ml-2 text-gray-500 cursor-help"
-                    title="Use this template to ensure your data is imported correctly"
+                    title="Use o template para garantir que seus dados sejam importados corretamente"
                   >
                     <Info className="h-4 w-4" />
                   </div>

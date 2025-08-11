@@ -33,14 +33,12 @@ export function MerchantAgendaReceiptsFilter(
       params.delete("date");
     }
 
-    params.set("page", "1");
     router.push(`?${params.toString()}`);
   };
 
   const handleClearFilters = () => {
     params.delete("search");
     params.delete("date");
-    params.set("page", "1");
     router.push(`?${params.toString()}`);
   };
 

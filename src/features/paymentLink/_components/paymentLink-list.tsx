@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, formatDate, translateCardType } from "@/lib/utils";
 import { Copy, Mail } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { PaymentLinkList } from "../server/paymentLink";
 import { EmailPaymentLinkDialog } from "./email-payment-link-dialog";
 
@@ -37,10 +39,46 @@ const translateStatus = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || status;
 };
 
+function SortableTableHead({
+  label,
+  field,
+  sortBy,
+  sortOrder,
+}: {
+  label: string;
+  field: string;
+  sortBy: string;
+  sortOrder: string;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  function handleSort() {
+    const newOrder = sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(
+      searchParams ? searchParams.toString() : undefined
+    );
+    params.set("sortBy", field);
+    params.set("sortOrder", newOrder);
+    router.push(`?${params.toString()}`);
+  }
+
+  return (
+    <th onClick={handleSort} className="cursor-pointer select-none">
+      {label}
+      {sortBy === field && <span>{sortOrder === "asc" ? " ▲" : " ▼"}</span>}
+    </th>
+  );
+}
+
 export default function PaymentLinksList({
   links,
+  sortBy = "dtinsert",
+  sortOrder = "desc",
 }: {
   links: PaymentLinkList;
+  sortBy?: string;
+  sortOrder?: string;
 }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
@@ -58,20 +96,76 @@ export default function PaymentLinksList({
     setSelectedLink(link);
     setIsEmailDialogOpen(true);
   };
+
+  const handleCopyLink = async (link: string) => {
+    try {
+      // Verificar se a API do clipboard está disponível
+      if (!navigator.clipboard) {
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toast.success("Link copiado para a área de transferência!");
+        return;
+      }
+
+      // Usar a API moderna do clipboard
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado para a área de transferência!");
+    } catch (error) {
+      console.error("Erro ao copiar link:", error);
+      toast.error("Erro ao copiar link. Tente novamente.");
+    }
+  };
+
   return (
     <div className="w-full rounded-md border">
       <ScrollArea className="w-full">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data de Criação</TableHead>
-              <TableHead>ID Link</TableHead>
-              <TableHead>Expira em</TableHead>
-              <TableHead>Nome do EC</TableHead>
+              <SortableTableHead
+                label="Data de Inclusão"
+                field="dtinsert"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Nº Lógico"
+                field="name"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Nº Serial"
+                field="serial"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Estabelecimento"
+                field="merchantName"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Modelo"
+                field="model"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Status"
+                field="status"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
               <TableHead>Link</TableHead>
               <TableHead>Tipo de pagamento</TableHead>
               <TableHead>Valor Total</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Opções</TableHead>
             </TableRow>
           </TableHeader>
@@ -93,7 +187,7 @@ export default function PaymentLinksList({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full hover:bg-muted"
-                      onClick={() => navigator.clipboard.writeText(link.link)}
+                      onClick={() => handleCopyLink(link.link)}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>

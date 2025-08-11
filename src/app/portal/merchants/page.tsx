@@ -38,6 +38,8 @@ type MerchantProps = {
   cnpj?: string;
   active?: string;
   salesAgent?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function MerchantsPage({
@@ -66,7 +68,9 @@ export default async function MerchantsPage({
     searchParams.email,
     searchParams.cnpj,
     searchParams.active,
-    searchParams.salesAgent
+    searchParams.salesAgent,
+    searchParams.sortBy,
+    searchParams.sortOrder
   );
 
   // Buscar dados para exportação Excel
@@ -179,7 +183,6 @@ export default async function MerchantsPage({
       <BaseBody
         title="Estabelecimentos"
         subtitle={`Visualização de Todos os Estabelecimentos`}
-        // actions={<SyncButton syncType="merchants" />}
       >
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-2 justify-between mb-1">

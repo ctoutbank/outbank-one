@@ -16,7 +16,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 interface UserTabsProps {
   users: any;
   profiles: any;
-  DDCustomer: any[];
   DDProfile: any[];
   DDMerchant: any[];
   totalUsersRecords: number;
@@ -28,7 +27,6 @@ interface UserTabsProps {
   lastName: string;
   activeTab: string;
   profileId: string;
-  customerId: string;
   merchantId: string;
   profileName: string;
   permissions?: string[];
@@ -37,7 +35,6 @@ interface UserTabsProps {
 export default function UserTabs({
   users,
   profiles,
-  DDCustomer,
   DDProfile,
   DDMerchant,
   totalUsersRecords,
@@ -49,7 +46,6 @@ export default function UserTabs({
   lastName,
   activeTab,
   profileId,
-  customerId,
   merchantId,
   profileName,
   permissions,
@@ -76,8 +72,6 @@ export default function UserTabs({
           <div>
             {activeTab === "users" ? (
               <UserFilter
-                customer={customerId}
-                customerOptions={DDCustomer}
                 email={email}
                 firstName={firstName}
                 lastName={lastName}
