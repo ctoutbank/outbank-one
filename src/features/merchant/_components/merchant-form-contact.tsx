@@ -78,9 +78,7 @@ function ContactFormItem({
       areaCode: initialData?.areaCode || "",
       number: initialData?.number || "",
       phoneType: initialData?.phoneType || "",
-      birthDate: initialData?.birthDate
-        ? new Date(initialData.birthDate)
-        : undefined,
+      birthDate: initialData?.birthDate || "",
       mothersName: initialData?.mothersName || "",
       isPartnerContact: initialData?.isPartnerContact || false,
       isPep: initialData?.isPep || false,
