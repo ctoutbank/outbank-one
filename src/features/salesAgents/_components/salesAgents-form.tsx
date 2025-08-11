@@ -32,6 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   Building,
+  Calendar,
   Mail,
   MapPin,
   Phone,
@@ -71,7 +72,7 @@ export default function SalesAgentsForm({
     birthDate:
       typeof salesAgent?.birthDate === "string"
         ? new Date(salesAgent.birthDate)
-        : salesAgent?.birthDate || undefined,
+        : salesAgent?.birthDate || (salesAgent?.birthDate as Date),
     idProfile: salesAgent?.idProfile ? String(salesAgent.idProfile) : undefined,
     idCustomer: salesAgent?.idCustomer
       ? String(salesAgent.idCustomer)
@@ -271,7 +272,7 @@ export default function SalesAgentsForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
-                      <Mail className="h-4 w-4 mr-1" />
+                      <Calendar className="h-4 w-4 mr-1" />
                       Data de nascimento{" "}
                       <span className="text-destructive ml-1">*</span>
                     </FormLabel>

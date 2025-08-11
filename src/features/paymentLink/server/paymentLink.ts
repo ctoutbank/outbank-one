@@ -14,6 +14,7 @@ import {
   isNotNull,
   sql,
 } from "drizzle-orm";
+import { DateTime } from "luxon";
 import {
   merchants,
   paymentLink,
@@ -101,7 +102,19 @@ export type PaymentLink = {
 };
 
 async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
-  console.log("json", JSON.stringify(data));
+  // Remover campos desnecessários dos shoppingItems
+  // Os valores monetários já foram validados e mantidos com ponto
+  const formattedData = {
+    ...data,
+    shoppingItems: data.shoppingItems?.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      // Removendo idPaymentLink pois a API não espera esse campo
+    })),
+  };
+
+  console.log("json", JSON.stringify(formattedData));
   const response = await fetch(
     `https://serviceorder.acquiring.dock.tech/v1/external_payment_links`,
     {
@@ -111,13 +124,24 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
         "Content-Type": "application/json",
         Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedData),
     }
   );
 
   if (!response.ok) {
-    const errorMessage = `Failed to save data: ${response.statusText}`;
-    console.error(response);
+    let errorDetails = `Status: ${response.status} - ${response.statusText}`;
+
+    try {
+      const errorResponse = await response.text();
+      errorDetails += `\nResponse: ${errorResponse}`;
+    } catch {
+      errorDetails += `\nCould not read response body`;
+    }
+
+    console.error("API Error Details:", errorDetails);
+    console.error("Request Data:", JSON.stringify(formattedData, null, 2));
+
+    const errorMessage = `Failed to save data: ${errorDetails}`;
     throw new Error(errorMessage);
   }
 
@@ -131,7 +155,9 @@ export async function getPaymentLinks(
   identifier: string,
   status: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sortBy?: string,
+  sortOrder?: "asc" | "desc"
 ): Promise<PaymentLinkList> {
   const offset = (page - 1) * pageSize;
 
@@ -158,6 +184,21 @@ export async function getPaymentLinks(
   }
   conditions.push(eq(merchants.idCustomer, userAccess.idCustomer));
 
+  // Map sortBy to column
+  const sortMap: Record<string, any> = {
+    dtinsert: paymentLink.dtinsert,
+    name: paymentLink.linkName,
+    serial: paymentLink.id, // Ajuste se houver campo serial real
+    merchantName: merchants.name,
+    model: paymentLink.productType, // Ajuste se houver campo model real
+    status: paymentLink.paymentLinkStatus,
+  };
+  const sortColumn = sortMap[sortBy || "dtinsert"] || paymentLink.dtinsert;
+  const orderFn =
+    (sortOrder || "desc") === "asc"
+      ? (col: any) => col
+      : (col: any) => desc(col);
+
   const result = await db
     .select({
       id: paymentLink.id,
@@ -173,7 +214,7 @@ export async function getPaymentLinks(
     .from(paymentLink)
     .innerJoin(merchants, eq(paymentLink.idMerchant, merchants.id))
     .where(and(...conditions))
-    .orderBy(desc(paymentLink.id))
+    .orderBy(orderFn(sortColumn))
     .limit(pageSize)
     .offset(offset);
 
@@ -290,16 +331,52 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
+    // Formatar data de expiração preservando as horas quando definidas
+    const formatExpirationDate = (dateString: string) => {
+      if (!dateString) return "";
+
+      // Usar DateTime do Luxon para garantir processamento em UTC
+      const date = DateTime.fromISO(dateString, { zone: "utc" });
+
+      if (!date.isValid) {
+        console.error("Data inválida recebida:", dateString);
+        return "";
+      }
+
+      // Se a data tem horas específicas (não é meia-noite), preservar as horas
+      if (date.hour !== 0 || date.minute !== 0 || date.second !== 0) {
+        return date.toISO();
+      }
+
+      // Se é apenas uma data (meia-noite), manter o comportamento anterior
+      return date.toFormat("yyyy-MM-dd") + "T00:00:00.000Z";
+    };
+
+    // Validar valores monetários
+    const validateAndFormatAmount = (amount: string) => {
+      // Validar o valor numérico
+      const numAmount = parseFloat(amount);
+      if (numAmount < 0.01) {
+        throw new Error("Valor mínimo deve ser R$ 0,01");
+      }
+
+      // Manter o valor original (com ponto) - a API espera ponto, não vírgula
+      return amount;
+    };
+
     const insertAPI: InsertPaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
-      totalAmount: paymentLinks.totalAmount || "0",
+      totalAmount: validateAndFormatAmount(paymentLinks.totalAmount || "0"),
       documentId: merchantDoc[0]?.idDocument || "0MerchantDock1",
-      dtExpiration: paymentLinks.dtExpiration || "",
+      dtExpiration: formatExpirationDate(paymentLinks.dtExpiration || ""),
       installments: paymentLinks.installments || 0,
       productType: paymentLinks.productType || "",
       shoppingItems:
         paymentLinks.shoppingItems && paymentLinks.shoppingItems?.length > 0
-          ? paymentLinks.shoppingItems
+          ? paymentLinks.shoppingItems.map((item) => ({
+              ...item,
+              amount: validateAndFormatAmount(item.amount),
+            }))
           : undefined,
     };
 
@@ -314,8 +391,8 @@ export async function insertPaymentLink(paymentLinks: PaymentLinkDetailInsert) {
       linkName: paymentLinks.linkName,
       paymentLinkStatus: response.paymentLinkStatus,
       idMerchant: paymentLinks.idMerchant,
-      dtinsert: new Date().toISOString(),
-      dtupdate: new Date().toISOString(),
+      dtinsert: DateTime.utc().toISO() || new Date().toISOString(),
+      dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       totalAmount: paymentLinks.totalAmount,
       dtExpiration: paymentLinks.dtExpiration,
       installments: paymentLinks.installments,
@@ -362,6 +439,13 @@ export async function updatePaymentLink(
   paymentLinks: PaymentLinkDetail,
   shoppingItemsIn?: ShoppingItemsUpdate[]
 ): Promise<void> {
+  // Se o link tem slug, usar a função completa que atualiza na API
+  if (paymentLinks.slug) {
+    await updateCompletePaymentLink(paymentLinks, shoppingItemsIn);
+    return;
+  }
+
+  // Caso contrário, apenas atualizar no banco local
   if (shoppingItemsIn && shoppingItemsIn.length > 0) {
     const modifiedItems = shoppingItemsIn.filter((item) => item.wasModified);
     const unmodifiedItems = shoppingItemsIn.filter((item) => !item.wasModified);
@@ -440,18 +524,30 @@ export async function updateAPIPaymentLink(
   slug: string,
   data: UpdatePaymentLinkAPI
 ): Promise<PaymentLink> {
-  console.log("updateAPIPaymentLink", slug, JSON.stringify(data));
+  // Remover campos desnecessários dos shoppingItems
+  // Os valores monetários já foram validados e mantidos com ponto
+  const formattedData = {
+    ...data,
+    shoppingItems: data.shoppingItems?.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      amount: item.amount,
+      // Removendo idPaymentLink pois a API não espera esse campo
+    })),
+  };
+
+  console.log("updateAPIPaymentLink", slug, JSON.stringify(formattedData));
 
   const response = await fetch(
-    `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links/${slug}`,
+    `https://serviceorder.acquiring.dock.tech/v1/external_payment_links/${slug}`,
     {
       method: "PUT",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedData),
     }
   );
 
@@ -488,12 +584,43 @@ export async function updateCompletePaymentLink(
       .from(merchants)
       .where(eq(merchants.id, paymentLinks.idMerchant || 0));
 
+    // Formatar data de expiração preservando as horas quando definidas
+    const formatExpirationDate = (dateString: string) => {
+      if (!dateString) return "";
+      const date = DateTime.fromISO(dateString, { zone: "utc" });
+
+      if (!date.isValid) {
+        console.error("Data inválida recebida:", dateString);
+        return "";
+      }
+
+      // Se a data tem horas específicas (não é meia-noite), preservar as horas
+      if (date.hour !== 0 || date.minute !== 0 || date.second !== 0) {
+        return date.toISO();
+      }
+
+      // Se é apenas uma data (meia-noite), manter o comportamento anterior
+      return date.toFormat("yyyy-MM-dd") + "T00:00:00.000Z";
+    };
+
+    // Validar valores monetários
+    const validateAndFormatAmount = (amount: string) => {
+      // Validar o valor numérico
+      const numAmount = parseFloat(amount);
+      if (numAmount < 0.01) {
+        throw new Error("Valor mínimo deve ser R$ 0,01");
+      }
+
+      // Manter o valor original (com ponto) - a API espera ponto, não vírgula
+      return amount;
+    };
+
     // 2. Prepara dados para atualização na API
     const updateData: UpdatePaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
-      totalAmount: paymentLinks.totalAmount || "0",
+      totalAmount: validateAndFormatAmount(paymentLinks.totalAmount || "0"),
       documentId: merchant[0]?.idDocument || "0MerchantDock1", // Valor padrão como fallback
-      dtExpiration: paymentLinks.dtExpiration || "",
+      dtExpiration: formatExpirationDate(paymentLinks.dtExpiration || ""),
       installments: paymentLinks.installments || 0,
       productType: paymentLinks.productType || "CREDIT",
     };
@@ -503,7 +630,7 @@ export async function updateCompletePaymentLink(
       updateData.shoppingItems = shoppingItemsIn.map((item) => ({
         name: item.name,
         quantity: item.quantity,
-        amount: item.amount,
+        amount: validateAndFormatAmount(item.amount),
       }));
     }
 
@@ -559,7 +686,7 @@ export async function updateCompletePaymentLink(
       .update(paymentLink)
       .set({
         ...paymentLinks,
-        dtupdate: new Date().toISOString(),
+        dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
       })
       .where(eq(paymentLink.id, paymentLinks.id));
   } catch (error) {
@@ -609,12 +736,12 @@ export async function verificarLinksExcluidos(): Promise<number> {
       const promessasVerificacao = loteSlugs.map(async (slug) => {
         try {
           const response = await fetch(
-            `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links/${slug}`,
+            `https://serviceorder.acquiring.dock.tech/v1/external_payment_links/${slug}`,
             {
               method: "GET",
               headers: {
                 Accept: "application/json",
-                Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+                Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
               },
             }
           );
@@ -651,7 +778,7 @@ export async function verificarLinksExcluidos(): Promise<number> {
         .set({
           isDeleted: true,
           active: false,
-          dtupdate: new Date().toISOString(),
+          dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
         })
         .where(inArray(paymentLink.id, linksExcluidos));
 
@@ -719,7 +846,7 @@ export async function verificarLinksExcluidosComLista(): Promise<number> {
         .set({
           isDeleted: true,
           active: false,
-          dtupdate: new Date().toISOString(),
+          dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
         })
         .where(inArray(paymentLink.id, linksExcluidos));
 
@@ -742,10 +869,10 @@ async function fetchAllPaymentLinks(): Promise<PaymentLinkAPI[]> {
 
   while (hasMoreData) {
     const response = await fetch(
-      `https://serviceorder.acquiring.hml.dock.tech/v1/external_payment_links?limit=${limit}&offset=${offset}`,
+      `https://serviceorder.acquiring.dock.tech/v1/external_payment_links?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiIxMkMxQzk1QjlGM0I0MzgyOUI2MEVEQ0UxQzQ1NzAwRSIsInNpcCI6IjRFN0I5NUY3RTBGOTQ5N0FBOTEzM0NGRjM5RDlGQUE3In0.ebqadX2yKxJPBji0HJTdn8F2vae57K1KvHUJb-v1AUD7w3D_HUWjoJbSq5M8t_bm4u69E8krQ47abarQqubRIg`,
+          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
         },
       }
     );

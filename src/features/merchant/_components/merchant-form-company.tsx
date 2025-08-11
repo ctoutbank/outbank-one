@@ -110,8 +110,6 @@ export default function MerchantFormCompany({
       slugLegalNature: merchant?.slugLegalNature || "",
       idMerchantBankAccount: merchant?.idMerchantBankAccount || null,
       idCustomer: merchant?.idCustomer || null,
-      // campos do endereço virão de outra tabela
-      // você precisará adicionar os campos do endereço aqui se estiverem disponíveis
     },
   });
   console.log("legalPerson", merchant?.legalPerson);
