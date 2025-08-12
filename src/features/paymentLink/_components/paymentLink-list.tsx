@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDate, translateCardType } from "@/lib/utils";
-import { Copy, Mail } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -64,10 +64,21 @@ function SortableTableHead({
   }
 
   return (
-    <th onClick={handleSort} className="cursor-pointer select-none">
+    <TableHead
+      onClick={handleSort}
+      className="cursor-pointer select-none hover:bg-muted/50"
+    >
       {label}
-      {sortBy === field && <span>{sortOrder === "asc" ? " ▲" : " ▼"}</span>}
-    </th>
+      {sortBy === field && (
+        <span className="ml-1">
+          {sortOrder === "asc" ? (
+            <ChevronUp className="h-4 w-4 inline" />
+          ) : (
+            <ChevronDown className="h-4 w-4 inline" />
+          )}
+        </span>
+      )}
+    </TableHead>
   );
 }
 
@@ -128,32 +139,44 @@ export default function PaymentLinksList({
           <TableHeader>
             <TableRow>
               <SortableTableHead
-                label="Data de Inclusão"
+                label="Data de Criação"
                 field="dtinsert"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
               <SortableTableHead
-                label="Nº Lógico"
+                label="ID Link"
                 field="name"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
               <SortableTableHead
-                label="Nº Serial"
+                label="Expira em"
                 field="serial"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
               <SortableTableHead
-                label="Estabelecimento"
+                label="Nome do EC"
                 field="merchantName"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
               <SortableTableHead
-                label="Modelo"
+                label="Link"
                 field="model"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Tipo de pagamento"
+                field="status"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
+              <SortableTableHead
+                label="Valor Total"
+                field="totalAmount"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
@@ -163,12 +186,15 @@ export default function PaymentLinksList({
                 sortBy={sortBy}
                 sortOrder={sortOrder}
               />
-              <TableHead>Link</TableHead>
-              <TableHead>Tipo de pagamento</TableHead>
-              <TableHead>Valor Total</TableHead>
-              <TableHead>Opções</TableHead>
+              <SortableTableHead
+                label="Opções"
+                field="options"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+              />
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {links.linksObject.map((link) => (
               <TableRow key={link.id}>

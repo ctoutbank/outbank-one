@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -89,13 +90,22 @@ export default function PaymentLinkForm({
     name: "shoppingItems",
   });
 
-  useEffect(() => {
-    if (watchedShoppingItems && watchedShoppingItems.length > 0) {
-      const total = watchedShoppingItems.reduce((acc, item) => {
+  // Função auxiliar para recalcular o total
+  const recalculateTotal = (items: any[]) => {
+    if (items && items.length > 0) {
+      const total = items.reduce((acc, item) => {
         const itemTotal = item.quantity * parseFloat(item.amount);
         return acc + itemTotal;
       }, 0);
       form.setValue("totalAmount", total.toFixed(2));
+    } else {
+      form.setValue("totalAmount", "0.00");
+    }
+  };
+
+  useEffect(() => {
+    if (watchedShoppingItems) {
+      recalculateTotal(watchedShoppingItems);
     }
   }, [watchedShoppingItems, form]);
 
@@ -283,6 +293,17 @@ export default function PaymentLinkForm({
     setItemAmount("");
   };
 
+  const handleRemoveItem = (index: number) => {
+    const currentItems = form.getValues("shoppingItems") || [];
+    const updatedItems = currentItems.filter(
+      (_, itemIndex) => itemIndex !== index
+    );
+    form.setValue("shoppingItems", updatedItems);
+
+    // Recalcular o total após remover o item
+    recalculateTotal(updatedItems);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
@@ -302,7 +323,10 @@ export default function PaymentLinkForm({
                       name="linkName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>ID Link *</FormLabel>
+                          <FormLabel className="flex items-center">
+                            ID Link{" "}
+                            <span className="text-destructive ml-1">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} value={field.value ?? ""} />
                           </FormControl>
@@ -315,7 +339,10 @@ export default function PaymentLinkForm({
                       name="idMerchant"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome do EC *</FormLabel>
+                          <FormLabel className="flex items-center">
+                            Nome do EC{" "}
+                            <span className="text-destructive ml-1">*</span>
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value?.toString() || ""}
@@ -463,7 +490,10 @@ export default function PaymentLinkForm({
                         name="totalAmount"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Valor total da cobrança *</FormLabel>
+                            <FormLabel className="flex items-center">
+                              Valor total da cobrança{" "}
+                              <span className="text-destructive ml-1">*</span>
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -525,6 +555,15 @@ export default function PaymentLinkForm({
                                   {item.quantity !== undefined
                                     ? item.quantity * Number(item.amount)
                                     : 0}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => handleRemoveItem(index)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 </TableCell>
                               </TableRow>
                             ))}
