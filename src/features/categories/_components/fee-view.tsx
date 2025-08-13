@@ -203,6 +203,53 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                 </Table>
               </div>
             </CardContent>
+            <CardContent>
+              <h4 className="font-medium mb-2 text-sm">PIX POS</h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">MDR Cartão</h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixMdr ? `${cardPixMdr}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Mínimo Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixMinimumCostFee
+                        ? `R$ ${cardPixMinimumCostFee}`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Custo Máximo Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1 text-sm">
+                    Antecipação Cartão
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
+                      {eventualAnticipationFee
+                        ? `${eventualAnticipationFee}%`
+                        : "-"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Card: Taxas Transações Online */}
@@ -276,61 +323,8 @@ export function FeeView({ feeDetail }: FeeViewProps) {
                 </Table>
               </div>
             </CardContent>
-          </Card>
-
-          {/* Card: PIX */}
-          <Card className="shadow-sm w-full max-w-full overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xl flex items-center">
-                <User className="h-5 w-5 mr-2 text-primary" />
-                PIX
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 max-w-full overflow-x-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full">
-                <div>
-                  <h4 className="font-medium mb-1 text-sm">MDR Cartão</h4>
-                  <div className="flex flex-wrap gap-1">
-                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
-                      {cardPixMdr ? `${cardPixMdr}%` : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1 text-sm">
-                    Custo Mínimo Cartão
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
-                      {cardPixMinimumCostFee
-                        ? `R$ ${cardPixMinimumCostFee}`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1 text-sm">
-                    Custo Máximo Cartão
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
-                      {cardPixCeilingFee ? `R$ ${cardPixCeilingFee}` : "-"}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1 text-sm">
-                    Antecipação Cartão
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    <div className="rounded-full h-7 min-w-14 max-w-18 flex justify-center items-center text-xs bg-blue-100 px-1">
-                      {eventualAnticipationFee
-                        ? `${eventualAnticipationFee}%`
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <CardContent>
+              <h4 className="font-medium mb-2 text-sm">PIX Online</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-1 w-full max-w-full mt-4">
                 <div>
                   <h4 className="font-medium mb-1 text-sm">MDR Sem Cartão</h4>

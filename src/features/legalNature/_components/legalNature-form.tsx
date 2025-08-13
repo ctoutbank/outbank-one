@@ -37,19 +37,19 @@ export default function LegalNatureForm({ legalNature }: LegalNatureProps) {
 
   const onSubmit = async (data: LegalNatureSchema) => {
     try {
-      toast.loading("Salvando natureza jurídica...");
+      toast.loading("Salvando Formato Jurídico...");
       if (data?.id) {
         await updateLegalNatureFormAction(data);
-        toast.success("Natureza jurídica atualizada com sucesso!");
+        toast.success("Formato Jurídico atualizado com sucesso!");
         router.refresh();
       } else {
         const newId = await insertLegalNatureFormAction(data);
-        toast.success("Natureza jurídica criada com sucesso!");
+        toast.success("Formato Jurídico criado com sucesso!");
         router.push(`/portal/legalNatures/${newId}`);
       }
     } catch (error) {
-      console.error("Erro ao salvar natureza jurídica:", error);
-      toast.error("Erro ao salvar natureza jurídica. Tente novamente.");
+      console.error("Erro ao salvar Formato Jurídico:", error);
+      toast.error("Erro ao salvar Formato Jurídico. Tente novamente.");
     }
   };
 

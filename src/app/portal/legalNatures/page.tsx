@@ -53,13 +53,13 @@ export default async function LegalNaturesPage({
     <>
       <BaseHeader
         breadcrumbItems={[
-          { title: "Natureza Jurídica", url: "/portal/legalNatures" },
+          { title: "Formato Jurídico", url: "/portal/legalNatures" },
         ]}
       />
 
       <BaseBody
-        title="Natureza Jurídica"
-        subtitle={`Visualização de Todas Natureza Jurídica`}
+        title="Formato Jurídico"
+        subtitle={`Visualização de Todos Formatos Jurídicos`}
       >
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex items-center justify-between">
@@ -73,7 +73,7 @@ export default async function LegalNaturesPage({
             <Button asChild className="ml-2">
               <Link href="/portal/legalNatures/0">
                 <Plus className="h-4 w-4 mr-1" />
-                Nova Natureza Jurídica
+                Novo Formato Jurídico
               </Link>
             </Button>
           </div>
