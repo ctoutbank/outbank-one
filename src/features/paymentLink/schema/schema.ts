@@ -3,13 +3,19 @@ import { z } from "zod";
 export const schemaShoppingItems = z.object({
   slug: z.string().optional(),
   name: z.string().min(1, "Campo obrigatório"),
-  quantity: z.number().min(1, "Campo obrigatório"),
-  amount: z.string().min(1, "Campo obrigatório"),
-  idPaymentLink: z.number().optional(),
+  quantity: z.union([z.number(), z.string()]).refine((val) => {
+    const num = typeof val === "string" ? parseInt(val) : val;
+    return !isNaN(num) && num >= 1;
+  }, "Campo obrigatório"),
+  amount: z.union([z.string(), z.number()]).refine((val) => {
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return !isNaN(num) && num > 0;
+  }, "Campo obrigatório"),
+  idPaymentLink: z.union([z.number(), z.string()]).optional(),
 });
 
 export const schemaPaymentLink = z.object({
-  id: z.number().optional(),
+  id: z.union([z.number(), z.string()]).optional(),
   slug: z.string().optional(),
   linkName: z.string().min(1, "Campo obrigatório"),
   idMerchant: z
