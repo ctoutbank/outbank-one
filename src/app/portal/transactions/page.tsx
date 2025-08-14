@@ -33,6 +33,8 @@ type TransactionsProps = {
   terminal?: string;
   valueMin?: string;
   valueMax?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 async function TransactionsContent({
@@ -45,6 +47,9 @@ async function TransactionsContent({
 
   const dateFrom = searchParams.dateFrom || "2024-09-01T00:00";
   const dateTo = searchParams.dateTo || getEndOfDay();
+
+  const sortBy = searchParams.sortBy || "dtInsert";
+  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
 
   // Filtros para getTransactions (lista detalhada)
   // Esta consulta suporta todos os filtros
@@ -62,7 +67,11 @@ async function TransactionsContent({
     searchParams.salesChannel,
     searchParams.terminal,
     searchParams.valueMin,
-    searchParams.valueMax
+    searchParams.valueMax,
+    {
+      sortBy,
+      sortOrder,
+    }
   );
 
   // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)

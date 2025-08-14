@@ -5,7 +5,9 @@ import { getDateUTC } from "@/lib/datetime-utils";
 import { GetTransactionsResponse } from "@/server/integrations/dock/dock-transactions-type";
 import {
   and,
+  asc,
   count,
+  desc,
   eq,
   gte,
   ilike,
@@ -68,7 +70,11 @@ export async function getTransactions(
   salesChannel?: string,
   terminal?: string,
   valueMin?: string,
-  valueMax?: string
+  valueMax?: string,
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ): Promise<TransactionsList> {
   const userAccess = await getUserMerchantsAccess();
 
@@ -105,7 +111,7 @@ export async function getTransactions(
 
   // 2. Use Promise.all para executar consultas em paralelo quando possível
   const [transactionList, totalCount] = await Promise.all([
-    getTransactionData(whereClause, page, pageSize),
+    getTransactionData(whereClause, page, pageSize, sorting),
     page !== -1 ? getTotalCount(whereClause) : Promise.resolve(0),
   ]);
 
@@ -237,9 +243,34 @@ async function buildConditions(params: {
 async function getTransactionData(
   whereClause: any,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ) {
   try {
+    const sortFieldMap: Record<string, any> = {
+      dtInsert: transactions.dtInsert,
+      nsu: transactions.muid,
+      merchantName: merchants.name,
+      merchantCNPJ: merchants.idDocument,
+      terminalType: terminals.type,
+      terminalLogicalNumber: terminals.logicalNumber,
+      method: transactions.methodType,
+      salesChannel: transactions.salesChannel,
+      productType: transactions.productType,
+      brand: transactions.brand,
+      transactionStatus: transactions.transactionStatus,
+      amount: transactions.totalAmount,
+    };
+
+    const sortBy = sorting?.sortBy || "dtInsert";
+    const sortOrder = sorting?.sortOrder || "desc";
+    const sortField = sortFieldMap[sortBy] || transactions.dtInsert;
+    const orderByClause =
+      sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
     // Consulta simplificada para evitar problemas de sintaxe
     const baseQuery = db
       .select({
@@ -263,7 +294,7 @@ async function getTransactionData(
       .innerJoin(merchants, eq(transactions.slugMerchant, merchants.slug))
       .leftJoin(terminals, eq(transactions.slugTerminal, terminals.slug))
       .where(whereClause)
-      .orderBy(transactions.dtInsert);
+      .orderBy(orderByClause);
 
     const result =
       page === -1

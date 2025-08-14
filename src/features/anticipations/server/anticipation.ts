@@ -5,6 +5,7 @@ import { translateStatus } from "@/lib/utils";
 import { db } from "@/server/db";
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -49,7 +50,11 @@ export async function getAnticipations(
   endDate?: string,
   merchantSlug?: string,
   type?: string,
-  status?: string
+  status?: string,
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ): Promise<AnticipationList> {
   const offset = (page - 1) * pageSize;
 
@@ -131,6 +136,21 @@ export async function getAnticipations(
   );
   conditions.push(pendingFinancial);
 
+  // Mapeamento de campos para ordenação
+  const sortFieldMap: Record<string, any> = {
+    dtinsert: settlements.paymentDate,
+    productType: configurations.lockCpAnticipationOrder, // Proxy para tipo
+    merchantName: merchants.name,
+    amount: settlements.totalAnticipationAmount,
+    status: settlements.anticipationStatus,
+  };
+
+  // Definir ordenação
+  const sortBy = sorting?.sortBy || "dtinsert";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || settlements.paymentDate;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
   const result = await db
     .select({
       slug: settlements.slug,
@@ -160,7 +180,7 @@ export async function getAnticipations(
     .leftJoin(customers, eq(merchants.idCustomer, customers.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
     .where(and(...conditions))
-    .orderBy(desc(settlements.paymentDate))
+    .orderBy(orderByClause)
     .groupBy(
       settlements.slug,
       settlements.paymentDate,
@@ -272,7 +292,11 @@ export async function getEventualAnticipations(
   type?: string,
   status?: string,
   expectedSettlementStartDate?: string,
-  expectedSettlementEndDate?: string
+  expectedSettlementEndDate?: string,
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ): Promise<EventualAnticipationList> {
   const offset = (page - 1) * pageSize;
 
@@ -367,6 +391,25 @@ export async function getEventualAnticipations(
   );
   conditions.push(pendingFinancial);
 
+  // Mapeamento de campos para ordenação
+  const sortFieldMap: Record<string, any> = {
+    dtinsert: settlements.dtinsert,
+    type: configurations.lockCpAnticipationOrder, // Proxy para tipo
+    expectedSettlementDate: settlements.paymentDate,
+    merchantName: merchants.name,
+    totalExpectedAmount: sql`'0'`, // Campo calculado
+    totalBlockedAmount: sql`'0'`, // Campo calculado
+    totalAvailableAmount: sql`'0'`, // Campo calculado
+    requestedAmount: settlements.totalAnticipationAmount,
+    status: settlements.anticipationStatus,
+  };
+
+  // Definir ordenação
+  const sortBy = sorting?.sortBy || "dtinsert";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || settlements.dtinsert;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
   const result = await db
     .select({
       slug: settlements.slug,
@@ -401,7 +444,7 @@ export async function getEventualAnticipations(
     .leftJoin(customers, eq(merchants.idCustomer, customers.id))
     .leftJoin(categories, eq(merchants.idCategory, categories.id))
     .where(and(...conditions))
-    .orderBy(desc(settlements.paymentDate))
+    .orderBy(orderByClause)
     .groupBy(
       settlements.slug,
       settlements.dtinsert,

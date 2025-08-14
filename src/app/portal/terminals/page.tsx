@@ -23,6 +23,8 @@ type TerminalsProps = {
   modelo?: string;
   status?: string;
   provedor?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function TerminalsPage({
@@ -42,17 +44,28 @@ export default async function TerminalsPage({
   const modelo = searchParams.modelo;
   const status = searchParams.status;
   const provedor = searchParams.provedor;
+  const sortBy = searchParams.sortBy;
+  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
 
-  // Buscar dados de terminais com os filtros
-  const terminalsList = await getTerminals(search, page, pageSize, {
-    dateTo,
-    numeroLogico,
-    numeroSerial,
-    estabelecimento,
-    modelo,
-    status,
-    provedor,
-  });
+  // Buscar dados de terminais com os filtros e ordenação
+  const terminalsList = await getTerminals(
+    search,
+    page,
+    pageSize,
+    {
+      dateTo,
+      numeroLogico,
+      numeroSerial,
+      estabelecimento,
+      modelo,
+      status,
+      provedor,
+    },
+    {
+      sortBy,
+      sortOrder,
+    }
+  );
 
   const totalRecords = terminalsList.totalCount;
   const ativosTerminals = terminalsList.activeCount || 0;
@@ -73,7 +86,6 @@ export default async function TerminalsPage({
       font: { color: { argb: "000000" } } as Font,
     },
   };
-
 
   console.log("esse é o terminalsList", terminalsList);
 

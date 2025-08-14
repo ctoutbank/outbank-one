@@ -9,16 +9,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCNPJ, formatCurrency, formatDate } from "@/lib/utils";
+import {
+  createSortHandler,
+  formatCNPJ,
+  formatCurrency,
+  formatDate,
+} from "@/lib/utils";
 import { Info } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EventualAnticipationList } from "../server/anticipation";
 
 export default function EventualAnticipationListComponent({
@@ -26,6 +32,16 @@ export default function EventualAnticipationListComponent({
 }: {
   anticipations: EventualAnticipationList;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Função para lidar com ordenação usando utilitário
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/anticipations"
+  );
+
   const getStatusBadgeVariant = (status: string | null) => {
     if (!status) return "secondary";
 
@@ -49,16 +65,76 @@ export default function EventualAnticipationListComponent({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data de Solicitação</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Previsão de Liquidação</TableHead>
-              <TableHead>Estabelecimento</TableHead>
-              <TableHead>Total Previsto a Receber</TableHead>
-              <TableHead>Total Bloqueado</TableHead>
-              <TableHead>Total Disponível</TableHead>
-              <TableHead>Valor Solicitado</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+              <SortableTableHead
+                columnId="dtinsert"
+                name="Data de Solicitação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="type"
+                name="Tipo"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="expectedSettlementDate"
+                name="Previsão de Liquidação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="merchantName"
+                name="Estabelecimento"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="totalExpectedAmount"
+                name="Total Previsto a Receber"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="totalBlockedAmount"
+                name="Total Bloqueado"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="totalAvailableAmount"
+                name="Total Disponível"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="requestedAmount"
+                name="Valor Solicitado"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="actions"
+                name="Ações"
+                sortable={false}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

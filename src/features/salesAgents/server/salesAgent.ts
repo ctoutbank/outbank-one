@@ -14,6 +14,7 @@ import { generateSlug } from "@/lib/utils";
 import { clerkClient } from "@clerk/nextjs/server";
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -520,7 +521,11 @@ export async function getSalesAgentsWithDashboardData(
   status?: string,
   dateFrom?: string,
   dateTo?: string,
-  email?: string
+  email?: string,
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ): Promise<SalesAgentsList | undefined> {
   try {
     // Get user's merchant access
@@ -577,11 +582,28 @@ export async function getSalesAgentsWithDashboardData(
       };
     }
 
+    // Mapeamento de campos para ordenação
+    const sortFieldMap: Record<string, any> = {
+      dtinsert: salesAgents.dtinsert,
+      firstName: salesAgents.firstName,
+      lastName: salesAgents.lastName,
+      email: salesAgents.email,
+      documentId: salesAgents.documentId,
+      active: salesAgents.active,
+    };
+
+    // Definir ordenação
+    const sortBy = sorting?.sortBy || "dtinsert";
+    const sortOrder = sorting?.sortOrder || "desc";
+    const sortField = sortFieldMap[sortBy] || salesAgents.dtinsert;
+    const orderByClause =
+      sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
     const result = await db
       .select()
       .from(salesAgents)
       .where(and(...conditions))
-      .orderBy(desc(salesAgents.id))
+      .orderBy(orderByClause)
       .limit(pageSize)
       .offset(offset);
 
