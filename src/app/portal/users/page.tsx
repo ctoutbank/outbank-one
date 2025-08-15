@@ -5,7 +5,7 @@ import { getProfiles } from "@/features/users/server/profiles";
 import {
   getDDMerchants,
   getDDProfiles,
-  getUsers
+  getUsers,
 } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { cache } from "react";
@@ -23,6 +23,8 @@ type UsersPageProps = {
   profileName: string;
   merchant: string;
   customer: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 const getCachedUsers = cache(getUsers);
@@ -38,6 +40,8 @@ async function UsersTabContent({
   profile,
   page,
   pageSize,
+  sortBy,
+  sortOrder,
 }: UsersPageProps) {
   const users = await getCachedUsers(
     email,
@@ -45,7 +49,8 @@ async function UsersTabContent({
     lastName,
     Number(profile),
     Number(page),
-    Number(pageSize)
+    Number(pageSize),
+    sortBy && sortOrder ? { sortBy, sortOrder } : undefined
   );
   const DDProfile = await getCachedDDProfiles();
   const DDMerchant = await getCachedDDMerchants();
@@ -83,6 +88,11 @@ export default async function UsersPage({
   const customerId = searchParams.customer || "0";
   const merchantId = searchParams.merchant || "0";
   const profileName = searchParams.profileName || "";
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   console.log(permissions);
 
@@ -100,6 +110,8 @@ export default async function UsersPage({
       pageSize: pageSize.toString(),
       tab: activeTab,
       profileName: profileName,
+      sortBy,
+      sortOrder,
     });
     profilesData = { profiles: { items: [], totalCount: 0 } }; // dados vazios
   } else {

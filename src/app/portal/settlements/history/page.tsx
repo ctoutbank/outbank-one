@@ -17,6 +17,8 @@ type HistoryProps = {
   status: string;
   dateFrom: string;
   dateTo: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function SettlementsPage({
@@ -29,6 +31,11 @@ export default async function SettlementsPage({
   const status = searchParams.status;
   const dateFrom = searchParams.dateFrom;
   const dateTo = searchParams.dateTo;
+  const sortBy = searchParams.sortBy || "payment_date";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   // Buscar liquidações e totais de status
   const settlements = await getSettlements(
@@ -36,7 +43,8 @@ export default async function SettlementsPage({
     dateFrom,
     dateTo,
     page,
-    pageSize
+    pageSize,
+    { sortBy, sortOrder }
   );
 
   const totalRecords = settlements.totalCount;

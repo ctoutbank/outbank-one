@@ -5,7 +5,7 @@ import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import {
@@ -78,7 +78,8 @@ export async function getUsers(
   lastName: string,
   profile: number,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<UserList> {
   const customer = await getCustomerByTentant();
 
@@ -114,6 +115,18 @@ export async function getUsers(
     conditions.push(inArray(users.idClerk, clerkIds));
   }
 
+  // Configurar ordenação (apenas para campos do banco local)
+  const sortFieldMap: { [key: string]: any } = {
+    profileName: profiles.name,
+    status: users.active,
+    // Nota: firstName, lastName, email vêm do Clerk e não podem ser ordenados no banco
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || users.id;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
   // First, get all users that match the conditions
   const userResults = await db
     .select({
@@ -128,7 +141,7 @@ export async function getUsers(
     .innerJoin(customers, eq(users.idCustomer, customers.id))
     .leftJoin(profiles, eq(users.idProfile, profiles.id))
     .where(and(...conditions))
-    .orderBy(desc(users.id))
+    .orderBy(orderByClause)
     .limit(pageSize)
     .offset(offset);
 

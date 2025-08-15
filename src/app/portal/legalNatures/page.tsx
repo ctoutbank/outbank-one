@@ -22,6 +22,8 @@ type LegalNatureProps = {
   name: string;
   code: string;
   active: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function LegalNaturesPage({
@@ -37,6 +39,11 @@ export default async function LegalNaturesPage({
   const name = searchParams.name || "";
   const code = searchParams.code || "";
   const active = searchParams.active || "";
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   const legalNatures = await getLegalNatures(
     search,
@@ -44,7 +51,8 @@ export default async function LegalNaturesPage({
     pageSize,
     name,
     code,
-    active
+    active,
+    { sortBy, sortOrder }
   );
 
   const totalRecords = legalNatures.totalCount;

@@ -96,21 +96,21 @@ export default function EventualAnticipationListComponent({
               <SortableTableHead
                 columnId="totalExpectedAmount"
                 name="Total Previsto a Receber"
-                sortable={true}
+                sortable={false}
                 onSort={handleSort}
                 searchParams={searchParams}
               />
               <SortableTableHead
                 columnId="totalBlockedAmount"
                 name="Total Bloqueado"
-                sortable={true}
+                sortable={false}
                 onSort={handleSort}
                 searchParams={searchParams}
               />
               <SortableTableHead
                 columnId="totalAvailableAmount"
                 name="Total Disponível"
-                sortable={true}
+                sortable={false}
                 onSort={handleSort}
                 searchParams={searchParams}
               />

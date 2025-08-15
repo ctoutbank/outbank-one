@@ -1,42 +1,59 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LegalNatureList } from "../server/legalNature-db";
-import { ChevronDown } from "lucide-react";
+import { createSortHandler } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LegalNatureList } from "../server/legalNature-db";
 
 export default function LegalNaturelist({
   LegalNatures,
 }: {
   LegalNatures: LegalNatureList;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/legalNatures"
+  );
+
   return (
     <div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                Nome
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Codigo
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-
-              <TableHead>
-                Ativo
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
+              <SortableTableHead
+                columnId="name"
+                name="Nome"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="code"
+                name="Codigo"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="active"
+                name="Ativo"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

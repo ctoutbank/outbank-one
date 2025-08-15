@@ -25,6 +25,8 @@ type FinancialAdjustmentsProps = {
   reason?: string;
   active?: string;
   creationDate?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function FinancialAdjustmentsPage({
@@ -34,6 +36,11 @@ export default async function FinancialAdjustmentsPage({
 }) {
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   const adjustments = await getFinancialAdjustments(
     searchParams.search || "",
@@ -41,7 +48,8 @@ export default async function FinancialAdjustmentsPage({
     pageSize,
     searchParams.type,
     searchParams.reason,
-    searchParams.active
+    searchParams.active,
+    { sortBy, sortOrder }
   );
   console.log(adjustments);
   const totalRecords = adjustments.totalCount;

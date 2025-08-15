@@ -22,6 +22,8 @@ type ReportsProps = {
   period?: string;
   email?: string;
   creationDate?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function ReportsPage({
@@ -31,6 +33,11 @@ export default async function ReportsPage({
 }) {
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   const reports = await getReports(
     searchParams.search || "",
@@ -41,7 +48,8 @@ export default async function ReportsPage({
     searchParams.recurrence,
     searchParams.period,
     searchParams.email,
-    searchParams.creationDate
+    searchParams.creationDate,
+    { sortBy, sortOrder }
   );
   const totalRecords = reports.totalCount;
 

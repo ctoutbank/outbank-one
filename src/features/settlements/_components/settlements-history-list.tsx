@@ -1,11 +1,11 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -15,7 +15,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatCurrency, getStatusColor, translateStatus } from "@/lib/utils";
+import {
+  createSortHandler,
+  formatCurrency,
+  getStatusColor,
+  translateStatus,
+} from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SettlementsList } from "../server/settlements";
 
 export default function SettlementHistorylist({
@@ -23,6 +29,14 @@ export default function SettlementHistorylist({
 }: {
   Settlements: SettlementsList;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/settlements/history"
+  );
+
   console.log(Settlements);
   return (
     <div>
@@ -30,12 +44,48 @@ export default function SettlementHistorylist({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data de liquidação</TableHead>
-              <TableHead>Vendas Brutas</TableHead>
-              <TableHead>Antecipações Líquidas</TableHead>
-              <TableHead>Valor Restituído</TableHead>
-              <TableHead>Valor Liquidado</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableTableHead
+                columnId="payment_date"
+                name="Data de liquidação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="batch_amount"
+                name="Vendas Brutas"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="total_anticipation_amount"
+                name="Antecipações Líquidas"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="total_restitution_amount"
+                name="Valor Restituído"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="total_settlement_amount"
+                name="Valor Liquidado"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -397,9 +397,6 @@ export async function getEventualAnticipations(
     type: configurations.lockCpAnticipationOrder, // Proxy para tipo
     expectedSettlementDate: settlements.paymentDate,
     merchantName: merchants.name,
-    totalExpectedAmount: sql`'0'`, // Campo calculado
-    totalBlockedAmount: sql`'0'`, // Campo calculado
-    totalAvailableAmount: sql`'0'`, // Campo calculado
     requestedAmount: settlements.totalAnticipationAmount,
     status: settlements.anticipationStatus,
   };
