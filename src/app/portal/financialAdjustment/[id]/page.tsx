@@ -1,5 +1,6 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
+import { DeactivateFinancialAdjustmentButton } from "@/features/financialAdjustmet/_components/deactivate-financial-adjustment-button";
 import FinancialAdjustmentForm from "@/features/financialAdjustmet/_components/financial-adjustment-form";
 import { FinancialAdjustmentSchema } from "@/features/financialAdjustmet/schema/schema";
 import {
@@ -34,6 +35,7 @@ export default async function FinancialAdjustmentDetailPage({
 
   if (!isNew) {
     const adjustmentData = await getFinancialAdjustmentById(id);
+
     if (!adjustmentData) {
       notFound();
     }
@@ -45,7 +47,7 @@ export default async function FinancialAdjustmentDetailPage({
       id: adjustmentData.id,
       externalId: adjustmentData.externalId || undefined,
       slug: adjustmentData.slug || undefined,
-      active: adjustmentData.active || true,
+      active: adjustmentData.active ? true : false,
       expectedSettlementDate: adjustmentData.expectedSettlementDate
         ? adjustmentData.expectedSettlementDate.toISOString().split("T")[0]
         : undefined,
@@ -87,7 +89,15 @@ export default async function FinancialAdjustmentDetailPage({
             ? "Criar um novo ajuste financeiro"
             : `Editando: ${adjustment.title}`
         }
+        className="relative"
       >
+        {/* Botão de desativar só aparece se não for novo */}
+        {!isNew && adjustment.id && (
+          <DeactivateFinancialAdjustmentButton
+            id={adjustment.id}
+            active={!!adjustment.active}
+          />
+        )}
         <FinancialAdjustmentForm
           adjustment={adjustment}
           merchants={allMerchants}

@@ -25,6 +25,8 @@ type CategoryProps = {
   pageSize: string;
   search: string;
   settlementSlug: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function SettlementsPage({
@@ -38,11 +40,18 @@ export default async function SettlementsPage({
   const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
   const settlementSlug = searchParams.settlementSlug || "";
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "asc";
+
   const merchantSettlements = await getMerchantSettlements(
     search,
     page,
     pageSize,
-    settlementSlug
+    settlementSlug,
+    { sortBy, sortOrder }
   );
   console.log(merchantSettlements);
   const settlements = await getSettlementBySlug(settlementSlug);

@@ -22,6 +22,8 @@ type SalesAgentProps = {
   dateFrom?: string;
   dateTo?: string;
   email?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function SalesAgentsPage({
@@ -33,6 +35,8 @@ export default async function SalesAgentsPage({
 
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
+  const sortBy = searchParams.sortBy;
+  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
 
   const salesAgents = await getSalesAgentsWithDashboardData(
     searchParams.name || "",
@@ -41,7 +45,11 @@ export default async function SalesAgentsPage({
     searchParams.status,
     searchParams.dateFrom,
     searchParams.dateTo,
-    searchParams.email
+    searchParams.email,
+    {
+      sortBy,
+      sortOrder,
+    }
   );
   const totalRecords = salesAgents?.totalCount;
 

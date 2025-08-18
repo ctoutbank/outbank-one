@@ -2,15 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { createSortHandler } from "@/lib/utils";
 import { Trash } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { UserList } from "../server/users";
 
@@ -20,6 +22,10 @@ interface UsersListProps {
 }
 
 export default function UsersList({ users, permissions }: UsersListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(searchParams, router, "/portal/users");
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -35,13 +41,55 @@ export default function UsersList({ users, permissions }: UsersListProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="font-medium">E-mail</TableHead>
-            <TableHead className="font-medium">Primeiro Nome</TableHead>
-            <TableHead className="font-medium">Último Nome</TableHead>
-            <TableHead className="font-medium">Perfil</TableHead>
-            <TableHead className="font-medium text-center">Status</TableHead>
+            <SortableTableHead
+              columnId="email"
+              name="E-mail"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+              className="font-medium"
+            />
+            <SortableTableHead
+              columnId="firstName"
+              name="Primeiro Nome"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+              className="font-medium"
+            />
+            <SortableTableHead
+              columnId="lastName"
+              name="Último Nome"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+              className="font-medium"
+            />
+            <SortableTableHead
+              columnId="profileName"
+              name="Perfil"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+              className="font-medium"
+            />
+            <SortableTableHead
+              columnId="status"
+              name="Status"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+              className="font-medium text-center"
+            />
             {permissions?.includes("Gerenciador") && (
-              <TableHead className="font-medium text-center">Opções</TableHead>
+              <SortableTableHead
+                columnId="options"
+                name="Opções"
+                sortable={false}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-medium text-center"
+              />
             )}
           </TableRow>
         </TableHeader>

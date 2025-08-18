@@ -1,15 +1,17 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCNPJ } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { createSortHandler, formatCNPJ } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TerminallsList } from "../serverActions/terminal";
 
 export default function TerminalsList({
@@ -17,37 +19,68 @@ export default function TerminalsList({
 }: {
   terminals: TerminallsList;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pt-BR");
   };
+
+  // Função para lidar com ordenação usando utilitário
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/terminals"
+  );
+
   return (
     <div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                Data de Inclusão
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Nº Lógico
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Nº Serial
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Estabelecimento
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Modelo
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>Status</TableHead>
-             
+              <SortableTableHead
+                columnId="dtinsert"
+                name="Data de Inclusão"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="logicalNumber"
+                name="Nº Lógico"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="serialNumber"
+                name="Nº Serial"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="merchantName"
+                name="Estabelecimento"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="model"
+                name="Modelo"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -17,13 +17,16 @@ export default async function LegalNaturesDetail({
     <>
       <BaseHeader
         breadcrumbItems={[
-          { title: "Naturezas Jurídicas", url: "/portal/legalNatures" },
+          { title: "Formatos Jurídicos", url: "/portal/legalNatures" },
         ]}
       />
       <BaseBody
-        title="Natureza Jurídica"
-       
-      subtitle={legalNature?.id ? "Editar Natureza Jurídica" : "Adicionar Natureza Jurídica"}
+        title="Formato Jurídico"
+        subtitle={
+          legalNature?.id
+            ? "Editar Formato Jurídico"
+            : "Adicionar Formato Jurídico"
+        }
       >
         <LegalNatureForm
           legalNature={{

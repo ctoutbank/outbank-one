@@ -1,28 +1,32 @@
 "use client";
 
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { ReportsList } from "@/features/reports/server/reports";
+import { createSortHandler } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ReportList({
   Reports,
 }: {
   Reports: ReportsList | undefined;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(searchParams, router, "/portal/reports");
+
   const formatDateTime = (date: Date) => {
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
   };
-
 
   return (
     <div>
@@ -30,39 +34,62 @@ export default function ReportList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                Título
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Tipo de Relatório
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Formato
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Recorrência
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-
-              <TableHead>
-                Período
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Data de Criação
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Email
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>
-                Horário
-                <ChevronDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
+              <SortableTableHead
+                columnId="title"
+                name="Título"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="reportType"
+                name="Tipo de Relatório"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="formatCode"
+                name="Formato"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="recurrenceCode"
+                name="Recorrência"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="periodCode"
+                name="Período"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="dtinsert"
+                name="Data de Criação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="emails"
+                name="Email"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="shippingTime"
+                name="Horário"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

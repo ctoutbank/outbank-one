@@ -21,7 +21,6 @@ import MerchantAgendaReceiptsTotal from "@/features/merchantAgenda/_components/m
 import { formatDate } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import type { DailyAmount } from "../server/merchantAgenda";
 
 interface TableViewProps {
@@ -31,6 +30,9 @@ interface TableViewProps {
   handleMonthChange: (newDate: Date) => void;
   setView: (view: "month" | "day") => void;
   status: string;
+  currentMonth: Date;
+  monthView: "calendar" | "table";
+  setMonthView: (view: "calendar" | "table") => void;
 }
 
 export function TableView({
@@ -40,10 +42,11 @@ export function TableView({
   total,
   setView,
   status,
+  currentMonth,
+  monthView,
+  setMonthView,
 }: TableViewProps) {
   const router = useRouter();
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [monthView, setMonthView] = useState<"calendar" | "table">("calendar");
 
   // Function to handle date click
   const handleDateClick = (date: string) => {
@@ -57,7 +60,6 @@ export function TableView({
   const goToPreviousMonth = () => {
     const prevMonth = new Date(currentMonth);
     prevMonth.setMonth(prevMonth.getMonth() - 1);
-    setCurrentMonth(prevMonth);
     handleMonthChange(prevMonth);
   };
 
@@ -65,7 +67,6 @@ export function TableView({
   const goToNextMonth = () => {
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    setCurrentMonth(nextMonth);
     handleMonthChange(nextMonth);
   };
 
@@ -104,6 +105,7 @@ export function TableView({
               total: total,
               view: "month",
               status: status,
+              isLoading: isLoading,
             }}
           />
         </div>

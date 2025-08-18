@@ -2,16 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
-import { formatDate } from "@/lib/utils";
+import { createSortHandler, formatDate } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { PricingSolicitationList } from "../server/pricing-solicitation";
 
@@ -20,6 +21,14 @@ export default function PricingSolicitationList({
 }: {
   solicitations: PricingSolicitationList;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/pricingSolicitation"
+  );
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -36,9 +45,27 @@ export default function PricingSolicitationList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>CNAE</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableTableHead
+                columnId="cnae"
+                name="CNAE"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="dtinsert"
+                name="Data"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
+              <SortableTableHead
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

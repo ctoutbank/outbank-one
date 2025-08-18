@@ -1,12 +1,11 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -15,9 +14,9 @@ import {
   adjustmentAJT,
   adjustmentReasons,
 } from "@/lib/lookuptables/lookuptables-adjustment";
-import { formatCNPJ } from "@/lib/utils";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { createSortHandler, formatCNPJ } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FinancialAdjustmentsList } from "../server/financialAdjustments";
 
 interface FinancialAdjustmentsListProps {
@@ -27,6 +26,14 @@ interface FinancialAdjustmentsListProps {
 export default function FinancialAdjustmentsList({
   adjustments,
 }: FinancialAdjustmentsListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/financialAdjustment"
+  );
+
   const formatCurrency = (value: string | null) => {
     if (!value) return "R$ 0,00";
     const numValue = parseFloat(value);
@@ -49,16 +56,62 @@ export default function FinancialAdjustmentsList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Previsao de Liquidação</TableHead>
-            <TableHead>Razao</TableHead>
-            <TableHead>Título</TableHead>
-            <TableHead>Motivo</TableHead>
-            <TableHead>NSU</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Estabelecimento</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <SortableTableHead
+              columnId="expectedSettlementDate"
+              name="Previsao de Liquidação"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="reason"
+              name="Razao"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="title"
+              name="Título"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="description"
+              name="Motivo"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="rrn"
+              name="NSU"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="grossValue"
+              name="Valor"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="merchants"
+              name="Estabelecimento"
+              sortable={false}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="active"
+              name="Status"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -71,9 +124,13 @@ export default function FinancialAdjustmentsList({
           ) : (
             adjustments.financialAdjustments.map((adjustment) => (
               <TableRow key={adjustment.id}>
-                <TableCell className="font-medium">{adjustment.id}</TableCell>
                 <TableCell>
-                  {adjustment.expectedSettlementDate?.toLocaleDateString()}
+                  <Link
+                    href={`/portal/financialAdjustment/${adjustment.id}`}
+                    className="underline"
+                  >
+                    {adjustment.expectedSettlementDate?.toLocaleDateString()}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   {adjustment.reason
@@ -112,34 +169,6 @@ export default function FinancialAdjustmentsList({
                   >
                     {adjustment.active ? "Ativo" : "Inativo"}
                   </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/portal/financialAdjustment/${adjustment.id}`}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/portal/financialAdjustment/${adjustment.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        // TODO: Implementar função de deletar
-                        console.log("Delete adjustment:", adjustment.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </TableCell>
               </TableRow>
             ))

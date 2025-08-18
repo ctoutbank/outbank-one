@@ -65,7 +65,7 @@ export default function Categorylist({
           <TableBody>
             {Categories.categories.map((categories) => (
               <TableRow key={categories.id}>
-                <TableCell>
+                <TableCell className="whitespace-nowrap">
                   <Link
                     className="text-primary underline"
                     href="/portal/caterogies/[id]"

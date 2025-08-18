@@ -439,46 +439,18 @@ export async function updatePaymentLink(
   paymentLinks: PaymentLinkDetail,
   shoppingItemsIn?: ShoppingItemsUpdate[]
 ): Promise<void> {
-  // Se o link tem slug, usar a função completa que atualiza na API
+  // Se tem slug, atualizar na API e no banco
   if (paymentLinks.slug) {
     await updateCompletePaymentLink(paymentLinks, shoppingItemsIn);
     return;
   }
 
   // Caso contrário, apenas atualizar no banco local
-  if (shoppingItemsIn && shoppingItemsIn.length > 0) {
-    const modifiedItems = shoppingItemsIn.filter((item) => item.wasModified);
-    const unmodifiedItems = shoppingItemsIn.filter((item) => !item.wasModified);
-
-    if (modifiedItems.length > 0) {
-      const shoppingItemsInsert: ShoppingItems[] = modifiedItems.map(
-        (insertItem) => ({
-          slug: generateSlug(),
-          name: insertItem.name,
-          quantity: insertItem.quantity,
-          amount: insertItem.amount,
-          idPaymentLink: paymentLinks.id,
-        })
-      );
-
-      await db.insert(shoppingItems).values(shoppingItemsInsert);
-    }
-
-    for (const item of unmodifiedItems) {
-      await db
-        .update(shoppingItems)
-        .set({
-          name: item.name,
-          quantity: item.quantity,
-          amount: item.amount,
-          idPaymentLink: item.idPaymentLink,
-        })
-        .where(eq(shoppingItems.slug, item.slug ?? ""));
-    }
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...paymentLinkUpdateData } = paymentLinks;
   await db
     .update(paymentLink)
-    .set(paymentLinks)
+    .set(paymentLinkUpdateData)
     .where(eq(paymentLink.id, paymentLinks.id));
 }
 
@@ -552,8 +524,19 @@ export async function updateAPIPaymentLink(
   );
 
   if (!response.ok) {
-    const errorMessage = `Falha ao atualizar link de pagamento: ${response.statusText}`;
-    console.error(response);
+    let errorDetails = `Status: ${response.status} - ${response.statusText}`;
+
+    try {
+      const errorResponse = await response.text();
+      errorDetails += `\nResponse: ${errorResponse}`;
+    } catch {
+      errorDetails += `\nCould not read response body`;
+    }
+
+    console.error("API Error Details:", errorDetails);
+    console.error("Request Data:", JSON.stringify(formattedData, null, 2));
+
+    const errorMessage = `Falha ao atualizar link de pagamento: ${errorDetails}`;
     throw new Error(errorMessage);
   }
 
@@ -567,7 +550,6 @@ export type UpdatePaymentLinkAPI = {
   totalAmount: string;
   documentId: string;
   dtExpiration: string;
-  productType: string;
   installments: number;
   shoppingItems?: ShoppingItem[];
 };
@@ -615,80 +597,63 @@ export async function updateCompletePaymentLink(
       return amount;
     };
 
-    // 2. Prepara dados para atualização na API
+    // 2. Prepara dados para atualização na API (removendo campos proibidos)
     const updateData: UpdatePaymentLinkAPI = {
       linkName: paymentLinks.linkName || "",
       totalAmount: validateAndFormatAmount(paymentLinks.totalAmount || "0"),
-      documentId: merchant[0]?.idDocument || "0MerchantDock1", // Valor padrão como fallback
+      documentId: merchant[0]?.idDocument || "0MerchantDock1",
       dtExpiration: formatExpirationDate(paymentLinks.dtExpiration || ""),
       installments: paymentLinks.installments || 0,
-      productType: paymentLinks.productType || "CREDIT",
+      // REMOVIDO: productType (não pode ser alterado via PUT)
     };
 
-    // 3. Adiciona itens de compra se existirem
+    // 3. Processar itens de compra
     if (shoppingItemsIn && shoppingItemsIn.length > 0) {
       updateData.shoppingItems = shoppingItemsIn.map((item) => ({
         name: item.name,
         quantity: item.quantity,
         amount: validateAndFormatAmount(item.amount),
       }));
+    } else {
+      updateData.shoppingItems = [];
     }
 
-    // 4. Chama a API para atualizar o link
-    if (paymentLinks.slug) {
-      const response = await updateAPIPaymentLink(
-        paymentLinks.slug,
-        updateData
-      );
-      console.log("API update response:", response);
+    // 4. Atualiza na API e captura a resposta
+    const apiResponse = await updateAPIPaymentLink(
+      paymentLinks.slug!,
+      updateData
+    );
 
-      // 5. Atualiza os itens de compra no banco local
-      if (shoppingItemsIn && shoppingItemsIn.length > 0) {
-        const modifiedItems = shoppingItemsIn.filter(
-          (item) => item.wasModified
-        );
-        const unmodifiedItems = shoppingItemsIn.filter(
-          (item) => !item.wasModified
-        );
+    // 5. Remove todos os shoppingItems existentes do banco
+    await db
+      .delete(shoppingItems)
+      .where(eq(shoppingItems.idPaymentLink, paymentLinks.id));
 
-        // Adiciona novos itens
-        if (modifiedItems.length > 0) {
-          const shoppingItemsInsert: ShoppingItems[] = modifiedItems.map(
-            (insertItem) => ({
-              slug: generateSlug(),
-              name: insertItem.name,
-              quantity: insertItem.quantity,
-              amount: insertItem.amount,
-              idPaymentLink: paymentLinks.id,
-            })
-          );
-
-          await db.insert(shoppingItems).values(shoppingItemsInsert);
-        }
-
-        // Atualiza itens existentes
-        for (const item of unmodifiedItems) {
-          await db
-            .update(shoppingItems)
-            .set({
-              name: item.name,
-              quantity: item.quantity,
-              amount: item.amount,
-              idPaymentLink: item.idPaymentLink,
-            })
-            .where(eq(shoppingItems.slug, item.slug ?? ""));
-        }
-      }
+    // 6. Insere os novos shoppingItems
+    if (shoppingItemsIn && shoppingItemsIn.length > 0) {
+      const newItems = shoppingItemsIn.map((item) => ({
+        slug: generateSlug(),
+        name: item.name,
+        quantity: item.quantity,
+        amount: item.amount,
+        idPaymentLink: paymentLinks.id,
+      }));
+      await db.insert(shoppingItems).values(newItems);
     }
 
-    // 6. Atualiza o registro no banco local
+    // 7. Atualiza o registro no banco local
+    console.log("Atualizando banco local com ID:", paymentLinks.id);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...paymentLinkUpdateData } = paymentLinks;
     await db
       .update(paymentLink)
       .set({
-        ...paymentLinks,
+        ...paymentLinkUpdateData,
         dtupdate: DateTime.utc().toISO() || new Date().toISOString(),
+        linkUrl: apiResponse.linkUrl, // Atualiza com o linkUrl retornado pela API
       })
       .where(eq(paymentLink.id, paymentLinks.id));
+    console.log("Banco local atualizado com sucesso");
   } catch (error) {
     console.error("Erro ao atualizar link de pagamento:", error);
     throw new Error("Erro ao atualizar o link de pagamento");

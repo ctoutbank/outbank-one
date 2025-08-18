@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -17,12 +18,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  createSortHandler,
   formatCurrency,
   formatDate,
   getStatusColor,
   translateCardType,
   translateStatus,
 } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MerchantSettlementList } from "../server/settlements";
 import VoucherDownload from "./exportfile";
@@ -45,6 +48,13 @@ export default function MerchantSettlementsList({
   merchantSettlementList: MerchantSettlementList;
 }) {
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/settlements"
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -60,27 +70,62 @@ export default function MerchantSettlementsList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-semibold w-[20%] min-w-[180px] text-black">
-                Estabelecimento
-              </TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">
-                Valor Líquido Recebíveis
-              </TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">
-                Valor Líquido Antecipação
-              </TableHead>
-              <TableHead className="font-semibold w-[12%] min-w-[120px] text-center text-black">
-                Valor de Ajuste
-              </TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">
-                Valor Pendente
-              </TableHead>
-              <TableHead className="font-semibold w-[15%] min-w-[140px] text-center text-black">
-                Valor Total de Liquidação
-              </TableHead>
-              <TableHead className="font-semibold w-[8%] min-w-[100px] text-center text-black">
-                Status
-              </TableHead>
+              <SortableTableHead
+                columnId="merchant"
+                name="Estabelecimento"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[20%] min-w-[180px] text-black"
+              />
+              <SortableTableHead
+                columnId="batchamount"
+                name="Valor Líquido Recebíveis"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+              />
+              <SortableTableHead
+                columnId="totalanticipationamount"
+                name="Valor Líquido Antecipação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+              />
+              <SortableTableHead
+                columnId="pendingfinancialadjustmentamount"
+                name="Valor de Ajuste"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[12%] min-w-[120px] text-center text-black"
+              />
+              <SortableTableHead
+                columnId="pendingrestitutionamount"
+                name="Valor Pendente"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+              />
+              <SortableTableHead
+                columnId="totalsettlementamount"
+                name="Valor Total de Liquidação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+              />
+              <SortableTableHead
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
+                className="font-semibold w-[8%] min-w-[100px] text-center text-black"
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

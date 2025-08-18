@@ -4,7 +4,7 @@ import {
   getCustomerByTentant,
   getUserMerchantsAccess,
 } from "@/features/users/server/users";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import {
   customerCustomization,
@@ -62,7 +62,8 @@ export async function getFinancialAdjustments(
   pageSize: number,
   type?: string,
   reason?: string,
-  active?: string
+  active?: string,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<FinancialAdjustmentsList> {
   const customer = await getCustomerByTentant();
 
@@ -97,6 +98,24 @@ export async function getFinancialAdjustments(
 
   conditions.push(eq(customers.slug, customer.slug));
 
+  // Configurar ordenação
+  const sortFieldMap: { [key: string]: any } = {
+    expectedSettlementDate: financialAdjustments.expectedSettlementDate,
+    reason: financialAdjustments.reason,
+    title: financialAdjustments.title,
+    description: financialAdjustments.description,
+    rrn: financialAdjustments.rrn,
+    grossValue: financialAdjustments.grossValue,
+    recurrence: financialAdjustments.recurrence,
+    startDate: financialAdjustments.startDate,
+    active: financialAdjustments.active,
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || financialAdjustments.id;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
   // Primeiro, buscar os ajustes financeiros únicos
   const adjustmentsResult = await db
     .select({
@@ -121,7 +140,7 @@ export async function getFinancialAdjustments(
     .from(financialAdjustments)
     .innerJoin(customers, eq(financialAdjustments.idCustomer, customers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(financialAdjustments.id))
+    .orderBy(orderByClause)
     .limit(pageSize)
     .offset(offset);
 
@@ -292,13 +311,15 @@ export async function insertFinancialAdjustment(
 export async function updateFinancialAdjustment(
   adjustment: FinancialAdjustmentDetail
 ): Promise<void> {
+  // Remove o campo id do objeto de atualização
+  const { id, ...fieldsToUpdate } = adjustment;
   await db
     .update(financialAdjustments)
     .set({
-      ...adjustment,
+      ...fieldsToUpdate,
       dtupdate: new Date().toISOString(),
     })
-    .where(eq(financialAdjustments.id, adjustment.id));
+    .where(eq(financialAdjustments.id, id));
 }
 
 export async function deleteFinancialAdjustment(id: number): Promise<void> {

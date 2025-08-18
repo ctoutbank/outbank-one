@@ -245,9 +245,11 @@ export default function ProfileManagement({
 
       if (data.id) {
         await updateProfile(data.id, profileData);
+        toast.dismiss();
         toast.success("Perfil atualizado com sucesso!");
       } else {
         await insertProfile(profileData);
+        toast.dismiss();
         toast.success("Perfil criado com sucesso!");
       }
     } catch (error) {

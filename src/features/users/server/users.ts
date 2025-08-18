@@ -4,7 +4,7 @@ import { hashPassword } from "@/app/utils/password";
 import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
-import {auth, clerkClient, currentUser} from "@clerk/nextjs/server";
+import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
