@@ -254,7 +254,12 @@ export async function insertProfile(
   // Process modules and their associated functions
   for (const moduleVar of profileData.module ? profileData.module : []) {
     for (const groupItem of moduleVar.group) {
-      for (const func of groupItem.functions) {
+      // Only process functions that are selected
+      const selectedFunctions = groupItem.functions.filter(
+        (func) => func.selected
+      );
+
+      for (const func of selectedFunctions) {
         // First, verify that the function belongs to the specified module
         const moduleFunction = await db
           .select()
