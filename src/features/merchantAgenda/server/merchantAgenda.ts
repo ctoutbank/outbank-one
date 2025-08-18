@@ -228,7 +228,7 @@ export async function getMerchantAgenda(
   const result = await db
     .select({
       merchant: merchants.name,
-      saleDate: payout.transactionDate,
+      saleDate: payout.effectivePaymentDate,
       type: payout.type,
       brand: payout.brand,
       installmentNumber: payout.installmentNumber,
@@ -289,7 +289,7 @@ export async function getMerchantAgenda(
   return {
     merchantAgenda: result.map((merchantAgendaMap) => ({
       merchant: merchantAgendaMap.merchant || "",
-      saleDate: new Date(merchantAgendaMap.saleDate || ""),
+      saleDate: new Date(merchantAgendaMap.effectivePaymentDate || ""),
       type: merchantAgendaMap.type || "",
       brand: merchantAgendaMap.brand || "",
       installmentNumber: merchantAgendaMap.installmentNumber || 0,
@@ -409,7 +409,7 @@ export async function getMerchantAgendaExcel(
   const result = await db
     .select({
       merchant: merchants.name,
-      saleDate: payout.transactionDate,
+      saleDate: payout.effectivePaymentDate,
       type: payout.type,
       brand: payout.brand,
       installmentNumber: payout.installmentNumber,
@@ -441,7 +441,7 @@ export async function getMerchantAgendaExcel(
   return {
     merchantAgenda: result.map((merchantAgendaMap) => ({
       merchant: merchantAgendaMap.merchant || "",
-      saleDate: new Date(merchantAgendaMap.saleDate || ""),
+      saleDate: new Date(merchantAgendaMap.effectivePaymentDate || ""),
       type: merchantAgendaMap.type || "",
       brand: merchantAgendaMap.brand || "",
       installmentNumber: merchantAgendaMap.installmentNumber || 0,

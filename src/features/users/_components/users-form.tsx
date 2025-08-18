@@ -81,7 +81,10 @@ export default function UserForm({
     user?.selectedMerchants || []
   );
   const [merchantsList, setMerchantsList] = useState<DD[]>([]);
-  setMerchantsList([]);
+
+  useEffect(() => {
+    setMerchantsList([]);
+  }, []);
   const filteredMerchants = useMemo(() => {
     return merchantsList.filter(
       (merchant) => !selectedMerchants.includes(merchant.id.toString())

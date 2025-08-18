@@ -5,7 +5,7 @@ import { getProfiles } from "@/features/users/server/profiles";
 import {
   getDDMerchants,
   getDDProfiles,
-  getUsers
+  getUsers,
 } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { cache } from "react";
@@ -49,6 +49,8 @@ async function UsersTabContent({
   );
   const DDProfile = await getCachedDDProfiles();
   const DDMerchant = await getCachedDDMerchants();
+
+  console.log("usuários", users)
 
   return { users, DDProfile, DDMerchant };
 }

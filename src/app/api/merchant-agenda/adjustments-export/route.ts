@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda"
+import { getMerchantAgendaAdjustment } from "@/features/merchantAgenda/server/merchantAgendaAdjustment"
 
 export async function GET(req: NextRequest) {
     try {
@@ -11,15 +11,16 @@ export async function GET(req: NextRequest) {
         const dateFrom = searchParams.get("dateFrom") || undefined;
         const dateTo = searchParams.get("dateTo") || undefined;
         const establishment = searchParams.get("establishment") || undefined;
-        const status = searchParams.get("status") || undefined;
+        const search = searchParams.get("search") || "";
 
-        const result = await getMerchantAgenda(
+        const result = await getMerchantAgendaAdjustment(
+            search,
             page,
             pageSize,
             dateFrom,
             dateTo,
             establishment,
-            status
+
         );
 
         return NextResponse.json(result);

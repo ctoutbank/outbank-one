@@ -83,8 +83,7 @@ export default function EdisList({ list }: { list: EdisListType }) {
                   <div className="flex items-center gap-2">
                     <Link
                       className="text-primary underline"
-                      href="/portal/edis/[id]"
-                      as={`/portal/edis/${file.id}`}
+                      href="#"
                     >
                       {file.name}
                     </Link>
@@ -108,7 +107,7 @@ export default function EdisList({ list }: { list: EdisListType }) {
                 <TableCell>{file.size}</TableCell>
                 <TableCell>
                   <Link
-                    href={`/portal/edis/${file.id}`}
+                    href="#"
                     className="text-primary text-sm"
                   >
                     Detalhes

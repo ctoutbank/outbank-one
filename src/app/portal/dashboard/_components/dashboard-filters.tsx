@@ -4,11 +4,15 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon, ChevronDown } from "lucide-react"
+import { CalendarIcon, ChevronDown } from 'lucide-react'
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
-export default function DashboardFilters() {
+export default function DashboardFilters({
+                                             onFilterApply
+                                         }: {
+    onFilterApply?: () => void
+}) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -20,9 +24,13 @@ export default function DashboardFilters() {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleApplyFilter = () => {
+        // Chama a função para ativar o loading no dashboard
+        onFilterApply?.()
+
         const params = new URLSearchParams()
         if (dateFrom) params.set("dateFrom", dateFrom)
         if (dateTo) params.set("dateTo", dateTo)
+
         router.push(`/portal/dashboard?${params.toString()}`)
         setIsOpen(false)
     }
@@ -38,7 +46,7 @@ export default function DashboardFilters() {
             <PopoverTrigger asChild>
                 <Button
                     variant="ghost"
-                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:text-white text-white border-white/20 border "
+                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:text-white text-white border-white/20 border"
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     <span className="text-sm">Personalizado...</span>
@@ -129,7 +137,11 @@ export default function DashboardFilters() {
                     )}
 
                     <div className="flex justify-end pt-2 border-t">
-                        <Button onClick={handleApplyFilter} size="sm" className="text-xs">
+                        <Button
+                            onClick={handleApplyFilter}
+                            size="sm"
+                            className="text-xs"
+                        >
                             Aplicar filtro
                         </Button>
                     </div>

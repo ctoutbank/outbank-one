@@ -23,17 +23,20 @@ interface ExcelExportProps<T> {
   onClick?: () => void;
   onlyIcon?: boolean;
   hasDateFilter?: boolean;
+
+  fetchAllData?: () => Promise<T[]>;
 }
 
 export default function ExcelExport<T>({
-  data,
-  globalStyles,
-  sheetName,
-  fileName,
-  onClick,
-  onlyIcon = false,
-  hasDateFilter = false,
-}: ExcelExportProps<T>) {
+                                         data,
+                                         globalStyles,
+                                         sheetName,
+                                         fileName,
+                                         onClick,
+                                         onlyIcon = false,
+                                         hasDateFilter = false,
+                                         fetchAllData,
+                                       }: ExcelExportProps<T>) {
   const downloadExcel = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,7 +44,6 @@ export default function ExcelExport<T>({
     try {
       console.log("Download Excel started");
 
-      // Verificar se há filtro de data
       if (!hasDateFilter) {
         toast.error("Filtre por uma data primeiro para exportar os dados.");
         return;
@@ -51,7 +53,13 @@ export default function ExcelExport<T>({
         onClick();
       }
 
-      if (data.length === 0) {
+      let exportData = data;
+      if (fetchAllData) {
+        toast.info("Carregando todos os dados para exportar...");
+        exportData = await fetchAllData();
+      }
+
+      if (exportData.length === 0) {
         console.warn("No data provided for Excel export");
         toast.error("Não há dados para exportar.");
         return;
@@ -60,8 +68,7 @@ export default function ExcelExport<T>({
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(sheetName);
 
-      const headers = Object.keys(data[0] as object);
-
+      const headers = Object.keys(exportData[0] as object);
       const headerRow = worksheet.addRow(headers);
 
       if (globalStyles?.header) {
@@ -79,11 +86,10 @@ export default function ExcelExport<T>({
         };
       });
 
-      data.forEach((rowData, index) => {
+      exportData.forEach((rowData, ) => {
         const rowValues = headers.map(
-          (header) => (rowData as any)[header] ?? ""
+            (header) => (rowData as any)[header] ?? ""
         );
-        console.log(`Processing row ${index + 1}:`, rowValues);
         const row = worksheet.addRow(rowValues);
 
         if (globalStyles?.row) {
@@ -149,26 +155,26 @@ export default function ExcelExport<T>({
   };
 
   return (
-    <div className="flex justify-end">
-      {onlyIcon ? (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={downloadExcel}
-          className="h-8 w-8 p-0"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-      ) : (
-        <Button
-          onClick={downloadExcel}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Exportar
-        </Button>
-      )}
-    </div>
+      <div className="flex justify-end">
+        {onlyIcon ? (
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={downloadExcel}
+                className="h-8 w-8 p-0"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+        ) : (
+            <Button
+                onClick={downloadExcel}
+                variant="outline"
+                className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+        )}
+      </div>
   );
 }

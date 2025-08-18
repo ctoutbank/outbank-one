@@ -4,8 +4,8 @@ import { hashPassword } from "@/app/utils/password";
 import { sendWelcomePasswordEmail } from "@/app/utils/send-email";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
-import { clerkClient, currentUser } from "@clerk/nextjs/server";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import {auth, clerkClient, currentUser} from "@clerk/nextjs/server";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import {
@@ -73,108 +73,127 @@ export interface UserDetailForm extends UserDetail {
 }
 
 export async function getUsers(
-  email: string,
-  firstName: string,
-  lastName: string,
-  profile: number,
-  page: number,
-  pageSize: number
+    email: string,
+    firstName: string,
+    lastName: string,
+    profile: number,
+    page: number,
+    pageSize: number
 ): Promise<UserList> {
-  const customer = await getCustomerByTentant();
+  const clerk = await clerkClient();
 
+  // Logar todos os usuários do Clerk (paginação completa)
+  let allClerkUsers: any[] = [];
+  const limit = 100;
+  let offsetAll = 0;
+  while (true) {
+    const chunk = await clerk.users.getUserList({ limit, offset: offsetAll });
+    allClerkUsers = allClerkUsers.concat(chunk.data);
+    if (chunk.data.length < limit) break;
+    offsetAll += limit;
+  }
+
+  console.log("=== TODOS USUÁRIOS DO CLERK ===");
+  allClerkUsers.forEach(u => {
+    console.log({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.emailAddresses?.[0]?.emailAddress || "",
+    });
+  });
+  console.log(`Total de usuários Clerk: ${allClerkUsers.length}`);
+
+  // Continua com seu código normalmente
+
+  const customer = await getCustomerByTentant();
   const offset = (page - 1) * pageSize;
 
-  const userListParams = {
-    limit: pageSize,
-    offset: offset,
-    emailAddress: email ? [email] : undefined,
-    query: firstName
-      ? lastName
-        ? firstName + " " + lastName
-        : firstName
-      : undefined,
-  };
-
-  const clerk = await clerkClient();
-  const clerkResult = (await clerk.users.getUserList(userListParams)).data;
   const conditions = [
     customer ? eq(customers.slug, customer.slug) : undefined,
     profile ? eq(users.idProfile, profile) : undefined,
+    email && email.trim() !== "" ? eq(users.email, email) : undefined,
   ].filter(Boolean);
 
-  if (clerkResult.length == 0) {
-    return {
-      userObject: null,
-      totalCount: 0,
-    };
-  }
-
-  if (email && email.trim() !== "" && clerkResult.length > 0) {
-    const clerkIds = clerkResult.map((clerk: any) => clerk.id);
-    conditions.push(inArray(users.idClerk, clerkIds));
-  }
-
-  // First, get all users that match the conditions
   const userResults = await db
-    .select({
-      id: users.id,
-      profileName: profiles.name,
-      profileDescription: profiles.description,
-      status: users.active,
-      customerName: customers.name,
-      idClerk: users.idClerk,
-    })
-    .from(users)
-    .innerJoin(customers, eq(users.idCustomer, customers.id))
-    .leftJoin(profiles, eq(users.idProfile, profiles.id))
-    .where(and(...conditions))
-    .orderBy(desc(users.id))
-    .limit(pageSize)
-    .offset(offset);
+      .select({
+        id: users.id,
+        profileName: profiles.name,
+        profileDescription: profiles.description,
+        status: users.active,
+        customerName: customers.name,
+        idClerk: users.idClerk,
+      })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .leftJoin(profiles, eq(users.idProfile, profiles.id))
+      .where(and(...conditions))
+      .orderBy(desc(users.id))
+      .limit(pageSize)
+      .offset(offset);
 
-  // Then, for each user, get their merchants
+  if (userResults.length === 0) {
+    return { userObject: null, totalCount: 0 };
+  }
+
+  const dbClerkIds = userResults
+      .map(u => u.idClerk)
+      .filter((id): id is string => !!id);
+
+  const clerkResult = (await clerk.users.getUserList({ userId: dbClerkIds })).data;
+
   const userObject = await Promise.all(
-    userResults.map(async (dbUser) => {
-      const clerkData = clerkResult.find(
-        (clerk: any) => clerk.id === dbUser.idClerk
-      );
-      // Get user's merchants
-      const userMerchantsList = await db
-        .select({
-          id: merchants.id,
-          name: merchants.name,
-        })
-        .from(userMerchants)
-        .leftJoin(merchants, eq(userMerchants.idMerchant, merchants.id))
-        .where(eq(userMerchants.idUser, dbUser.id));
+      userResults.map(async (dbUser) => {
+        const clerkData = clerkResult.find((c: any) => c.id === dbUser.idClerk);
 
-      const merchantsList = userMerchantsList.map((merchant) => ({
-        id: merchant.id!,
-        name: merchant.name,
-      }));
+        // Merchants do usuário
+        const userMerchantsList = await db
+            .select({
+              id: merchants.id,
+              name: merchants.name,
+            })
+            .from(userMerchants)
+            .leftJoin(merchants, eq(userMerchants.idMerchant, merchants.id))
+            .where(eq(userMerchants.idUser, dbUser.id));
 
-      return {
-        id: dbUser.id,
-        firstName: clerkData?.firstName || "",
-        lastName: clerkData?.lastName || "",
-        email: clerkData?.emailAddresses[0].emailAddress || "",
-        profileName: dbUser.profileName || "",
-        profileDescription: dbUser.profileDescription || "",
-        status: dbUser.status || true,
-        customerName: dbUser.customerName || "",
-        merchants: merchantsList,
-        idClerk: dbUser.idClerk || "",
-      };
-    })
+        const merchantsList = userMerchantsList.map((m) => ({
+          id: m.id!,
+          name: m.name,
+        }));
+
+        if (!clerkData) {
+          console.warn(`Clerk user not found for idClerk: ${dbUser.idClerk}`);
+        }
+
+        return {
+          id: dbUser.id,
+          firstName: clerkData?.firstName || "",
+          lastName: clerkData?.lastName || "",
+          email: clerkData?.emailAddresses?.[0]?.emailAddress || "",
+          profileName: dbUser.profileName || "",
+          profileDescription: dbUser.profileDescription || "",
+          status: dbUser.status ?? true,
+          customerName: dbUser.customerName || "",
+          merchants: merchantsList,
+          idClerk: dbUser.idClerk || "",
+        };
+      })
   );
 
-  const totalCountResult = await db
-    .select({ count: count() })
-    .from(users)
-    .innerJoin(customers, eq(users.idCustomer, customers.id))
-    .where(and(...conditions));
+  console.log("clerkResult", clerkResult.map(u => ({
+    id: u.id,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    email: u.emailAddresses[0]?.emailAddress
+  })));
 
-  const totalCount = totalCountResult[0]?.count || 0;
+  const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .innerJoin(customers, eq(users.idCustomer, customers.id))
+      .where(and(...conditions))
+      .then(res => res[0]?.count || 0);
+
   return {
     userObject,
     totalCount,
@@ -192,6 +211,27 @@ export async function generateRandomPassword(length = 6) {
 }
 
 export async function InsertUser(data: UserInsert) {
+  // Função auxiliar para converter valores numéricos de forma segura
+  const safeNumber = (val: any, fieldName: string) => {
+    const num = Number(val);
+    if (!Number.isFinite(num)) {
+      console.error(`⚠️ Valor inválido para campo numérico "${fieldName}":`, val);
+      throw new Error(`Valor inválido para campo numérico: ${fieldName}`);
+    }
+    return num;
+  };
+
+
+  const  userId  = auth()
+  if (!userId)  throw new Error("Usuário não autenticado");
+
+  console.log("USERID AQUI", userId)
+
+
+  // Log inicial
+  console.log("📥 Dados recebidos para InsertUser:");
+  console.dir(data, { depth: null });
+
   const fieldsToValidate: (keyof UserInsert)[] = [
     "firstName",
     "lastName",
@@ -202,9 +242,9 @@ export async function InsertUser(data: UserInsert) {
   const hasEmptyFields = fieldsToValidate.some((field) => {
     const value = data[field];
     return (
-      value === null ||
-      value === undefined ||
-      (typeof value === "string" && value.trim() === "")
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "")
     );
   });
 
@@ -213,8 +253,9 @@ export async function InsertUser(data: UserInsert) {
   }
 
   try {
+    // Criar usuário no Clerk
     const clerkUser = await (
-      await clerkClient()
+        await clerkClient()
     ).users.createUser({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -226,58 +267,64 @@ export async function InsertUser(data: UserInsert) {
     });
 
     const password = await generateRandomPassword();
-
     const hashedPassword = hashPassword(password);
-    console.log(password);
+    console.log("🔑 Senha gerada para novo usuário:", password);
 
+    const idCustomer = await getCustomerIdByTentant()
+
+    // Inserir no banco
     const newUser = await db
-      .insert(users)
-      .values({
-        slug: generateSlug(),
-        dtinsert: new Date().toISOString(),
-        dtupdate: new Date().toISOString(),
-        active: true,
-        idClerk: clerkUser.id,
-        idCustomer: data.idCustomer,
-        idProfile: data.idProfile,
-        idAddress: data.idAddress,
-        fullAccess: data.fullAccess,
-        hashedPassword: hashedPassword,
-        email: data.email,
-      })
+        .insert(users)
+        .values({
+          slug: generateSlug(),
+          dtinsert: new Date().toISOString(),
+          dtupdate: new Date().toISOString(),
+          active: true,
+          idClerk: clerkUser.id,
+          idCustomer: idCustomer,
+          idProfile: safeNumber(data.idProfile, "idProfile"),
+          idAddress: safeNumber(data.idAddress, "idAddress"),
+          fullAccess: data.fullAccess,
+          hashedPassword: hashedPassword,
+          email: data.email,
+        })
+        .returning({ id: users.id });
 
-      .returning({ id: users.id });
+    console.log("✅ Usuário inserido com ID:", newUser[0].id);
 
+    // Enviar e-mail de boas-vindas
     await sendWelcomePasswordEmail(data.email, password);
 
-    // Insert user-merchant relationships if any merchants are selected
+    // Relacionar com merchants
     if (data.selectedMerchants && data.selectedMerchants.length > 0) {
+      console.log("🛍 Merchants selecionados:", data.selectedMerchants);
+
       const userMerchantValues = data.selectedMerchants.map((merchantId) => ({
         slug: generateSlug(),
         dtinsert: new Date().toISOString(),
         dtupdate: new Date().toISOString(),
         active: true,
         idUser: newUser[0].id,
-        idMerchant: Number(merchantId),
+        idMerchant: safeNumber(merchantId, "idMerchant"),
       }));
 
       await db.insert(userMerchants).values(userMerchantValues);
     }
 
     revalidatePath("/portal/users");
-    console.log("newUser", newUser);
+    console.log("🎉 Usuário criado com sucesso:", newUser);
     return newUser;
   } catch (error: any) {
-    console.error("Erro ao criar usuário:", error);
+    console.error("❌ Erro ao criar usuário:", error);
 
-    // Verificar se é um erro de segurança de senha
+    // Verificar erro de senha comprometida (Clerk)
     if (error.status === 422 && error.errors && error.errors.length > 0) {
       const passwordError = error.errors.find(
-        (e: any) => e.code === "form_password_pwned"
+          (e: any) => e.code === "form_password_pwned"
       );
       if (passwordError) {
         throw new Error(
-          "Senha comprometida: Essa senha foi encontrada em vazamentos de dados. Por favor, escolha uma senha mais segura."
+            "Senha comprometida: Essa senha foi encontrada em vazamentos de dados. Por favor, escolha uma senha mais segura."
         );
       }
     }
@@ -285,6 +332,7 @@ export async function InsertUser(data: UserInsert) {
     throw error;
   }
 }
+
 
 export async function updateUser(id: number, data: UserInsert) {
   if (!id) {
@@ -778,5 +826,7 @@ export async function getCustomerIdByTentant() {
     throw new Error(`Customer não encontrado para o tenant: ${tenant}`);
   }
 
+  console.log("CUSTOMER_ID AQUI:", customer[0].id)
   return customer[0].id;
+
 }

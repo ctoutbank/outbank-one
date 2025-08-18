@@ -96,6 +96,12 @@ export function MerchantAgendaTabs({
 
   // Fetch data in parallel for better performance
   const merchantAgenda = merchantAgendaTabsProps.merchantAgenda;
+  console.log(
+      "[MerchantAgenda Debug] registros carregados na tela:",
+      merchantAgenda.merchantAgenda.length,
+      " | totalCount informado pela API:",
+      merchantAgenda.totalCount
+  );
   const merchantAgendaAnticipation =
     merchantAgendaTabsProps.merchantAgendaAnticipation;
   const merchantAgendaAdjustment =
@@ -199,40 +205,64 @@ export function MerchantAgendaTabs({
           </div>
           <div>
             {activeTab === "receivables" ? (
-              <ExcelExport
-                data={merchantAgenda.merchantAgenda.map((data) => ({
-                  Merchant: data.merchant,
-                  NSU: data.rnn,
-                  SaleDate: data.effectivePaymentDate,
-                  Type: data.type,
-                  Brand: data.brand,
-                  InstallmentNumber: data.installmentNumber,
-                  Installments: data.installments,
-                  GrossAmount: data.grossAmount,
-                  FeePercentage: data.feePercentage,
-                  FeeAmount: data.feeAmount,
-                  NetAmount: data.netAmount,
-                  ExpectedSettlementDate: data.expectedSettlementDate,
-                  SettledAmount: data.settledAmount,
-                  SettlementDate: data.settlementDate,
-                  EffectivePaymentDate: data.effectivePaymentDate,
-                  PaymentNumber: data.paymentNumber,
-                }))}
-                hasDateFilter={
-                  (!!merchantAgendaTabsProps.searchParams.dateFrom &&
-                    !!merchantAgendaTabsProps.searchParams.dateTo) ||
-                  (!!merchantAgendaTabsProps.searchParams.settlementDateFrom &&
-                    !!merchantAgendaTabsProps.searchParams.settlementDateTo) ||
-                  (!!merchantAgendaTabsProps.searchParams
-                    .expectedSettlementDateFrom &&
-                    !!merchantAgendaTabsProps.searchParams
-                      .expectedSettlementDateTo)
-                }
-                globalStyles={globalStyles}
-                sheetName="Conciliação de recebíveis"
-                fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
-              />
-            ) : activeTab === "anticipations" ? (
+                <ExcelExport
+                    data={merchantAgenda.merchantAgenda.map((data) => ({
+                      Merchant: data.merchant,
+                      NSU: data.rnn,
+                      SaleDate: data.effectivePaymentDate,
+                      Type: data.type,
+                      Brand: data.brand,
+                      InstallmentNumber: data.installmentNumber,
+                      Installments: data.installments,
+                      GrossAmount: data.grossAmount,
+                      FeePercentage: data.feePercentage,
+                      FeeAmount: data.feeAmount,
+                      NetAmount: data.netAmount,
+                      ExpectedSettlementDate: data.expectedSettlementDate,
+                      SettledAmount: data.settledAmount,
+                      SettlementDate: data.settlementDate,
+                      EffectivePaymentDate: data.effectivePaymentDate,
+                      PaymentNumber: data.paymentNumber,
+                    }))}
+                    fetchAllData={async () => {
+                      const params = new URLSearchParams(
+                          merchantAgendaTabsProps.searchParams as any
+                      );
+                      const res = await fetch(`/api/merchant-agenda/export?${params.toString()}`);
+                      const json = await res.json();
+
+                      return json.merchantAgenda.map((data: any) => ({
+                        Merchant: data.merchant,
+                        NSU: data.rnn,
+                        SaleDate: data.effectivePaymentDate,
+                        Type: data.type,
+                        Brand: data.brand,
+                        InstallmentNumber: data.installmentNumber,
+                        Installments: data.installments,
+                        GrossAmount: data.grossAmount,
+                        FeePercentage: data.feePercentage,
+                        FeeAmount: data.feeAmount,
+                        NetAmount: data.netAmount,
+                        ExpectedSettlementDate: data.expectedSettlementDate,
+                        SettledAmount: data.settledAmount,
+                        SettlementDate: data.settlementDate,
+                        EffectivePaymentDate: data.effectivePaymentDate,
+                        PaymentNumber: data.paymentNumber,
+                      }));
+                    }}
+                    hasDateFilter={
+                        (!!merchantAgendaTabsProps.searchParams.dateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.dateTo) ||
+                        (!!merchantAgendaTabsProps.searchParams.settlementDateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.settlementDateTo) ||
+                        (!!merchantAgendaTabsProps.searchParams.expectedSettlementDateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.expectedSettlementDateTo)
+                    }
+                    globalStyles={globalStyles}
+                    sheetName="Conciliação de recebíveis"
+                    fileName={`CONCILIAÇÃO DE RECEBÍVEIS ${dateTo || ""}`}
+                />
+            ): activeTab === "anticipations" ? (
               <ExcelExport
                 data={merchantAgendaAnticipation.merchantAgendaAnticipations.map(
                   (data) => ({
@@ -266,32 +296,47 @@ export function MerchantAgendaTabs({
                 fileName={`CONCILIAÇÃO DE ANTECIPAÇÕES ${dateTo || ""}`}
               />
             ) : (
-              <ExcelExport
-                data={merchantAgendaAdjustment.merchantAgendaAdjustments.map(
-                  (data: MerchantAgendaAdjustment) => ({
-                    Merchant: data.merchantName,
-                    PaymentDate: data.paymentDate,
-                    Amount: data.amount,
-                    Type: data.type,
-                    Title: data.title,
-                    Reason: data.reason,
-                    AdjustmentType: data.adjustmentType,
-                  })
-                )}
-                hasDateFilter={
-                  (!!merchantAgendaTabsProps.searchParams.dateFrom &&
-                    !!merchantAgendaTabsProps.searchParams.dateTo) ||
-                  (!!merchantAgendaTabsProps.searchParams.settlementDateFrom &&
-                    !!merchantAgendaTabsProps.searchParams.settlementDateTo) ||
-                  (!!merchantAgendaTabsProps.searchParams
-                    .expectedSettlementDateFrom &&
-                    !!merchantAgendaTabsProps.searchParams
-                      .expectedSettlementDateTo)
-                }
-                globalStyles={globalStyles}
-                sheetName="Conciliação de ajustes"
-                fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}.xlsx`}
-              />
+                <ExcelExport
+                    data={merchantAgendaAdjustment.merchantAgendaAdjustments.map(
+                        (data: MerchantAgendaAdjustment) => ({
+                          Merchant: data.merchantName,
+                          PaymentDate: data.paymentDate,
+                          Amount: data.amount,
+                          Type: data.type,
+                          Title: data.title,
+                          Reason: data.reason,
+                          AdjustmentType: data.adjustmentType,
+                        })
+                    )}
+                    fetchAllData={async () => {
+                      const params = new URLSearchParams(
+                          merchantAgendaTabsProps.searchParams as any
+                      );
+                      const res = await fetch(`/api/merchant-agenda/adjustments-export?${params.toString()}`);
+                      const json = await res.json();
+
+                      return json.merchantAgendaAdjustments.map((data: any) => ({
+                        Merchant: data.merchantName,
+                        PaymentDate: data.paymentDate,
+                        Amount: data.amount,
+                        Type: data.type,
+                        Title: data.title,
+                        Reason: data.reason,
+                        AdjustmentType: data.adjustmentType,
+                      }));
+                    }}
+                    hasDateFilter={
+                        (!!merchantAgendaTabsProps.searchParams.dateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.dateTo) ||
+                        (!!merchantAgendaTabsProps.searchParams.settlementDateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.settlementDateTo) ||
+                        (!!merchantAgendaTabsProps.searchParams.expectedSettlementDateFrom &&
+                            !!merchantAgendaTabsProps.searchParams.expectedSettlementDateTo)
+                    }
+                    globalStyles={globalStyles}
+                    sheetName="Conciliação de ajustes"
+                    fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}.xlsx`}
+                />
             )}
           </div>
         </div>

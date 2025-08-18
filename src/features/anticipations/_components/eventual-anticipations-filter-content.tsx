@@ -75,8 +75,9 @@ export function EventualAnticipationsListFilterContent({
   const filterRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest("[data-popover]")) return;
     if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose(); // Fecha o filtro se clicar fora
+      onClose();
     }
   };
 
@@ -225,7 +226,7 @@ export function EventualAnticipationsListFilterContent({
                         {dateFrom ? format(dateFrom, "PPP") : "Data Inicial"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent data-popover className="w-auto p-0" align="start">
                       <Calendar
                           mode="single"
                           selected={dateFrom}
@@ -251,7 +252,7 @@ export function EventualAnticipationsListFilterContent({
                         {dateTo ? format(dateTo, "PPP") : "Data Final"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent data-popover className="w-auto p-0" align="start">
                       <Calendar
                           mode="single"
                           selected={dateTo}
@@ -288,7 +289,7 @@ export function EventualAnticipationsListFilterContent({
                           : "Data Inicial"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent data-popover className="w-auto p-0" align="start">
                     <Calendar
                         mode="single"
                         selected={expectedSettlementDateFrom}
@@ -316,7 +317,7 @@ export function EventualAnticipationsListFilterContent({
                           : "Data Final"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent data-popover className="w-auto p-0" align="start">
                     <Calendar
                         mode="single"
                         selected={expectedSettlementDateTo}

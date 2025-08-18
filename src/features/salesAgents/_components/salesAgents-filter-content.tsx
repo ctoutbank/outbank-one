@@ -4,8 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Search } from 'lucide-react';
+import { CalendarIcon, Search } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { KeyboardEvent, useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 type FilterSalesAgentsContentProps = {
   dateFromIn?: Date;
@@ -39,16 +42,8 @@ export function SalesAgentsFilterContent({
   const [email, setEmail] = useState(emailIn || "");
 
   const statuses = [
-    {
-      value: "ACTIVE",
-      label: "Ativo",
-      color: "bg-emerald-500 hover:bg-emerald-600",
-    },
-    {
-      value: "INACTIVE",
-      label: "Inativo",
-      color: "bg-red-500 hover:bg-red-600",
-    },
+    { value: "ACTIVE", label: "Ativo", color: "bg-emerald-500 hover:bg-emerald-600" },
+    { value: "INACTIVE", label: "Inativo", color: "bg-red-500 hover:bg-red-600" },
   ];
 
   const applyFilters = () => {
@@ -56,9 +51,7 @@ export function SalesAgentsFilterContent({
     onClose();
   };
 
-  const handleKeyDown = (
-      e: KeyboardEvent<HTMLInputElement | HTMLDivElement>
-  ) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLDivElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       applyFilters();
@@ -118,9 +111,7 @@ export function SalesAgentsFilterContent({
                         className={cn(
                             "cursor-pointer w-20 h-7 select-none text-sm",
                             status === s.value ? s.color : "bg-secondary",
-                            status === s.value
-                                ? "text-white"
-                                : "text-secondary-foreground"
+                            status === s.value ? "text-white" : "text-secondary-foreground"
                         )}
                         onClick={() => setStatus(status === s.value ? "" : s.value)}
                     >
@@ -132,30 +123,46 @@ export function SalesAgentsFilterContent({
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Data de Cadastro</h3>
-              <Input
-                  type="date"
-                  value={dateFrom ? dateFrom.toISOString().split("T")[0] : ""}
-                  onChange={(e) => {
-                    const selectedDate = e.target.value
-                        ? new Date(e.target.value)
-                        : undefined;
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                      variant="outline"
+                      className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !dateFrom && "text-muted-foreground"
+                      )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, "PPP") : "Selecione uma data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                    className="w-auto p-0"
+                    align="start"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                  <Calendar
+                      mode="single"
+                      selected={dateFrom}
+                      onSelect={(selectedDate) => {
+                        if (selectedDate) {
+                          const startOfDay = new Date(selectedDate);
+                          startOfDay.setHours(0, 0, 0, 0);
 
-                    if (selectedDate) {
-                      const startOfDay = new Date(selectedDate);
-                      startOfDay.setHours(0, 0, 0, 0);
+                          const endOfDay = new Date(selectedDate);
+                          endOfDay.setHours(23, 59, 59, 999);
 
-                      const endOfDay = new Date(selectedDate);
-                      endOfDay.setHours(23, 59, 59, 999);
-
-                      setDateFrom(startOfDay);
-                      setDateTo(endOfDay);
-                    } else {
-                      setDateFrom(undefined);
-                      setDateTo(undefined);
-                    }
-                  }}
-                  onKeyDown={handleKeyDown}
-              />
+                          setDateFrom(startOfDay);
+                          setDateTo(endOfDay);
+                        } else {
+                          setDateFrom(undefined);
+                          setDateTo(undefined);
+                        }
+                      }}
+                      initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
