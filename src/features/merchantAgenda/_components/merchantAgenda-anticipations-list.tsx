@@ -167,7 +167,7 @@ export default function MerchantAgendaAnticipationList({
                     )}
                     {visibleColumns.includes("transactionDate") && (
                       <TableCell className="text-muted-foreground">
-                        {formatDate(item.transactionDate)}
+                        {formatDate(item.effectivePaymentDate)}
                       </TableCell>
                     )}
                     {visibleColumns.includes("type") && (

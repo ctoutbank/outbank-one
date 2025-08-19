@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy } from "lucide-react";
 import { SendEmail } from "@/server/integrations/resend-email/resend-email";
+import {toast} from "sonner";
 
 interface EmailPaymentLinkDialogProps {
   isOpen: boolean;
@@ -27,14 +28,35 @@ export function EmailPaymentLinkDialog({
 }: EmailPaymentLinkDialogProps) {
   const [email, setEmail] = useState("");
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(paymentLink);
-  };
 
   const handleSendEmail = () => {
     // This is a placeholder function that will be implemented later
     SendEmail(email, paymentLink);
     onClose();
+  };
+
+  const handleCopyLink = async (link: string) => {
+    try {
+      // Verificar se a API do clipboard está disponível
+      if (!navigator.clipboard) {
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toast.success("Link copiado para a área de transferência!");
+        return;
+      }
+
+      // Usar a API moderna do clipboard
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado para a área de transferência!");
+    } catch (error) {
+      console.error("Erro ao copiar link:", error);
+      toast.error("Erro ao copiar link. Tente novamente.");
+    }
   };
 
   return (
@@ -56,13 +78,18 @@ export function EmailPaymentLinkDialog({
                 className="col-span-3"
               />
             </div>
-            <Button
-              onClick={handleCopyLink}
-              variant="outline"
-              className="w-full"
-            >
-              <Copy className="h-4 w-4 mr-2" /> Copiar
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="truncate max-w-[200px]"></span>
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full hover:bg-muted"
+                  onClick={() => handleCopyLink(paymentLink)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email" className="flex items-center">

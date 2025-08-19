@@ -55,6 +55,8 @@ async function UsersTabContent({
   const DDProfile = await getCachedDDProfiles();
   const DDMerchant = await getCachedDDMerchants();
 
+  console.log("usuários", users)
+
   return { users, DDProfile, DDMerchant };
 }
 

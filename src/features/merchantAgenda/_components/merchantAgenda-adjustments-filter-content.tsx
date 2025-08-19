@@ -77,7 +77,7 @@ export function AdjustmentsListFilterContent({
                           className={cn("w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateFrom ? format(dateFrom, "PPP") : "dd/mm/yyyy"}
+                        {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "dd/mm/yyyy"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 z-[60]" align="start" onMouseDown={(e) => e.stopPropagation()}>
@@ -92,7 +92,7 @@ export function AdjustmentsListFilterContent({
                           className={cn("w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateTo ? format(dateTo, "PPP") : "dd/mm/yyyy"}
+                        {dateTo ? format(dateTo, "dd/MM/yyy") : "dd/mm/yyyy"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
