@@ -7,7 +7,7 @@ import { getCustomerByTentant } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
-import { and, asc, count, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import {
   customers,
   file,
@@ -89,7 +89,10 @@ export async function getPricingSolicitations(
     conditions.push(eq(solicitationFee.cnae, cnae));
   }
   if (status) {
-    conditions.push(eq(solicitationFee.status, status));
+    const statusArray = status.split(",").filter(Boolean);
+    if (statusArray.length > 0) {
+      conditions.push(inArray(solicitationFee.status, statusArray));
+    }
   }
 
   conditions.push(ne(solicitationFee.status, "SEND_DOCUMENTS"));

@@ -110,6 +110,7 @@ export function PricingSolicitationView({
   const form = useForm();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
 
@@ -391,7 +392,7 @@ export function PricingSolicitationView({
   const handleUploadSubmit = async () => {
     if (!uploadedFile || !pricingSolicitation.id) return;
 
-    setIsSubmitting(true);
+    setIsUploading(true);
     try {
       const result = await updateToSendDocumentsAction(pricingSolicitation.id);
       await completeAction(pricingSolicitation.id);
@@ -407,7 +408,7 @@ export function PricingSolicitationView({
       console.error("Erro ao enviar aditivo:", error);
       alert("Erro ao processar o envio do aditivo");
     } finally {
-      setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
@@ -1124,7 +1125,10 @@ export function PricingSolicitationView({
           )}
         </div>
         {/* Modal de Upload de Aditivo */}
-        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <Dialog
+          open={showUploadDialog}
+          onOpenChange={(open) => !isUploading && setShowUploadDialog(open)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
@@ -1141,6 +1145,7 @@ export function PricingSolicitationView({
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx"
+                  disabled={isUploading}
                 />
               </div>
               {uploadedFile && (
@@ -1154,15 +1159,15 @@ export function PricingSolicitationView({
               <Button
                 variant="outline"
                 onClick={() => setShowUploadDialog(false)}
-                disabled={isSubmitting}
+                disabled={isUploading}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleUploadSubmit}
-                disabled={!uploadedFile || isSubmitting}
+                disabled={!uploadedFile || isUploading}
               >
-                {isSubmitting ? "Enviando..." : "Enviar Aditivo"}
+                {isUploading ? "Enviando..." : "Enviar Aditivo"}
               </Button>
             </DialogFooter>
           </DialogContent>
