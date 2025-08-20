@@ -35,7 +35,8 @@ import {
 import { type PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { FileIcon, UploadIcon, User } from "lucide-react";
+import { ArrowLeft, FileIcon, UploadIcon, User } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -1100,29 +1101,37 @@ export function PricingSolicitationView({
             </CardContent>
           </Card>
           {pricingSolicitation.id && (
-            <div className="flex justify-end gap-4 mt-6">
-              {pricingSolicitation.status === "REVIEWED" && (
-                <Button
-                  variant="outline"
-                  onClick={handleOpenRejectDialog}
-                  disabled={isSubmitting}
-                  className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                >
-                  Recusar
+            <div className="flex justify-between items-center mt-6">
+              <Link href="/portal/pricingSolicitation">
+                <Button type="button" variant="outline">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar
                 </Button>
-              )}
-              {pricingSolicitation.status === "REVIEWED" && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    handleApprove();
-                  }}
-                  disabled={isSubmitting}
-                  className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                >
-                  Aceitar
-                </Button>
-              )}
+              </Link>
+              <div className="flex gap-4">
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenRejectDialog}
+                    disabled={isSubmitting}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                  >
+                    Recusar
+                  </Button>
+                )}
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      handleApprove();
+                    }}
+                    disabled={isSubmitting}
+                    className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                  >
+                    Aceitar
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
