@@ -167,11 +167,7 @@ export const PricingSolicitationStatus: SelectItem[] = [
     label: "Cancelado",
     color: "bg-red-500 hover:bg-red-600",
   },
-  {
-    value: "SEND_SOLICITATION",
-    label: "Pendente",
-    color: "bg-yellow-500 hover:bg-yellow-600",
-  },
+
   {
     value: "SEND_DOCUMENTS",
     label: "Envie os documentos",

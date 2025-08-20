@@ -40,8 +40,6 @@ async function UsersTabContent({
   profile,
   page,
   pageSize,
-  sortBy,
-  sortOrder,
 }: UsersPageProps) {
   const users = await getCachedUsers(
     email,
@@ -49,13 +47,10 @@ async function UsersTabContent({
     lastName,
     Number(profile),
     Number(page),
-    Number(pageSize),
-    sortBy && sortOrder ? { sortBy, sortOrder } : undefined
+    Number(pageSize)
   );
   const DDProfile = await getCachedDDProfiles();
   const DDMerchant = await getCachedDDMerchants();
-
-  console.log("usuários", users)
 
   return { users, DDProfile, DDMerchant };
 }

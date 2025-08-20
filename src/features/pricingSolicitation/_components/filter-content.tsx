@@ -1,9 +1,10 @@
 "use client";
 
-import { MultiSelect } from "@/components/multi-select";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
+import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
@@ -21,9 +22,7 @@ export function FilterPricingSolicitationContent({
   onClose,
 }: FilterPricingSolicitationContentProps) {
   const [cnae, setCnae] = useState(cnaeIn || "");
-  const [statusValues, setStatusValues] = useState<string[]>(
-    statusIn ? statusIn.split(",").filter(Boolean) : []
-  );
+  const [status, setStatus] = useState(statusIn || "");
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +53,7 @@ export function FilterPricingSolicitationContent({
   const applyFilters = () => {
     onFilter({
       cnae,
-      status: statusValues.join(","),
+      status,
     });
     onClose();
   };
@@ -67,6 +66,11 @@ export function FilterPricingSolicitationContent({
       applyFilters();
     }
   };
+
+  // Filtra os status removendo SEND_DOCUMENTS como no código original
+  const availableStatuses = PricingSolicitationStatus.filter(
+    (s) => s.value !== "SEND_DOCUMENTS"
+  );
 
   return (
     <div
@@ -90,7 +94,7 @@ export function FilterPricingSolicitationContent({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {/* CNAE */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">CNAE</h3>
@@ -102,22 +106,27 @@ export function FilterPricingSolicitationContent({
             />
           </div>
 
-          {/* Status - Usando MultiSelect */}
+          {/* Status - Usando Badges como no filtro de antecipações */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Status</h3>
-            <MultiSelect
-              options={PricingSolicitationStatus.filter(
-                (s) => s.value !== "SEND_DOCUMENTS"
-              ).map((s) => ({
-                label: s.label,
-                value: s.value,
-              }))}
-              onValueChange={setStatusValues}
-              defaultValue={statusIn ? statusIn.split(",").filter(Boolean) : []}
-              placeholder="Selecione os status"
-              className="w-full"
-              variant="secondary"
-            />
+            <div className="flex flex-wrap gap-2">
+              {availableStatuses.map((s) => (
+                <Badge
+                  key={s.value}
+                  variant="secondary"
+                  className={cn(
+                    "cursor-pointer w-48 h-8 select-none",
+                    status === s.value ? s.color : "bg-secondary",
+                    status === s.value
+                      ? "text-white"
+                      : "text-secondary-foreground"
+                  )}
+                  onClick={() => setStatus(status === s.value ? "" : s.value)}
+                >
+                  {s.label}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
 
