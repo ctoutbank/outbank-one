@@ -34,7 +34,7 @@ export function UserMenu() {
   return (
     <div className="relative" ref={dropdownRef}>
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-2 w-64 origin-bottom-left rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 transition-all">
+        <div className="absolute top-full right-0 mt-2 w-64 origin-top-right rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 transition-all">
           <div className="p-3">
             <div className="mb-2 flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-full bg-gradient-to-r from-purple-500 to-indigo-600">
@@ -85,7 +85,7 @@ export function UserMenu() {
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm transition-all hover:shadow-md"
+        className="flex items-center gap-2 rounded-full px-3 py-2 transition-all hover:bg-accent"
       >
         <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-r from-purple-500 to-indigo-600">
           {user.imageUrl ? (

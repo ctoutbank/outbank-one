@@ -32,7 +32,7 @@ export function SettlementsHistoryDashboardContent({
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
         <div className="grid grid-cols-1 gap-4">
-          <Card className="w-full border-l-8 border-black bg-transparent">
+          <Card className="w-full  bg-transparent">
             <CardContent className="p-6">
               <div className="flex flex-col xl:flex-row gap-6 w-full">
                 {/* Card de Total de Liquidações */}

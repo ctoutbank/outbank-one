@@ -1,8 +1,5 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
-import { Bell, Check, X } from "lucide-react";
-import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +9,10 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@clerk/nextjs";
+import { Bell, Check, X } from "lucide-react";
 import Link from "next/link";
+import * as React from "react";
 
 interface Notification {
   id: number;
@@ -39,10 +39,10 @@ export function NotificationIcon() {
         if (res.ok) {
           const data = await res.json();
           setNotifications(
-              (data.notifications || []).map((n: any) => ({
-                ...n,
-                read: n.isRead,
-              }))
+            (data.notifications || []).map((n: any) => ({
+              ...n,
+              read: n.isRead,
+            }))
           );
         }
       } finally {
@@ -56,9 +56,9 @@ export function NotificationIcon() {
 
   const markAsRead = async (id: number) => {
     setNotifications((prev) =>
-        prev.map((notification) =>
-            notification.id === id ? { ...notification, read: true } : notification
-        )
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
     );
     await fetch(`/api/notifications/${id}`, { method: "PATCH" });
   };
@@ -67,7 +67,7 @@ export function NotificationIcon() {
     setNotifications((prev) =>
       prev.map((notification) => ({ ...notification, read: true }))
     );
-    await fetch("/api/notifications/mark-all", {method : "POST"});
+    await fetch("/api/notifications/mark-all", { method: "POST" });
   };
 
   const removeNotification = async (id: number) => {
@@ -91,8 +91,8 @@ export function NotificationIcon() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell size={6} />
+        <Button variant="ghost" size="icon" className="relative mr-1">
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -104,7 +104,7 @@ export function NotificationIcon() {
           <span className="sr-only">Notificações</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 z-50" align="end">
         <div className="flex items-center justify-between p-4 pb-2">
           <h4 className="font-semibold">Notificações</h4>
           {unreadCount > 0 && (
@@ -160,11 +160,15 @@ export function NotificationIcon() {
                         </Button>
                       </div>
                       {notification.link ? (
-                          <Link href={notification.link}>
-                            <p className="text-xs text-muted-foreground">{notification.message}</p>
-                          </Link>
+                        <Link href={notification.link}>
+                          <p className="text-xs text-muted-foreground">
+                            {notification.message}
+                          </p>
+                        </Link>
                       ) : (
-                          <p className="text-xs text-muted-foreground">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {notification.message}
+                        </p>
                       )}
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
