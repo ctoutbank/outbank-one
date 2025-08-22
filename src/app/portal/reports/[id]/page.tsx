@@ -1,3 +1,4 @@
+import DeleteReportButton from "@/components/delete-report-button";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import ReportsWizardForm, {
@@ -221,7 +222,9 @@ export default async function ReportDetail({
   const periods = await getperiodTypes();
   const fileFormat = await getfileFormats();
   const reportType = await getreportTypes();
-  
+
+
+
 
   return (
     <>
@@ -232,6 +235,7 @@ export default async function ReportDetail({
         title="Relatório"
         subtitle={report?.id ? "Editar Relatório" : "Adicionar Relatório"}
       >
+          {report?.id && <DeleteReportButton reportId={report.id} />}
         <ReportsWizardForm
           report={{
             id: report?.id,
