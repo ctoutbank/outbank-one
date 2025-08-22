@@ -28,14 +28,15 @@ import {
   adjustmentTypes,
 } from "@/lib/lookuptables/lookuptables-adjustment";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, FileText, Search, X } from "lucide-react";
+import { ArrowLeft, Building2, FileText, Search, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   insertFinancialAdjustmentFormAction,
-  updateFinancialAdjustmentFormAction
+  updateFinancialAdjustmentFormAction,
 } from "../_actions/financialAdjustments-formActions";
 import {
   type FinancialAdjustmentSchema,
@@ -543,12 +544,15 @@ export default function FinancialAdjustmentForm({
         </Card>
 
         {/* Botões */}
-        <div className="flex justify-end mt-4 gap-2">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancelar
-          </Button>
+        <div className="flex justify-between mt-4 gap-2">
+          <Link href="/portal/financialAdjustment">
+            <Button type="button" variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
           <Button type="submit">{isNew ? "Salvar" : "Editar"}</Button>
-        </div>       
+        </div>
       </form>
     </Form>
   );

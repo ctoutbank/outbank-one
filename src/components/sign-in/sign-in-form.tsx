@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
-import {Eye, EyeOff, LockIcon, Mail, } from "lucide-react";
+import { validateUserAccessBySubdomain } from "@/app/actions/validateSubdomain";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { useSignIn } from "@clerk/nextjs";
+import { Eye, EyeOff, LockIcon, Mail } from "lucide-react";
 import Link from "next/link";
-import { validateUserAccessBySubdomain } from "@/app/actions/validateSubdomain";
-
+import { useState } from "react";
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,9 +40,6 @@ export function SignInForm() {
     return "Ocorreu um erro. Por favor, tente novamente";
   };
 
-
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -61,7 +57,6 @@ export function SignInForm() {
         setError(validation.reason || "Credenciais inválidas");
         return;
       }
-
 
       // Passo 1: Verificar se é o primeiro login
       const checkResponse = await fetch("/api/check-user", {
@@ -99,7 +94,6 @@ export function SignInForm() {
           body: JSON.stringify({ userId: checkData.userId }),
         });
 
-
         localStorage.setItem("id_clerk", checkData.userId);
         // Redireciona para a tela de criar senha no Clerk
         window.location.href = "/password-create";
@@ -128,7 +122,10 @@ export function SignInForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-1 relative">
-        <Mail className="absolute left-3 top-11 -translate-y-1/2 text-white" size={18}/>
+        <Mail
+          className="absolute left-3 top-11 -translate-y-1/2 text-white"
+          size={18}
+        />
         <label
           className="text-sm font-medium ml-2 text-gray-300"
           htmlFor="email"
@@ -154,7 +151,10 @@ export function SignInForm() {
           Senha
         </label>
         <div className="relative">
-          <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={18} />
+          <LockIcon
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+            size={18}
+          />
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
@@ -208,12 +208,6 @@ export function SignInForm() {
       >
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
-
-      <div>
-        <h2 className="text-sm font-semibold text-gray-300/80 sm:text-center">
-          Não tem uma conta? <a className="text-blue-400">Cadastre-se</a>
-        </h2>
-      </div>
     </form>
   );
 }

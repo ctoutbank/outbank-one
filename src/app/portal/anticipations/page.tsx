@@ -21,6 +21,8 @@ type AntecipationsProps = {
   endDate: string;
   expectedSettlementStartDate: string;
   expectedSettlementEndDate: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function AntecipationsPage({
@@ -43,6 +45,8 @@ export default async function AntecipationsPage({
     searchParams.expectedSettlementStartDate || "";
   const expectedSettlementEndDate =
     searchParams.expectedSettlementEndDate || "";
+  const sortBy = searchParams.sortBy;
+  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
 
   const merchantDD = await getMerchantDD();
 
@@ -54,7 +58,11 @@ export default async function AntecipationsPage({
     endDate,
     merchantSlug,
     type,
-    status
+    status,
+    {
+      sortBy,
+      sortOrder,
+    }
   );
 
   const eventualAnticipations = await getEventualAnticipations(
@@ -67,7 +75,11 @@ export default async function AntecipationsPage({
     type,
     status,
     expectedSettlementStartDate,
-    expectedSettlementEndDate
+    expectedSettlementEndDate,
+    {
+      sortBy,
+      sortOrder,
+    }
   );
 
   return (

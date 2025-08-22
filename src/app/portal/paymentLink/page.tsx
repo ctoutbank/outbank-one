@@ -80,11 +80,7 @@ export default async function PaymentLinkPage({
             description=""
           />
         ) : (
-          <PaymentLinkList
-            links={paymentLinks}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-          />
+          <PaymentLinkList links={paymentLinks} />
         )}
 
         {totalRecords > 0 && (

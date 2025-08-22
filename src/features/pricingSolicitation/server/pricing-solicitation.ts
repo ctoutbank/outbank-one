@@ -3,13 +3,11 @@ import {
   getUserEmail,
   sendPricingSolicitationEmail,
 } from "@/app/utils/send-email-adtivo";
-import {
-  getCustomerByTentant
-} from "@/features/users/server/users";
+import { getCustomerByTentant } from "@/features/users/server/users";
 import { generateSlug } from "@/lib/utils";
 import { db } from "@/server/db";
 import { currentUser } from "@clerk/nextjs/server";
-import { and, count, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import {
   customers,
   file,
@@ -69,7 +67,8 @@ export async function getPricingSolicitations(
   cnae: string,
   status: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<PricingSolicitationList | null> {
   // Get user's merchant access
   const customer = await getCustomerByTentant();
@@ -90,13 +89,28 @@ export async function getPricingSolicitations(
     conditions.push(eq(solicitationFee.cnae, cnae));
   }
   if (status) {
-    conditions.push(eq(solicitationFee.status, status));
+    const statusArray = status.split(",").filter(Boolean);
+    if (statusArray.length > 0) {
+      conditions.push(inArray(solicitationFee.status, statusArray));
+    }
   }
 
   conditions.push(ne(solicitationFee.status, "SEND_DOCUMENTS"));
   conditions.push(ne(solicitationFee.status, "SEND_SOLICITATION"));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // Configurar ordenação
+  const sortFieldMap: { [key: string]: any } = {
+    cnae: solicitationFee.cnae,
+    dtinsert: solicitationFee.dtinsert,
+    status: solicitationFee.status,
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || solicitationFee.id;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
 
   const pricingSolicitations = await db
     .select({
@@ -110,7 +124,7 @@ export async function getPricingSolicitations(
     .where(where)
     .limit(limit)
     .offset(offset)
-    .orderBy(desc(solicitationFee.id));
+    .orderBy(orderByClause);
 
   const totalCount = await db
     .select({ count: count() })

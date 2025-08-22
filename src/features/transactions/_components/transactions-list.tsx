@@ -1,11 +1,11 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -15,16 +15,30 @@ import {
   getCardPaymentMethodLabel,
   getProcessingTypeLabel,
 } from "@/lib/lookuptables/lookuptables-transactions";
-import { formatCNPJ } from "@/lib/utils";
+import { createSortHandler, formatCNPJ } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TransactionsListRecord } from "../serverActions/transaction";
 
 interface TransactionsListProps {
   transactions: TransactionsListRecord[];
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  };
 }
 
 export default function TransactionsList({
   transactions,
 }: TransactionsListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/transactions"
+  );
+
   const getStatusBadgeVariant = (status: string | null) => {
     if (!status) return "secondary";
 
@@ -103,14 +117,62 @@ export default function TransactionsList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Data</TableHead>
-            <TableHead>Estabelecimento</TableHead>
-            <TableHead>Terminal</TableHead>
-            <TableHead>Processamento</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Bandeira</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Status</TableHead>
+            <SortableTableHead
+              columnId="dtInsert"
+              name="Data"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="merchantName"
+              name="Estabelecimento"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="terminalType"
+              name="Terminal"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="method"
+              name="Processamento"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="productType"
+              name="Tipo"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="brand"
+              name="Bandeira"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="amount"
+              name="Valor"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
+            <SortableTableHead
+              columnId="transactionStatus"
+              name="Status"
+              sortable={true}
+              onSort={handleSort}
+              searchParams={searchParams}
+            />
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -3,16 +3,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate, translateCardType } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Copy, Mail } from "lucide-react";
+import {
+  createSortHandler,
+  formatCurrency,
+  formatDate,
+  translateCardType,
+} from "@/lib/utils";
+import { Copy, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -39,58 +44,13 @@ const translateStatus = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || status;
 };
 
-function SortableTableHead({
-  label,
-  field,
-  sortBy,
-  sortOrder,
+export default function PaymentLinksList({
+  links,
 }: {
-  label: string;
-  field: string;
-  sortBy: string;
-  sortOrder: string;
+  links: PaymentLinkList;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  function handleSort() {
-    const newOrder = sortBy === field && sortOrder === "asc" ? "desc" : "asc";
-    const params = new URLSearchParams(
-      searchParams ? searchParams.toString() : undefined
-    );
-    params.set("sortBy", field);
-    params.set("sortOrder", newOrder);
-    router.push(`?${params.toString()}`);
-  }
-
-  return (
-    <TableHead
-      onClick={handleSort}
-      className="cursor-pointer select-none hover:bg-muted/50"
-    >
-      {label}
-      {sortBy === field && (
-        <span className="ml-1">
-          {sortOrder === "asc" ? (
-            <ChevronUp className="h-4 w-4 inline" />
-          ) : (
-            <ChevronDown className="h-4 w-4 inline" />
-          )}
-        </span>
-      )}
-    </TableHead>
-  );
-}
-
-export default function PaymentLinksList({
-  links,
-  sortBy = "dtinsert",
-  sortOrder = "desc",
-}: {
-  links: PaymentLinkList;
-  sortBy?: string;
-  sortOrder?: string;
-}) {
   const [isMounted, setIsMounted] = useState(false);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState("");
@@ -98,6 +58,13 @@ export default function PaymentLinksList({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Função para lidar com ordenação usando utilitário
+  const handleSort = createSortHandler(
+    searchParams,
+    router,
+    "/portal/paymentLink"
+  );
 
   if (!isMounted) {
     return null;
@@ -139,58 +106,67 @@ export default function PaymentLinksList({
           <TableHeader>
             <TableRow>
               <SortableTableHead
-                label="Data de Criação"
-                field="dtinsert"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="dtinsert"
+                name="Data de Criação"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="ID Link"
-                field="name"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="name"
+                name="ID Link"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Expira em"
-                field="serial"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="expiresAt"
+                name="Expira em"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Nome do EC"
-                field="merchantName"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="merchantName"
+                name="Nome do EC"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Link"
-                field="model"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="link"
+                name="Link"
+                sortable={false}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Tipo de pagamento"
-                field="status"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="paymentType"
+                name="Tipo de pagamento"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Valor Total"
-                field="totalAmount"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="totalAmount"
+                name="Valor Total"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Status"
-                field="status"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="status"
+                name="Status"
+                sortable={true}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
               <SortableTableHead
-                label="Opções"
-                field="options"
-                sortBy={sortBy}
-                sortOrder={sortOrder}
+                columnId="options"
+                name="Opções"
+                sortable={false}
+                onSort={handleSort}
+                searchParams={searchParams}
               />
             </TableRow>
           </TableHeader>

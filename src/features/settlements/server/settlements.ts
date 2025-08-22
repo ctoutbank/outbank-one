@@ -87,7 +87,8 @@ export async function getSettlements(
   dateFrom: string,
   dateTo: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<{
   settlements: SettlementObject[];
   totalCount: any;
@@ -151,7 +152,22 @@ export async function getSettlements(
     page,
     pageSize,
     offset,
+    sorting,
   });
+
+  // Configurar ordenação
+  const sortFieldMap: { [key: string]: string } = {
+    payment_date: "s.payment_date",
+    batch_amount: "s.total_settlement_amount",
+    total_anticipation_amount: "s.total_anticipation_amount",
+    total_restitution_amount: "s.total_restitution_amount",
+    total_settlement_amount: "s.total_settlement_amount",
+    status: "s.status",
+  };
+
+  const sortBy = sorting?.sortBy || "payment_date";
+  const sortOrder = sorting?.sortOrder === "asc" ? "ASC" : "DESC";
+  const sortField = sortFieldMap[sortBy] || "s.payment_date";
 
   const result = await db.execute(
     sql`SELECT
@@ -179,7 +195,7 @@ export async function getSettlements(
                 ${userAccess.idMerchants.length > 0 ? sql`AND m.id IN (${userAccess.idMerchants.join(",")})` : sql``}
                 ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
             )
-          ORDER BY s.payment_date DESC
+          ORDER BY ${sql.raw(sortField)} ${sql.raw(sortOrder)}
             LIMIT ${pageSize} OFFSET ${offset};`
   );
 
@@ -424,7 +440,8 @@ export async function getMerchantSettlements(
   search: string,
   page: number,
   pageSize: number,
-  settlementSlug: string
+  settlementSlug: string,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<MerchantSettlementList> {
   // Get user's merchant access
   const userAccess = await getUserMerchantsAccess();
@@ -445,6 +462,21 @@ export async function getMerchantSettlements(
       ","
     )}])`;
   }
+
+  // Configurar ordenação para merchant settlements
+  const sortFieldMap: { [key: string]: string } = {
+    merchant: "m.name",
+    batchamount: "batchAmount",
+    totalanticipationamount: "totalAnticipationAmount",
+    pendingfinancialadjustmentamount: "pendingFinancialAdjustmentAmount",
+    pendingrestitutionamount: "pendingRestitutionAmount",
+    totalsettlementamount: "totalSettlementAmount",
+    status: "ms.status",
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder === "asc" ? "ASC" : "DESC";
+  const sortField = sortFieldMap[sortBy] || "ms.id";
 
   const result = await db.execute(
     sql`SELECT 
@@ -503,11 +535,11 @@ export async function getMerchantSettlements(
       LEFT JOIN merchants m ON m.id = ms.id_merchant
       LEFT JOIN settlements s ON s.id = ms.id_settlement
       LEFT JOIN customers c ON c.id = ms.id_customer
-      WHERE ((${settlementSlug} = '' AND s.payment_date = ${currentDay}) OR s.slug = ${settlementSlug}) 
+              WHERE ((${settlementSlug} = '' AND s.payment_date = ${currentDay}) OR s.slug = ${settlementSlug}) 
         AND (${search} = '' OR m.name ILIKE '%' || ${search} || '%')
         ${sql.raw(merchantAccessCondition)}
         ${userAccess.idCustomer ? sql`AND m.id_customer = ${userAccess.idCustomer}` : sql``}
-      ORDER BY ms.id ASC
+      ORDER BY ${sql.raw(sortField)} ${sql.raw(sortOrder)}
       LIMIT ${pageSize}
       OFFSET ${offset}`
   );

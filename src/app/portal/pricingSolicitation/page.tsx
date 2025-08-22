@@ -17,6 +17,8 @@ type PricingSolicitationProps = {
   merchant: string;
   cnae: string;
   status: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function PricingSolicitationPage({
@@ -30,12 +32,18 @@ export default async function PricingSolicitationPage({
   const pageSize = parseInt(searchParams.pageSize || "10");
   const cnae = searchParams.cnae || "";
   const status = searchParams.status || "";
+  const sortBy = searchParams.sortBy || "id";
+  const sortOrder =
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
+      : "desc";
 
   const pricingSolicitations = await getPricingSolicitations(
     cnae,
     status,
     page,
-    pageSize
+    pageSize,
+    { sortBy, sortOrder }
   );
 
   const totalRecords = pricingSolicitations?.totalCount || 0;

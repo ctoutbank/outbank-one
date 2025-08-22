@@ -3,6 +3,7 @@ import { convertUTCToSaoPaulo } from "@/lib/datetime-utils";
 import { db } from "@/server/db";
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -141,6 +142,10 @@ export async function getTerminals(
     estabelecimento?: string;
     modelo?: string;
     provedor?: string;
+  },
+  sorting?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
   }
 ): Promise<TerminallsList> {
   try {
@@ -231,6 +236,23 @@ export async function getTerminals(
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+    // Mapeamento de campos para ordenação
+    const sortFieldMap: Record<string, any> = {
+      dtinsert: terminals.dtinsert,
+      logicalNumber: terminals.logicalNumber,
+      serialNumber: terminals.serialNumber,
+      merchantName: merchants.name,
+      model: terminals.model,
+      status: terminals.status,
+    };
+
+    // Definir ordenação
+    const sortBy = sorting?.sortBy || "dtinsert";
+    const sortOrder = sorting?.sortOrder || "desc";
+    const sortField = sortFieldMap[sortBy] || terminals.dtinsert;
+    const orderByClause =
+      sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
     const result = await db
       .select({
         slug: terminals.slug,
@@ -250,7 +272,7 @@ export async function getTerminals(
       .innerJoin(merchants, eq(terminals.slugMerchant, merchants.slug))
       .innerJoin(customers, eq(terminals.slugCustomer, customers.slug))
       .where(whereClause)
-      .orderBy(desc(terminals.id))
+      .orderBy(orderByClause)
       .limit(pageSize)
       .offset(offset);
 

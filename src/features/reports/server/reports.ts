@@ -1,7 +1,7 @@
 "use server";
 
 import { getCustomerByTentant } from "@/features/users/server/users";
-import { and, count, desc, eq, like, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, like, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import {
   customerCustomization,
@@ -53,7 +53,8 @@ export async function getReports(
   recurrence?: string,
   period?: string,
   email?: string,
-  creationDate?: string
+  creationDate?: string,
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<ReportsList> {
   // Get user's merchant access
   const customer = await getCustomerByTentant();
@@ -99,6 +100,23 @@ export async function getReports(
     conditions.push(sql`CAST(${reports.dtinsert} AS DATE) = ${dateStr}`);
   }
 
+  // Configurar ordenação
+  const sortFieldMap: { [key: string]: any } = {
+    title: reports.title,
+    reportType: reports.reportType,
+    formatCode: reports.formatCode,
+    recurrenceCode: reports.recurrenceCode,
+    periodCode: reports.periodCode,
+    dtinsert: reports.dtinsert,
+    emails: reports.emails,
+    shippingTime: reports.shippingTime,
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || reports.id;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
+
   // Realizar consulta principal com JOIN para obter os nomes dos tipos
   const result = await db
     .select({
@@ -129,7 +147,7 @@ export async function getReports(
     .leftJoin(fileFormats, eq(reports.formatCode, fileFormats.code))
     .leftJoin(reportTypes, eq(reports.reportType, reportTypes.code))
     .where(and(...conditions))
-    .orderBy(desc(reports.id))
+    .orderBy(orderByClause)
     .limit(pageSize)
     .offset(offset);
 

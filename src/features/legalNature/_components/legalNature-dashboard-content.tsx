@@ -17,7 +17,7 @@ export function LegalNatureDashboardContent({
   return (
     <div className="w-full max-w-full">
       <div className="w-full mt-2 mb-2">
-        <Card className="w-full border-l-8 border-black bg-transparent flex justify-center">
+        <Card className="w-full bg-transparent flex justify-center">
           <CardContent className="p-6">
             <div className="flex items-start justify-start w-full">
               {/* Card Único de Naturezas Jurídicas */}
@@ -29,14 +29,14 @@ export function LegalNatureDashboardContent({
                       <div className="flex items-center gap-2 mb-3">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="text-base font-medium">
-                          Total de Naturezas Jurídicas
+                          Total de Formatos Jurídicos
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-zinc-900">
                         {totalLegalNatures}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Total de Naturezas Jurídicas
+                        Total de Formatos Jurídicos
                       </div>
                     </div>
 

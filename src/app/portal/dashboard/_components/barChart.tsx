@@ -1,5 +1,4 @@
 "use client";
-
 import * as React from "react";
 import {
   CartesianGrid,
@@ -9,9 +8,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
+import { Loader2 } from 'lucide-react';
 import type {
   GetTotalTransactionsByMonthResult,
   TotalTransactionsByDay,
@@ -19,6 +18,7 @@ import type {
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import DashboardFilters from "./dashboard-filters";
+import { useSearchParams } from "next/navigation";
 
 const chartConfig = {
   bruto: {
@@ -38,11 +38,11 @@ interface DailyData {
 }
 
 export function BarChartCustom({
-  transactionsData,
-  totalTransactions,
-  totalMerchants,
-  canceledTransactions,
-}: {
+                                 transactionsData,
+                                 totalTransactions,
+                                 totalMerchants,
+                                 canceledTransactions,
+                               }: {
   chartData?: GetTotalTransactionsByMonthResult[];
   transactionsData?: TotalTransactionsByDay[];
   viewMode?: string;
@@ -51,26 +51,41 @@ export function BarChartCustom({
   dateRange?: { start: string; end: string };
   canceledTransactions?: number;
 }) {
-  const [hoveredData, setHoveredData] =
-    React.useState<DailyData | null>(null);
+  const [hoveredData, setHoveredData] = React.useState<DailyData | null>(null);
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [isLoading, setIsLoading] = React.useState(false);
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  // Detecta mudanças nos parâmetros e remove o loading
+  React.useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 800); // Simula o tempo de carregamento
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, isLoading]);
+
+  // Função para ativar o loading quando filtro for aplicado
+  const handleFilterApply = () => {
+    setIsLoading(true);
+  };
 
   // Processamento diário (mantido igual)
   const dailyData: DailyData[] =
-    transactionsData?.map((transaction) => ({
-      date: format(transaction.date, "yyyy-MM-dd"),
-      bruto: Number(Number(transaction.total_amount).toFixed(2)),
-      lucro: Number(Number(transaction.lucro).toFixed(2)),
-    })) || [];
+      transactionsData?.map((transaction) => ({
+        date: format(transaction.date, "yyyy-MM-dd"),
+        bruto: Number(Number(transaction.total_amount).toFixed(2)),
+        lucro: Number(Number(transaction.lucro).toFixed(2)),
+      })) || [];
 
   const handleMouseMove = (data: any, event: any) => {
     if (data && data.activePayload && data.activePayload.length > 0) {
       setHoveredData(data.activePayload[0].payload);
-
       const mouseX = event?.nativeEvent?.clientX || 0;
       const mouseY = event?.nativeEvent?.clientY || 0;
-
       setMousePosition({ x: mouseX, y: mouseY });
     }
   };
@@ -81,144 +96,150 @@ export function BarChartCustom({
 
   const CustomTooltip = () => {
     if (!hoveredData) return null;
-
     return (
-      <div
-        className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
-        style={{
-          left: mousePosition.x + 10,
-          top: mousePosition.y + 10,
-        }}
-      >
-        <div className="space-y-1">
-          <div className="font-medium text-gray-800 text-xs border-b pb-1">
-            {new Date(hoveredData.date).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "short",
-            })}
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Vendas:</span>
-            <span className="font-medium text-green-600">
+        <div
+            className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
+            style={{
+              left: mousePosition.x + 10,
+              top: mousePosition.y + 10,
+            }}
+        >
+          <div className="space-y-1">
+            <div className="font-medium text-gray-800 text-xs border-b pb-1">
+              {new Date(hoveredData.date).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+              })}
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Vendas:</span>
+              <span className="font-medium text-green-600">
               {hoveredData.bruto?.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               })}
             </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Lucro:</span>
-            <span className="font-medium text-blue-600">
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Lucro:</span>
+              <span className="font-medium text-blue-600">
               {hoveredData.lucro?.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               })}
             </span>
+            </div>
           </div>
         </div>
-      </div>
     );
   };
 
   return (
-    <Card
-      ref={cardRef}
-      className=" w-full border-0 bg-[#05336A] text-white overflow-hidden flex flex-col items-stretch space-y-0 border-b p-0"
-    >
-      <CardHeader className="relative z-10 pb-1 px-3 py-2">
-        <div className="flex flex-col sm:flex-row lg:flex-row sm:items-start lg:tems-start sm:justify-between lg:justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <CardTitle className="text-sm font-medium text-blue-100">
-              Total de Vendas
-            </CardTitle>
-            <div className="text-xl sm:text-2xl font-bold break-words mt-1">
-              {formatCurrency(totalTransactions?.sum || 0)}
+      <Card
+          ref={cardRef}
+          className="w-full border-0 bg-[#05336A] text-white overflow-hidden flex flex-col items-stretch space-y-0 border-b p-0 relative"
+      >
+        {/* Loading Overlay Simples */}
+        {isLoading && (
+            <div className="absolute inset-0 bg-[#05336A]/90 backdrop-blur-sm z-20 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+                <span className="text-xs text-white/80">Carregando...</span>
+              </div>
+            </div>
+        )}
+
+        <CardHeader className="relative z-10 pb-1 px-3 py-2">
+          <div className="flex flex-col sm:flex-row lg:flex-row sm:items-start lg:tems-start sm:justify-between lg:justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-sm font-medium text-blue-100">
+                Total de Vendas
+              </CardTitle>
+              <div className="text-xl sm:text-2xl font-bold break-words mt-1">
+                {formatCurrency(totalTransactions?.sum || 0)}
+              </div>
+            </div>
+            <div className="flex-shrink-0 scale-75 origin-top-right">
+              <DashboardFilters onFilterApply={handleFilterApply} />
             </div>
           </div>
-          <div className="flex-shrink-0 scale-75 origin-top-right">
-            <DashboardFilters />
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="relative z-10 pt-1 px-3 pb-3">
-        <div className="h-16 sm:h-20 mb-3 relative w-full">
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={dailyData}
-                margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              >
-                <CartesianGrid
-                  strokeDasharray="2 2"
-                  stroke="rgba(255,255,255,0.1)"
-                />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={false}
-                />
-                <YAxis hide />
-
-                <Line
-                  type="monotone"
-                  dataKey="bruto"
-                  stroke={chartConfig.bruto.color}
-                  strokeWidth={1.5}
-                  dot={false}
-                  activeDot={{
-                    r: 3,
-                    fill: chartConfig.bruto.color,
-                    stroke: "#fff",
-                    strokeWidth: 1,
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="lucro"
-                  stroke={chartConfig.lucro.color}
-                  strokeWidth={1.5}
-                  dot={false}
-                  activeDot={{
-                    r: 3,
-                    fill: chartConfig.lucro.color,
-                    stroke: "#fff",
-                    strokeWidth: 1,
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-blue-200 text-xs">Lucro</p>
-            <p className="text-sm font-semibold break-words">
-              {formatCurrency(totalTransactions?.revenue || 0)}
-            </p>
+        <CardContent className="relative z-10 pt-1 px-3 pb-3">
+          <div className="h-16 sm:h-20 mb-3 relative w-full">
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                    data={dailyData}
+                    margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                >
+                  <CartesianGrid
+                      strokeDasharray="2 2"
+                      stroke="rgba(255,255,255,0.1)"
+                  />
+                  <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={false}
+                  />
+                  <YAxis hide />
+                  <Line
+                      type="monotone"
+                      dataKey="bruto"
+                      stroke={chartConfig.bruto.color}
+                      strokeWidth={1.5}
+                      dot={false}
+                      activeDot={{
+                        r: 3,
+                        fill: chartConfig.bruto.color,
+                        stroke: "#fff",
+                        strokeWidth: 1,
+                      }}
+                  />
+                  <Line
+                      type="monotone"
+                      dataKey="lucro"
+                      stroke={chartConfig.lucro.color}
+                      strokeWidth={1.5}
+                      dot={false}
+                      activeDot={{
+                        r: 3,
+                        fill: chartConfig.lucro.color,
+                        stroke: "#fff",
+                        strokeWidth: 1,
+                      }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </div>
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-blue-200 text-xs">Transações</p>
-            <p className="text-sm font-semibold">
-              {(totalTransactions?.count || 0).toLocaleString("pt-BR")}
-            </p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-blue-200 text-xs">Lucro</p>
+              <p className="text-sm font-semibold break-words">
+                {formatCurrency(totalTransactions?.revenue || 0)}
+              </p>
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-blue-200 text-xs">Transações</p>
+              <p className="text-sm font-semibold">
+                {(totalTransactions?.count || 0).toLocaleString("pt-BR")}
+              </p>
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-blue-200 text-xs">Canceladas</p>
+              <p className="text-sm font-semibold">{canceledTransactions}</p>
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-blue-200 text-xs">EC Cadastrados</p>
+              <p className="text-sm font-semibold">{totalMerchants || 0}</p>
+            </div>
           </div>
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-blue-200 text-xs">Canceladas</p>
-            <p className="text-sm font-semibold">{canceledTransactions}</p>
-          </div>
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-blue-200 text-xs">EC Cadastrados</p>
-            <p className="text-sm font-semibold">{totalMerchants || 0}</p>
-          </div>
-        </div>
-      </CardContent>
-
-      {hoveredData && <CustomTooltip />}
-    </Card>
+        </CardContent>
+        {hoveredData && <CustomTooltip />}
+      </Card>
   );
 }

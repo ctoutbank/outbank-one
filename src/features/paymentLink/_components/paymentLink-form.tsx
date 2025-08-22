@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { PaymentLinkSchema, schemaPaymentLink } from "../schema/schema";
 
@@ -35,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -58,14 +58,46 @@ export default function PaymentLinkForm({
 }: PaymentLinkFormProps) {
   const router = useRouter();
 
+  console.log("PaymentLinkForm carregado com:", {
+    paymentLinkId: paymentLink?.id,
+    paymentLinkSlug: paymentLink?.slug,
+    shoppingItemsCount: paymentLink?.shoppingItems?.length || 0,
+    shoppingItems: paymentLink?.shoppingItems,
+  });
+
+  // Calcular valores padrão para expiresAt e diffNumber
+  const calculateDefaultValues = () => {
+    if (paymentLink?.dtExpiration && paymentLink?.dtinsert) {
+      const timeDiff = TimeDiff(paymentLink.dtExpiration, paymentLink.dtinsert);
+      return {
+        expiresAt: timeDiff.type,
+        diffNumber: timeDiff.value,
+      };
+    }
+    return {
+      expiresAt: "hour",
+      diffNumber: "1",
+    };
+  };
+
+  const defaultValues = calculateDefaultValues();
+
+  console.log("Valores padrão calculados:", defaultValues);
+  console.log("PaymentLink para defaultValues:", {
+    dtExpiration: paymentLink?.dtExpiration,
+    dtinsert: paymentLink?.dtinsert,
+    installments: paymentLink?.installments,
+  });
+
   const form = useForm<PaymentLinkSchema>({
     resolver: zodResolver(schemaPaymentLink),
     defaultValues: {
       id: paymentLink?.id || 0,
+      slug: paymentLink?.slug || "",
       linkName: paymentLink?.linkName ?? "",
       idMerchant: paymentLink?.idMerchant?.toString(),
       dtExpiration: paymentLink?.dtExpiration ?? "-",
-      installments: paymentLink?.installments?.toString(),
+      installments: paymentLink?.installments?.toString() || "1",
       totalAmount: paymentLink?.totalAmount ?? "",
       shoppingItems: paymentLink?.shoppingItems ?? [],
       pixEnabled: false,
@@ -78,6 +110,8 @@ export default function PaymentLinkForm({
       dtupdate: paymentLink?.dtupdate
         ? new Date(paymentLink.dtupdate).toISOString()
         : new Date().toISOString(),
+      expiresAt: defaultValues.expiresAt,
+      diffNumber: defaultValues.diffNumber,
     },
   });
 
@@ -91,46 +125,45 @@ export default function PaymentLinkForm({
   });
 
   // Função auxiliar para recalcular o total
-  const recalculateTotal = (items: any[]) => {
-    if (items && items.length > 0) {
-      const total = items.reduce((acc, item) => {
-        const itemTotal = item.quantity * parseFloat(item.amount);
-        return acc + itemTotal;
-      }, 0);
-      form.setValue("totalAmount", total.toFixed(2));
-    } else {
-      form.setValue("totalAmount", "0.00");
-    }
-  };
+  const recalculateTotal = useCallback(
+    (items: any[]) => {
+      if (items && items.length > 0) {
+        const total = items.reduce((acc, item) => {
+          const quantity =
+            typeof item.quantity === "string"
+              ? parseInt(item.quantity)
+              : item.quantity;
+          const amount =
+            typeof item.amount === "number"
+              ? item.amount
+              : parseFloat(item.amount);
+          const itemTotal = quantity * amount;
+          return acc + itemTotal;
+        }, 0);
+        form.setValue("totalAmount", total.toFixed(2));
+      } else {
+        form.setValue("totalAmount", "0.00");
+      }
+    },
+    [form]
+  );
 
   useEffect(() => {
     if (watchedShoppingItems) {
       recalculateTotal(watchedShoppingItems);
     }
-  }, [watchedShoppingItems, form]);
+  }, [watchedShoppingItems, recalculateTotal]);
 
   async function updatePaymentLinkFormAction(data: PaymentLinkSchema) {
-    console.log("updatePaymentLinkFormAction", data);
-
     // Calcular data de expiração baseada no horário atual em UTC
     const currentTime = DateTime.utc().toISO() || new Date().toISOString();
     const diffNumber = Number(data.diffNumber || 1);
     const expiresAt = (data.expiresAt as "day" | "hour") || "hour";
 
-    console.log("Cálculo de expiração:", {
-      currentTime,
-      diffNumber,
-      expiresAt,
-      diffNumberType: typeof diffNumber,
-      expiresAtType: typeof expiresAt,
-    });
-
     const expirationTime = addTimeToDate(currentTime, diffNumber, expiresAt);
 
-    console.log("Data de expiração calculada:", expirationTime);
-
     const paymentLinkDetailUpdate: PaymentLinkDetail = {
-      id: data.id || 0,
+      id: typeof data.id === "string" ? parseInt(data.id) : data.id || 0,
       slug: data.slug || "",
       linkName: data.linkName || "",
       linkUrl: data.linkUrl || "",
@@ -149,42 +182,46 @@ export default function PaymentLinkForm({
       isFromServer: null,
       modified: null,
     };
+
     let shoppingItemsUpdate: ShoppingItemsUpdate[] = [];
     if (data.shoppingItems && data.shoppingItems.length > 0) {
-      shoppingItemsUpdate = data.shoppingItems?.map((shoppingItemUp) => ({
-        name: shoppingItemUp.name,
-        quantity: shoppingItemUp.quantity,
-        amount: shoppingItemUp.amount,
-        slug: shoppingItemUp.slug,
-        wasModified: !paymentLink.shoppingItems?.some(
+      shoppingItemsUpdate = data.shoppingItems?.map((shoppingItemUp) => {
+        // Verificar se é um item existente ou novo
+        const existingItem = paymentLink.shoppingItems?.find(
           (itemOld) => itemOld.slug === shoppingItemUp.slug
-        ),
-      }));
+        );
+
+        return {
+          name: shoppingItemUp.name,
+          quantity:
+            typeof shoppingItemUp.quantity === "string"
+              ? parseInt(shoppingItemUp.quantity)
+              : shoppingItemUp.quantity,
+          amount:
+            typeof shoppingItemUp.amount === "number"
+              ? shoppingItemUp.amount.toString()
+              : shoppingItemUp.amount,
+          slug: shoppingItemUp.slug,
+          idPaymentLink:
+            typeof shoppingItemUp.idPaymentLink === "string"
+              ? parseInt(shoppingItemUp.idPaymentLink)
+              : shoppingItemUp.idPaymentLink ||
+                (typeof data.id === "string" ? parseInt(data.id) : data.id) ||
+                0,
+          wasModified: !existingItem, // true se não existir (novo item)
+        };
+      });
     }
 
-    updatePaymentLink(paymentLinkDetailUpdate, shoppingItemsUpdate);
+    await updatePaymentLink(paymentLinkDetailUpdate, shoppingItemsUpdate);
     return data.id;
   }
 
   async function insertPaymentLinkFormAction(data: PaymentLinkSchema) {
-    console.log("insertPaymentLinkFormAction", data);
-
-    // Calcular data de expiração baseada no horário atual em UTC
     const currentTime = DateTime.utc().toISO() || new Date().toISOString();
     const diffNumber = Number(data.diffNumber || 1);
     const expiresAt = (data.expiresAt as "day" | "hour") || "hour";
-
-    console.log("Cálculo de expiração (insert):", {
-      currentTime,
-      diffNumber,
-      expiresAt,
-      diffNumberType: typeof diffNumber,
-      expiresAtType: typeof expiresAt,
-    });
-
     const expirationTime = addTimeToDate(currentTime, diffNumber, expiresAt);
-
-    console.log("Data de expiração calculada (insert):", expirationTime);
 
     const newId = insertPaymentLink({
       linkName: data.linkName,
@@ -201,8 +238,14 @@ export default function PaymentLinkForm({
       pixEnabled: false,
       shoppingItems: data.shoppingItems?.map((item) => ({
         name: item.name,
-        quantity: item.quantity,
-        amount: item.amount,
+        quantity:
+          typeof item.quantity === "string"
+            ? parseInt(item.quantity)
+            : item.quantity,
+        amount:
+          typeof item.amount === "number"
+            ? item.amount.toString()
+            : item.amount,
         idPaymentLink: 0,
       })),
     });
@@ -212,7 +255,10 @@ export default function PaymentLinkForm({
   const onSubmit = async (data: PaymentLinkSchema) => {
     try {
       const toastId = toast.loading("Salvando link de pagamento...");
-      if (data?.id) {
+      const idNumber =
+        typeof data.id === "string" ? parseInt(data.id) : data.id || 0;
+
+      if (idNumber > 0) {
         await updatePaymentLinkFormAction(data);
         toast.dismiss(toastId);
         toast.success("Link de pagamento atualizado com sucesso!");
@@ -285,7 +331,9 @@ export default function PaymentLinkForm({
       idPaymentLink: 0,
     };
 
-    const updatedItems = [...(form.getValues("shoppingItems") || []), newItem];
+    const currentItems = form.getValues("shoppingItems") || [];
+    const updatedItems = [...currentItems, newItem];
+
     form.setValue("shoppingItems", updatedItems);
 
     setItemName("");
@@ -299,9 +347,22 @@ export default function PaymentLinkForm({
       (_, itemIndex) => itemIndex !== index
     );
     form.setValue("shoppingItems", updatedItems);
-
-    // Recalcular o total após remover o item
     recalculateTotal(updatedItems);
+  };
+
+  const handleEditItem = (index: number) => {
+    const item = form.getValues("shoppingItems")?.[index];
+    if (item) {
+      setItemName(item.name);
+      setItemQuantity(item.quantity.toString());
+      setItemAmount(item.amount.toString());
+
+      const currentItems = form.getValues("shoppingItems") || [];
+      const updatedItems = currentItems.filter(
+        (_, itemIndex) => itemIndex !== index
+      );
+      form.setValue("shoppingItems", updatedItems);
+    }
   };
 
   return (
@@ -383,12 +444,7 @@ export default function PaymentLinkForm({
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={
-                              field.value ||
-                              TimeDiff(
-                                paymentLink.dtExpiration ||
-                                  new Date().toISOString(),
-                                paymentLink.dtinsert || new Date().toISOString()
-                              ).type
+                              field.value || defaultValues.expiresAt
                             }
                           >
                             <FormControl>
@@ -414,12 +470,7 @@ export default function PaymentLinkForm({
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={
-                              field.value ||
-                              TimeDiff(
-                                paymentLink.dtExpiration ||
-                                  new Date().toISOString(),
-                                paymentLink.dtinsert || new Date().toISOString()
-                              ).value
+                              field.value || defaultValues.diffNumber
                             }
                           >
                             <FormControl>
@@ -450,7 +501,7 @@ export default function PaymentLinkForm({
                           <FormLabel>Quantidade máxima de parcelas</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value?.toString() || ""}
+                            defaultValue={field.value?.toString() || "1"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -553,7 +604,12 @@ export default function PaymentLinkForm({
                                 <TableCell>{item.amount}</TableCell>
                                 <TableCell>
                                   {item.quantity !== undefined
-                                    ? item.quantity * Number(item.amount)
+                                    ? (typeof item.quantity === "string"
+                                        ? parseInt(item.quantity)
+                                        : item.quantity) *
+                                      (typeof item.amount === "number"
+                                        ? item.amount
+                                        : parseFloat(item.amount))
                                     : 0}
                                 </TableCell>
                                 <TableCell>
@@ -563,6 +619,13 @@ export default function PaymentLinkForm({
                                     onClick={() => handleRemoveItem(index)}
                                   >
                                     <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => handleEditItem(index)}
+                                  >
+                                    <Pencil className="w-4 h-4" />
                                   </Button>
                                 </TableCell>
                               </TableRow>
@@ -669,7 +732,14 @@ export default function PaymentLinkForm({
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>{item.amount}</TableCell>
                       <TableCell className="text-right">
-                        {(item.quantity * parseFloat(item.amount)).toFixed(2)}
+                        {(
+                          (typeof item.quantity === "string"
+                            ? parseInt(item.quantity)
+                            : item.quantity) *
+                          (typeof item.amount === "number"
+                            ? item.amount
+                            : parseFloat(item.amount))
+                        ).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))

@@ -1,11 +1,11 @@
 "use server";
 
-import { db } from "../../../server/db";
+import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { legalNatures } from "../../../../drizzle/schema";
-import { eq, count, desc, ilike, or, and } from "drizzle-orm";
+import { db } from "../../../server/db";
 
 export type LegalNatureList = {
-  legalNatures: typeof legalNatures.$inferSelect[];
+  legalNatures: (typeof legalNatures.$inferSelect)[];
   totalCount: number;
   activeCount: number;
   inactiveCount: number;
@@ -21,8 +21,7 @@ export async function getLegalNatures(
   name?: string,
   code?: string,
   active?: string,
-  sortField: keyof typeof legalNatures.$inferSelect = 'id',
-  sortOrder: 'asc' | 'desc' = 'desc'
+  sorting?: { sortBy?: string; sortOrder?: string }
 ): Promise<LegalNatureList> {
   const offset = (page - 1) * pageSize;
 
@@ -46,8 +45,20 @@ export async function getLegalNatures(
   }
 
   if (active) {
-    whereConditions.push(eq(legalNatures.active, active === 'true'));
+    whereConditions.push(eq(legalNatures.active, active === "true"));
   }
+
+  // Configurar ordenação
+  const sortFieldMap: { [key: string]: any } = {
+    name: legalNatures.name,
+    code: legalNatures.code,
+    active: legalNatures.active,
+  };
+
+  const sortBy = sorting?.sortBy || "id";
+  const sortOrder = sorting?.sortOrder || "desc";
+  const sortField = sortFieldMap[sortBy] || legalNatures.id;
+  const orderByClause = sortOrder === "asc" ? asc(sortField) : desc(sortField);
 
   const result = await db
     .select({
@@ -61,7 +72,7 @@ export async function getLegalNatures(
     })
     .from(legalNatures)
     .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
-    .orderBy(sortOrder === 'desc' ? desc(legalNatures[sortField]) : legalNatures[sortField])
+    .orderBy(orderByClause)
     .limit(pageSize)
     .offset(offset);
 
@@ -78,13 +89,17 @@ export async function getLegalNatures(
       slug: legalNature.slug || "",
       name: legalNature.name || "",
       active: legalNature.active || false,
-      dtinsert: legalNature.dtinsert ? new Date(legalNature.dtinsert).toISOString() : null,
-      dtupdate: legalNature.dtupdate ? new Date(legalNature.dtupdate).toISOString() : null,
+      dtinsert: legalNature.dtinsert
+        ? new Date(legalNature.dtinsert).toISOString()
+        : null,
+      dtupdate: legalNature.dtupdate
+        ? new Date(legalNature.dtupdate).toISOString()
+        : null,
       code: legalNature.code || "",
     })),
     totalCount,
-    activeCount: result.filter(ln => ln.active).length,
-    inactiveCount: result.filter(ln => !ln.active).length
+    activeCount: result.filter((ln) => ln.active).length,
+    inactiveCount: result.filter((ln) => !ln.active).length,
   };
 }
 
