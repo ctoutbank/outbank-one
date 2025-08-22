@@ -21,6 +21,8 @@ import {
 import { FeeType } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -728,14 +730,17 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
           </Card>
         ) : null}
 
-        <div className="flex justify-end mt-4 gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/portal/pricing")}
-            className="rounded-lg px-6 py-2"
-          >
-            Cancelar
-          </Button>
+        <div className="flex justify-between mt-4 gap-2">
+          <Link href="/portal/pricing">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-lg px-6 py-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
           <Button
             type="submit"
             disabled={isPending}
