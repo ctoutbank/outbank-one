@@ -47,7 +47,7 @@ export function AnticipationsListFilterContent({
                                                  statusIn,
                                                  onFilter,
                                                  onClose,
-                                                 merchantDD,
+                                                  merchantDD,
                                                }: AnticipationsListFilterContentProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(dateFromIn);
   const [dateTo, setDateTo] = useState<Date | undefined>(dateToIn);

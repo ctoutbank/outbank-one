@@ -1,64 +1,42 @@
-// app/api/relatorio/route.ts
-import { reportsExecutionSalesGenerateXLSX } from "@/features/reports/_actions/reports-execution-sales";
 import { getTransactions } from "@/features/transactions/serverActions/transaction";
-import { getDateUTC } from "@/lib/datetime-utils";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  try {
-    // Obter parâmetros da URL
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
-    const merchant = searchParams.get("merchant") || undefined;
-    const productType = searchParams.get("productType") || undefined;
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
 
-    const dateFrom = searchParams.get("dateFrom") || undefined;
-    const dateTo = searchParams.get("dateTo") || undefined;
+  const page = 1;
+  const pageSize = 10000; // ou outro valor grande pra exportação
 
+  const status = searchParams.get("status") || undefined;
+  const merchant = searchParams.get("merchant") || undefined;
+  const dateFrom = searchParams.get("dateFrom") || undefined;
+  const dateTo = searchParams.get("dateTo") || undefined;
+  const productType = searchParams.get("productType") || undefined;
+  const brand = searchParams.get("brand") || undefined;
+  const nsu = searchParams.get("nsu") || undefined;
+  const method = searchParams.get("method") || undefined;
+  const salesChannel = searchParams.get("salesChannel") || undefined;
+  const terminal = searchParams.get("terminal") || undefined;
+  const valueMin = searchParams.get("valueMin") || undefined;
+  const valueMax = searchParams.get("valueMax") || undefined;
 
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    console.log("timezone", timezone);
-    // Função auxiliar para validar e processar data
-
-    const dateFromUTC = getDateUTC(dateFrom as string, "America/Sao_Paulo");
-    const dateToUTC = getDateUTC(dateTo as string, "America/Sao_Paulo");
-    console.log("dateFromUTC", dateFromUTC);
-    console.log("dateToUTC", dateToUTC);
-
-    const transactions = await getTransactions(
-      -1,
-      -1,
+  const data = await getTransactions(
+      page,
+      pageSize,
       status,
       merchant,
-      dateFromUTC!,
-      dateToUTC!,
+      dateFrom,
+      dateTo,
       productType,
-    );
+      brand,
+      nsu,
+      method,
+      salesChannel,
+      terminal,
+      valueMin,
+      valueMax,
+      { sortBy: "dtInsert", sortOrder: "desc" }
+  );
 
-    const xlsxBytes = await reportsExecutionSalesGenerateXLSX(
-      transactions.transactions,
-      dateFrom as string,
-      dateTo as string
-    );
-
-    return new NextResponse(xlsxBytes ? Buffer.from(xlsxBytes) : null, {
-      status: 200,
-      headers: {
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": "attachment; filename=relatorio.xlsx",
-      },
-    });
-  } catch (error) {
-    console.error("Erro ao gerar relatório:", error);
-    return new NextResponse(
-      JSON.stringify({ error: "Erro ao gerar relatório" }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  return NextResponse.json({ transactions: data.transactions });
 }

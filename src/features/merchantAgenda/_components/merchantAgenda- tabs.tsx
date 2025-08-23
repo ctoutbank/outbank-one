@@ -28,6 +28,8 @@ import { Fill, Font } from "exceljs";
 import { useState } from "react";
 
 export type SearchParams = {
+  transactionDateFrom?: string;
+  transactionDateTo?: string;
   search?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -335,7 +337,7 @@ export function MerchantAgendaTabs({
                     }
                     globalStyles={globalStyles}
                     sheetName="Conciliação de ajustes"
-                    fileName={`CONCILIAÇÃO DE AJUSTES ${dateTo || ""}.xlsx`}
+                    fileName={`CONCILIAÇÃO DE AJUST ES ${dateTo || ""}.xlsx`}
                 />
             )}
           </div>
