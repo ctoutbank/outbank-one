@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreloadedFilterData } from "@/features/reports/filter/filter-Actions";
-import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -30,7 +31,6 @@ import FilterForm from "../filter/filter-form";
 import { ReportFilterSchema } from "../filter/schema";
 import { ReportSchema } from "../schema/schema";
 import {
-  deleteReport,
   FileFormatDD,
   PeriodDD,
   Recorrence,
@@ -202,16 +202,6 @@ export default function ReportsWizardForm({
     }
   }, [editFilterId, existingFilters]);
 
-  const router = useRouter();
-
-  const handleDeleteReport = async (id: number) => {
-    const confirmDelete = window.confirm("Você deseja excluir esse relatório?");
-
-    if (confirmDelete) {
-      await deleteReport(id);
-      router.push("/portal/reports");
-    }
-  };
 
   return (
     <div className="w-full">
@@ -236,16 +226,6 @@ export default function ReportsWizardForm({
             </TabsList>
           </div>
         </div>
-        {report.id && (
-          <div className="w-full flex justify-end">
-            <Button
-              variant="destructive"
-              onClick={() => handleDeleteReport(report.id as number)}
-            >
-              Excluir Relatório
-            </Button>
-          </div>
-        )}
         <TabsContent value="step1">
           <Card className="border-0 shadow-none">
             <CardContent className="p-0">
@@ -269,7 +249,7 @@ export default function ReportsWizardForm({
                 <>
                   <div className="flex justify-between items-center mb-4">
                     <div>
-                      <h2 className="text-xl font-semibold">
+                      <h2 className="text-xl font-semibold px-2 pt-4">
                         Filtros do Relatório
                       </h2>
                       <p className="text-sm text-muted-foreground">
@@ -365,6 +345,15 @@ export default function ReportsWizardForm({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-6 flex items-center">
+        <Link href="/portal/reports">
+          <Button type="button" variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

@@ -29,8 +29,8 @@ export default async function MerchantAgendaPage({
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
   const search = searchParams.search || "";
-  const dateFrom = searchParams.dateFrom || "";
-  const dateTo = searchParams.dateTo || "";
+  const transactionDateFrom = searchParams.transactionDateFrom || "";
+  const transactionDateTo = searchParams.transactionDateTo || "";
   const establishmentIn = searchParams.establishment || undefined;
   const nsuIn = searchParams.nsu || undefined;
   const statusIn = searchParams.status || undefined;
@@ -42,8 +42,8 @@ export default async function MerchantAgendaPage({
       getMerchantAgenda(
         page,
         pageSize,
-        searchParams.dateFrom,
-        searchParams.dateTo,
+        searchParams.transactionDateFrom,
+        searchParams.transactionDateTo,
         searchParams.establishment,
         searchParams.status,
         searchParams.cardBrand,
@@ -56,8 +56,8 @@ export default async function MerchantAgendaPage({
         search,
         page,
         pageSize,
-        dateFrom,
-        dateTo,
+        transactionDateFrom,
+        transactionDateTo,
         establishmentIn,
         statusIn,
         searchParams.cardBrand,
@@ -74,16 +74,16 @@ export default async function MerchantAgendaPage({
         search,
         page,
         pageSize,
-        dateFrom,
-        dateTo,
+        transactionDateFrom,
+        transactionDateTo,
         establishmentIn
       ),
     ]);
 
   // Buscar dados para o dashboard
   const anticipationDashboardStats = await getMerchantAgendaAnticipationStats(
-    dateFrom,
-    dateTo,
+    transactionDateFrom,
+    transactionDateTo,
     establishmentIn,
     statusIn,
     searchParams.cardBrand,
@@ -97,8 +97,8 @@ export default async function MerchantAgendaPage({
 
   // Buscar dados para o dashboard de ajustes
   const adjustmentDashboardStats = await getMerchantAgendaAdjustmentStats(
-    dateFrom,
-    dateTo,
+    transactionDateFrom,
+    transactionDateTo,
     establishmentIn
   );
 

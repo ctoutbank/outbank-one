@@ -15,7 +15,7 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { getEndOfDay } from "@/lib/datetime-utils";
 import { Search } from "lucide-react";
 import { Suspense } from "react";
-import TransactionsExport from "../../../features/transactions/reports/transactions-export-excel";
+import { TransactionsExport } from "@/features/transactions/reports/transactions-export-excel";
 
 type TransactionsProps = {
   page?: string;
@@ -38,8 +38,8 @@ type TransactionsProps = {
 };
 
 async function TransactionsContent({
-  searchParams,
-}: {
+                                     searchParams,
+                                   }: {
   searchParams: TransactionsProps;
 }) {
   const page = parseInt(searchParams.page || "1");
@@ -51,163 +51,177 @@ async function TransactionsContent({
   const sortBy = searchParams.sortBy || "dtInsert";
   const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
 
-  // Filtros para getTransactions (lista detalhada)
-  // Esta consulta suporta todos os filtros
-  const transactionList = await getTransactions(
-    page,
-    pageSize,
-    searchParams.status,
-    searchParams.merchant,
+  // 🚀 Aqui montamos os filtros para passar pro botão
+  const filters = {
+    search: searchParams.search,
+    status: searchParams.status,
+    merchant: searchParams.merchant,
     dateFrom,
     dateTo,
-    searchParams.productType,
-    searchParams.brand,
-    searchParams.nsu,
-    searchParams.method,
-    searchParams.salesChannel,
-    searchParams.terminal,
-    searchParams.valueMin,
-    searchParams.valueMax,
-    {
-      sortBy,
-      sortOrder,
-    }
+    productType: searchParams.productType,
+    brand: searchParams.brand,
+    nsu: searchParams.nsu,
+    method: searchParams.method,
+    salesChannel: searchParams.salesChannel,
+    terminal: searchParams.terminal,
+    valueMin: searchParams.valueMin,
+    valueMax: searchParams.valueMax,
+  };
+
+  // Filtros para getTransactions (lista detalhada)
+  const transactionList = await getTransactions(
+      page,
+      pageSize,
+      searchParams.status,
+      searchParams.merchant,
+      dateFrom,
+      dateTo,
+      searchParams.productType,
+      searchParams.brand,
+      searchParams.nsu,
+      searchParams.method,
+      searchParams.salesChannel,
+      searchParams.terminal,
+      searchParams.valueMin,
+      searchParams.valueMax,
+      {
+        sortBy,
+        sortOrder,
+      }
   );
 
   // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)
-  // Esta consulta suporta os filtros principais
   const transactionsGroupedReport = await getTransactionsGroupedReport(
-    dateFrom,
-    dateTo,
-    searchParams.status,
-    searchParams.productType,
-    searchParams.brand,
-    searchParams.method,
-    searchParams.salesChannel,
-    searchParams.terminal,
-    searchParams.valueMin,
-    searchParams.valueMax,
-    searchParams.merchant
+      dateFrom,
+      dateTo,
+      searchParams.status,
+      searchParams.productType,
+      searchParams.brand,
+      searchParams.method,
+      searchParams.salesChannel,
+      searchParams.terminal,
+      searchParams.valueMin,
+      searchParams.valueMax,
+      searchParams.merchant
   );
 
   return (
-    <>
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 flex-1">
-            <TransactionsFilter
-              statusIn={searchParams.status}
-              merchantIn={searchParams.merchant}
-              dateFromIn={dateFrom}
-              dateToIn={dateTo}
-              productTypeIn={searchParams.productType}
-              brandIn={searchParams.brand}
-              nsuIn={searchParams.nsu}
-              methodIn={searchParams.method}
-              salesChannelIn={searchParams.salesChannel}
-              terminalIn={searchParams.terminal}
-              valueMinIn={searchParams.valueMin}
-              valueMaxIn={searchParams.valueMax}
+      <>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <TransactionsFilter
+                  statusIn={searchParams.status}
+                  merchantIn={searchParams.merchant}
+                  dateFromIn={dateFrom}
+                  dateToIn={dateTo}
+                  productTypeIn={searchParams.productType}
+                  brandIn={searchParams.brand}
+                  nsuIn={searchParams.nsu}
+                  methodIn={searchParams.method}
+                  salesChannelIn={searchParams.salesChannel}
+                  terminalIn={searchParams.terminal}
+                  valueMinIn={searchParams.valueMin}
+                  valueMaxIn={searchParams.valueMax}
+              />
+            </div>
+            <TransactionsExport
+                filters={filters}
+                sheetName="Transações"
+                fileName="transacoes.xlsx"
             />
           </div>
-          <TransactionsExport />
 
-          {/* Componente para exportação em PDF
-          <TransactionsExportPdf />*/}
-        </div>
-
-        <div>
-          {" "}
-          <TransactionsDashboardTable
-            transactions={transactionsGroupedReport}
-          />
-        </div>
-
-        {transactionList.transactions.length === 0 ? (
-          <EmptyState
-            icon={Search}
-            title="Nenhum resultado encontrado"
-            description=""
-          />
-        ) : (
-          <TransactionsList transactions={transactionList.transactions} />
-        )}
-
-        {transactionList.totalCount > 0 && (
-          <div className="flex items-center justify-between mt-4">
-            <PageSizeSelector
-              currentPageSize={pageSize}
-              pageName="portal/transactions"
-            />
-            <PaginationRecords
-              totalRecords={transactionList.totalCount}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/transactions"
+          <div>
+            <TransactionsDashboardTable
+                transactions={transactionsGroupedReport}
             />
           </div>
-        )}
-      </div>
-    </>
+
+          {transactionList.transactions.length === 0 ? (
+              <EmptyState
+                  icon={Search}
+                  title="Nenhum resultado encontrado"
+                  description=""
+              />
+          ) : (
+              <TransactionsList transactions={transactionList.transactions} />
+          )}
+
+          {transactionList.totalCount > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <PageSizeSelector
+                    currentPageSize={pageSize}
+                    pageName="portal/transactions"
+                />
+                <PaginationRecords
+                    totalRecords={transactionList.totalCount}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    pageName="portal/transactions"
+                />
+              </div>
+          )}
+        </div>
+      </>
   );
 }
 
 export default async function TransactionsPage({
-  searchParams,
-}: {
+                                                 searchParams,
+                                               }: {
   searchParams: TransactionsProps;
 }) {
   await checkPagePermission("Lançamentos Financeiros");
 
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
-      />
-      <BaseBody
-        title="Vendas"
-        subtitle={`Visualização de Todas as Vendas`}
-        // actions={<SyncButton syncType="transactions" />}
-      >
-        <Suspense
-          fallback={
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <Skeleton className="h-10 w-[120px]" />
-                  <Skeleton className="h-10 w-[150px]" />
-                </div>
-                <div className="flex gap-2">
-                  <Skeleton className="h-10 w-[120px]" />
-                  <Skeleton className="h-10 w-[120px]" />
-                </div>
-              </div>
-              <div className="rounded-md border">
-                <div className="p-4">
-                  <div className="flex items-center gap-4 mb-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <Skeleton key={i} className="h-4 w-[100px]" />
-                    ))}
+      <>
+        <BaseHeader
+            breadcrumbItems={[{ title: "Vendas", url: "/portal/transactions" }]}
+        />
+        <BaseBody
+            title="Vendas"
+            subtitle={`Visualização de Todas as Vendas`}
+        >
+          <Suspense
+              fallback={
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <Skeleton className="h-10 w-[120px]" />
+                      <Skeleton className="h-10 w-[150px]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-10 w-[120px]" />
+                      <Skeleton className="h-10 w-[120px]" />
+                    </div>
                   </div>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 mb-4">
-                      {Array.from({ length: 6 }).map((_, j) => (
-                        <Skeleton key={j} className="h-4 w-[100px]" />
+                  <div className="rounded-md border">
+                    <div className="p-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <Skeleton key={i} className="h-4 w-[100px]" />
+                        ))}
+                      </div>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-4 mb-4">
+                            {Array.from({ length: 6 }).map((_, j) => (
+                                <Skeleton key={j} className="h-4 w-[100px]" />
+                            ))}
+                          </div>
                       ))}
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <Skeleton className="h-8 w-[100px]" />
+                    <Skeleton className="h-8 w-[300px]" />
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <Skeleton className="h-8 w-[100px]" />
-                <Skeleton className="h-8 w-[300px]" />
-              </div>
-            </div>
-          }
-        >
-          <TransactionsContent searchParams={searchParams} />
-        </Suspense>
-      </BaseBody>
-    </>
+              }
+          >
+            <TransactionsContent searchParams={searchParams} />
+          </Suspense>
+        </BaseBody>
+      </>
   );
 }

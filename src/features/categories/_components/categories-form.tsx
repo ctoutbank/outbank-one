@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cnaeMap } from "@/lib/lookuptables/lookuptables";
-import { Settings } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -372,6 +373,15 @@ export default function Categoriesform({ categories }: CategoriesProps) {
           <FeeView feeDetail={feeDetail} />
         </div>
       )}
+
+      <div className="mt-6 flex items-center">
+        <Link href="/portal/categories">
+          <Button type="button" variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        </Link>
+      </div>
     </>
   );
 }

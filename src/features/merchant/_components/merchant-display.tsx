@@ -17,7 +17,8 @@ import MerchantFormBank from "@/features/merchant/_components/merchant-form-bank
 import MerchantFormBankAccount from "@/features/merchant/_components/merchant-form-bank-account";
 import { MerchantTabsProps } from "@/features/merchant/server/types";
 import { accountTypes } from "@/lib/lookuptables/lookuptables";
-import { Edit, ExternalLink, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, ExternalLink, FileText, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -1138,16 +1139,6 @@ export default function MerchantDisplay({
         </div>
       ) : (
         <div>
-          <div className="mb-4 flex items-center">
-            <Button
-              variant="outline"
-              onClick={() => setActiveEditSection(null)}
-              className="flex items-center gap-1 text-sm h-8"
-            >
-              Voltar
-            </Button>
-          </div>
-
           {activeEditSection === "company" && (
             <MerchantFormCompany
               merchant={{
@@ -1318,6 +1309,25 @@ export default function MerchantDisplay({
           )}
         </div>
       )}
+      <div className="mb-4 flex items-center">
+        {activeEditSection ? (
+          <Button
+            variant="outline"
+            onClick={() => setActiveEditSection(null)}
+            className="flex items-center gap-1 text-sm h-8"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        ) : (
+          <Link href="/portal/merchants">
+            <Button type="button" variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { NotificationIcon } from "@/components/notification";
 import {
   Collapsible,
   CollapsibleContent,
@@ -8,7 +7,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserMenu } from "@/components/user-menu";
 import { getAuthorizedMenu } from "@/features/menu/actions";
 import { useSidebar } from "@/hooks/use-sidebar-context";
 import {
@@ -229,11 +227,6 @@ export function AppSidebar() {
                 </div>
               )}
             </div>
-            {isOpen && (
-              <div className="p-4">
-                <NotificationIcon />
-              </div>
-            )}
           </div>
         </div>
 
@@ -360,13 +353,6 @@ export function AppSidebar() {
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        {isOpen && (
-          <div className="p-4">
-            <UserMenu />
-          </div>
-        )}
       </div>
     </div>
   );

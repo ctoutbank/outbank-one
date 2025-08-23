@@ -1,11 +1,10 @@
 "use client";
 
+import { cnaeMap, mccToCnaeMap } from "@/lib/lookuptables/lookuptables";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {cnaeMap, mccToCnaeMap} from "@/lib/lookuptables/lookuptables"
-
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -165,7 +164,8 @@ export default function PricingSolicitationForm({
       console.log("WATCH TRIGGERED:", name, value);
       if (name === "cnae" && value.cnae) {
         const mapping = cnaeMap[value.cnae];
-        if (mapping && value.mcc !== mapping.mcc) { // Verificar se o mcc atual é diferente
+        if (mapping && value.mcc !== mapping.mcc) {
+          // Verificar se o mcc atual é diferente
           console.log("MCC SETADO COMO: ", mapping.mcc);
           form.setValue("mcc", mapping.mcc);
           form.setValue("cardPixMdr", mapping.mdr);
@@ -175,19 +175,21 @@ export default function PricingSolicitationForm({
       // Preenche o campo cnae automaticamente quando o mcc for preenchido
       if (name === "mcc" && value.mcc) {
         const cnae = mccToCnaeMap[value.mcc];
-        if (cnae && value.cnae !== cnae) { // Verificar se o cnae atual é diferente
+        if (cnae && value.cnae !== cnae) {
+          // Verificar se o cnae atual é diferente
           console.log("CNAE SETADO COMO: ", cnae);
           form.setValue("cnae", cnae);
         }
       }
-
     });
     return () => subscription.unsubscribe?.();
   }, [form]);
 
-
   // Map form data to solicitation structure
-  function mapFormDataToSolicitation(data: PricingSolicitationSchema) {
+  function mapFormDataToSolicitation(
+    data: PricingSolicitationSchema,
+    forceStatus?: string
+  ) {
     // Se não houver dados, retorna objeto vazio
     if (!data) return {};
 
@@ -232,7 +234,8 @@ export default function PricingSolicitationForm({
       compulsoryAnticipationConfigDock: 0,
       eventualAnticipationFeeDock: null,
       nonCardEventualAnticipationFeeDock: null,
-      status: "SEND_DOCUMENTS", // Definir status padrão para upload
+      // Só definir status se for forçado, senão manter o atual
+      status: forceStatus || pricingSolicitation?.status || "SEND_DOCUMENTS",
       brands: (data.brands || []).map((brand) => ({
         name: brand.name || "",
         productTypes: (brand.productTypes || []).map((productType) => ({
@@ -260,8 +263,11 @@ export default function PricingSolicitationForm({
   // Create a new solicitation
 
   // Update an existing solicitation
-  async function updateExistingSolicitation(values: PricingSolicitationSchema) {
-    const formattedData = mapFormDataToSolicitation(values);
+  async function updateExistingSolicitation(
+    values: PricingSolicitationSchema,
+    forceStatus?: string
+  ) {
+    const formattedData = mapFormDataToSolicitation(values, forceStatus);
 
     console.log("Dados formatados para atualização:", {
       ...formattedData,
@@ -281,14 +287,12 @@ export default function PricingSolicitationForm({
     setIsSubmitting(true);
     try {
       if (solicitationId) {
-        const newStatus = "PENDING";
-
         console.log("Valores antes de atualizar:", values);
-        console.log("Status:", newStatus);
+        console.log("Status: PENDING");
         console.log("ID da solicitação:", solicitationId);
 
-        // Atualiza a solicitação existente para o novo status
-        await updateExistingSolicitation(values);
+        // Forçar o status PENDING apenas quando clicar em Enviar
+        await updateExistingSolicitation(values, "PENDING");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -367,6 +371,7 @@ export default function PricingSolicitationForm({
 
                       <div className="flex justify-end ">
                         <Button
+                          type="button"
                           onClick={() => setOpenUploadDialog(true)}
                           className="flex items-center gap-2"
                         >

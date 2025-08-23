@@ -139,8 +139,8 @@ export interface MerchantAgendaExcelData {
 export async function getMerchantAgenda(
   page: number,
   pageSize: number,
-  dateFrom?: string,
-  dateTo?: string,
+  transactionDateFrom?: string,
+  transactionDateTo?: string,
   establishment?: string,
   status?: string,
   cardBrand?: string,
@@ -177,15 +177,15 @@ export async function getMerchantAgenda(
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
   }
   conditions.push(eq(payout.idCustomer, userAccess.idCustomer));
-  if (dateFrom) {
+  if (transactionDateFrom) {
     conditions.push(
-      gte(payout.transactionDate, new Date(dateFrom).toISOString())
+      gte(payout.transactionDate, new Date(transactionDateFrom).toISOString())
     );
   }
 
-  if (dateTo) {
+  if (transactionDateTo) {
     conditions.push(
-      lte(payout.transactionDate, new Date(dateTo).toISOString())
+      lte(payout.transactionDate, new Date(transactionDateTo).toISOString())
     );
   }
 

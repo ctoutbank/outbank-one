@@ -35,7 +35,8 @@ import {
 import { type PricingSolicitationForm } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import { FileIcon, UploadIcon, User } from "lucide-react";
+import { ArrowLeft, FileIcon, UploadIcon, User } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -512,7 +513,7 @@ export function PricingSolicitationView({
                     </div>
                   </div>
                 </div>
-                <div>
+                {/*<div>
                   <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
                     {cnaeInUse && (
                       <div className="h-4 w-4 rounded border flex items-center justify-center">
@@ -521,9 +522,9 @@ export function PricingSolicitationView({
                     )}
                     {/*<div className="space-y-1 leading-none">
                     <FormLabel>CNAE em uso?</FormLabel>
-                  </div>*/}
                   </div>
-                </div>
+                  </div>
+                </div>*/}
               </div>
               {cnaeInUse && pricingSolicitation.description && (
                 <div className="mb-6">
@@ -533,6 +534,18 @@ export function PricingSolicitationView({
                       {pricingSolicitation.description}
                     </div>
                   </div>
+                </div>
+              )}
+              {pricingSolicitation.status === "APPROVED" && (
+                <div className="flex justify-end mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowUploadDialog(true)}
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700 hover:text-white text-white"
+                  >
+                    Enviar Aditivo Contratual
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -1088,39 +1101,37 @@ export function PricingSolicitationView({
             </CardContent>
           </Card>
           {pricingSolicitation.id && (
-            <div className="flex justify-end gap-4 mt-6">
-              {pricingSolicitation.status === "REVIEWED" && (
-                <Button
-                  variant="outline"
-                  onClick={handleOpenRejectDialog}
-                  disabled={isSubmitting}
-                  className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                >
-                  Recusar
+            <div className="flex justify-between items-center mt-6">
+              <Link href="/portal/pricingSolicitation">
+                <Button type="button" variant="outline">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar
                 </Button>
-              )}
-              {pricingSolicitation.status === "REVIEWED" && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    handleApprove();
-                  }}
-                  disabled={isSubmitting}
-                  className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                >
-                  Aceitar
-                </Button>
-              )}
-              {pricingSolicitation.status === "APPROVED" && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowUploadDialog(true)}
-                  disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Importar e Concluir
-                </Button>
-              )}
+              </Link>
+              <div className="flex gap-4">
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenRejectDialog}
+                    disabled={isSubmitting}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                  >
+                    Recusar
+                  </Button>
+                )}
+                {pricingSolicitation.status === "REVIEWED" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      handleApprove();
+                    }}
+                    disabled={isSubmitting}
+                    className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                  >
+                    Aceitar
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1131,14 +1142,14 @@ export function PricingSolicitationView({
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Enviar Aditivo Assinado</DialogTitle>
+              <DialogTitle>Enviar Aditivo Contratual Assinado</DialogTitle>
               <DialogDescription>
-                Faça o upload do aditivo devidamente assinado
+                Faça o upload do Aditivo Contratual devidamente assinado
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="aditivo">Aditivo Assinado</Label>
+                <Label htmlFor="aditivo">Aditivo Contratual Assinado</Label>
                 <Input
                   id="aditivo"
                   type="file"
