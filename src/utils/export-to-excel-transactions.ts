@@ -1,8 +1,5 @@
 import ExcelJS from "exceljs";
-import {
-    formatCurrency,
-    formatDate,
-} from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface ResumoItem {
     tipo: string;
@@ -73,32 +70,34 @@ export async function exportToExcelTransactions({
         valorTotalNegado: 0,
     });
 
+    // --- monta dados por bandeira (usando valores numéricos corretos para % e moeda) ---
     transactions.forEach((item) => {
         const bandeira = item.brand || "NÃO IDENTIFICADA";
         const tipo = item.productType || "Não Especificado";
         const valor = Number(item.amount) || 0;
         const status = item.transactionStatus || "";
-        const fee = Number(item.feeAdmin) || 0;
-        const transactionMdr = Number(item.transactionMdr) || 0;
-        const lucro = Number(item.lucro) || 0;
+        const fee = Number(item.feeAdmin);
+        const transactionMdr = Number(item.transactionMdr);
+        const lucro = Number(item.lucro);
         const repasse = Number(item.repasse) || 0;
 
         const rowData = {
             Data: (() => {
-                const data = new Date(item.dtInsert || "");
+                if (!item.dtInsert) return "-";
+                const data = new Date(item.dtInsert);
                 data.setHours(data.getHours() - 3);
                 return formatDate(data) + " " + data.toLocaleTimeString("pt-BR");
             })(),
-            "NSU / Id": item.nsu || "0,0",
-            Terminal: item.terminalLogicalNumber || "0,0",
-            Valor: `R$ ${valor.toFixed(2)}`,
+            "NSU / Id": item.nsu || "-",
+            Terminal: item.terminalLogicalNumber || "-",
+            Valor: valor,
             Bandeira: bandeira,
             Tipo: tipo,
             Status: status || "-",
-            Fee_Admin: `${fee.toFixed(2)}%`,
-            TransactionMdr: `${transactionMdr.toFixed(2)}%`,
-            Lucro: `${lucro.toFixed(2)}%`,
-            Repasse: `R$ ${repasse.toFixed(2)}`,
+            Fee_Admin: isNaN(fee) ? 0 : fee / 100, // percent as fractional
+            TransactionMdr: isNaN(transactionMdr) ? 0 : transactionMdr / 100,
+            Lucro: isNaN(lucro) ? 0 : lucro / 100,
+            Repasse: isNaN(repasse) ? 0 : repasse,
         };
 
         if (bandeira === "PIX" && tipo === "PIX") {
@@ -161,8 +160,23 @@ export async function exportToExcelTransactions({
         { header: "Valor Negado", key: "valorTotalNegado", width: 20 },
     ];
 
+    // aplica estilo ao header da primeira página (Resumo Geral) — sem tocar nos blocos amarelos abaixo
+    const resumoHeader = resumoSheet.getRow(1);
+    resumoHeader.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "FFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F4F4F" } };
+        cell.border = {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+        };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // adiciona as linhas do resumo (mantendo e NÃO sobrescrevendo fills de totais amarelos)
     resumoGeral.forEach((item) => {
-        resumoSheet.addRow({
+        const row = resumoSheet.addRow({
             tipo: item.tipo,
             bandeira: item.bandeira,
             quantidade: item.quantidade,
@@ -172,11 +186,22 @@ export async function exportToExcelTransactions({
             quantidadeNegada: item.quantidadeNegada,
             valorTotalNegado: formatCurrency(item.valorTotalNegado),
         });
+
+        // aplica apenas fonte e borda — não altera fill (assim mantém os blocos amarelos quando existirem)
+        row.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.border = {
+                top: { style: "thin", color: { argb: "000000" } },
+                left: { style: "thin", color: { argb: "000000" } },
+                bottom: { style: "thin", color: { argb: "000000" } },
+                right: { style: "thin", color: { argb: "000000" } },
+            };
+        });
     });
 
     resumoSheet.addRow([]);
 
-    // --- TOTAIS POR TIPO ---
+    // --- TOTAIS POR TIPO (mantém o preenchimento amarelo como no seu código original) ---
     const totalPorTipo: Record<string, TotaisTipo> = resumoGeral.reduce((acc, item) => {
         if (!acc[item.tipo]) acc[item.tipo] = { quantidade: 0, valorTotal: 0, quantidadeNegada: 0, valorTotalNegado: 0 };
         acc[item.tipo].quantidade += item.quantidade;
@@ -186,7 +211,7 @@ export async function exportToExcelTransactions({
         return acc;
     }, {} as Record<string, TotaisTipo>);
 
-    ["CREDIT","DEBIT","PREPAID_CREDIT","PREPAID_DEBIT","PIX"].forEach((tipo) => {
+    ["CREDIT", "DEBIT", "PREPAID_CREDIT", "PREPAID_DEBIT", "PIX"].forEach((tipo) => {
         if (!totalPorTipo[tipo]) totalPorTipo[tipo] = { quantidade: 0, valorTotal: 0, quantidadeNegada: 0, valorTotalNegado: 0 };
     });
 
@@ -201,13 +226,24 @@ export async function exportToExcelTransactions({
             quantidadeNegada: totais.quantidadeNegada,
             valorTotalNegado: formatCurrency(totais.valorTotalNegado),
         });
+        // mantém o comportamento original (fundo amarelo), mas garante negrito
         row.font = { bold: true };
         row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFE0" } };
+
+        // aplica borda nas células desse row (não muda fill)
+        row.eachCell((cell) => {
+            cell.border = {
+                top: { style: "thin", color: { argb: "000000" } },
+                left: { style: "thin", color: { argb: "000000" } },
+                bottom: { style: "thin", color: { argb: "000000" } },
+                right: { style: "thin", color: { argb: "000000" } },
+            };
+        });
     });
 
     resumoSheet.addRow([]);
 
-    // --- TOTAL GERAL ---
+    // --- TOTAL GERAL (mantém dourado) ---
     const rowTotalGeral = resumoSheet.addRow({
         tipo: "TOTAL GERAL",
         bandeira: "",
@@ -221,36 +257,139 @@ export async function exportToExcelTransactions({
     rowTotalGeral.font = { bold: true, size: 12 };
     rowTotalGeral.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD700" } };
 
-    // --- PLANILHAS DE TRANSAÇÕES ---
-    const todasSheet = workbook.addWorksheet("Todas as Transações");
-    todasSheet.columns = Object.keys(transactions[0]).map((k) => ({
-        header: k === "amount" ? "Valor" :
-            k === "feeAdmin" ? "Fee Admin" :
-                k === "transactionMdr" ? "Transaction MDR" :
-                    k === "lucro" ? "Lucro" :
-                        k === "repasse" ? "Repasse" :
-                            k,
-        key: k,
-        width: 20
-    }));
-    transactions.forEach((item) => {
-        const row = Object.fromEntries(
-            Object.entries(item).map(([key, value]) => [key, value ?? (key.includes("amount") || key.includes("repasse") ? "R$ 0,0" : "0,0")])
-        );
-        todasSheet.addRow(row);
+    // aplica bordas no TOTAL GERAL (sem alterar o fill dourado)
+    rowTotalGeral.eachCell((cell) => {
+        cell.border = {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+        };
     });
 
+    // --- PLANILHA TODAS AS TRANSAÇÕES ---
+    const todasSheet = workbook.addWorksheet("Todas as Transações");
+    todasSheet.columns = [
+        { header: "Data", key: "dtInsert", width: 20 },
+        { header: "NSU", key: "nsu", width: 20 },
+        { header: "Terminal", key: "terminalLogicalNumber", width: 20 },
+        { header: "Valor (R$)", key: "amount", width: 15, style: { numFmt: "R$ #,##0.00" } },
+        { header: "Bandeira", key: "brand", width: 20 },
+        { header: "Tipo", key: "productType", width: 20 },
+        { header: "Status", key: "transactionStatus", width: 20 },
+        { header: "% Custo", key: "feeAdmin", width: 15, style: { numFmt: "0.00%" } },
+        { header: "% Total", key: "transactionMdr", width: 15, style: { numFmt: "0.00%" } },
+        { header: "% Lucro", key: "lucro", width: 15, style: { numFmt: "0.00%" } },
+        { header: "R$ Repasse", key: "repasse", width: 15, style: { numFmt: "R$ #,##0.00" } },
+    ];
+
+    // header estilizado (Todas as Transações)
+    const headerRow = todasSheet.getRow(1);
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "FFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F4F4F" } };
+        cell.border = {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+        };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // escreve linhas garantindo 0 para campos numéricos quando ausentes
+    transactions.forEach((item) => {
+        // format date like in rowData
+        let dtValue = "-";
+        if (item.dtInsert) {
+            const d = new Date(item.dtInsert);
+            d.setHours(d.getHours() - 3);
+            dtValue = formatDate(d) + " " + d.toLocaleTimeString("pt-BR");
+        }
+
+        const amount = Number(item.amount) || 0;
+        const feeRaw = Number(item.feeAdmin);
+        const fee = isNaN(feeRaw) ? 0 : feeRaw / 100;
+        const mdrRaw = Number(item.transactionMdr);
+        const mdr = isNaN(mdrRaw) ? 0 : mdrRaw / 100;
+        const lucroRaw = Number(item.lucro);
+        const lucro = isNaN(lucroRaw) ? 0 : lucroRaw / 100;
+        const repasse = Number(item.repasse) || 0;
+
+        const addedRow = todasSheet.addRow({
+            dtInsert: dtValue,
+            nsu: item.nsu || "-",
+            terminalLogicalNumber: item.terminalLogicalNumber || "-",
+            amount: amount,
+            brand: item.brand || "-",
+            productType: item.productType || "-",
+            transactionStatus: item.transactionStatus || "-",
+            feeAdmin: fee,
+            transactionMdr: mdr,
+            lucro: lucro,
+            repasse: repasse,
+        });
+
+        addedRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.border = {
+                top: { style: "thin", color: { argb: "000000" } },
+                left: { style: "thin", color: { argb: "000000" } },
+                bottom: { style: "thin", color: { argb: "000000" } },
+                right: { style: "thin", color: { argb: "000000" } },
+            };
+        });
+    });
+
+    // --- Outras abas por bandeira ---
     Object.entries(dadosPorBandeira).forEach(([sheetName, rows]) => {
         const ws = workbook.addWorksheet(sheetName);
         if (rows.length > 0) {
-            ws.columns = Object.keys(rows[0]).map((k) => ({ header: k, key: k, width: 20 }));
-            rows.forEach((r) => ws.addRow(r));
+            ws.columns = Object.keys(rows[0]).map((k) => {
+                if (["Valor", "Repasse"].includes(k)) {
+                    return { header: k, key: k, width: 20, style: { numFmt: "R$ #,##0.00" } };
+                }
+                if (["Fee_Admin", "TransactionMdr", "Lucro"].includes(k)) {
+                    return { header: k, key: k, width: 20, style: { numFmt: "0.00%" } };
+                }
+                return { header: k, key: k, width: 20 };
+            });
+
+            // header formatado
+            const wsHeader = ws.getRow(1);
+            wsHeader.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFF" } };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F4F4F" } };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } },
+                };
+                cell.alignment = { horizontal: "center", vertical: "middle" };
+            });
+
+            // aplica estilo nas linhas
+            rows.forEach((r) => {
+                const addedRow = ws.addRow(r);
+                addedRow.eachCell((cell) => {
+                    cell.font = { bold: true };
+                    cell.border = {
+                        top: { style: "thin", color: { argb: "000000" } },
+                        left: { style: "thin", color: { argb: "000000" } },
+                        bottom: { style: "thin", color: { argb: "000000" } },
+                        right: { style: "thin", color: { argb: "000000" } },
+                    };
+                });
+            });
         }
     });
 
     // --- DOWNLOAD ---
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
