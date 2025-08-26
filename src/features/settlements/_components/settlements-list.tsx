@@ -66,7 +66,7 @@ export default function MerchantSettlementsList({
 
   return (
     <ScrollArea className="w-full rounded-md border">
-      <div className="min-w-[1040px]">
+      <div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -76,47 +76,47 @@ export default function MerchantSettlementsList({
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[20%] min-w-[180px] text-black"
+                className="font-medium w-[20%] min-w-[180px] text-black"
               />
               <SortableTableHead
                 columnId="batchamount"
-                name="Valor Líquido Recebíveis"
+                name="R$ Líquido Recebíveis"
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+                className="font-medium w-[15%] min-w-[140px] text-center text-black"
               />
               <SortableTableHead
                 columnId="totalanticipationamount"
-                name="Valor Líquido Antecipação"
+                name="R$ Líquido Antecipação"
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+                className="font-medium w-[15%] min-w-[140px] text-center text-black"
               />
               <SortableTableHead
                 columnId="pendingfinancialadjustmentamount"
-                name="Valor de Ajuste"
+                name="R$ de Ajuste"
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[12%] min-w-[120px] text-center text-black"
+                className="font-medium w-[12%] min-w-[120px] text-center text-black"
               />
               <SortableTableHead
                 columnId="pendingrestitutionamount"
-                name="Valor Pendente"
+                name="R$ Pendente"
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+                className="font-medium w-[15%] min-w-[140px] text-center text-black"
               />
               <SortableTableHead
                 columnId="totalsettlementamount"
-                name="Valor Total de Liquidação"
+                name="R$ Total de Liquidação"
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[15%] min-w-[140px] text-center text-black"
+                className="font-medium w-[15%] min-w-[140px] text-center text-black"
               />
               <SortableTableHead
                 columnId="status"
@@ -124,7 +124,7 @@ export default function MerchantSettlementsList({
                 sortable={true}
                 onSort={handleSort}
                 searchParams={searchParams}
-                className="font-semibold w-[8%] min-w-[100px] text-center text-black"
+                className="font-medium w-[8%] min-w-[100px] text-center text-black"
               />
             </TableRow>
           </TableHeader>
@@ -141,18 +141,18 @@ export default function MerchantSettlementsList({
                         <Table>
                           <TableBody>
                             <TableRow>
-                              <TableCell className="w-[20%] min-w-[180px] text-muted-foreground">
+                              <TableCell className="w-[20%]  text-muted-foreground">
                                 {settlement.merchant.toUpperCase()}
                               </TableCell>
-                              <TableCell className="w-[15%] min-w-[140px] text-center text-muted-foreground">
+                              <TableCell className="w-[15%] text-center text-muted-foreground">
                                 {formatCurrency(Number(settlement.batchamount))}
                               </TableCell>
-                              <TableCell className="w-[15%] min-w-[140px] text-center text-muted-foreground">
+                              <TableCell className="w-[15%]  text-center text-muted-foreground">
                                 {formatCurrency(
                                   Number(settlement.totalanticipationamount)
                                 )}
                               </TableCell>
-                              <TableCell className="w-[12%] min-w-[120px] text-center text-muted-foreground">
+                              <TableCell className="w-[12%]  text-center text-muted-foreground">
                                 {formatCurrency(
                                   Number(
                                     "-" +
@@ -160,17 +160,17 @@ export default function MerchantSettlementsList({
                                   )
                                 )}
                               </TableCell>
-                              <TableCell className="w-[15%] min-w-[140px] text-center text-muted-foreground">
+                              <TableCell className="w-[15%]  text-center text-muted-foreground">
                                 {formatCurrency(
                                   Number(settlement.pendingrestitutionamount)
                                 )}
                               </TableCell>
-                              <TableCell className="w-[15%] min-w-[140px] text-center text-muted-foreground">
+                              <TableCell className="w-[15%]  text-center text-muted-foreground">
                                 {formatCurrency(
                                   Number(settlement.totalsettlementamount)
                                 )}
                               </TableCell>
-                              <TableCell className="w-[8%] min-w-[100px] text-right text-muted-foreground">
+                              <TableCell className="w-[8%]  text-right text-muted-foreground">
                                 <Badge
                                   className={
                                     getStatusColor(settlement.status) +

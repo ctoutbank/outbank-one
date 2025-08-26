@@ -100,20 +100,20 @@ export default function FinancialOverview({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-4 space-y-2">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Valor Líquido Recebíveis
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-lg font-semibold">
                   {formatCurrency(totalAmount)}
                 </p>
               </div>
             </Card>
             <Card className="p-4 space-y-2">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Valor Líquido Antecipação
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-lg font-semibold">
                   {formatCurrency(
                     financialOverviewProps.netAnticipationsAmount
                   )}
@@ -122,20 +122,20 @@ export default function FinancialOverview({
             </Card>
             <Card className="p-4 space-y-2">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Valores de Retorno
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-lg font-semibold">
                   {formatCurrency(financialOverviewProps.restitutionAmount)}
                 </p>
               </div>
             </Card>
             <Card className="p-4 space-y-2">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Valor Total de Liquidação
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-lg font-semibold">
                   {formatCurrency(financialOverviewProps.settlementAmount)}
                 </p>
               </div>
