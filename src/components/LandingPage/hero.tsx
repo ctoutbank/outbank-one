@@ -1,6 +1,7 @@
 "use client"
 
 import Image from 'next/image'
+import { t } from '../../utils/i18n'
 
 const HeroLandingPage = () => {
   return (
@@ -29,11 +30,11 @@ const HeroLandingPage = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              The most complete financial services infrastructure for your business
+              {t('The most complete financial services infrastructure for your business')}
             </h1>
             
             <p className="text-gray-300 text-base md:text-lg mb-8">
-              Offer digital accounts, branded cards, and innovate in payment services with Pix and acquiring solutions. All with security and fraud prevention.
+              {t('Offer digital accounts, branded cards, and innovate in payment services with Pix and acquiring solutions. All with security and fraud prevention.')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -43,7 +44,7 @@ const HeroLandingPage = () => {
                 }}
                 className="w-full sm:w-auto bg-white text-gray-900 px-8 py-3 font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98]"
               >
-                Button CTA
+                {t('Button CTA')}
               </button>
               <button className="w-full sm:w-auto bg-gray-400/10 text-white px-8 py-3 border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98]">
                 Saiba Mais
