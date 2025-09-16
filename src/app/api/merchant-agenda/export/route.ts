@@ -1,5 +1,12 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda"
+
+// Mark this route as dynamic so that the request URL and other dynamic
+// properties can be accessed at runtime. Without this flag, Next.js
+// attempts to statically optimize the route and fails because it detects
+// usage of `req.url`. See deployment error logs for more details.
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     try {
