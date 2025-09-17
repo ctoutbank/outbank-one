@@ -23,7 +23,7 @@ export default function Footer() {
               />
               <div className="space-y-1.5 sm:space-y-2 text-sm">
                 <p>42.244.879/0001-67</p>
-                <p>contact@outbank.com</p>
+                <p>operacao@outbank.com.br</p>
                 <p>+0 (123) 456-789</p>
               </div>
             </div>
@@ -33,12 +33,17 @@ export default function Footer() {
               <div className="grid grid-cols-3 gap-4 sm:gap-8">
                 {/* Company Links */}
                 <div className="col-span-1">
-                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Company</h3>
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Estrutura</h3>
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
-                    {["Outbank", "Acquiring", "Banking", "Cards & Credit"].map((item) => (
-                      <li key={item}>
-                        <Link href="#" className="text-black/70 hover:text-black transition-colors">
-                          {item}
+                    {[
+                      { name: "Outbank", href: "/" },
+                      { name: "Acquiring", href: "/acquiring" },
+                      { name: "Banking", href: "/banking" },
+                      { name: "Cards & Credit", href: "/cards" }
+                    ].map((item) => (
+                      <li key={item.name}>
+                        <Link href={item.href} className="text-black/70 hover:text-black transition-colors">
+                          {item.name}
                         </Link>
                       </li>
                     ))}

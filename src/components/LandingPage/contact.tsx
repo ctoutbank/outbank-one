@@ -12,7 +12,7 @@ import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pa
 
 export default function ContactForm() {
   return (
-    <section id="contact" className="relative bg-black text-white py-16 px-4 md:px-8 overflow-hidden">
+    <section id="contact-form" className="relative bg-black text-white py-16 px-4 md:px-8 overflow-hidden">
       {/* Grid Pattern Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black z-10" />

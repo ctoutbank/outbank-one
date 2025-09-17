@@ -1,14 +1,12 @@
 import Footer from "@/components/footer";
 import ContactForm from "@/components/LandingPage/contact";
 import CustomerCarousel from "@/components/LandingPage/customer-carousel";
-import Depoiments from "@/components/LandingPage/depoiments";
 import DockSection from "@/components/LandingPage/dock";
 import HeroLandingPage from "@/components/LandingPage/hero";
 import NumbersSection from "@/components/LandingPage/numbers-section";
 import Presence from "@/components/LandingPage/presence";
 import ProductsSection from "@/components/LandingPage/products";
 import ServicesSection from "@/components/LandingPage/services";
-import SuccessStories from "@/components/LandingPage/success-stories";
 import { Navbar } from "@/components/navbar";
 
 export default function LandingPage() {
@@ -31,15 +29,15 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto ">
           <ServicesSection />
         </section>
-        <section className="w-full">
+        {/* <section className="w-full">
           <SuccessStories />
-        </section>
+        </section> */}
         <section className="w-full">
           <Presence /> 
         </section>
-        <section className="w-full max-w-7xl mx-auto">
+        {/* <section className="w-full max-w-7xl mx-auto">
           <Depoiments />
-        </section>
+        </section> */}
         <section className="w-full max-w-7xl mx-auto">
           <DockSection />
         </section>
