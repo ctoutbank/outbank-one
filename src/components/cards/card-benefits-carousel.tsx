@@ -2,16 +2,17 @@
 import Image from "next/image"
 import { Check, X } from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { t } from '../../utils/i18n'
 
 const cards = [
   {
     type: "Credit",
     image: "/black-card.svg",
     features: [
-      { name: "Individual", included: true },
-      { name: "Legal Entity", included: true },
-      { name: "Virtual Card", included: true },
-      { name: "Additional Card", included: true },
+      { name: t("Individual"), included: true },
+      { name: t("Legal Entity"), included: true },
+      { name: t("Virtual Card"), included: true },
+      { name: t("Additional Card"), included: true },
       { name: "Digital Wallets", included: true },
       { name: "Dynamic CVV", included: true },
       { name: "24 Hour Withdrawal", included: true },
@@ -24,10 +25,10 @@ const cards = [
     type: "Prepaid and Debit",
     image: "/orange-card.svg",
     features: [
-      { name: "Individual", included: true },
-      { name: "Legal Entity", included: true },
-      { name: "Virtual Card", included: true },
-      { name: "Additional Card", included: false },
+      { name: t("Individual"), included: true },
+      { name: t("Legal Entity"), included: true },
+      { name: t("Virtual Card"), included: true },
+      { name: t("Additional Card"), included: false },
       { name: "Digital Wallets", included: true },
       { name: "Dynamic CVV", included: true },
       { name: "24 Hour Withdrawal", included: true },
@@ -37,13 +38,13 @@ const cards = [
     ],
   },
   {
-    type: "Consigned",
+    type: t("Consigned Card"),
     image: "/pink-card.svg",
     features: [
-      { name: "Individual", included: true },
-      { name: "Legal Entity", included: true },
-      { name: "Virtual Card", included: true },
-      { name: "Additional Card", included: true },
+      { name: t("Individual"), included: true },
+      { name: t("Legal Entity"), included: true },
+      { name: t("Virtual Card"), included: true },
+      { name: t("Additional Card"), included: true },
       { name: "Digital Wallets", included: false },
       { name: "Dynamic CVV", included: false },
       { name: "24 Hour Withdrawal", included: true },
@@ -53,13 +54,13 @@ const cards = [
     ],
   },
   {
-    type: "Private Label",
+    type: t("Private Label"),
     image: "/purple-card.svg",
     features: [
-      { name: "Individual", included: true },
-      { name: "Legal Entity", included: true },
-      { name: "Virtual Card", included: true },
-      { name: "Additional Card", included: true },
+      { name: t("Individual"), included: true },
+      { name: t("Legal Entity"), included: true },
+      { name: t("Virtual Card"), included: true },
+      { name: t("Additional Card"), included: true },
       { name: "Digital Wallets", included: false },
       { name: "Dynamic CVV", included: false },
       { name: "24 Hour Withdrawal", included: true },
@@ -80,10 +81,10 @@ export default function CardBenefitsCarousel() {
             BENEFITS
           </div>
           <h2 className="text-4xl md:text-5xl font-light text-white mb-4">
-            Outbank is a card processor with the best solution for your company and its customer
+            {t('Outbank is a card processor with the best solution for your company and its customer')}
           </h2>
           <p className="text-gray-400 text-lg">
-            For every need, Outbank has a solution for your company and your client.
+            {t('For every need, Outbank has a solution for your company and your client.')}
           </p>
         </div>
 

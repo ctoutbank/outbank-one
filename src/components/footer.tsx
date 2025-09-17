@@ -3,6 +3,7 @@
 import { Facebook, Instagram, Twitter } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { t } from '../utils/i18n'
 
 export default function Footer() {
   return (
@@ -48,7 +49,7 @@ export default function Footer() {
                 <div className="col-span-1">
                   <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Navigation</h3>
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
-                    {["Documentation", "Papers", "Press Conferences"].map((item) => (
+                    {[t("Documentation"), t("Papers"), t("Press Conferences")].map((item) => (
                       <li key={item}>
                         <Link href="#" className="text-black/70 hover:text-black transition-colors">
                           {item}
@@ -62,7 +63,7 @@ export default function Footer() {
                 <div className="col-span-1">
                   <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legal</h3>
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
-                    {["Terms of Service", "Privacy Policy", "Cookies Policy"].map((item) => (
+                    {[t("Terms of Service"), t("Privacy Policy"), t("Cookies Policy")].map((item) => (
                       <li key={item}>
                         <Link href="#" className="text-black/70 hover:text-black transition-colors">
                           {item}
