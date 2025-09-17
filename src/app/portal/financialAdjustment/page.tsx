@@ -15,7 +15,7 @@ import {
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type FinancialAdjustmentsProps = {
   page?: string;

@@ -12,7 +12,6 @@ export async function GET() {
       message: "Sincronização de terminais concluída com sucesso",
     });
   } catch (error: any) {
-    console.error("Erro na sincronização de terminais:", error);
     return NextResponse.json(
       { error: "Erro na sincronização de terminais" },
       { status: 500 }

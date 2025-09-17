@@ -22,7 +22,6 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ userId: user.id, firstLogin: isFirstLogin });
     } catch (error) {
-        console.error("Erro ao verificar usuário:", error);
         return NextResponse.json({ error: "Erro ao verificar usuário" }, { status: 500 });
     }
 }

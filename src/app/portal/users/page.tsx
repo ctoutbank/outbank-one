@@ -10,7 +10,7 @@ import {
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { cache } from "react";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type UsersPageProps = {
   page: string;

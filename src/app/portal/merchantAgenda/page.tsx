@@ -11,7 +11,7 @@ import {
 } from "@/features/merchantAgenda/server/merchantAgendaAntecipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 // Create TabChangeHandler in a separate file
 import {

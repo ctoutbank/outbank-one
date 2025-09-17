@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Erro ao validar subdomínio:", error);
         return NextResponse.json({ error: "Erro interno" }, { status: 500 });
     }
 }

@@ -9,7 +9,7 @@ import { getPaymentLinks } from "@/features/paymentLink/server/paymentLink";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Search } from "lucide-react";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type PaymentLinkProps = {
   page: string;

@@ -21,13 +21,6 @@ export async function GET() {
     startTime: new Date().toISOString(),
   });
   try {
-    console.log("Iniciando sincronização de settlements...");
-    console.log("Verificando variáveis de ambiente:", {
-      hasApiUrl: !!process.env.DOCK_API_URL_TRANSACTIONS,
-      hasApiKey: !!process.env.DOCK_API_KEY,
-      dbHost: process.env.DATABASE_HOST, // não exponha as credenciais reais
-    });
-
     await syncSettlements();
 
     const successResponse = NextResponse.json({
@@ -41,12 +34,6 @@ export async function GET() {
     successResponse.headers.set("Expires", "0");
     return successResponse;
   } catch (error: any) {
-    console.error("Erro detalhado na sincronização:", {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause,
-    });
-
     const errorResponse = NextResponse.json(
       {
         error: "Erro na sincronização de settlements",

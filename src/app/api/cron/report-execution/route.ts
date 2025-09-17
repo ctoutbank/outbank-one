@@ -7,14 +7,9 @@ export const maxDuration = 300;
 
 export async function GET() {
   try {
-    console.log("[API] Iniciando chamada para processamento de relatórios");
-
     // Executa o processamento dos relatórios de forma assíncrona
     await reportExecutionsProcessing().catch((error) => {
-      console.error("[API] Erro ao processar relatórios:", error);
     });
-
-    console.log("[API] Requisição de processamento de relatórios iniciada");
 
     return NextResponse.json(
       {
@@ -24,8 +19,6 @@ export async function GET() {
       { status: 200 }
     );
   } catch (error) {
-    console.error("[API] Erro ao iniciar processamento de relatórios:", error);
-
     return NextResponse.json(
       {
         success: false,

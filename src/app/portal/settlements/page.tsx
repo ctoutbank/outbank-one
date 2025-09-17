@@ -18,7 +18,7 @@ import { formatDate } from "@/lib/utils";
 import { Fill, Font } from "exceljs";
 import { Search } from "lucide-react";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type CategoryProps = {
   page: string;

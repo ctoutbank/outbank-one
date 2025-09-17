@@ -3,7 +3,10 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  compress: true,
+  poweredByHeader: false,
   images: {
+    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: 'https',

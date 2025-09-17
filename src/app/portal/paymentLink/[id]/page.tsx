@@ -7,7 +7,7 @@ import {
   getPaymentLinkById,
 } from "@/features/paymentLink/server/paymentLink";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function PaymentLinkDetail({
   params,

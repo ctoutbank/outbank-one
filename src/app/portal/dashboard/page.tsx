@@ -16,7 +16,7 @@ import { BarChartCustom } from "./_components/barChart";
 import { CardsSkeleton, ChartSkeleton } from "./loading";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 async function ChartSection({
   dateRange,
@@ -70,7 +70,7 @@ export default async function SalesDashboard({
 }: {
   searchParams: { dateFrom?: string; dateTo?: string };
 }) {
-  const defaultDateFrom = "2024-09-01T00:00:00";
+  const defaultDateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00';
   const defaultDateTo = format(new Date(), "yyyy-MM-dd'T'HH:mm");
   const dateFrom = searchParams.dateFrom || defaultDateFrom;
   const dateTo = searchParams.dateTo || defaultDateTo;

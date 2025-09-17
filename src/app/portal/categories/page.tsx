@@ -13,7 +13,7 @@ import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import Categorylist from "../../../features/categories/_components/categories-list";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type CategoryProps = {
   page?: string;

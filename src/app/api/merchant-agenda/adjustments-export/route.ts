@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error("Erro ao exportar ajustes:", error);
         return NextResponse.json(
             { error: "Erro ao exportar dados de ajustes" },
             { status: 500 }

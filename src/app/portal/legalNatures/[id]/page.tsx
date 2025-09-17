@@ -4,7 +4,7 @@ import BaseHeader from "@/components/layout/base-header";
 import LegalNatureForm from "@/features/legalNature/_components/legalNature-form";
 import { getLegalNatureById } from "@/features/legalNature/server/legalNature-db";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function LegalNaturesDetail({
   params,
