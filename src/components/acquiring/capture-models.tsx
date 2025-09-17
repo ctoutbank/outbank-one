@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import EcommerceTabContent from "./ecommerce-tab-content"
 import InpersonTabContent from "./inperson-tab-content"
+import { t } from '../../utils/i18n'
 
 type Tab = "virtual" | "physical"
 
@@ -16,12 +17,10 @@ export default function CaptureModelsSection() {
         {/* Header */}
         <div className="mb-8 sm:mb-12 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-center text-white">Discover our capture models</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-center text-white">{t('Discover our capture models')}</h2>
           </div>
           <p className="text-gray-400 text-base sm:text-lg text-center">
-            Maximize your revenue and ensure robustness in your operation
-            <br className="hidden sm:block" />
-            with our white-label acquiring solution.
+            {t('Maximize your revenue and ensure robustness in your operation with our white-label acquiring solution.')}
           </p>
         </div>
 
@@ -44,7 +43,7 @@ export default function CaptureModelsSection() {
                 className="opacity-75 brightness-0 sm:w-5 sm:h-5"
                 quality={100}
               />
-              <span className="font-medium">E-Commerce</span>
+              <span className="font-medium">{t('E-Commerce')}</span>
             </button>
             <div className="h-[1px] mx-1 bg-[#5A5A5A] sm:hidden" />
             <button
@@ -63,7 +62,7 @@ export default function CaptureModelsSection() {
                 className="opacity-75 brightness-0 sm:w-5 sm:h-5"
                 quality={100}
               />
-              <span className="font-medium">In-Person Acquiring</span>
+              <span className="font-medium">{t('In-Person Acquiring')}</span>
             </button>
           </div>
         </div>

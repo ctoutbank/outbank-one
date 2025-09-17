@@ -1,14 +1,14 @@
 import Image from "next/image";
+import { t } from '../../utils/i18n'
 
 export default function ConsignedCardSection() {
     return (
       <div className="bg-gradient-to-t from-[#030303] to-[#101010] p-12 mb-16 border-2 border-gray-500/20 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 text-center sm:text-left">Consigned Card</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 text-center sm:text-left">{t('Consigned Card')}</h2>
           <p className="text-gray-300 text-lg sm:text-xl max-w-2xl text-center sm:text-left mx-auto sm:mx-0">
-            Imagine offering your customers an innovative credit card, where payment of the invoice is automatically
-            deducted from your payrolls.
+            {t('Imagine offering your customers an innovative credit card, where payment of the invoice is automatically deducted from your payrolls.')}
           </p>
         </div>
   
@@ -17,7 +17,7 @@ export default function ConsignedCardSection() {
           <div className="lg:col-span-4 h-full flex">
             <div className="bg-[#020202] p-6 sm:p-8 w-full h-[200px] flex items-center">
               <ul className="space-y-4">
-                {["White or Private Label", "Physical and Virtual Cards", "Access to the main brands on the market"].map(
+                {[t("White or Private Label"), t("Physical and Virtual Cards"), t("Access to the main brands on the market")].map(
                   (item, index) => (
                     <li key={index} className="flex items-start gap-4 text-gray-400">
                       <div className="w-2 h-2 rounded-full bg-pink-600 mt-2 flex-shrink-0" />
@@ -46,7 +46,7 @@ export default function ConsignedCardSection() {
           <div className="lg:col-span-4 h-full flex">
             <div className="bg-[#020202] p-6 sm:p-8 w-full h-[200px] flex items-center">
               <ul className="space-y-4">
-                {["White or Private Label", "Physical and Virtual Cards", "Access to the main brands on the market"].map(
+                {[t("White or Private Label"), t("Physical and Virtual Cards"), t("Access to the main brands on the market")].map(
                   (item, index) => (
                     <li key={index} className="flex items-start gap-4 text-gray-400">
                       <div className="w-2 h-2 rounded-full bg-pink-600 mt-2 flex-shrink-0" />

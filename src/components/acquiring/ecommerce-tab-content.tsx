@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 export default function EcommerceTabContent() {
   return (
@@ -7,7 +8,7 @@ export default function EcommerceTabContent() {
       <div className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl text-gray-100 font-normal mb-2 sm:mb-3">Also have acquisition for the virtual world</h2>
         <p className="text-base sm:text-lg text-gray-300/90">
-        Outbank provides ecommerce APIs and payment link solutions for you to receive transactions in your business.
+        {t('Outbank provides ecommerce APIs and payment link solutions for you to receive transactions in your business.')}
         </p>
       </div>
 
@@ -44,7 +45,7 @@ export default function EcommerceTabContent() {
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808]">Tokenization</p>
+                  <p className="text-gray-300/90 group-hover:text-[#080808]">{t('Tokenization')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -60,7 +61,7 @@ export default function EcommerceTabContent() {
 
             {/* Bottom Row */}
             <div className="bg-gradient-to-r from-[#4a4a4a] to-[#272727] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
-              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">Payment Link</h3>
+              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Payment Link')}</h3>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />

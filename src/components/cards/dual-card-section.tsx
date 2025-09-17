@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 interface DualCardSectionProps {
   title?: string
@@ -10,8 +11,8 @@ interface DualCardSectionProps {
 }
 
 export default function DualCardSection({
-  title = "Prepaid and Debit Card",
-  subtitle = "Discover the ideal solution to retain your customers, offering prepaid cards, physical and virtual, for Individuals or Legal Entities!",
+  title = t("Prepaid and Debit Card"),
+  subtitle = t("Discover the ideal solution to retain your customers, offering prepaid cards, physical and virtual, for Individuals or Legal Entities!"),
   leftCardImage = "/orange-card.svg",
   rightCardImage = "/blue-card.svg",
 }: DualCardSectionProps) {

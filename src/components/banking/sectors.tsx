@@ -1,42 +1,37 @@
 import { Phone, Store, GraduationCap, Heart, Zap, Home } from "lucide-react"
+import { t } from '../../utils/i18n'
 
 export default function SectorsSection() {
   const sectors = [
     {
       icon: Phone,
-      title: "Telecommunications Sector",
-      description:
-        "Offer banking services integrated into insurance plans telecommunications, facilitate payments and transfers through mobile devices, increase customer retention through combined telecommunications and financial services packages.",
+      title: t("Telecommunications Sector"),
+      description: t("Offer banking services integrated into insurance plans telecommunications, facilitate payments and transfers through mobile devices, increase customer retention through combined telecommunications and financial services packages."),
     },
     {
       icon: Store,
-      title: "Retail",
-      description:
-        "Implement digital payment solutions in physical and online stores, offer financial loyalty programs linked to purchases, introduce credit and financing options for customers.",
+      title: t("Retail"),
+      description: t("Implement digital payment solutions in physical and online stores, offer financial loyalty programs linked to purchases, introduce credit and financing options for customers."),
     },
     {
       icon: GraduationCap,
-      title: "Education",
-      description:
-        "Introduce online financial education programs, offer products banking adapted for students, collaborate with institutions educational programs for discounts or financial advantages.",
+      title: t("Education"),
+      description: t("Introduce online financial education programs, offer products banking adapted for students, collaborate with institutions educational programs for discounts or financial advantages."),
     },
     {
       icon: Heart,
-      title: "Health",
-      description:
-        "Implement financial services specialized in medical expenses, introduce flexible payment plans for payment procedures healthcare, integrate insurance payments and reimbursements across platforms digital.",
+      title: t("Health"),
+      description: t("Implement financial services specialized in medical expenses, introduce flexible payment plans for payment procedures healthcare, integrate insurance payments and reimbursements across platforms digital."),
     },
     {
       icon: Zap,
-      title: "Energy",
-      description:
-        "Offer bill payment and service invoice solutions public, implement financing programs for efficiency energy, introduce financial rewards for customers who adopt sustainable practices.",
+      title: t("Energy"),
+      description: t("Offer bill payment and service invoice solutions public, implement financing programs for efficiency energy, introduce financial rewards for customers who adopt sustainable practices."),
     },
     {
       icon: Home,
-      title: "Real Estate",
-      description:
-        "Facilitate online real estate transactions, including payments and financing, offer specific banking services for owners and tenants, introduce loan options for real estate investments.",
+      title: t("Real Estate"),
+      description: t("Facilitate online real estate transactions, including payments and financing, offer specific banking services for owners and tenants, introduce loan options for real estate investments."),
     },
   ]
 
@@ -49,11 +44,10 @@ export default function SectorsSection() {
             SECTORS
           </div>
           <h2 className="text-4xl md:text-5xl font-light mb-6">
-            Which sectors can benefit from a Banking infrastructure?
+            {t('Which sectors can benefit from a Banking infrastructure?')}
           </h2>
           <p className="text-gray-200 text-lg">
-            In addition to startups, subacquirers, fintechs, RetailTechs/EdTechs, IPs/SCDs/SEPs, finance companies,
-            brokers, wallets, and traditional banks
+            {t('In addition to startups, subacquirers, fintechs, RetailTechs/EdTechs, IPs/SCDs/SEPs, finance companies, brokers, wallets, and traditional banks')}
           </p>
         </div>
 
@@ -85,10 +79,7 @@ export default function SectorsSection() {
 
         {/* Footer Text */}
         <p className="text-muted-foreground text-center text-lg max-w-4xl mx-auto italic">
-          Regardless of the industry, success in creating a digital bank often involves understanding customer needs,
-          offering convenient and secure solutions and effective technology integration. The diversification of digital
-          financial services can strengthen relationships with customers and open new sources of revenue for the sectors
-          involved.
+          {t('Regardless of the industry, success in creating a digital bank often involves understanding customer needs, offering convenient and secure solutions and effective technology integration. The diversification of digital financial services can strengthen relationships with customers and open new sources of revenue for the sectors involved.')}
         </p>
 
         {/* Bottom Decorative Line */}
