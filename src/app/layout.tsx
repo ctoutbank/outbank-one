@@ -1,4 +1,3 @@
-import { NotFoundLayout } from "@/components/layout/not-found-layout";
 import { getThemeByTenant } from "@/lib/getThemeByTenant";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
