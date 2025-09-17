@@ -54,10 +54,10 @@ export default function DockSection() {
             <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">O que é uma solução White Label?</h3>
+              <h3 className="text-xl font-medium">{t('What is the most searched question?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              White Label é um modelo de negócio onde uma empresa comercializa produtos ou serviços desenvolvidos por terceiros sob sua própria marca. Oferece personalização e redução de custos de desenvolvimento, permitindo rápida expansão de portfólio sem necessidade de criação interna ou aquisição de licenças proprietárias.
+              {t('White Label answer')}
             </p>
           </div>
 
@@ -65,10 +65,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">Qual a diferença entre Adquirente e Subadquirente?</h3>
+              <h3 className="text-xl font-medium">{t('What is the difference between Acquirer and Sub-acquirer?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Adquirentes processam pagamentos diretamente com bandeiras e bancos. Subadquirentes facilitam essa operação, oferecendo soluções prontas aos lojistas através da infraestrutura de uma adquirente, eliminando a necessidade de credenciamento direto.
+              {t('Acquirer vs Sub-acquirer answer')}
             </p>
           </div>
 
@@ -76,10 +76,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">O que é uma certificação PCI?</h3>
+              <h3 className="text-xl font-medium">{t('What is a PCI certification?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              A certificação PCI DSS (Payment Card Industry Data Security Standard) é um padrão internacional de segurança que protege dados de cartões durante transações financeiras. Empresas certificadas atendem a rigorosos requisitos de segurança, prevenindo fraudes e assegurando a proteção integral das informações dos portadores de cartão.
+              {t('PCI certification answer')}
             </p>
           </div>
         </div>
