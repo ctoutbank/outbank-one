@@ -5,6 +5,7 @@ import { ArrowRight, CreditCard } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import { motion } from "framer-motion"
+import { t } from "../../utils/i18n"
 
 export default function SuccessStories() {
   const [currentSlide, setCurrentSlide] = useState(1)
@@ -25,7 +26,7 @@ export default function SuccessStories() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            Success stories
+            {t("Success stories")}
           </motion.h2>
           <div className="flex gap-2 sm:mr-28">
             {[1, 2, 3].map((num) => (
@@ -96,7 +97,7 @@ export default function SuccessStories() {
             >
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="text-xs md:text-sm uppercase tracking-wide">Pass rate (%)</span>
+                <span className="text-xs md:text-sm uppercase tracking-wide">{t("Pass rate (%)")}</span>
               </div>
               <motion.div 
                 className="text-4xl md:text-5xl font-light mt-auto"
@@ -116,7 +117,7 @@ export default function SuccessStories() {
             >
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="text-xs md:text-sm uppercase tracking-wide">Sales processed</span>
+                <span className="text-xs md:text-sm uppercase tracking-wide">{t("Sales processed")}</span>
               </div>
               <motion.div 
                 className="text-4xl md:text-5xl font-light mt-auto"
