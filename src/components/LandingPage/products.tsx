@@ -84,7 +84,14 @@ export default function ProductsSection() {
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
               {t("Explore our cloud-native platform, the largest and most comprehensive in Latin America, and discover our solutions.")}
             </p>
-            <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
+            <Button 
+              variant="ghost" 
+              className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100"
+              onClick={() => {
+                const contactForm = document.getElementById('contact-form');
+                contactForm?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
@@ -98,7 +105,11 @@ export default function ProductsSection() {
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
               {t("Elevate the customer experience and your profitability with financial solutions integrated into your core business")}
             </p>
-            <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
+            <Button 
+              variant="ghost" 
+              className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100"
+              onClick={() => window.location.href = '/banking'}
+            >
               {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
@@ -122,24 +133,51 @@ export default function ProductsSection() {
                   title: t("Fraud Prevention"),
                   description: t("Reduce end-to-end risk in your banking, cards, or acquiring business model through solutions that cover everything."),
                 },
-              ].map((product, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-[#080808] text-white p-6 md:p-8 flex flex-col h-full transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
-                >
-                  <h2 className="text-xl md:text-2xl font-semibold mb-4">{product.title}</h2>
-                  <p className="text-muted-foreground md:group-hover:text-black mb-8 flex-grow text-sm md:text-base">
-                    {product.description}
-                  </p>
-                  <div>
-                    <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
-                      {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
+              ].map((product, index) => {
+                const getProductLink = (title: string) => {
+                  if (title.includes('Cards & Credit')) return '/cards';
+                  if (title.includes('Acquiring')) return '/acquiring';
+                  if (title.includes('Fraud Prevention')) {
+                    return () => {
+                      const contactForm = document.getElementById('contact-form');
+                      contactForm?.scrollIntoView({ behavior: 'smooth' });
+                    };
+                  }
+                  return '#';
+                };
+
+                const handleClick = (title: string) => {
+                  const link = getProductLink(title);
+                  if (typeof link === 'function') {
+                    link();
+                  } else {
+                    window.location.href = link;
+                  }
+                };
+
+                return (
+                  <motion.div
+                    key={index}
+                    variants={fadeInUp}
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-[#080808] text-white p-6 md:p-8 flex flex-col h-full transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
+                  >
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4">{product.title}</h2>
+                    <p className="text-muted-foreground md:group-hover:text-black mb-8 flex-grow text-sm md:text-base">
+                      {product.description}
+                    </p>
+                    <div>
+                      <Button 
+                        variant="ghost" 
+                        className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100"
+                        onClick={() => handleClick(product.title)}
+                      >
+                        {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </motion.div>
