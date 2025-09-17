@@ -3,6 +3,7 @@
 import { CreditCard, Landmark, Wallet } from "lucide-react"
 import Image from "next/image"
 import { motion } from "framer-motion"
+import { t } from "../../utils/i18n"
 
 // Animation variants
 const containerVariants = {
@@ -49,7 +50,7 @@ export default function NumbersSection() {
             NUMBERS
           </div>
           <p className="text-xl md:text-2xl lg:text-5xl font-light max-w-5xl leading-tight mx-auto md:mx-0">
-            Rely on over 20 years of experience <br className="hidden md:block" />from the true one-stop shop in financial services
+            {t('Rely on over 20 years of experience from the true one-stop shop in financial services')}
           </p>
         </motion.div>
 
@@ -68,7 +69,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-4xl font-light mb-4">R$ 1,4T</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">PROCESSED ANNUALLY</div>
+            <div className="text-xs text-muted-foreground tracking-wide">PROCESSADOS POR ANO</div>
           </motion.div>
 
           {/* Issuer Card */}
@@ -81,7 +82,7 @@ export default function NumbersSection() {
               <CreditCard className="w-5 h-5" />
               <p className=" font-light text-sm">CARDS</p>
             </div>
-            <div className="text-2xl font-light mb-4">Issuer of credit, debit and prepaid cards</div>
+            <div className="text-2xl font-light mb-4">Emissor de cartões crédito, débito e pré-pago</div>
           </motion.div>
 
           {/* R$ 2,1B Card */}
@@ -97,7 +98,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-4xl font-light mb-4">R$ 2,1B</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">PIX CARRIED OUT IN THE LAST 12 MONTHS</div>
+            <div className="text-xs text-muted-foreground tracking-wide">EM PIX REALIZADOS NOS ÚLTIMOS 12 MESES</div>
           </motion.div>
 
           {/* +75M Card */}
@@ -113,7 +114,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-4xl font-light mb-4">+75M</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">MILLIONS ACCOUNT IN THE LAST 30 DAYS</div>
+            <div className="text-xs text-muted-foreground tracking-wide">DE CONTAS</div>
           </motion.div>
 
           {/* 8.6% Card */}
@@ -129,7 +130,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-4xl font-light mb-4">8,6 %</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">MARKET SHARE IN BRANDED CARDS IN BRAZIL</div>
+            <div className="text-xs text-muted-foreground tracking-wide">DE MARKET SHARE EM CARTÕES DE BANDEIRA NO BRASIL</div>
           </motion.div>
 
           {/* +400 Card */}
@@ -141,11 +142,11 @@ export default function NumbersSection() {
             <div>
               <div className="mb-6 flex flex-row gap-2">
                 <Image src="/dock-icon.svg" alt="Dock" width={20} height={20} className="w-5 h-5" quality={100} />
-                <p className="font-light text-sm">DOCK</p>
+                <p className="font-light text-sm">CLIENTES</p>
               </div>
               <div className="text-4xl font-light mb-4">+400</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">CUSTOMERS APPROXIMATELY</div>
+            <div className="text-xs text-muted-foreground tracking-wide">APROXIMADAMENTE +400 CLIENTES</div>
           </motion.div>
 
           {/* Networks Card */}
@@ -159,7 +160,7 @@ export default function NumbersSection() {
                 <Wallet className="w-5 h-5" /> 
                 <p className="font-light text-sm">ACQUIRING</p>
               </div>
-              <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+ 30 Certified Networks</div>
+              <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+30 REDES CERTIFICADAS</div>
               <div className="flex flex-wrap items-center gap-3 md:gap-4">
                 <motion.div whileHover={{ scale: 1.1 }}>
                   <Image src="/visa.svg" alt="Visa" width={36} quality={100} height={36} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
@@ -188,7 +189,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-xl md:text-2xl font-light">Provider</div>
             </div>
-            <div className="text-xs text-muted-foreground tracking-wide">INFRASTRUCTURE PROVIDER FOR PAYMENTS AND BANKING</div>
+            <div className="text-xs text-muted-foreground tracking-wide">FORNECEDOR DE INFRAESTRUTURA PARA PAGAMENTOS E BANKING</div>
           </motion.div>
         </div>
       </motion.div>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import Image from "next/image"
+import { t } from "../../utils/i18n"
 
 export default function ServicesSection() {
   const fadeInUp = {
@@ -29,10 +30,10 @@ export default function ServicesSection() {
           viewport={{ once: true }}
         >
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            SERVICES
+            {t('SERVICES')}
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light max-w-7xl mx-auto md:mx-0">
-            Reliability and security for your transactions
+            {t('Reliability and security for your transactions')}
           </h2>
         </motion.div>
 
@@ -48,17 +49,16 @@ export default function ServicesSection() {
           >
             {[
               {
-                title: <>Regulated Pix <br/>Participant</>,
-                description:
-                  "Peace of mind knowing your payments are in good hands, with full security and legal backing.",
+                title: <>{t('Regulated Pix Participant').split(' ').slice(0, 2).join(' ')} <br/>{t('Regulated Pix Participant').split(' ').slice(2).join(' ')}</>,
+                description: t("Peace of mind knowing your payments are in good hands, with full security and legal backing."),
               },
               {
-                title: <>VISA, MasterCard,<br/> Elo Licenses</>,
-                description: "Accept the leading card networks in the market and offer more options to your customers.",
+                title: <>{t('VISA, MasterCard, Elo Licenses').split(',')[0]},<br/> {t('VISA, MasterCard, Elo Licenses').split(',').slice(1).join(',').trim()}</>,
+                description: t("Accept the leading card networks in the market and offer more options to your customers."),
               },
               {
-                title: <>Adaptable Global<br/> Payment Platform</>,
-                description: "Reach customers worldwide and tailor the experience to meet their needs in the market.",
+                title: <>{t('Adaptable Global Payment Platform').split(' ').slice(0, 2).join(' ')}<br/> {t('Adaptable Global Payment Platform').split(' ').slice(2).join(' ')}</>,
+                description: t("Reach customers worldwide and tailor the experience to meet their needs in the market."),
               },
             ].map((service, index) => (
               <motion.div 
@@ -146,17 +146,16 @@ export default function ServicesSection() {
           >
             {[
               {
-                title: <>Comprehensive<br/>Infrastructure</>,
-                description:
-                  "A complete solution for online payments, including gateway, fraud prevention, and risk management.",
+                title: <>{t('Comprehensive Infrastructure').split(' ')[0]}<br/>{t('Comprehensive Infrastructure').split(' ')[1]}</>,
+                description: t("A complete solution for online payments, including gateway, fraud prevention, and risk management."),
               },
               {
-                title: <>Recognized<br/> Certifications</>,
-                description: "Commitment to security, quality, and international compliance across all our operations.",
+                title: <>{t('Recognized Certifications').split(' ')[0]}<br/> {t('Recognized Certifications').split(' ')[1]}</>,
+                description: t("Commitment to security, quality, and international compliance across all our operations."),
               },
               {
-                title: <>Fraud Prevention<br/> Security</>,
-                description: "Data and transactions protected with the best tools on the market.",
+                title: <>{t('Fraud Prevention Security').split(' ').slice(0, 2).join(' ')}<br/> {t('Fraud Prevention Security').split(' ')[2]}</>,
+                description: t("Data and transactions protected with the best tools on the market."),
               },
             ].map((service, index) => (
               <motion.div 
