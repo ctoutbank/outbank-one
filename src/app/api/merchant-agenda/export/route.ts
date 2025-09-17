@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         );
 
         return NextResponse.json(result);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Erro ao exportar dados" },
             { status: 500 }

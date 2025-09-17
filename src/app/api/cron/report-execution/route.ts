@@ -8,7 +8,7 @@ export const maxDuration = 300;
 export async function GET() {
   try {
     // Executa o processamento dos relatórios de forma assíncrona
-    await reportExecutionsProcessing().catch((error) => {
+    await reportExecutionsProcessing().catch(() => {
     });
 
     return NextResponse.json(

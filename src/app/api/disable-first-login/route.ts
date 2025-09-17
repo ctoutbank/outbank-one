@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Erro ao atualizar usuário" }, { status: 500 });
     }
 }
