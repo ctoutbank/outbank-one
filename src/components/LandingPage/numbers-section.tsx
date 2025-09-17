@@ -47,7 +47,7 @@ export default function NumbersSection() {
           variants={cardVariants}
         >
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6 mx-auto md:mx-0">
-            NUMBERS
+            NÚMEROS
           </div>
           <p className="text-xl md:text-2xl lg:text-5xl font-light max-w-5xl leading-tight mx-auto md:mx-0">
             {t('Rely on over 20 years of experience from the true one-stop shop in financial services')}

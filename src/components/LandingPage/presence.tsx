@@ -33,10 +33,10 @@ export const Presence = () => {
         {/* Title */}
         <div className="text-center mb-2 md:mb-1">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              PRESENCE
+              NOSSA PRESENÇA
             </div>
           <h2 className="text-4xl md:text-5xl font-bold">
-            Our applications in different places
+            Onde nossas aplicações estão presentes
           </h2>
         </div>
 
