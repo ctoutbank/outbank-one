@@ -1,6 +1,7 @@
 "use client"
 
 import { HelpCircle } from "lucide-react"
+import { t } from "../../utils/i18n"
 
 export default function DockSection() {
   return (
@@ -9,9 +10,9 @@ export default function DockSection() {
         {/* Header */}
         <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            DOCK
+            OUTBANK
           </div>
-          <h2 className="text-4xl md:text-5xl font-light">Explore questions about the Dock</h2>
+          <h2 className="text-4xl md:text-5xl font-light">{t('Explore questions about the Dock')}</h2>
         </div>
 
         {/* Questions Grid */}
@@ -20,13 +21,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
               <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">Why choose Dock?</h3>
+              <h3 className="text-xl font-medium">{t('Why choose Dock?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Our expertise and technology enable your company to{" "}
-              <span className="text-gray-300">promote financial inclusion</span>, turning customers into active
-              participants and empowering the global economy. We are ready to help{" "}
-              <span className="text-gray-300">transform your business and make a positive impact</span>
+              Realizamos a conexão com concessionárias e bancos custodiantes, integrando mais de 3000 convênios, processando transações e fornecendo o retorno com o status de cada operação. Aceleramos a inovação, satisfazemos seus clientes e transformamos seu negócio.
             </p>
           </div>
 
@@ -34,13 +32,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
               <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">What is Embedded Finance?</h3>
+              <h3 className="text-xl font-medium">{t('What is Embedded Finance?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Imagine your company not only offering its usual products but also{" "}
-              <span className="text-gray-300">integrated financial services</span>. Your platform becomes a financial hub,
-              providing everything from payments to loans,{" "}
-              <span className="text-gray-300">all within the digital environment</span>.
+              {t('Imagine your company not only offering its usual products but also integrated financial services. Your platform becomes a financial hub, providing everything from payments to loans, all within the digital environment.')}
             </p>
           </div>
 
@@ -48,13 +43,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
               <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">How does Dock drive this transformation?</h3>
+              <h3 className="text-xl font-medium">{t('How does Dock drive this transformation?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Dock leads in financial services, providing the{" "}
-              <span className="text-gray-300">infrastructure for companies to expand their business</span>. With our
-              integrated and white-label platform, we help launch customized financial solutions, with seamless
-              integration and agile deployment.
+              Fornecemos a infraestrutura completa para empresas expandirem seus negócios no setor financeiro. Nossa plataforma integrada e personalizada (White-Label) com a sua marca permite lançar soluções financeiras sob medida com integração fluida e implementação ágil.
             </p>
           </div>
 
@@ -62,12 +54,10 @@ export default function DockSection() {
             <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">What is the most searched question?</h3>
+              <h3 className="text-xl font-medium">{t('What is the most searched question?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur magnis. Vulputate metus
-              id proin sagittis. Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur
-              magnis. Vulputate metus id proin sagittis.
+              {t('White Label answer')}
             </p>
           </div>
 
@@ -75,12 +65,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">What is the most searched question?</h3>
+              <h3 className="text-xl font-medium">{t('What is the difference between Acquirer and Sub-acquirer?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur magnis. Vulputate metus
-              id proin sagittis. Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur
-              magnis. Vulputate metus id proin sagittis.
+              {t('Acquirer vs Sub-acquirer answer')}
             </p>
           </div>
 
@@ -88,12 +76,10 @@ export default function DockSection() {
           <div className="space-y-4 max-w-[550px]">
             <div className="flex items-start gap-4">
             <HelpCircle className="w-9 h-9 mt-1 border border-gray-700/20 p-1  rounded-sm bg-gradient-to-r from-[#080808] to-gray-500/10" />
-              <h3 className="text-xl font-medium">What is the most searched question?</h3>
+              <h3 className="text-xl font-medium">{t('What is a PCI certification?')}</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed ml-10">
-              Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur magnis. Vulputate metus
-              id proin sagittis. Lorem ipsum dolor sit amet consectetur. Purus ut amet non urna neque consectetur
-              magnis. Vulputate metus id proin sagittis.
+              {t('PCI certification answer')}
             </p>
           </div>
         </div>

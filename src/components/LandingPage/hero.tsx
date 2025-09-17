@@ -27,7 +27,7 @@ const HeroLandingPage = () => {
           {/* Left Column - Text and Buttons */}
           <div className="w-full lg:max-w-md text-center lg:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              OUTBANK CLOUD
+              {t('OUTBANK CLOUD')}
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
@@ -48,7 +48,7 @@ const HeroLandingPage = () => {
                 {t('Button CTA')}
               </button>
               <button className="w-full sm:w-auto bg-gray-400/10 text-white px-8 py-3 border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98]">
-                Saiba Mais
+                {t('Learn More')}
               </button>
             </div>
           </div>

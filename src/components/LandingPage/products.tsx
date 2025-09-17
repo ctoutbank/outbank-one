@@ -85,7 +85,7 @@ export default function ProductsSection() {
               {t("Explore our cloud-native platform, the largest and most comprehensive in Latin America, and discover our solutions.")}
             </p>
             <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
-              Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
+              {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
 
@@ -96,10 +96,10 @@ export default function ProductsSection() {
           >
             <h2 className="text-xl md:text-2xl font-semibold mb-4">{t("Banking")}</h2>
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
-              {t("Elevate the customer experience your profitability with financial solutions integrated into your core business.")}
+              {t("Elevate the customer experience and your profitability with financial solutions integrated into your core business")}
             </p>
             <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
-              Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
+              {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
 
@@ -111,19 +111,16 @@ export default function ProductsSection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {[
                 {
-                  title: "Cards & Credit",
-                  description:
-                    "Offer personalized cards with your brand from major networks, while we take care of the entire operation.",
+                  title: t("Cards & Credit"),
+                  description: t("Offer personalized cards with your brand from major networks, while we take care of the entire operation."),
                 },
                 {
-                  title: "Acquiring",
-                  description:
-                    "Have your own white-label acquiring solution using our technology to ensure simplicity and speed in your go-to-market.",
+                  title: t("Acquiring"),
+                  description: t("Have your own white-label acquiring solution using our technology to ensure simplicity and speed in your go-to-market."),
                 },
                 {
-                  title: "Fraud Prevention",
-                  description:
-                    "Reduce end-to-end risk in your banking, cards, or acquiring business model through solutions that cover everything.",
+                  title: t("Fraud Prevention"),
+                  description: t("Reduce end-to-end risk in your banking, cards, or acquiring business model through solutions that cover everything."),
                 },
               ].map((product, index) => (
                 <motion.div
@@ -138,7 +135,7 @@ export default function ProductsSection() {
                   </p>
                   <div>
                     <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
-                      Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('Learn More')} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </motion.div>
