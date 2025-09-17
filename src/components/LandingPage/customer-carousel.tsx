@@ -6,6 +6,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Image from "next/image";
+import { t } from "../../utils/i18n";
 
 export default function CustomerCarousel() {
   return (
@@ -13,9 +14,7 @@ export default function CustomerCarousel() {
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8">
           <p className="text-gray-300 text-md font-medium whitespace-nowrap self-center">
-            /Our main customers
-            <br />
-            around the world/
+            /{t("Our main customers around the world")}/
           </p>
           <Carousel
             opts={{

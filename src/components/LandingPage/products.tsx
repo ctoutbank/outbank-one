@@ -6,6 +6,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef } from "react"
+import { t } from "../../utils/i18n"
 
 // Animation variants
 const fadeInUp = {
@@ -42,12 +43,11 @@ export default function ProductsSection() {
             variants={fadeInUp}
           >
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              PRODUCTS
+              {t("PRODUCTS")}
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light mb-6">Spread financial power</h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light mb-6">{t("Spread financial power")}</h1>
             <p className="text-gray-200 text-base md:text-lg max-w-xl">
-              Be part of the greatest transformation ever seen in financial services and boost your business by
-              spreading financial power around the world.
+              {t("Be part of the greatest transformation ever seen in financial services and boost your business by spreading financial power around the world.")}
             </p>
           </motion.div>
 
@@ -60,8 +60,8 @@ export default function ProductsSection() {
                 <Image src="/product-avatars.svg" alt="avatars" width={180} height={180} quality={100} />
               </div>
               <div className="text-center md:text-right">
-                <h3 className="text-lg font-medium mb-1">Unlock new possibilities</h3>
-                <p className="text-sm text-muted-foreground">Boost your business with Outbank</p>
+                <h3 className="text-lg font-medium mb-1">{t("Unlock new possibilities")}</h3>
+                <p className="text-sm text-muted-foreground">{t("Boost your business with Outbank")}</p>
               </div>
             </div>
           </motion.div>
@@ -80,10 +80,9 @@ export default function ProductsSection() {
             whileHover={{ scale: 1.02 }}
             className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
           >
-            <h2 className="text-xl md:text-2xl font-semibold mb-4">Dock One Platform</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">{t("Dock One Platform")}</h2>
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
-              Explore our cloud-native platform, the largest and most comprehensive in Latin America, and discover our
-              solutions.
+              {t("Explore our cloud-native platform, the largest and most comprehensive in Latin America, and discover our solutions.")}
             </p>
             <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
               Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
@@ -95,10 +94,9 @@ export default function ProductsSection() {
             whileHover={{ scale: 1.02 }}
             className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#CFC8B8] md:hover:text-black"
           >
-            <h2 className="text-xl md:text-2xl font-semibold mb-4">Banking</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">{t("Banking")}</h2>
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
-              Elevate the customer experience your profitability with financial solutions integrated into your core
-              business.
+              {t("Elevate the customer experience your profitability with financial solutions integrated into your core business.")}
             </p>
             <Button variant="ghost" className="rounded-none text-white md:group-hover:text-black hover:bg-transparent md:group-hover:bg-transparent hover:scale-105 transition-all duration-100">
               Saiba Mais <ArrowRight className="ml-2 h-4 w-4" />
