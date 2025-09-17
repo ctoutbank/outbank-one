@@ -9,7 +9,7 @@ import { SettlementsHistoryDashboardContent } from "@/features/settlements/_comp
 import { SettlementsHistoryFilter } from "@/features/settlements/_components/settlements-history-filter";
 import { getSettlements } from "@/features/settlements/server/settlements";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type HistoryProps = {
   page: string;

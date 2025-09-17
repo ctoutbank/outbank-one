@@ -10,7 +10,7 @@ import {
 } from "@/features/financialAdjustmet/server/financialAdjustments";
 import { notFound } from "next/navigation";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 interface FinancialAdjustmentDetailPageProps {
   params: {

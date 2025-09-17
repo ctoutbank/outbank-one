@@ -12,7 +12,7 @@ import { PricingSolicitationView } from "@/features/pricingSolicitation/_compone
 import { getPricingSolicitationById } from "@/features/pricingSolicitation/server/pricing-solicitation";
 import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function PricingSolicitationDetail({
   params,

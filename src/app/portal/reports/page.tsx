@@ -10,7 +10,7 @@ import { getReports, getReportStats } from "@/features/reports/server/reports";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type ReportsProps = {
   page?: string;

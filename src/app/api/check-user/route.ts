@@ -21,8 +21,7 @@ export async function POST(req: Request) {
         const isFirstLogin = user.publicMetadata?.isFirstLogin ?? false;
 
         return NextResponse.json({ userId: user.id, firstLogin: isFirstLogin });
-    } catch (error) {
-        console.error("Erro ao verificar usuário:", error);
+    } catch {
         return NextResponse.json({ error: "Erro ao verificar usuário" }, { status: 500 });
     }
 }

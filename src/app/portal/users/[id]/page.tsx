@@ -7,7 +7,7 @@ import {
 } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function UserDetail({
   params,

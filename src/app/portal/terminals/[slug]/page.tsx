@@ -5,7 +5,7 @@ import { TerminalNotFoundToast } from "@/features/terminals/_components/terminal
 import { getTerminalById } from "@/features/terminals/serverActions/terminal";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function TerminalDetail({
   params,

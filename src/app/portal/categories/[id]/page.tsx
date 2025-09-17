@@ -3,7 +3,7 @@ import BaseHeader from "@/components/layout/base-header";
 import Categoriesform from "@/features/categories/_components/categories-form";
 import { getCategoryById } from "@/features/categories/server/category";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function CategoryDetail({
   params,

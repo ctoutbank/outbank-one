@@ -8,7 +8,7 @@ import {
 } from "@/features/anticipations/server/anticipation";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type AntecipationsProps = {
   page: string;

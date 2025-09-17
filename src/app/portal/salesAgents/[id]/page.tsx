@@ -10,7 +10,7 @@ import {
   getDDProfiles,
 } from "@/features/salesAgents/server/salesAgent";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function SalesAgentsDetail({
   params,

@@ -4,7 +4,7 @@ import ProfileForm from "@/features/my-profile/_components/my-profile-form";
 import { getUserById } from "@/features/users/server/users";
 import { currentUser } from "@clerk/nextjs/server";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function MyProfilePage() {
   const user = await currentUser();

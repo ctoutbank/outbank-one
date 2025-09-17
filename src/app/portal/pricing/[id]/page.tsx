@@ -7,7 +7,7 @@ import {
   getFeeByIdAction,
 } from "@/features/newTax/server/fee-db";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function FeeDetail({
   params,

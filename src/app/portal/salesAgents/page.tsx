@@ -12,7 +12,7 @@ import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import SalesAgentlist from "../../../features/salesAgents/_components/salesAgents-list";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type SalesAgentProps = {
   page?: string;

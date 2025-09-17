@@ -9,12 +9,13 @@ const HeroLandingPage = () => {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/img-hero.svg"
+          src="/img-hero.webp"
           alt="Hero background"
           fill
           className="object-cover md:object-contain md:translate-x-[5%] "
           style={{ pointerEvents: 'none' }}
           priority
+          quality={85}
         />
         {/* Dark overlay - darker on mobile, lighter on desktop */}
         <div className="absolute inset-0 bg-black/60 lg:bg-transparent" />

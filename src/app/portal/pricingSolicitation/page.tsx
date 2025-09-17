@@ -9,7 +9,7 @@ import { getPricingSolicitations } from "@/features/pricingSolicitation/server/p
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Search } from "lucide-react";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type PricingSolicitationProps = {
   page: string;
