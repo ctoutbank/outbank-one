@@ -7,6 +7,7 @@ import SectorsSection from "@/components/banking/sectors";
 import WhyChooseSection from "@/components/banking/why-choose";
 import Footer from "@/components/footer";
 import CustomerCarousel from "@/components/LandingPage/customer-carousel";
+import ContactForm from "@/components/LandingPage/contact";
 import { Navbar } from "@/components/navbar";
 
 export default function BankingPage() { 
@@ -37,6 +38,9 @@ export default function BankingPage() {
           </section>
           <section className="w-full max-w-7xl mx-auto">
             <SectorsSection />
+          </section>
+          <section className="w-full">
+            <ContactForm />
           </section>
           <section className="w-full max-w-7xl mx-auto">
             <Footer />
