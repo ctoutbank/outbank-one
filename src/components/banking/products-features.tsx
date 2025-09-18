@@ -84,7 +84,7 @@ export default function ProductFeatures() {
         {/* Header */}
         <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            {t('Produtos')}
+            PRODUTOS
           </div>
           <h2 className="text-4xl md:text-5xl font-light mb-6">{t('Your digital bank, plug & play')}</h2>
           <p className="text-gray-200 text-lg max-w-3xl mx-auto md:mx-0">

@@ -73,7 +73,7 @@ const cards = [
 
 export default function CardBenefitsCarousel() {
   return (
-    <div className="bg-black px-4 md:px-8">
+    <div id="beneficios" className="bg-black px-4 md:px-8">
       <div className="container mx-auto">
         {/* Header */}
         <div className="mb-16 text-center md:text-left">

@@ -20,19 +20,23 @@ const ProductCards = () => {
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-light text-white mb-4 sm:mb-6 leading-tight">
-              {t('For all moments, security from end to end. Only with Outbank!')}
+              Licenciamento de Bandeiras
             </h1>
 
             <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 max-w-lg mx-auto lg:mx-0">
-              {t('Personalized cards using the brands your customers trust. You focus on relationship, we take care of the operational aspect.')}
+              Foque no seu negócio enquanto cuidamos de todas as questões regulatórias.
             </p>
 
             <p className="text-gray-300 text-sm sm:text-base mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0">
-              Lorem ipsum dolor sit amet consectetur. Vulputate lectus blandit nunc morbi amet ut. Scelerisque porta id
-              sit hendrerit laoreet egestas sodales massa.
+              Conte com a flexibilidade de contratar nossa solução conforme a sua estratégia.
             </p>
 
-            <button className="w-full sm:w-auto bg-gray-400/10 text-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] md:mt-4">
+            <button 
+              onClick={() => {
+                document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full sm:w-auto bg-gray-400/10 text-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] md:mt-4"
+            >
               {t('Check the comparison')}
             </button>
           </div>
