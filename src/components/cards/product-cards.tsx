@@ -20,16 +20,15 @@ const ProductCards = () => {
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-light text-white mb-4 sm:mb-6 leading-tight">
-              {t('For all moments, security from end to end. Only with Outbank!')}
+              Licenciamento de Bandeiras
             </h1>
 
             <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 max-w-lg mx-auto lg:mx-0">
-              {t('Personalized cards using the brands your customers trust. You focus on relationship, we take care of the operational aspect.')}
+              Foque no seu negócio enquanto cuidamos de todas as questões regulatórias.
             </p>
 
             <p className="text-gray-300 text-sm sm:text-base mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0">
-              Lorem ipsum dolor sit amet consectetur. Vulputate lectus blandit nunc morbi amet ut. Scelerisque porta id
-              sit hendrerit laoreet egestas sodales massa.
+              Conte com a flexibilidade de contratar nossa solução conforme a sua estratégia.
             </p>
 
             <button 
