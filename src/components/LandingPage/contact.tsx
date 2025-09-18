@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowRight } from "lucide-react"
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
 
@@ -49,81 +48,81 @@ export default function ContactForm() {
               {/* Two-column layout for shorter forms */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">{t('Full Name')}</Label>
-                  <Input id="fullName" placeholder="John Doe" className="bg-[#1C1C1C] border-0" />
+                  <Label htmlFor="fullName">{t('Nome Completo')}</Label>
+                  <Input id="fullName" placeholder={t('João Silva')} className="bg-[#1C1C1C] border-0" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">{t('Corporate Email')}</Label>
-                  <Input id="email" type="email" placeholder="name@enterprise.com" className="bg-[#1C1C1C] border-0" />
+                  <Label htmlFor="email">{t('E-mail Corporativo')}</Label>
+                  <Input id="email" type="email" placeholder={t('nome@empresa.com')} className="bg-[#1C1C1C] border-0" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="industry">{t('Industry')}</Label>
+                  <Label htmlFor="industry">{t('Ramo de atuação')}</Label>
                   <Select>
                     <SelectTrigger className="bg-[#1C1C1C] border-0">
-                      <SelectValue placeholder="Select Industry" />
+                      <SelectValue placeholder={t('Selecione o ramo')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="tech">Technology</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="retail">{t('Retail')}</SelectItem>
+                      <SelectItem value="agricultura">{t('Agricultura')}</SelectItem>
+                      <SelectItem value="alimentacao">{t('Alimentação')}</SelectItem>
+                      <SelectItem value="automotivo">{t('Automotivo')}</SelectItem>
+                      <SelectItem value="servicos-financeiros">{t('Serviços Financeiros')}</SelectItem>
+                      <SelectItem value="comercio">{t('Comércio')}</SelectItem>
+                      <SelectItem value="construcao">{t('Construção')}</SelectItem>
+                      <SelectItem value="educacao">{t('Educação')}</SelectItem>
+                      <SelectItem value="energia">{t('Energia')}</SelectItem>
+                      <SelectItem value="entretenimento">{t('Entretenimento')}</SelectItem>
+                      <SelectItem value="governo">{t('Governo')}</SelectItem>
+                      <SelectItem value="imobiliario">{t('Imobiliário')}</SelectItem>
+                      <SelectItem value="industria">{t('Indústria')}</SelectItem>
+                      <SelectItem value="logistica">{t('Logística')}</SelectItem>
+                      <SelectItem value="saude">{t('Saúde')}</SelectItem>
+                      <SelectItem value="seguros">{t('Seguros')}</SelectItem>
+                      <SelectItem value="servicos">{t('Serviços')}</SelectItem>
+                      <SelectItem value="tecnologia">{t('Tecnologia')}</SelectItem>
+                      <SelectItem value="telecomunicacoes">{t('Telecomunicações')}</SelectItem>
+                      <SelectItem value="turismo-hotelaria">{t('Turismo e Hotelaria')}</SelectItem>
+                      <SelectItem value="outros">{t('Outros')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company">{t('Company Name')}</Label>
-                  <Input id="company" placeholder="Company name" className="bg-[#1C1C1C] border-0" />
+                  <Label htmlFor="company">{t('Nome da Empresa')}</Label>
+                  <Input id="company" placeholder={t('Nome da empresa')} className="bg-[#1C1C1C] border-0" />
                 </div>
               </div>
 
               {/* Phone number in its own row */}
               <div className="space-y-2">
-                <Label htmlFor="phone">{t('Phone number')}</Label>
+                <Label htmlFor="phone">{t('Número de telefone')}</Label>
                 <div className="flex gap-2">
-                  <Select>
+                  <Select defaultValue="55">
                     <SelectTrigger className="w-[100px] bg-[#1C1C1C] border-0">
-                      <SelectValue placeholder="🇧🇷 +1" />
+                      <SelectValue placeholder="🇧🇷 +55" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">🇧🇷 +1</SelectItem>
-                      <SelectItem value="44">🇬🇧 +44</SelectItem>
                       <SelectItem value="55">🇧🇷 +55</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input id="phone" type="tel" placeholder="Phone number" className="bg-[#1C1C1C] border-0" />
+                  <Input id="phone" type="tel" placeholder={t('Número de telefone')} className="bg-[#1C1C1C] border-0" />
                 </div>
               </div>
 
               {/* Message area */}
               <div className="space-y-2">
-                <Label htmlFor="case">{t('How can we help?')}</Label>
+                <Label htmlFor="case">{t('Conte-nos um pouco sobre a sua operação')}</Label>
                 <Textarea
                   id="case"
-                  placeholder={t('Tell us about your needs...')}
+                  placeholder={t('Descreva suas necessidades...')}
                   className="bg-[#1C1C1C] border-0 min-h-[100px]"
                 />
               </div>
 
-              {/* Updated checkbox section */}
-              <div className="space-y-4">
-                <p className="text-sm text-gray-400">{t('Additional Options')}</p>
-                <div className="flex gap-6">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="value1" />
-                    <Label htmlFor="value1" className="text-sm">{t('Newsletter')}</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="value2" />
-                    <Label htmlFor="value2" className="text-sm">{t('Terms & Conditions')}</Label>
-                  </div>
-                </div>
-              </div>
-
               {/* Updated button */}
               <Button className="w-full bg-white text-black hover:bg-white/90 rounded-md py-6 text-lg font-medium">
-                {t('Schedule Consultation')} <ArrowRight className="ml-2 h-5 w-5" />
+                {t('Agendar Consulta')} <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </form>
           </div>
