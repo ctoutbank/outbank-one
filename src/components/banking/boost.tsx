@@ -45,13 +45,13 @@ export default function BoostSection() {
             </h1>
             <Button
               variant="outline"
-              className="bg-gray-100 text-black hover:bg-white/90 rounded-none py-2 sm:py-6 px-3 sm:px-8  text-xs sm:text-base mt-2 sm:mt-4 max-w-[240px] w-full sm:w-auto"
+              className="bg-gray-100 text-black hover:bg-white/90 rounded-none py-2 sm:py-6 px-3 sm:px-8 text-xs sm:text-base mt-2 sm:mt-4 max-w-[240px] w-full sm:w-auto flex items-center justify-center"
               onClick={() => {
                 const contactForm = document.getElementById('contact-form');
                 contactForm?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              <span className="flex-1">{t('Talk to an Expert')}</span>
+              {t('Talk to an Expert')}
               <ArrowRight className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-2 sm:ml-4" />
             </Button>
           </div>
