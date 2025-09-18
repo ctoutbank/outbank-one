@@ -6,32 +6,32 @@ export default function SectorsSection() {
     {
       icon: Phone,
       title: t("Telecommunications Sector"),
-      description: t("Offer banking services integrated into insurance plans telecommunications, facilitate payments and transfers through mobile devices, increase customer retention through combined telecommunications and financial services packages."),
+      description: t("Offer integrated banking services to telecommunications plans, simplify mobile payments and increase customer loyalty. With complete packages and innovative digital solutions, your company strengthens relationships and expands growth opportunities."),
     },
     {
       icon: Store,
       title: t("Retail"),
-      description: t("Implement digital payment solutions in physical and online stores, offer financial loyalty programs linked to purchases, introduce credit and financing options for customers."),
+      description: t("Implement digital payment solutions in physical and online stores, offering convenience and security. Create attractive loyalty programs and provide credit and financing options, expanding the customer experience and strengthening your business results."),
     },
     {
       icon: GraduationCap,
       title: t("Education"),
-      description: t("Introduce online financial education programs, offer products banking adapted for students, collaborate with institutions educational programs for discounts or financial advantages."),
+      description: t("Offer accessible online financial education, provide exclusive banking products for students and establish strategic partnerships with educational institutions. Create financial advantages that stimulate learning, strengthen relationships and expand opportunities for new customers."),
     },
     {
       icon: Heart,
       title: t("Health"),
-      description: t("Implement financial services specialized in medical expenses, introduce flexible payment plans for payment procedures healthcare, integrate insurance payments and reimbursements across platforms digital."),
+      description: t("Implement financial services focused on medical expenses, offering flexible payment plans and intelligent integration of reimbursements with digital insurance. Provide more convenience, security and accessibility, strengthening care and customer trust."),
     },
     {
       icon: Zap,
       title: t("Energy"),
-      description: t("Offer bill payment and service invoice solutions public, implement financing programs for efficiency energy, introduce financial rewards for customers who adopt sustainable practices."),
+      description: t("Offer solutions for paying bills and public service invoices, implement financing programs focused on energy efficiency and develop rewards that encourage sustainable practices, stimulating conscious consumption and strengthening positive impact."),
     },
     {
       icon: Home,
       title: t("Real Estate"),
-      description: t("Facilitate online real estate transactions, including payments and financing, offer specific banking services for owners and tenants, introduce loan options for real estate investments."),
+      description: t("Offer complete banking services for owners and tenants, in addition to credit options directed to investments, strengthening the sector with innovation and practicality."),
     },
   ]
 
@@ -79,7 +79,7 @@ export default function SectorsSection() {
 
         {/* Footer Text */}
         <p className="text-muted-foreground text-center text-lg max-w-4xl mx-auto italic">
-          {t('Regardless of the industry, success in creating a digital bank often involves understanding customer needs, offering convenient and secure solutions and effective technology integration. The diversification of digital financial services can strengthen relationships with customers and open new sources of revenue for the sectors involved.')}
+          {t('Regardless of the industry, success in creating a digital bank is in understanding customer needs, offering safe and convenient solutions, in addition to integrating technology effectively. The diversification of financial services strengthens relationships and generates new revenues.')}
         </p>
 
         {/* Bottom Decorative Line */}

@@ -1,42 +1,37 @@
 import Image from "next/image"
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
+import { t } from '../../utils/i18n'
 
 export default function ReasonsSection() {
     const reasons = [
       {
-        title: "Agility in Transactions",
-        description:
-          "Your own digital bank provides greater agility in financial transactions, benefiting customers and partners commercial and optimizing internal processes of the company.",
+        title: t("Agility in Transactions"),
+        description: t("Your own digital bank provides greater agility in financial transactions, benefiting customers and partners commercial and optimizing internal processes of the company."),
        
       },
       {
-        title: "Strategic Data",
-        description:
-          "By managing your own digital bank, company has access to a quantity valuable data about habits customers' financial accounts, personalizing offers and strategies, boosting decision making.",
+        title: t("Strategic Data"),
+        description: t("Access valuable data about customers' financial habits, personalizing offers and strategic decisions to maximize results and engagement."),
 
       },
       {
-        title: "Increase in Retention",
-        description:
-          "Integrated financial services such as digital accounts and payment cards, increase customer loyalty, reducing the likelihood of resorting to competitors.",
+        title: t("Increase in Retention"),
+        description: t("Integrated financial services such as digital accounts and payment cards strengthen customer relationships and reduce migration to competitors."),
   
       },
       {
-        title: "Full Brand Control",
-        description:
-          "Your own digital bank provides greater agility in financial transactions, benefiting customers and partners commercial and optimizing internal processes of the company.",
+        title: t("Full Brand Control"),
+        description: t("Offers complete control over your brand identity, design and user experience, strengthening market presence and competitive differentiation."),
         
       },
       {
-        title: "Personalized Offers",
-        description:
-          "By managing your own digital bank, company has access to a quantity valuable data about habits customers' financial accounts, personalizing offers and strategies, boosting decision making.",
+        title: t("Personalized Offers"),
+        description: t("By managing your own digital bank, your company accesses valuable data about customers' financial habits, personalizing offers and strategic decisions."),
        
       },
       {
-        title: "New Sources of Revenue",
-        description:
-          "Integrated financial services such as digital accounts and payment cards, increase customer loyalty, reducing the likelihood of resorting to competitors.",
+        title: t("New Sources of Revenue"),
+        description: t("Multiply your revenues with integrated financial services: fees, interest and charges create additional revenue streams that grow with your business."),
         
       },
     ]
@@ -64,9 +59,9 @@ export default function ReasonsSection() {
               REASONS
             </div>
             <h2 className="text-4xl md:text-5xl font-light mb-6">
-              What are the reasons that lead a company to want to have its own Digital Bank?
+              {t('What are the reasons that lead a company to want to have its own Digital Bank?')}
             </h2>
-            <p className="text-gray-200 text-lg">There are several reasons among them, we list the main ones below:</p>
+            <p className="text-gray-200 text-lg">{t('There are several reasons among them, we list the main ones below:')}</p>
           </div>
   
           {/* Reasons Grid */}
