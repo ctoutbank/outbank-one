@@ -51,7 +51,7 @@ export default function BoostSection() {
                 contactForm?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              {t('Talk to an Expert')}
+              Entre em Contato
               <ArrowRight className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-2 sm:ml-4" />
             </Button>
           </div>
