@@ -18,11 +18,12 @@ export default function ConnectWithUsSection() {
             <div className="bg-gradient-to-r from-[#C8C8C8] to-[#8E8E8E] p-6 h-[225px] flex flex-col">
               <div className="flex items-start justify-between mb-auto">
                 <p className="text-[#080808] text-base max-w-[280px]">
-                  {t('Our acquiring solution is already integrated with Pix, enabling instant')}
+                  <span className="font-bold">Estamos integrados ao PIX.</span><br />
+                  Ofereça pagamentos instantâneos com liquidação em tempo real, tanto no mundo digital quanto no presencial.
                 </p>
                 <Image src="/pix-icon.svg" alt="Pix Logo" width={50} height={50} className="opacity-75 brightness-0" />
               </div>
-              <Button variant="outline" className="bg-white text-black border border-[#2f2f2f]/60 hover:bg-white/90 rounded-none px-6 py-3 text-lg w-fit shadow-md">
+              <Button variant="outline" className="hidden bg-white text-black border border-[#2f2f2f]/60 hover:bg-white/90 rounded-none px-6 py-3 text-lg w-fit shadow-md">
                 Contact Us <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>

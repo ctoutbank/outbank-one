@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 const navLinks = [
   { href: "/", label: "Outbank" },
   { href: "/banking", label: "Banking" },
-  { href: "/acquiring", label: "Acquiring" },
+  { href: "/acquiring", label: "ADQUIRÊNCIA" },
   { href: "/cards", label: "Cards & Credit" },
 ];
 
