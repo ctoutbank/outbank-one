@@ -39,7 +39,7 @@ export default function ContactForm() {
             </h2>
             {/* Added description text */}
             <p className="text-gray-400 text-lg">
-              {t('Let us understand your business needs and help you transform your digital presence.')}
+              {t('The first step for your company in the financial market.')}
             </p>
           </div>
 
