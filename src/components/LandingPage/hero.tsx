@@ -41,14 +41,11 @@ const HeroLandingPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <button 
                 onClick={() => {
-                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                  document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="w-full sm:w-auto bg-white text-gray-900 px-8 py-3 font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98]"
               >
-                {t('Button CTA')}
-              </button>
-              <button className="w-full sm:w-auto bg-gray-400/10 text-white px-8 py-3 border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98]">
-                {t('Learn More')}
+                {t('Solicite uma demonstração')}
               </button>
             </div>
           </div>

@@ -43,14 +43,11 @@ const HeroAcquiring = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start px-4 sm:px-0">
               <button 
                 onClick={() => {
-                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                  document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="w-full sm:w-auto bg-white text-gray-900 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98] "
               >
                 {t('Entre em Contato')}
-              </button>
-              <button className="w-full sm:w-auto bg-gray-400/10 text-gray-100 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98] ">
-                {t('Saiba mais')}
               </button>
             </div>
 

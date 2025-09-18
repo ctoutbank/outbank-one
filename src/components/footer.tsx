@@ -37,7 +37,7 @@ export default function Footer() {
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
                     {[
                       { name: "Outbank", href: "/" },
-                      { name: "Acquiring", href: "/acquiring" },
+                      { name: "Adquirência", href: "/acquiring" },
                       { name: "Banking", href: "/banking" },
                       { name: "Cards & Credit", href: "/cards" }
                     ].map((item) => (
@@ -52,13 +52,13 @@ export default function Footer() {
 
                 {/* Navigation Links */}
                 <div className="col-span-1">
-                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Navigation</h3>
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Docs</h3>
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
                     {[t("Documentation"), t("Papers"), t("Press Conferences")].map((item) => (
                       <li key={item}>
-                        <Link href="#" className="text-black/70 hover:text-black transition-colors">
+                        <span className="text-black/70">
                           {item}
-                        </Link>
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -68,11 +68,11 @@ export default function Footer() {
                 <div className="col-span-1">
                   <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legal</h3>
                   <ul className="space-y-1.5 sm:space-y-2 text-sm">
-                    {[t("Terms of Service"), t("Privacy Policy"), t("Cookies Policy")].map((item) => (
+                    {[t("Termo de Serviço"), t("Privacy Policy"), t("Cookies Policy")].map((item) => (
                       <li key={item}>
-                        <Link href="#" className="text-black/70 hover:text-black transition-colors">
+                        <span className="text-black/70">
                           {item}
-                        </Link>
+                        </span>
                       </li>
                     ))}
                   </ul>
