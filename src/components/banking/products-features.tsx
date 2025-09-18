@@ -1,77 +1,78 @@
 import { ChevronRight } from "lucide-react"
+import { t } from '../../utils/i18n'
 
 const features = [
   {
-    title: "Digital Account",
+    title: t("Digital Account"),
     items: [
-      "Opening a Personal and Corporate Account",
-      "Biometrics, KYC, AIM and anti-fraud",
-      "TED Transfer, P2P",
-      "Payment and billing Bill",
-      "PIX keys",
-      "PIX Payment and Billing",
-      "QR Code PIX",
-      "Security Code + OTP + TOPT",
+      t("Opening a Personal and Corporate Account"),
+      t("Biometrics, KYC, AIM and anti-fraud"),
+      t("TED Transfer, P2P"),
+      t("Payment and billing Bill"),
+      t("PIX keys"),
+      t("PIX Payment and Billing"),
+      t("QR Code PIX"),
+      t("Security Code + OTP + TOPT"),
     ],
   },
   {
-    title: "Backoffice & CRM",
+    title: t("Backoffice & CRM"),
     items: [
-      "Complete Account Management",
-      "Complete Transaction Management",
-      "Dashboard Onboarding",
-      "Transactional Dashboard",
-      "Fare Management",
-      "Feature Flag Management",
-      "Parameterization and Configuration",
+      t("Complete Account Management"),
+      t("Complete Transaction Management"),
+      t("Dashboard Onboarding"),
+      t("Transactional Dashboard"),
+      t("Fare Management"),
+      t("Feature Flag Management"),
+      t("Parameterization and Configuration"),
     ],
   },
   {
-    title: "PJ Module",
+    title: t("PJ Module"),
     items: [
-      "Payment Management",
-      "Billing Management",
-      "Transactional Limit Management",
-      "Reading and Issuing CNAB 240",
-      "Payment Workflow",
-      "Reading and Issuance of Conciliation File",
+      t("Payment Management"),
+      t("Billing Management"),
+      t("Transactional Limit Management"),
+      t("Reading and Issuing CNAB 240"),
+      t("Payment Workflow"),
+      t("Reading and Issuance of Conciliation File"),
     ],
   },
   {
-    title: "Cards",
+    title: t("Cards"),
     items: [
-      "Prepaid Credit Card",
-      "Complete Transaction Management",
-      "Dashboard Onboarding",
-      "Transactional Dashboard",
-      "Fare Management",
-      "Feature Flag Management",
-      "Parameterization and Configuration",
+      t("Prepaid Credit Card"),
+      t("Complete Transaction Management"),
+      t("Dashboard Onboarding"),
+      t("Transactional Dashboard"),
+      t("Fare Management"),
+      t("Feature Flag Management"),
+      t("Parameterization and Configuration"),
     ],
   },
   {
-    title: "mPOS",
+    title: t("mPOS"),
     items: [
-      "Abertura de Conta PF e PJ",
-      "Biometrics, KYC, AIM and anti-fraud",
-      "TED Transfer, P2P",
-      "Payment and billing Bill",
-      "PIX keys",
-      "PIX Payment and Billing",
-      "QR Code PIX",
-      "Security Code + OTP + TOPT",
+      t("Opening a Personal and Corporate Account"),
+      t("Biometrics, KYC, AIM and anti-fraud"),
+      t("TED Transfer, P2P"),
+      t("Payment and billing Bill"),
+      t("PIX keys"),
+      t("PIX Payment and Billing"),
+      t("QR Code PIX"),
+      t("Security Code + OTP + TOPT"),
     ],
   },
   {
-    title: "Cashback & Loyalty",
+    title: t("Cashback & Loyalty"),
     items: [
-      "Complete Account Management",
-      "Complete Transaction Management",
-      "Dashboard Onboarding",
-      "Transactional Dashboard",
-      "Fare Management",
-      "Feature Flag Management",
-      "Parameterization and Configuration",
+      t("Complete Account Management"),
+      t("Complete Transaction Management"),
+      t("Dashboard Onboarding"),
+      t("Transactional Dashboard"),
+      t("Fare Management"),
+      t("Feature Flag Management"),
+      t("Parameterization and Configuration"),
     ],
   },
 ]
@@ -83,11 +84,11 @@ export default function ProductFeatures() {
         {/* Header */}
         <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            PRODUCTS
+            {t('Produtos')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-light mb-6">Your digital bank, plug & play</h2>
+          <h2 className="text-4xl md:text-5xl font-light mb-6">{t('Your digital bank, plug & play')}</h2>
           <p className="text-gray-200 text-lg max-w-3xl mx-auto md:mx-0">
-            A complete banking platform for your company to create and offer innovative financial services.
+            {t('A complete banking platform for your company to create and offer innovative financial services.')}
           </p>
         </div>
 

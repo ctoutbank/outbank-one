@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, DollarSign, Check } from "lucide-react"
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 export default function BoostSection() {
   return (
@@ -37,19 +38,20 @@ export default function BoostSection() {
           {/* Left Column */}
           <div className="col-span-12 lg:col-span-6 space-y-4 sm:space-y-6 flex flex-col items-center sm:items-start text-center sm:text-left md:mt-16">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              BOOST YOUR BUSINESS
+              IMPULSIONE SEU NEGÓCIO
             </div>
             <h1 className="text-3xl sm:text-5xl font-light text-white leading-tight max-w-[300px] sm:max-w-none">
-              Thinking about
-              opening your digital
-              bank or migrating
-              your BAAS operation?
+              {t('Thinking about opening your digital bank or migrating your BAAS operation?')}
             </h1>
             <Button
               variant="outline"
               className="bg-gray-100 text-black hover:bg-white/90 rounded-none py-2 sm:py-6 px-3 sm:px-8  text-xs sm:text-base mt-2 sm:mt-4 max-w-[240px] w-full sm:w-auto"
+              onClick={() => {
+                const contactForm = document.getElementById('contact-form');
+                contactForm?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
-              <span className="flex-1">Button CTA</span>
+              <span className="flex-1">{t('Talk to an Expert')}</span>
               <ArrowRight className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-2 sm:ml-4" />
             </Button>
           </div>
@@ -63,8 +65,8 @@ export default function BoostSection() {
                   <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-200 text-sm sm:text-base">Sale Approved</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Available amount: $2,000</div>
+                  <div className="font-medium text-gray-200 text-sm sm:text-base">{t('Sale Approved')}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{t('Available amount: $2,000')}</div>
                 </div>
               </div>
             </div>
@@ -75,8 +77,8 @@ export default function BoostSection() {
                   <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
                 </div>
                 <div>
-                  <div className="font-medium text-white text-sm sm:text-base">Sale Approved</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Available amount: $1,500</div>
+                  <div className="font-medium text-white text-sm sm:text-base">{t('Sale Approved')}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{t('Available amount: $1,500')}</div>
                 </div>
               </div>
             </div>
@@ -87,8 +89,8 @@ export default function BoostSection() {
                   <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
                 </div>
                 <div>
-                  <div className="font-medium text-white text-sm sm:text-base">Sale Approved</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Available amount: $5,000</div>
+                  <div className="font-medium text-white text-sm sm:text-base">{t('Sale Approved')}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{t('Available amount: $5,000')}</div>
                 </div>
               </div>
             </div>
@@ -100,8 +102,8 @@ export default function BoostSection() {
                   <Check className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                 </div>
                 <div>
-                  <div className="font-medium text-white mb-2 text-sm sm:text-base">Transfer Received</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Your transfer worth $50,000 has been completed</div>
+                  <div className="font-medium text-white mb-2 text-sm sm:text-base">{t('Transfer Received')}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{t('Your transfer worth $50,000 has been completed')}</div>
                 </div>
               </div>
             </div>
