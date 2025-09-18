@@ -31,7 +31,7 @@ const HeroCards = () => {
           {/* Left Column - Text and Buttons */}
           <div className="w-full lg:max-w-md text-center lg:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              CARDS & CREDIT
+              {t('CARDS & CREDIT')}
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight">
@@ -49,10 +49,10 @@ const HeroCards = () => {
                 }}
                 className="w-full sm:w-auto bg-white text-gray-900 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-gray-100 transition-all duration-300 hover:scale-[0.98] "
               >
-                {t('Button CTA')}
+                {t('Entre em Contato')}
               </button>
               <button className="w-full sm:w-auto bg-gray-400/10 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-600/40 font-medium hover:bg-gray-700/30 transition-all duration-300 hover:scale-[0.98]">
-                {t('Learn More')}
+                {t('Saiba mais')}
               </button>
             </div>
 

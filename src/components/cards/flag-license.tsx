@@ -2,17 +2,18 @@
 
 import { Check, ChevronRight, SquareCheck } from "lucide-react"
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 export default function FlagLicense() {
   const dockFeatures = [
-    "Obtain more attractive costs with the brand due to the high processing volume from Dock.",
-    "We have the infrastructure to settle transactions without your company needing a settlement bank.",
-    "We manage the delivery of regulatory files to the BCB related to the issuance of cards and all flag reports.",
-    "Maintain the brand's incentives and remuneration for the operation with BIN Sponsor Dock.",
+    t("Obtain more attractive costs with the brand due to the high processing volume from Dock."),
+    t("We have the infrastructure to settle transactions without your company needing a settlement bank."),
+    t("We manage the delivery of regulatory files to the BCB related to the issuance of cards and all flag reports."),
+    t("Maintain the brand's incentives and remuneration for the operation with BIN Sponsor Dock."),
   ]
 
   const ownFeatures = [
-    "Exclusive BIN Sponsor for your company with your own credit card issuer or debit in a personalized way, all of this is possible with the Dock infrastructure",
+    t("Exclusive BIN Sponsor for your company with your own credit card issuer or debit in a personalized way, all of this is possible with the Dock infrastructure"),
   ]
 
   return (
@@ -21,13 +22,13 @@ export default function FlagLicense() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            PRODUCTS
+            {t('PRODUCTS')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-light mb-6">Flag License</h2>
+          <h2 className="text-4xl md:text-5xl font-light mb-6">{t('Flag License')}</h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-            Don&apos;t worry about regulatory issues, Dock takes care of it for you!
+            {t("Don't worry about regulatory issues, Dock takes care of it for you!")}
             <br />
-            Enjoy the Flexibility in hiring our solution according to your business strategy
+            {t('Enjoy the Flexibility in hiring our solution according to your business strategy')}
           </p>
         </div>
 
@@ -40,7 +41,7 @@ export default function FlagLicense() {
                 <ChevronRight className="w-6 h-6" />
                 <ChevronRight className="w-6 h-6 -ml-4" />
               </div>
-              <h3 className="text-2xl font-light">Dock Flag License</h3>
+              <h3 className="text-2xl font-light">{t('Dock Flag License')}</h3>
             </div>
             <ul className="space-y-6 ml-12">
               {dockFeatures.map((feature, index) => (
@@ -58,7 +59,7 @@ export default function FlagLicense() {
               <div className="flex items-center gap-2 mb-8">
                 <ChevronRight className="w-6 h-6" />
                 <ChevronRight className="w-6 h-6 -ml-6" />
-                <h3 className="text-2xl font-light">Own Flag License</h3>
+                <h3 className="text-2xl font-light">{t('Own Flag License')}</h3>
               </div>
               <ul className="space-y-6 ml-12">
                 {ownFeatures.map((feature, index) => (
@@ -72,7 +73,7 @@ export default function FlagLicense() {
 
             {/* Updated Wallets and Flags section */}
             <div className="mt-16">
-              <h4 className="text-2xl font-light mb-8">Integrate with the main wallets on the market</h4>
+              <h4 className="text-2xl font-light mb-8">{t('Integrate with the main wallets on the market')}</h4>
 
               {/* Wallets */}
               <div className="hidden md:flex items-center gap-12 mb-12">
@@ -103,7 +104,7 @@ export default function FlagLicense() {
               {/* Flags */}
               <div className="hidden md:flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                  <span className="text-xl font-light">Flags</span>
+                  <span className="text-xl font-light">{t('Flags')}</span>
                   <div className="flex items-center gap-4">
                     <div className="h-[60px] w-[80px] relative bg-[#080808] p-2 flex items-center justify-center">
                       <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
@@ -125,14 +126,14 @@ export default function FlagLicense() {
                         <Image src="/american-express.svg" alt="American Express" width={40} height={20} className="object-contain" />
                       </div>
                     </div>
-                    <span className="text-sm text-gray-400">*CHECK FLAG <br /> AVAILABILITY <br /> BY SOLUTION.</span>
+                    <span className="text-sm text-gray-400">{t('*CHECK FLAG AVAILABILITY BY SOLUTION.')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Mobile Flags */}
               <div className="md:hidden">
-                <span className="text-xl font-light block mb-4">Flags</span>
+                <span className="text-xl font-light block mb-4">{t('Flags')}</span>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="h-[60px] relative bg-[#080808] p-2 flex items-center justify-center">
                     <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
@@ -156,7 +157,7 @@ export default function FlagLicense() {
                   </div>
                 </div>
                 <span className="text-sm text-gray-400 block mt-4 text-center">
-                  *CHECK FLAG AVAILABILITY BY SOLUTION.
+                  {t('*CHECK FLAG AVAILABILITY BY SOLUTION.')}
                 </span>
               </div>
             </div>

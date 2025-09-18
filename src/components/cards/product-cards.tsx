@@ -16,7 +16,7 @@ const ProductCards = () => {
           {/* Left Column - Text and Buttons */}
           <div className="w-full lg:w-1/2 text-center lg:text-left mb-4 sm:mb-6 lg:mb-0 lg:mt-10">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              PRODUCTS
+              {t('PRODUCTS')}
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-light text-white mb-4 sm:mb-6 leading-tight">

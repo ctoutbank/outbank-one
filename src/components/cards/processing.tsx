@@ -3,40 +3,35 @@
 import { useState } from "react"
 import { Plus, Minus } from "lucide-react"
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 export default function CardProcessing() {
   const [openItem, setOpenItem] = useState<number | null>(0)
 
   const items = [
     {
-      title: "Embossing",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Embossing"),
+      content: t("We take care of the preparation and sending of files destined for embossers and graphics."),
     },
     {
-      title: "Autorization",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Authorization"),
+      content: t("Manage balance and limit with online and offline validation (stand-in), offering flexible limit option."),
     },
     {
-      title: "Liquidation",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Liquidation"),
+      content: t("Perform the financial settlement of all transactions, ensuring the correct payment flow between all parties."),
     },
     {
-      title: "Chargeback",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Chargeback"),
+      content: t("We completely manage the chargeback processes with the brands, protecting your operation."),
     },
     {
-      title: "Conciliation",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Conciliation"),
+      content: t("Have the financial reconciliation of transactions between the commercial establishment, the processor and the issuing banks."),
     },
     {
-      title: "Account Management",
-      content:
-        "Lorem ipsum dolor sit amet consectetur. Congue imperdiet vitae nunc bibendum urna duis molestie. Duis adipiscing id felis metus dignissim dictum velit donec. Tortor tempor odio lobortis senectus. Tristique proin dignissim tincidunt ridiculus orci consectetur.",
+      title: t("Account Management"),
+      content: t("Manage the cycle of all transactions such as purchases, fees, adjustments and payments that affect the balance."),
     },
   ]
 
@@ -47,13 +42,11 @@ export default function CardProcessing() {
           {/* Left Column */}
           <div className="space-y-6 text-center lg:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block">
-              PROCESSING
+              {t('PROCESSING')}
             </div>
-            <h2 className="text-4xl md:text-5xl font-light">Card Processing</h2>
+            <h2 className="text-4xl md:text-5xl font-light">{t('Card Processing')}</h2>
             <p className="text-gray-300 text-lg">
-              Take advantage of the most complete and robust processing
-              platform to create the best experiences with
-              total flexibility, using Dock licenses or your own licenses.
+              {t('Take advantage of the most complete and robust processing platform to create the best experiences with total flexibility, using Dock licenses or your own licenses.')}
             </p>
             <div className="relative aspect-video w-full lg:w-[550px] h-[355px] hidden lg:block">
               <Image src="/card-processing.svg" alt="Credit Card on Circuit Board" fill quality={100} className="object-cover" />

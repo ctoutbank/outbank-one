@@ -6,35 +6,35 @@ import { t } from '../../utils/i18n'
 
 const cards = [
   {
-    type: "Credit",
+    type: t("Credit"),
     image: "/black-card.svg",
     features: [
       { name: t("Individual"), included: true },
       { name: t("Legal Entity"), included: true },
       { name: t("Virtual Card"), included: true },
       { name: t("Additional Card"), included: true },
-      { name: "Digital Wallets", included: true },
-      { name: "Dynamic CVV", included: true },
-      { name: "24 Hour Withdrawal", included: true },
-      { name: "Temporary blocking", included: true },
-      { name: "Loyalty Program", included: true },
-      { name: "3DS", included: true },
+      { name: t("Digital Wallets"), included: true },
+      { name: t("Dynamic CVV"), included: true },
+      { name: t("24 Hour Withdrawal"), included: true },
+      { name: t("Temporary blocking"), included: true },
+      { name: t("Loyalty Program"), included: true },
+      { name: t("3DS"), included: true },
     ],
   },
   {
-    type: "Prepaid and Debit",
+    type: t("Prepaid and Debit"),
     image: "/orange-card.svg",
     features: [
       { name: t("Individual"), included: true },
       { name: t("Legal Entity"), included: true },
       { name: t("Virtual Card"), included: true },
       { name: t("Additional Card"), included: false },
-      { name: "Digital Wallets", included: true },
-      { name: "Dynamic CVV", included: true },
-      { name: "24 Hour Withdrawal", included: true },
-      { name: "Temporary blocking", included: true },
-      { name: "Loyalty Program", included: true },
-      { name: "3DS", included: true },
+      { name: t("Digital Wallets"), included: true },
+      { name: t("Dynamic CVV"), included: true },
+      { name: t("24 Hour Withdrawal"), included: true },
+      { name: t("Temporary blocking"), included: true },
+      { name: t("Loyalty Program"), included: true },
+      { name: t("3DS"), included: true },
     ],
   },
   {
@@ -45,12 +45,12 @@ const cards = [
       { name: t("Legal Entity"), included: true },
       { name: t("Virtual Card"), included: true },
       { name: t("Additional Card"), included: true },
-      { name: "Digital Wallets", included: false },
-      { name: "Dynamic CVV", included: false },
-      { name: "24 Hour Withdrawal", included: true },
-      { name: "Temporary blocking", included: true },
-      { name: "Loyalty Program", included: false },
-      { name: "3DS", included: true },
+      { name: t("Digital Wallets"), included: false },
+      { name: t("Dynamic CVV"), included: false },
+      { name: t("24 Hour Withdrawal"), included: true },
+      { name: t("Temporary blocking"), included: true },
+      { name: t("Loyalty Program"), included: false },
+      { name: t("3DS"), included: true },
     ],
   },
   {
@@ -61,12 +61,12 @@ const cards = [
       { name: t("Legal Entity"), included: true },
       { name: t("Virtual Card"), included: true },
       { name: t("Additional Card"), included: true },
-      { name: "Digital Wallets", included: false },
-      { name: "Dynamic CVV", included: false },
-      { name: "24 Hour Withdrawal", included: true },
-      { name: "Temporary blocking", included: true },
-      { name: "Loyalty Program", included: false },
-      { name: "3DS", included: true },
+      { name: t("Digital Wallets"), included: false },
+      { name: t("Dynamic CVV"), included: false },
+      { name: t("24 Hour Withdrawal"), included: true },
+      { name: t("Temporary blocking"), included: true },
+      { name: t("Loyalty Program"), included: false },
+      { name: t("3DS"), included: true },
     ],
   },
 ]
@@ -78,7 +78,7 @@ export default function CardBenefitsCarousel() {
         {/* Header */}
         <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            BENEFITS
+            {t('BENEFITS')}
           </div>
           <h2 className="text-4xl md:text-5xl font-light text-white mb-4">
             {t('Outbank is a card processor with the best solution for your company and its customer')}
