@@ -40,10 +40,9 @@ export default function DualCardSection({
 
         {/* Center Text */}
         <div className="bg-[#020202] px-8 w-full flex flex-col justify-center p-4 order-2 md:order-none">
-            <h3 className="text-2xl font-light text-white mb-6">Your customer is <br /> increasingly yours</h3>
+            <h3 className="text-2xl font-light text-white mb-6">{t('Your customer is increasingly yours')}</h3>
             <p className="text-gray-400 text-md leading-relaxed">
-              Count on the experience of those who issued <span className="text-white">more than 100 million cards</span>{" "}
-              in the last 12 months.
+              {t('Count on the experience of those who issued more than 100 million cards in the last 12 months.')}
             </p>
         </div>
 
@@ -70,9 +69,7 @@ export default function DualCardSection({
               <div className="bg-[#030303]/100 p-4 sm:p-8 flex flex-col items-center w-full min-h-[160px] sm:h-[200px]">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-[#030303] to-[#242424] border border-[#1A1A1A] mb-4" />
                 <p className="text-center text-xs sm:text-sm text-gray-400">
-                  Issuance and
-                  <br />
-                  processing of cards
+                  {t('Issuance and processing of cards')}
                 </p>
               </div>
             </div>

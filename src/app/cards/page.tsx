@@ -10,35 +10,33 @@ import DualCardSection from "@/components/cards/dual-card-section";
 import ConsignedCardSection from "@/components/cards/consigned-card";
 import ContactForm from "@/components/LandingPage/contact";
 import CardBenefitsCarousel from "@/components/cards/card-benefits-carousel";
+import { t } from '../../utils/i18n';
 
 
 export default function CardsPage() {
 
   const cards = [
     {
-      title: "Credit Card",
-      subtitle:
-        "Transform your business with your own personalized credit card operation with its unique colors and characteristics.",
+      title: t("Credit Card"),
+      subtitle: t("Transform your business with your own personalized credit card operation with its unique colors and characteristics."),
       cardImage: "/black-card.svg", 
       dotColor: "bg-gray-600",
     },
     {
-      title: "Private Label Card",
-      subtitle:
-        "Become a private-label card issuer, or non-financial card, whether for use inside a key ecosystem with bank.",
+      title: t("Private Label Card"),
+      subtitle: t("Fidelize seus clientes com um cartão private label para uso exclusivo em sua rede de estabelecimentos."),
       cardImage: "/purple-card.svg", 
       dotColor: "bg-purple-600",
     },
     {
-      title: "Multibenefits Card",
-      subtitle: "Optimize your customers' benefits with a multi-purpose credit card and white label.",
+      title: t("Cartão Global"),
+      subtitle: t("O Cartão Global garante praticidade e segurança em transações internacionais, oferecendo aos seus clientes uma experiência fluida e sem fronteiras."),
       cardImage: "/red-card.svg", 
       dotColor: "bg-red-600",
     },
     {
-      title: "Global Card",
-      subtitle:
-        "Transform your business with your own personalized credit card operation with its unique colors and characteristics.",
+      title: t("Pré-pago e Débito"),
+      subtitle: t("A solução ideal para controle de gastos e gestão financeira, com cartões pré-pagos (físicos e virtuais) para Pessoas Físicas ou Jurídicas."),
       cardImage: "/green-card.svg", 
       dotColor: "bg-green-600",
     },

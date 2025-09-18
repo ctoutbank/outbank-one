@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 interface CardSectionProps {
   title: string
@@ -23,7 +24,7 @@ export default function CardSection({ title, subtitle, cardImage, dotColor }: Ca
         <div className="lg:col-span-4 h-full flex">
           <div className="bg-[#020202] p-6 sm:p-8 w-full h-[200px] flex items-center">
             <ul className="space-y-4">
-              {["White or Private Label", "Physical and Virtual Cards", "Access to the main brands on the market"].map(
+              {[t("White or Private Label"), t("Physical and Virtual Cards"), t("Access to the main brands on the market")].map(
                 (item, index) => (
                   <li key={index} className="flex items-start gap-4 text-gray-400">
                     <div className={`w-2 h-2 rounded-full ${dotColor} mt-2 flex-shrink-0`} />
@@ -51,10 +52,9 @@ export default function CardSection({ title, subtitle, cardImage, dotColor }: Ca
         {/* Right Column - Customer Info */}
         <div className="lg:col-span-4 h-full flex">
           <div className="bg-[#020202] px-6 sm:px-8 py-8 sm:py-12 w-full h-[200px] flex flex-col justify-center">
-            <h3 className="text-2xl font-light text-white mb-6">Your customer is <br /> increasingly yours</h3>
+            <h3 className="text-2xl font-light text-white mb-6">{t('Your customer is increasingly yours')}</h3>
             <p className="text-gray-400 text-md leading-relaxed">
-              Count on the experience of those who issued <span className="text-white">more than 100 million cards</span>{" "}
-              in the last 12 months.
+              {t('Count on the experience of those who issued more than 100 million cards in the last 12 months.')}
             </p>
           </div>
         </div>
@@ -69,9 +69,7 @@ export default function CardSection({ title, subtitle, cardImage, dotColor }: Ca
               <div className="bg-[#030303]/100 p-4 sm:p-8 flex flex-col items-center w-full min-h-[160px] sm:h-[200px]">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-[#030303] to-[#242424] border border-[#1A1A1A] mb-4" />
                 <p className="text-center text-xs sm:text-sm text-gray-400">
-                  Issuance and
-                  <br />
-                  processing of cards
+                  {t('Issuance and processing of cards')}
                 </p>
               </div>
             </div>
