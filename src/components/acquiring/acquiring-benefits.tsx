@@ -16,12 +16,12 @@ const benefits = [
   {
     icon: Grid,
     title: t("White-label - your brand on the POS device and web portal"),
-    description: t("Lorem ipsum dolor sit amet consectetur. Dolor tincidunt"),
+    description: t("White-label brand description"),
   },
   {
     icon: RefreshCw,
     title: t("Acquiring management - Customized BackOffice portal"),
-    description: t("Competitive pricing and low anticipation and MDR rates"),
+    description: t("Acquiring management description"),
   },
   {
     icon: BarChart3,
