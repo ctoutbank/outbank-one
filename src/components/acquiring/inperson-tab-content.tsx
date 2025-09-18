@@ -1,13 +1,14 @@
 import Image from "next/image"
+import { t } from '../../utils/i18n'
 
 export default function InpersonTabContent() {
   return (
     <div className="bg-gradient-to-r from-[#2D2D2D] to-[#101010] border-2 border-[#585858] p-4 sm:p-8">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl text-gray-100 font-normal mb-2 sm:mb-3">Complete end-to-end solutions with OutBank</h2>
+        <h2 className="text-2xl sm:text-3xl text-gray-100 font-normal mb-2 sm:mb-3">{t('Complete end-to-end solutions with OutBank')}</h2>
         <p className="text-base sm:text-lg text-gray-300/90">
-          Count on purchasing features that will make your day-to-day operations even more fluid
+          {t('Count on purchasing features that will make your day-to-day operations even more fluid')}
         </p>
       </div>
 
@@ -18,22 +19,22 @@ export default function InpersonTabContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 auto-rows-fr lg:h-[500px]">
             {/* Top Row */}
             <div className="bg-gradient-to-r from-[#4a4a4a] to-[#272727] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
-              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">Title Description</h3>
+              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Automatically reconcile data in your ERP')}</h3>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808]">Automatically reconcile data in your ERP</p>
+                  <p className="text-gray-300/90 group-hover:text-[#080808]">{t('Automatically reconcile data in your ERP')}</p>
                 </div>
                 
               </div>
             </div>
 
             <div className="bg-gradient-to-r  from-[#454545] to-[#202020] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
-              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">Title Description</h3>
+              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Extract of daily transactions')}</h3>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808]">Extract of daily transactions</p>
+                  <p className="text-gray-300/90 group-hover:text-[#080808]">{t('Extract of daily transactions')}</p>
                 </div>
                 
                 
@@ -42,11 +43,11 @@ export default function InpersonTabContent() {
 
             {/* Bottom Row */}
             <div className="bg-gradient-to-r from-[#4a4a4a] to-[#272727] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
-              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">Title Description</h3>
+              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Transaction cancellation')}</h3>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808]">Transaction cancellation</p>
+                  <p className="text-gray-300/90 group-hover:text-[#080808]">{t('Transaction cancellation')}</p>
                 </div>
                 
                 
@@ -54,11 +55,11 @@ export default function InpersonTabContent() {
             </div>
 
             <div className="bg-gradient-to-r from-[#454545] to-[#202020] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
-              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">Title Description</h3>
+              <h3 className="text-xl  text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Sales receipt printing')}</h3>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808]">Sales receipt printing</p>
+                  <p className="text-gray-300/90 group-hover:text-[#080808]">{t('Sales receipt printing')}</p>
                 </div>
                 
                 

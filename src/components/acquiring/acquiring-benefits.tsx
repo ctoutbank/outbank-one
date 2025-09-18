@@ -1,36 +1,37 @@
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
 import { BarChart3, Grid, Headset, RefreshCw, Rocket, Settings } from "lucide-react"
+import { t } from '../../utils/i18n'
 
 const benefits = [
   {
     icon: Rocket,
-    title: "Boost Your Profits with Competitive Pricing & Low Fees",
-    description: "Competitive pricing and low anticipation and MDR rates",
+    title: t("Boost Your Profits with Competitive Pricing & Low Fees"),
+    description: t("Competitive pricing and low anticipation and MDR rates"),
   },
   {
     icon: Settings,
-    title: "Operational efficiency and autonomy to enhance your business performance",
-    description: "Lorem ipsum dolor sit amet consectetur. Dolor tincidunt",
+    title: t("Operational efficiency and autonomy to enhance your business performance"),
+    description: t("Lorem ipsum dolor sit amet consectetur. Dolor tincidunt"),
   },
   {
     icon: Grid,
-    title: "White-label - your brand on the POS device and web portal",
-    description: "Lorem ipsum dolor sit amet consectetur. Dolor tincidunt",
+    title: t("White-label - your brand on the POS device and web portal"),
+    description: t("Lorem ipsum dolor sit amet consectetur. Dolor tincidunt"),
   },
   {
     icon: RefreshCw,
-    title: "Acquiring management - Customized BackOffice portal",
-    description: "Competitive pricing and low anticipation and MDR rates",
+    title: t("Acquiring management - Customized BackOffice portal"),
+    description: t("Competitive pricing and low anticipation and MDR rates"),
   },
   {
     icon: BarChart3,
-    title: "Stability for high transaction volumes",
-    description: "Lorem ipsum dolor sit amet consectetur. Dolor tincidunt",
+    title: t("Stability for high transaction volumes"),
+    description: t("Nossa infraestrutura é projetada para processar grandes volumes de transações com máxima estabilidade e segurança."),
   },
   {
     icon: Headset,
-    title: "Specialized technical support",
-    description: "Lorem ipsum dolor sit amet consectetur. Dolor tincidunt",
+    title: t("Specialized technical support"),
+    description: t("Conte com especialistas focados em garantir a performance e a estabilidade do seu negócio."),
   },
 ]
 
@@ -55,15 +56,13 @@ export default function BenefitsSection() {
         {/* Header */}
         <div className="mb-16 text-center md:text-left">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            BENEFITS
+            {t('Benefits')}
           </div>
           <h2 className="text-4xl md:text-5xl font-light text-gray-100 mb-6">
-            Benefits of maximizing
-            <br />
-            the efficiency of your payments
+            {t('Benefits of maximizing the efficiency of your payments')}
           </h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto md:mx-0">
-            Customize your acquiring operation without sacrificing performance and fluidity throughout the entire cycle.
+            {t('Customize your acquiring operation without sacrificing performance and fluidity throughout the entire cycle.')}
           </p>
         </div>
 
