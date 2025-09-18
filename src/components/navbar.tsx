@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Mail, Menu, Phone, X } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -84,9 +84,6 @@ export function Navbar() {
 
           {/* Right Side Actions - Desktop */}
           <div className="hidden md:flex w-[120px] items-center justify-end">
-            <button className="text-white mr-4 hover:text-gray-300 hover:scale-105 transition-all duration-300">
-              Support
-            </button>
             <SignedIn>
               <Link href="/portal/dashboard">
                 <Button className="bg-white text-black rounded-none hover:bg-white/90 hover:scale-105 transition-all duration-300">
@@ -190,27 +187,6 @@ export function Navbar() {
                   transition={{ delay: 0.3 }}
                 />
 
-                {/* Support Section */}
-                <motion.div
-                  className="mb-8"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <h3 className="text-white text-lg font-semibold mb-4">
-                    Support
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center text-gray-400">
-                      <Phone className="h-5 w-5 mr-3" />
-                      <span>+1 (234) 567-890</span>
-                    </div>
-                    <div className="flex items-center text-gray-400">
-                      <Mail className="h-5 w-5 mr-3" />
-                      <span>support@outbank.com</span>
-                    </div>
-                  </div>
-                </motion.div>
 
                 {/* Auth Buttons */}
                 <motion.div
