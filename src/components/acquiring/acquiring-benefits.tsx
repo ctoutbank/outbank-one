@@ -5,33 +5,33 @@ import { t } from '../../utils/i18n'
 const benefits = [
   {
     icon: Rocket,
-    title: t("Boost Your Profits with Competitive Pricing & Low Fees"),
-    description: t("Competitive pricing and low anticipation and MDR rates"),
+    title: t("Increase profits with competitive rates"),
+    description: t("Maximize results with MDR and anticipation conditions, strengthening credibility and transparency of your brand."),
   },
   {
     icon: Settings,
-    title: t("Operational efficiency and autonomy to enhance your business performance"),
-    description: t("Lorem ipsum dolor sit amet consectetur. Dolor tincidunt"),
+    title: t("Efficiency and autonomy in operation"),
+    description: t("Have autonomy to manage your operation with tools that optimize processes and boost performance."),
   },
   {
     icon: Grid,
-    title: t("White-label - your brand on the POS device and web portal"),
-    description: t("White-label brand description"),
+    title: t("From POS to Portal with your brand"),
+    description: t("Control your entire operation with tools that optimize processes, increase efficiency and guarantee autonomy."),
   },
   {
     icon: RefreshCw,
-    title: t("Acquiring management - Customized BackOffice portal"),
-    description: t("Acquiring management description"),
+    title: t("Acquiring management with BackOffice"),
+    description: t("Maximize results with MDR and anticipation rules, strengthening credibility and transparency of your brand."),
   },
   {
     icon: BarChart3,
-    title: t("Stability for high transaction volumes"),
-    description: t("Nossa infraestrutura é projetada para processar grandes volumes de transações com máxima estabilidade e segurança."),
+    title: t("Stability in financial transactions"),
+    description: t("Our infrastructure processes high volumes of transactions with maximum stability, constant performance and security."),
   },
   {
     icon: Headset,
-    title: t("Specialized technical support"),
-    description: t("Conte com especialistas focados em garantir a performance e a estabilidade do seu negócio."),
+    title: t("Technical support always dedicated to you"),
+    description: t("Count on specialists who guarantee performance, continuous stability and security in all your daily operation."),
   },
 ]
 
