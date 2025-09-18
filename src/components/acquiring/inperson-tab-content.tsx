@@ -16,7 +16,7 @@ export default function InpersonTabContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column - 2x3 Feature Grid */}
         <div className="lg:col-span-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 auto-rows-fr lg:h-[600px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 auto-rows-fr lg:h-[500px]">
             {/* First Row */}
             <div className="bg-gradient-to-r from-[#4a4a4a] to-[#272727] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full">
               <h3 className="text-xl text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Automatic ERP reconciliation')}</h3>
@@ -32,14 +32,6 @@ export default function InpersonTabContent() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Real-time entries')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Time savings')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Reliable reports')}</p>
                 </div>
               </div>
             </div>
@@ -58,14 +50,6 @@ export default function InpersonTabContent() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Facilitated cash management')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Identification of discrepancies')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Data export')}</p>
                 </div>
               </div>
             </div>
@@ -86,14 +70,6 @@ export default function InpersonTabContent() {
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Fraud reduction')}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Automatic registration')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Better customer experience')}</p>
-                </div>
               </div>
             </div>
 
@@ -111,41 +87,6 @@ export default function InpersonTabContent() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Secure registration')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Audit support')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('System integration')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Third Row - Single item spanning both columns */}
-            <div className="bg-gradient-to-r from-[#4a4a4a] to-[#272727] hover:from-[#A0A0A0] hover:to-[#5D5D5D] p-4 sm:p-6 flex flex-col group h-full sm:col-span-2">
-              <h3 className="text-xl text-gray-200 group-hover:text-[#080808] font-normal mb-4">{t('Complete end-to-end solutions with OutBank')}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Automatic ERP reconciliation')}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Daily transaction extract')}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Transaction cancellation')}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <p className="text-gray-300/90 group-hover:text-[#080808] text-sm">{t('Sales receipt printing')}</p>
-                  </div>
                 </div>
               </div>
             </div>
