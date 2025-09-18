@@ -56,7 +56,7 @@ export default function ReasonsSection() {
           {/* Header */}
           <div className="max-w-4xl mb-16 text-center md:text-left">
             <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-              REASONS
+              {t('RAZÕES')}
             </div>
             <h2 className="text-4xl md:text-5xl font-light mb-6">
               {t('What are the reasons that lead a company to want to have its own Digital Bank?')}
