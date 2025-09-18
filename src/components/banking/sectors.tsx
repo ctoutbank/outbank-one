@@ -41,7 +41,7 @@ export default function SectorsSection() {
         {/* Header */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
-            SECTORS
+            {t('SETORES DO MERCADO')}
           </div>
           <h2 className="text-4xl md:text-5xl font-light mb-6">
             {t('Which sectors can benefit from a Banking infrastructure?')}

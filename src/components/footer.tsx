@@ -24,7 +24,7 @@ export default function Footer() {
               <div className="space-y-1.5 sm:space-y-2 text-sm">
                 <p>42.244.879/0001-67</p>
                 <p>operacao@outbank.com.br</p>
-                <p>+0 (123) 456-789</p>
+                {/* <p>+0 (123) 456-789</p> */}
               </div>
             </div>
 
