@@ -21,11 +21,12 @@ export function MetricCard({
   color = "blue"
 }: MetricCardProps) {
   const formatGrowthPercentage = (percentage: number) => {
+    if (percentage === 0) return null;
     const isPositive = percentage >= 0;
     const formattedPercentage = Math.abs(percentage).toFixed(1);
     
     return {
-      value: `${isPositive ? '+' : '-'}${formattedPercentage}%`,
+      value: `${isPositive ? '+' : ''}${formattedPercentage}%`,
       isPositive,
       color: isPositive ? 'text-green-600' : 'text-red-600',
       bgColor: isPositive ? 'bg-green-50' : 'bg-red-50',
@@ -41,7 +42,14 @@ export function MetricCard({
         <div className="flex flex-col space-y-3">
           {/* Header with icon */}
           <div className="flex items-center justify-between">
-            <div className={`p-2 rounded-lg bg-${color}-50`}>
+            <div className={`p-2 rounded-lg ${
+              color === 'blue' ? 'bg-blue-50' :
+              color === 'green' ? 'bg-green-50' :
+              color === 'purple' ? 'bg-purple-50' :
+              color === 'orange' ? 'bg-orange-50' :
+              color === 'gray' ? 'bg-gray-50' :
+              'bg-blue-50'
+            }`}>
               {icon}
             </div>
             {growth && (
