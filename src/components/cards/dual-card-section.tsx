@@ -1,7 +1,6 @@
 "use client"
 
 import Image from "next/image"
-import { t } from '../../utils/i18n'
 
 interface DualCardSectionProps {
   title?: string

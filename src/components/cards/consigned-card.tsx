@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { t } from '../../utils/i18n'
 
 export default function ConsignedCardSection() {
     return (

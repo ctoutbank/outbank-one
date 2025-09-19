@@ -10,7 +10,6 @@ import DualCardSection from "@/components/cards/dual-card-section";
 import ConsignedCardSection from "@/components/cards/consigned-card";
 import ContactForm from "@/components/LandingPage/contact";
 import CardBenefitsCarousel from "@/components/cards/card-benefits-carousel";
-import { t } from '../../utils/i18n';
 
 
 export default function CardsPage() {
