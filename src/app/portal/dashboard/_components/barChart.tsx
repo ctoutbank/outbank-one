@@ -1,47 +1,17 @@
 "use client";
 import * as React from "react";
 import {
-  CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer } from "@/components/ui/chart";
 import { Loader2 } from 'lucide-react';
 import type {
-  GetTotalTransactionsByMonthResult,
   TotalTransactionsByDay,
 } from "@/features/transactions/serverActions/transaction";
-import { formatCurrency } from "@/lib/utils";
-import { format } from "date-fns";
-import DashboardFilters from "./dashboard-filters";
 import { useSearchParams } from "next/navigation";
-
-const chartConfig = {
-  bruto: {
-    label: "Vendas",
-    color: "#10b981",
-  },
-  lucro: {
-    label: "Lucro",
-    color: "#10B981",
-  },
-  transacionado: {
-    label: "Transacionado",
-    color: "#9CA3AF",
-  },
-};
-
-interface DailyData {
-  date: string;
-  month: string;
-  bruto: number;
-  lucro: number;
-  transacionado: number;
-}
 
 const CustomDot = (props: any) => {
   const { cx, cy, fill } = props;
@@ -52,13 +22,7 @@ const formatYAxisLabel = (value: number) => {
   return `R$${value}k`;
 };
 
-export function BarChartCustom({
-  transactionsData,
-  totalTransactions,
-  totalMerchants,
-  canceledTransactions,
-}: {
-  chartData?: GetTotalTransactionsByMonthResult[];
+export function BarChartCustom({}: {
   transactionsData?: TotalTransactionsByDay[];
   viewMode?: string;
   totalTransactions?: any;
@@ -66,10 +30,7 @@ export function BarChartCustom({
   dateRange?: { start: string; end: string };
   canceledTransactions?: number;
 }) {
-  const [hoveredData, setHoveredData] = React.useState<DailyData | null>(null);
-  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = React.useState(false);
-  const cardRef = React.useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
   // Detecta mudanças nos parâmetros e remove o loading
@@ -83,10 +44,6 @@ export function BarChartCustom({
     }
   }, [searchParams, isLoading]);
 
-  // Função para ativar o loading quando filtro for aplicado
-  const handleFilterApply = () => {
-    setIsLoading(true);
-  };
 
   const lineChartData = [
     { month: 'Jan', lucro: 4.2, transacionado: 8.5 },
@@ -103,49 +60,7 @@ export function BarChartCustom({
     { month: 'Dez', lucro: 5.9, transacionado: 12.1 }
   ];
 
-  const handleMouseMove = (data: any, event: any) => {
-    if (data && data.activePayload && data.activePayload.length > 0) {
-      setHoveredData(data.activePayload[0].payload);
-      const mouseX = event?.nativeEvent?.clientX || 0;
-      const mouseY = event?.nativeEvent?.clientY || 0;
-      setMousePosition({ x: mouseX, y: mouseY });
-    }
-  };
 
-  const handleMouseLeave = () => {
-    setHoveredData(null);
-  };
-
-  const CustomTooltip = () => {
-    if (!hoveredData) return null;
-    return (
-      <div
-        className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
-        style={{
-          left: mousePosition.x + 10,
-          top: mousePosition.y + 10,
-        }}
-      >
-        <div className="space-y-1">
-          <div className="font-medium text-gray-800 text-xs border-b pb-1">
-            {hoveredData.date}
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Transacionado:</span>
-            <span className="font-medium text-gray-600">
-              R${(hoveredData.transacionado * 1000).toLocaleString("pt-BR")}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Lucro:</span>
-            <span className="font-medium text-green-600">
-              R${(hoveredData.lucro * 1000).toLocaleString("pt-BR")}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">

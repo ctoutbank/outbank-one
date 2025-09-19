@@ -1,6 +1,4 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
 import React from "react";
 
 interface MetricCardProps {
