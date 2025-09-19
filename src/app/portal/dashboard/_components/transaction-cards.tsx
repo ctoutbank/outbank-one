@@ -127,11 +127,14 @@ export function TransactionSummaryCards({
 
   return (
     <div className="w-full">
+      <h3 className="text-lg font-semibold mb-4 text-gray-900">
+        Transações por Tipo de Produto
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {cardsData.map((card) => (
           <Card
             key={card.id}
-            className="bg-white border border-gray-200 hover:shadow-md transition-shadow"
+            className="bg-white border border-gray-200 hover:shadow-lg transition-all duration-200"
           >
             <CardContent className="p-6">
               <div className="flex flex-col space-y-3">
@@ -144,7 +147,7 @@ export function TransactionSummaryCards({
                 </div>
 
                 {/* Valor */}
-                <div className="text-sm font-bold text-gray-900">
+                <div className="text-lg font-bold text-gray-900">
                   {formatCurrency(card.value)}
                 </div>
 
