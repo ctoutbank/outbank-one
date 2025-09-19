@@ -27,22 +27,37 @@ const chartConfig = {
   },
   lucro: {
     label: "Lucro",
-    color: "#1875e0",
+    color: "#10B981",
+  },
+  transacionado: {
+    label: "Transacionado",
+    color: "#9CA3AF",
   },
 };
 
 interface DailyData {
   date: string;
+  month: string;
   bruto: number;
   lucro: number;
+  transacionado: number;
 }
 
+const CustomDot = (props: any) => {
+  const { cx, cy, fill } = props;
+  return <circle cx={cx} cy={cy} r={2} fill={fill} stroke={fill} strokeWidth={1} />;
+};
+
+const formatYAxisLabel = (value: number) => {
+  return `R$${value}k`;
+};
+
 export function BarChartCustom({
-                                 transactionsData,
-                                 totalTransactions,
-                                 totalMerchants,
-                                 canceledTransactions,
-                               }: {
+  transactionsData,
+  totalTransactions,
+  totalMerchants,
+  canceledTransactions,
+}: {
   chartData?: GetTotalTransactionsByMonthResult[];
   transactionsData?: TotalTransactionsByDay[];
   viewMode?: string;
@@ -73,13 +88,20 @@ export function BarChartCustom({
     setIsLoading(true);
   };
 
-  // Processamento diário (mantido igual)
-  const dailyData: DailyData[] =
-      transactionsData?.map((transaction) => ({
-        date: format(transaction.date, "yyyy-MM-dd"),
-        bruto: Number(Number(transaction.total_amount).toFixed(2)),
-        lucro: Number(Number(transaction.lucro).toFixed(2)),
-      })) || [];
+  const lineChartData = [
+    { month: 'Jan', lucro: 4.2, transacionado: 8.5 },
+    { month: 'Fev', lucro: 4.8, transacionado: 9.2 },
+    { month: 'Mar', lucro: 4.5, transacionado: 9.8 },
+    { month: 'Abr', lucro: 3.8, transacionado: 8.9 },
+    { month: 'Mai', lucro: 5.2, transacionado: 10.5 },
+    { month: 'Jun', lucro: 4.1, transacionado: 9.1 },
+    { month: 'Jul', lucro: 5.8, transacionado: 11.2 },
+    { month: 'Ago', lucro: 4.9, transacionado: 10.1 },
+    { month: 'Set', lucro: 6.2, transacionado: 12.8 },
+    { month: 'Out', lucro: 5.5, transacionado: 11.9 },
+    { month: 'Nov', lucro: 6.8, transacionado: 13.2 },
+    { month: 'Dez', lucro: 5.9, transacionado: 12.1 }
+  ];
 
   const handleMouseMove = (data: any, event: any) => {
     if (data && data.activePayload && data.activePayload.length > 0) {
@@ -97,149 +119,126 @@ export function BarChartCustom({
   const CustomTooltip = () => {
     if (!hoveredData) return null;
     return (
-        <div
-            className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
-            style={{
-              left: mousePosition.x + 10,
-              top: mousePosition.y + 10,
-            }}
-        >
-          <div className="space-y-1">
-            <div className="font-medium text-gray-800 text-xs border-b pb-1">
-              {new Date(hoveredData.date).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "short",
-              })}
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Vendas:</span>
-              <span className="font-medium text-green-600">
-              {hoveredData.bruto?.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
+      <div
+        className="fixed bg-white rounded shadow-md border p-2 max-w-full overflow-hidden z-50 pointer-events-none text-xs"
+        style={{
+          left: mousePosition.x + 10,
+          top: mousePosition.y + 10,
+        }}
+      >
+        <div className="space-y-1">
+          <div className="font-medium text-gray-800 text-xs border-b pb-1">
+            {hoveredData.date}
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Transacionado:</span>
+            <span className="font-medium text-gray-600">
+              R${(hoveredData.transacionado * 1000).toLocaleString("pt-BR")}
             </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Lucro:</span>
-              <span className="font-medium text-blue-600">
-              {hoveredData.lucro?.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Lucro:</span>
+            <span className="font-medium text-green-600">
+              R${(hoveredData.lucro * 1000).toLocaleString("pt-BR")}
             </span>
-            </div>
           </div>
         </div>
+      </div>
     );
   };
 
   return (
-      <Card
-          ref={cardRef}
-          className="w-full border-0 bg-[#05336A] text-white overflow-hidden flex flex-col items-stretch space-y-0 border-b p-0 relative"
-      >
-        {/* Loading Overlay Simples */}
-        {isLoading && (
-            <div className="absolute inset-0 bg-[#05336A]/90 backdrop-blur-sm z-20 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin text-white" />
-                <span className="text-xs text-white/80">Carregando...</span>
-              </div>
-            </div>
-        )}
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-gray-600" />
+            <span className="text-xs text-gray-600">Carregando...</span>
+          </div>
+        </div>
+      )}
 
-        <CardHeader className="relative z-10 pb-1 px-3 py-2">
-          <div className="flex flex-col sm:flex-row lg:flex-row sm:items-start lg:tems-start sm:justify-between lg:justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm font-medium text-blue-100">
-                Total de Vendas
-              </CardTitle>
-              <div className="text-xl sm:text-2xl font-bold break-words mt-1">
-                {formatCurrency(totalTransactions?.sum || 0)}
-              </div>
-            </div>
-            <div className="flex-shrink-0 scale-75 origin-top-right">
-              <DashboardFilters onFilterApply={handleFilterApply} />
-            </div>
+      {/* Header com valor total e filtros */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">
+            R$ 24.172.838,40
           </div>
-        </CardHeader>
+          <div className="text-sm text-gray-500">
+            Total de Vendas
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <select className="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option>Todos os Períodos</option>
+          </select>
+          <select className="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option>Todas as Formas</option>
+          </select>
+        </div>
+      </div>
 
-        <CardContent className="relative z-10 pt-1 px-3 pb-3">
-          <div className="h-16 sm:h-20 mb-3 relative w-full">
-            <ChartContainer config={chartConfig} className="h-full w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                    data={dailyData}
-                    margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                >
-                  <CartesianGrid
-                      strokeDasharray="2 2"
-                      stroke="rgba(255,255,255,0.1)"
-                  />
-                  <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={false}
-                  />
-                  <YAxis hide />
-                  <Line
-                      type="monotone"
-                      dataKey="bruto"
-                      stroke={chartConfig.bruto.color}
-                      strokeWidth={1.5}
-                      dot={false}
-                      activeDot={{
-                        r: 3,
-                        fill: chartConfig.bruto.color,
-                        stroke: "#fff",
-                        strokeWidth: 1,
-                      }}
-                  />
-                  <Line
-                      type="monotone"
-                      dataKey="lucro"
-                      stroke={chartConfig.lucro.color}
-                      strokeWidth={1.5}
-                      dot={false}
-                      activeDot={{
-                        r: 3,
-                        fill: chartConfig.lucro.color,
-                        stroke: "#fff",
-                        strokeWidth: 1,
-                      }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-blue-200 text-xs">Lucro</p>
-              <p className="text-sm font-semibold break-words">
-                {formatCurrency(totalTransactions?.revenue || 0)}
-              </p>
-            </div>
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-blue-200 text-xs">Transações</p>
-              <p className="text-sm font-semibold">
-                {(totalTransactions?.count || 0).toLocaleString("pt-BR")}
-              </p>
-            </div>
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-blue-200 text-xs">Canceladas</p>
-              <p className="text-sm font-semibold">{canceledTransactions}</p>
-            </div>
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-blue-200 text-xs">EC Cadastrados</p>
-              <p className="text-sm font-semibold">{totalMerchants || 0}</p>
-            </div>
-          </div>
-        </CardContent>
-        {hoveredData && <CustomTooltip />}
-      </Card>
+      {/* Gráfico de linha */}
+      <div style={{ height: '320px', width: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={lineChartData}
+            margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
+          >
+            <XAxis 
+              dataKey="date"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#9CA3AF' }}
+              dy={10}
+            />
+            <YAxis 
+              domain={[0, 15]}
+              ticks={[0, 3, 6, 9, 12, 15]}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#9CA3AF' }}
+              tickFormatter={formatYAxisLabel}
+              dx={-10}
+            />
+            
+            {/* Linha tracejada cinza (Transacionado) */}
+            <Line
+              type="monotone"
+              dataKey="transacionado"
+              stroke="#9CA3AF"
+              strokeWidth={2}
+              strokeDasharray="5,5"
+              dot={<CustomDot />}
+              activeDot={{ r: 4, fill: '#9CA3AF', stroke: '#9CA3AF' }}
+            />
+            
+            {/* Linha sólida verde (Lucro) */}
+            <Line
+              type="monotone"
+              dataKey="lucro"
+              stroke="#10B981"
+              strokeWidth={2.5}
+              dot={<CustomDot />}
+              activeDot={{ r: 4, fill: '#10B981', stroke: '#10B981' }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Legenda customizada */}
+      <div className="flex justify-center gap-6 mt-4">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <span className="text-sm text-gray-600">Lucro</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+          <span className="text-sm text-gray-600">Transacionado</span>
+        </div>
+      </div>
+
+    </div>
   );
 }

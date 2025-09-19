@@ -19,7 +19,7 @@ import { MetricCard } from "./_components/metric-card";
 import { PaymentMethodPieChart } from "./_components/pie-chart";
 import { TerminalBarChart } from "./_components/terminal-bar-chart";
 import { CardsSkeleton, ChartSkeleton } from "./loading";
-import { CreditCard, TrendingUp, Users, DollarSign } from "lucide-react";
+import { CreditCard, Receipt, FileText } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -79,55 +79,56 @@ async function MetricsSection({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <MetricCard
-        title="Vendas Débito"
-        value={formatCurrency(24172838.40)}
-        subtitle="Transações débito"
-        growthPercentage={18.5}
-        icon={<DollarSign className="h-6 w-6 text-blue-600" />}
-        color="blue"
-      />
-      <MetricCard
-        title="Vendas Crédito"
-        value={formatCurrency(3672131.80)}
-        subtitle="Transações crédito"
-        growthPercentage={12.3}
-        icon={<CreditCard className="h-6 w-6 text-green-600" />}
-        color="green"
-      />
-      <MetricCard
-        title="Vendas Pré Pago"
-        value={formatCurrency(1911338.20)}
-        subtitle="Transações pré-pagas"
-        growthPercentage={5.2}
-        icon={<TrendingUp className="h-6 w-6 text-purple-600" />}
-        color="purple"
-      />
-      <MetricCard
-        title="Vendas Pix"
-        value={formatCurrency(4322038.10)}
-        subtitle="Transações PIX"
-        growthPercentage={2.1}
-        icon={<Users className="h-6 w-6 text-orange-600" />}
-        color="orange"
-      />
-      <MetricCard
-        title="Voucher"
-        value={formatCurrency(1125331.90)}
-        subtitle="Vouchers emitidos"
-        growthPercentage={18.5}
-        icon={<DollarSign className="h-6 w-6 text-blue-600" />}
-        color="blue"
-      />
-      <MetricCard
-        title="Outros"
-        value="278.987"
-        subtitle="Outras transações"
-        growthPercentage={0}
-        icon={<CreditCard className="h-6 w-6 text-gray-600" />}
-        color="gray"
-      />
+    <div className="space-y-6">
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <MetricCard
+          icon={CreditCard}
+          title="Vendas Débito"
+          value="R$ 24.172.838,40"
+          growth="18.5"
+          color="blue"
+        />
+        <MetricCard
+          icon={CreditCard}
+          title="Vendas Crédito"
+          value="R$ 3.672.131,80"
+          growth="12.3"
+          color="green"
+        />
+        <MetricCard
+          icon={CreditCard}
+          title="Vendas Pré Pago"
+          value="R$ 1.911.338,20"
+          growth="5.2"
+          color="purple"
+        />
+        <MetricCard
+          icon={Receipt}
+          title="Vendas Pix"
+          value="R$ 4.322.038,10"
+          growth="2.1"
+          color="orange"
+        />
+      </div>
+
+      {/* Secondary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <MetricCard
+          icon={Receipt}
+          title="Voucher"
+          value="R$ 1.125.331,90"
+          growth="18.5"
+          color="blue"
+        />
+        <MetricCard
+          icon={FileText}
+          title="Quantidade"
+          value="278.987"
+          growth="12.3"
+          color="green"
+        />
+      </div>
     </div>
   );
 }
@@ -179,38 +180,21 @@ export default async function SalesDashboard({
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
       <BaseBody title="Dashboard" subtitle="Visão Geral das Vendas">
-        <div className="space-y-8">
-          {/* Header Section with Total and Filters */}
-          <div className="flex justify-between items-center bg-white p-6 rounded-lg border">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Total de Vendas</p>
-              <p className="text-3xl font-bold text-gray-900">R$ 24.172.838,40</p>
-            </div>
-            <div className="flex gap-4">
-              <select className="px-4 py-2 border rounded-lg bg-white text-sm">
-                <option>Todos os Períodos</option>
-              </select>
-              <select className="px-4 py-2 border rounded-lg bg-white text-sm">
-                <option>Todas as Formas</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Main Chart */}
+        <div className="space-y-6">
+          {/* Line Chart Section */}
           <Suspense fallback={<ChartSkeleton />}>
             <ChartSection dateRange={dateRange} />
           </Suspense>
 
-          {/* Metrics Cards - 2x3 Grid */}
+          {/* Metrics Cards */}
           <Suspense fallback={<CardsSkeleton />}>
             <MetricsSection dateRange={dateRange} />
           </Suspense>
 
-          {/* Additional Charts */}
+          {/* Bottom Charts */}
           <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><ChartSkeleton /><ChartSkeleton /></div>}>
             <ChartsSection dateRange={dateRange} />
           </Suspense>
-
         </div>
       </BaseBody>
     </>
