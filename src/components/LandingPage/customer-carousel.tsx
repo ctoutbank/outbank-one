@@ -55,7 +55,7 @@ export default function CustomerCarousel() {
                         alt={`${logo.name} logo`}
                         width={160}
                         height={80}
-                        className="w-auto h-8 object-contain opacity-70 hover:opacity-100 transition-opacity grayscale brightness-200 contrast-75"
+                        className="w-auto h-12 object-contain opacity-80 hover:opacity-100 transition-opacity grayscale brightness-150 contrast-125 filter drop-shadow-sm"
                       />
                     </div>
                   </div>
