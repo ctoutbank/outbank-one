@@ -31,11 +31,7 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #000000; padding: 40px 30px; text-align: left;">
-              <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background-color: #ffffff; border-radius: 50%;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#000000"/>
-                </svg>
-              </div>
+              <img src="https://bancoprisma.outbank.cloud/box-logo.svg" alt="Outbank Cloud" style="height: 40px; width: auto; filter: brightness(0) invert(1);" />
             </td>
           </tr>
           
@@ -49,7 +45,7 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
               
               <!-- Intro text -->
               <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                Você recebeu uma nova mensagem através do formulário de contato do site OutBank.
+                Você recebeu uma nova mensagem através do formulário de contato do site Outbank Cloud.
               </p>
               
               <!-- Contact details -->
@@ -125,7 +121,7 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
               
               <!-- Footer note -->
               <p style="color: #999999; font-size: 14px; line-height: 1.5; margin: 40px 0 0 0;">
-                Esta mensagem foi enviada através do formulário de contato do site OutBank em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.
+                Esta mensagem foi enviada através do formulário de contato do site Outbank Cloud em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.
               </p>
             </td>
           </tr>
@@ -134,10 +130,10 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
           <tr>
             <td style="background-color: #000000; padding: 30px; text-align: center;">
               <p style="color: #ffffff; font-size: 14px; margin: 0 0 10px 0; font-weight: 500;">
-                OutBank - Soluções Financeiras
+                Outbank Cloud - Soluções Financeiras
               </p>
               <p style="color: #888888; font-size: 12px; margin: 0;">
-                © ${new Date().getFullYear()} OutBank. Todos os direitos reservados.
+                © ${new Date().getFullYear()} Outbank Cloud. Todos os direitos reservados.
               </p>
             </td>
           </tr>
