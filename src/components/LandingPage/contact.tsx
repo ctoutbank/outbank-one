@@ -8,8 +8,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowRight } from "lucide-react"
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { contactFormSchema, type ContactFormData } from "@/lib/contact-form-schema"
+import { useState } from "react"
+import { toast } from "sonner"
+import InputMask from "react-input-mask"
 
 export default function ContactForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+  });
+
+  const watchedIndustry = watch("industry");
+
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch("/api/contact-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(result.message || "Mensagem enviada com sucesso! Entraremos em contato em breve.");
+        reset();
+      } else {
+        toast.error(result.error || "Erro ao enviar mensagem. Tente novamente.");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar formulário:", error);
+      toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact-form" className="relative bg-black text-white py-16 px-4 md:px-8 overflow-hidden">
       {/* Grid Pattern Background */}
@@ -44,23 +93,46 @@ export default function ContactForm() {
 
           {/* Right Column - Form with updated layout */}
           <div className="bg-[#080808] p-8 rounded-lg">
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Two-column layout for shorter forms */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">{t('Nome Completo')}</Label>
-                  <Input id="fullName" placeholder={t('João Silva')} className="bg-[#1C1C1C] border-0" />
+                  <Input 
+                    id="fullName" 
+                    {...register("fullName")}
+                    placeholder={t('João Silva')} 
+                    className="bg-[#1C1C1C] border-0" 
+                    disabled={isSubmitting}
+                  />
+                  {errors.fullName && (
+                    <p className="text-red-400 text-sm">{errors.fullName.message}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">{t('E-mail Corporativo')}</Label>
-                  <Input id="email" type="email" placeholder={t('nome@empresa.com')} className="bg-[#1C1C1C] border-0" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    {...register("email")}
+                    placeholder={t('nome@empresa.com')} 
+                    className="bg-[#1C1C1C] border-0" 
+                    disabled={isSubmitting}
+                  />
+                  {errors.email && (
+                    <p className="text-red-400 text-sm">{errors.email.message}</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="industry">{t('Ramo de atuação')}</Label>
-                  <Select>
+                  <Select
+                    value={watchedIndustry}
+                    onValueChange={(value) => setValue("industry", value)}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger className="bg-[#1C1C1C] border-0">
                       <SelectValue placeholder={t('Selecione o ramo')} />
                     </SelectTrigger>
@@ -87,10 +159,22 @@ export default function ContactForm() {
                       <SelectItem value="outros">{t('Outros')}</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.industry && (
+                    <p className="text-red-400 text-sm">{errors.industry.message}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="company">{t('Nome da Empresa')}</Label>
-                  <Input id="company" placeholder={t('Nome da empresa')} className="bg-[#1C1C1C] border-0" />
+                  <Input 
+                    id="company" 
+                    {...register("company")}
+                    placeholder={t('Nome da empresa')} 
+                    className="bg-[#1C1C1C] border-0" 
+                    disabled={isSubmitting}
+                  />
+                  {errors.company && (
+                    <p className="text-red-400 text-sm">{errors.company.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -98,7 +182,7 @@ export default function ContactForm() {
               <div className="space-y-2">
                 <Label htmlFor="phone">{t('Número de telefone')}</Label>
                 <div className="flex gap-2">
-                  <Select defaultValue="55">
+                  <Select defaultValue="55" disabled={isSubmitting}>
                     <SelectTrigger className="w-[100px] bg-[#1C1C1C] border-0">
                       <SelectValue placeholder="🇧🇷 +55" />
                     </SelectTrigger>
@@ -106,23 +190,50 @@ export default function ContactForm() {
                       <SelectItem value="55">🇧🇷 +55</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input id="phone" type="tel" placeholder={t('Número de telefone')} className="bg-[#1C1C1C] border-0" />
+                  <InputMask
+                    mask="(99) 99999-9999"
+                    {...register("phone")}
+                    disabled={isSubmitting}
+                  >
+                    {(inputProps: any) => (
+                      <Input 
+                        {...inputProps}
+                        id="phone" 
+                        type="tel" 
+                        placeholder={t('Número de telefone')} 
+                        className="bg-[#1C1C1C] border-0" 
+                      />
+                    )}
+                  </InputMask>
                 </div>
+                {errors.phone && (
+                  <p className="text-red-400 text-sm">{errors.phone.message}</p>
+                )}
               </div>
 
               {/* Message area */}
               <div className="space-y-2">
-                <Label htmlFor="case">{t('Conte-nos um pouco sobre a sua operação')}</Label>
+                <Label htmlFor="message">{t('Conte-nos um pouco sobre a sua operação')}</Label>
                 <Textarea
-                  id="case"
+                  id="message"
+                  {...register("message")}
                   placeholder={t('Descreva suas necessidades...')}
                   className="bg-[#1C1C1C] border-0 min-h-[100px]"
+                  disabled={isSubmitting}
                 />
+                {errors.message && (
+                  <p className="text-red-400 text-sm">{errors.message.message}</p>
+                )}
               </div>
 
               {/* Updated button */}
-              <Button className="w-full bg-white text-black hover:bg-white/90 rounded-md py-6 text-lg font-medium">
-                {t('Agendar Consulta')} <ArrowRight className="ml-2 h-5 w-5" />
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-white text-black hover:bg-white/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-md py-6 text-lg font-medium"
+              >
+                {isSubmitting ? "Enviando..." : t('Agendar Consulta')} 
+                {!isSubmitting && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </form>
           </div>
