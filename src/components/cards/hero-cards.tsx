@@ -11,8 +11,8 @@ const HeroCards = () => {
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/hero-cards.svg"
-          alt="Hero background"
+          src="/header_cards_credit.jpg"
+          alt="Cards and Credit header background"
           fill
           className="object-cover md:object-contain md:translate-x-[5%] "
           priority
