@@ -10,33 +10,96 @@ import DualCardSection from "@/components/cards/dual-card-section";
 import ConsignedCardSection from "@/components/cards/consigned-card";
 import ContactForm from "@/components/LandingPage/contact";
 import CardBenefitsCarousel from "@/components/cards/card-benefits-carousel";
-import { t } from '../../utils/i18n';
 
 
 export default function CardsPage() {
 
   const cards = [
     {
-      title: t("Credit Card"),
-      subtitle: t("Transform your business with your own personalized credit card operation with its unique colors and characteristics."),
+      title: "Cartão de crédito",
+      subtitle: "Transforme seu negócio com uma operação própria de cartão de crédito, personalizada com suas cores e características.",
+      bullets: [
+        "Marca Própria ou White Label",
+        "Cartões Físicos e Virtuais", 
+        "Acesso às principais bandeiras do mercado"
+      ],
+      finalText: {
+        title: "Seu cliente, cada vez mais fiel e conectado ao seu negócio.",
+        description: "Conte com a experiência de quem emitiu mais de 100 milhões de cartões nos últimos 12 meses."
+      },
+      bottomIndicators: [
+        "Gerenciamento de cartões",
+        "Escopo regulatório e licenças",
+        "Tecnologia por meio de APIs escaláveis", 
+        "Segurança e Prevenção a Fraude",
+        "Suporte em tesouraria e conciliação"
+      ],
       cardImage: "/black-card.svg", 
       dotColor: "bg-gray-600",
     },
     {
-      title: t("Private Label Card"),
-      subtitle: t("Fidelize seus clientes com um cartão private label para uso exclusivo em sua rede de estabelecimentos."),
+      title: "Cartão Private Label",
+      subtitle: "Fidelize seus clientes com um cartão private label para uso exclusivo em sua rede de estabelecimentos.",
+      bullets: [
+        "White ou Private Label",
+        "Cartões físicos e virtuais",
+        "Acesso às principais bandeiras do mercado"
+      ],
+      finalText: {
+        title: "Conecte seus clientes à sua marca com benefícios únicos.",
+        description: "Ofereça cartões exclusivos que fortalecem sua marca e criam um vínculo direto com o consumidor."
+      },
+      bottomIndicators: [
+        "White Label ou Private Label",
+        "Cartões físicos e virtuais",
+        "Fortalece laços com seus clientes",
+        "Principais bandeiras do mercado",
+        "Ideal para varejo e grandes marcas"
+      ],
       cardImage: "/purple-card.svg", 
       dotColor: "bg-purple-600",
     },
     {
-      title: t("Cartão Global"),
-      subtitle: t("O Cartão Global garante praticidade e segurança em transações internacionais, oferecendo aos seus clientes uma experiência fluida e sem fronteiras."),
+      title: "Cartão Multibeneficios",
+      subtitle: "Centralize todos os benefícios dos seus clientes em um único cartão de crédito com a sua marca.",
+      bullets: [
+        "Marca Própria ou White Label",
+        "Cartões Físicos e Virtuais",
+        "Acesso às principais bandeiras do mercado"
+      ],
+      finalText: {
+        title: "Um cartão, múltiplas vantagens.",
+        description: "Simplifique a gestão de benefícios e aumente a adesão com soluções completas em um único cartão."
+      },
+      bottomIndicators: [
+        "Parceiros para desenvolver seu APP",
+        "Rendimento da agenda bandeira",
+        "Rendimento do saldo em conta",
+        "Licenças via Outbank Cloud",
+        "Parceiros para criar seu Portal RH"
+      ],
       cardImage: "/red-card.svg", 
       dotColor: "bg-red-600",
     },
     {
-      title: t("Pré-pago e Débito"),
-      subtitle: t("A solução ideal para controle de gastos e gestão financeira, com cartões pré-pagos (físicos e virtuais) para Pessoas Físicas ou Jurídicas."),
+      title: "Cartão Global",
+      subtitle: "O Cartão Global garante praticidade e segurança em transações internacionais, oferecendo aos seus clientes uma experiência fluida e sem fronteiras.",
+      bullets: [
+        "Marca Própria ou White Label",
+        "Cartões Físicos e Virtuais",
+        "Acesso às principais bandeiras do mercado"
+      ],
+      finalText: {
+        title: "Sua marca além das fronteiras.",
+        description: "Garanta presença internacional e fidelização com um cartão seguro, prático e aceito por todo o mundo."
+      },
+      bottomIndicators: [
+        "Compra de moeda estrangeira",
+        "Ampliação do portfólio e receita",
+        "Fidelização de clientes Globais",
+        "Benefícios exclusivos ao portador",
+        "Cartão internacional aceito no mundo todo"
+      ],
       cardImage: "/green-card.svg", 
       dotColor: "bg-green-600",
     },

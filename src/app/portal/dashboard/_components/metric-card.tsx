@@ -1,75 +1,42 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
 import React from "react";
 
 interface MetricCardProps {
   title: string;
   value: string;
-  subtitle: string;
-  growthPercentage?: number;
-  icon: React.ReactNode;
-  color?: string;
+  growth: string;
+  icon: any;
+  color?: 'blue' | 'green' | 'purple' | 'orange';
 }
 
 export function MetricCard({
   title,
   value,
-  subtitle,
-  growthPercentage,
-  icon,
+  growth,
+  icon: Icon,
   color = "blue"
 }: MetricCardProps) {
-  const formatGrowthPercentage = (percentage: number) => {
-    const isPositive = percentage >= 0;
-    const formattedPercentage = Math.abs(percentage).toFixed(1);
-    
-    return {
-      value: `${isPositive ? '+' : '-'}${formattedPercentage}%`,
-      isPositive,
-      color: isPositive ? 'text-green-600' : 'text-red-600',
-      bgColor: isPositive ? 'bg-green-50' : 'bg-red-50',
-      icon: isPositive ? TrendingUp : TrendingDown
-    };
+  const colorClasses = {
+    blue: 'text-blue-600 bg-blue-50',
+    green: 'text-green-600 bg-green-50',
+    purple: 'text-purple-600 bg-purple-50',
+    orange: 'text-orange-600 bg-orange-50'
   };
 
-  const growth = growthPercentage !== undefined ? formatGrowthPercentage(growthPercentage) : null;
-
   return (
-    <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex flex-col space-y-3">
-          {/* Header with icon */}
-          <div className="flex items-center justify-between">
-            <div className={`p-2 rounded-lg bg-${color}-50`}>
-              {icon}
-            </div>
-            {growth && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${growth.bgColor}`}>
-                <growth.icon className={`h-3 w-3 ${growth.color}`} />
-                <span className={`text-xs font-medium ${growth.color}`}>
-                  {growth.value}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Title */}
-          <div className="text-sm font-medium text-gray-600">
-            {title}
-          </div>
-
-          {/* Value */}
-          <div className="text-2xl font-bold text-gray-900">
-            {value}
-          </div>
-
-          {/* Subtitle */}
-          <div className="text-xs text-gray-500">
-            {subtitle}
-          </div>
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+      <div className="flex items-start justify-between">
+        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+          <Icon size={20} />
         </div>
-      </CardContent>
-    </Card>
+        <div className="text-sm text-green-600 font-medium">
+          +{growth}%
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="text-2xl font-bold text-gray-900">{value}</div>
+        <div className="text-sm text-gray-500 mt-1">{title}</div>
+      </div>
+    </div>
   );
 }
