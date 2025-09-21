@@ -24,33 +24,25 @@ export default function CustomerCarousel() {
             className="w-full max-w-5xl"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {/* Replace the placeholder.svg with your actual logo URLs */}
               {[
-                { name: "Cloudly", src: "cloudly.svg" },
-                { name: "Camera", src: "camera.svg" },
-                { name: "Startup", src: "startup.svg" },
-                { name: "Apply", src: "apply.svg" },
-                { name: "Software", src: "software.svg" },
-                { name: "Techlify", src: "techlify.svg" },
-                { name: "Blockly", src: "blockly.svg" },
-                { name: "Codelify", src: "codelify.svg" },
-                { name: "Restaurant", src: "restaurant.svg" },
-                { name: "Apply", src: "apply.svg" },
-                { name: "Natural", src: "natural.svg" },
-                { name: "Realtor", src: "realtor.svg" },
-
+                { name: "Dock", src: "partner-dock.png" },
+                { name: "Visa", src: "partner-visa.png" },
+                { name: "Mastercard", src: "partner-mastercard.png" },
+                { name: "American Express", src: "partner-amex.png" },
+                { name: "Hipercard", src: "partner-hipercard.png" },
+                { name: "Elo", src: "partner-elo.png" },
+                { name: "Pix", src: "partner-pix.png" },
+                { name: "Bandeira", src: "partner-bandeira.png" },
+                
                 // Duplicate items to ensure smooth infinite loop
-                { name: "Cloudly", src: "cloudly.svg" },
-                { name: "Camera", src: "camera.svg" },
-                { name: "Startup", src: "startup.svg" },
-                { name: "Apply", src: "apply.svg" },
-                { name: "Software", src: "software.svg" },
-                { name: "Techlify", src: "techlify.svg" },
-                { name: "Blockly", src: "blockly.svg" },
-                { name: "Codelify", src: "codelify.svg" },
-                { name: "Restaurant", src: "restaurant.svg" },
-                { name: "Apply", src: "apply.svg" },
-                { name: "Natural", src: "natural.svg" },
+                { name: "Dock", src: "partner-dock.png" },
+                { name: "Visa", src: "partner-visa.png" },
+                { name: "Mastercard", src: "partner-mastercard.png" },
+                { name: "American Express", src: "partner-amex.png" },
+                { name: "Hipercard", src: "partner-hipercard.png" },
+                { name: "Elo", src: "partner-elo.png" },
+                { name: "Pix", src: "partner-pix.png" },
+                { name: "Bandeira", src: "partner-bandeira.png" },
               ].map((logo, index) => (
                 <CarouselItem
                   key={index}
@@ -59,7 +51,7 @@ export default function CustomerCarousel() {
                   <div className="p-4">
                     <div className="flex items-center justify-center h-20">
                       <Image
-                        src={logo.src || "/placeholder.svg"}
+                        src={`/${logo.src}`}
                         alt={`${logo.name} logo`}
                         width={160}
                         height={80}
