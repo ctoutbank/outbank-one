@@ -23,6 +23,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/check-user",
   "/api/login-db",
   "/api/disable-first-login",
+  "/api/contact-form",
   "/password-create",
 ]);
 
