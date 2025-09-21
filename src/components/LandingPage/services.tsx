@@ -49,15 +49,15 @@ export default function ServicesSection() {
           >
             {[
               {
-                title: <>{t('Regulated Pix Participant').split(' ').slice(0, 2).join(' ')} <br/>{t('Regulated Pix Participant').split(' ').slice(2).join(' ')}</>,
+                title: <>{(t('Regulated Pix Participant') || '').split(' ').slice(0, 2).join(' ')} <br/>{(t('Regulated Pix Participant') || '').split(' ').slice(2).join(' ')}</>,
                 description: t("Peace of mind knowing your payments are in good hands, with full security and legal backing."),
               },
               {
-                title: <>{t('VISA, MasterCard, Elo Licenses').split(',')[0]},<br/> {t('VISA, MasterCard, Elo Licenses').split(',').slice(1).join(',').trim()}</>,
+                title: <>{(t('VISA, MasterCard, Elo Licenses') || '').split(',')[0]},<br/> {(t('VISA, MasterCard, Elo Licenses') || '').split(',').slice(1).join(',').trim()}</>,
                 description: t("Accept the leading card networks in the market and offer more options to your customers."),
               },
               {
-                title: <>{t('Adaptable Global Payment Platform').split(' ').slice(0, 2).join(' ')}<br/> {t('Adaptable Global Payment Platform').split(' ').slice(2).join(' ')}</>,
+                title: <>{(t('Adaptable Global Payment Platform') || '').split(' ').slice(0, 2).join(' ')}<br/> {(t('Adaptable Global Payment Platform') || '').split(' ').slice(2).join(' ')}</>,
                 description: t("Reach customers worldwide and tailor the experience to meet their needs in the market."),
               },
             ].map((service, index) => (
@@ -146,15 +146,15 @@ export default function ServicesSection() {
           >
             {[
               {
-                title: <>{t('Comprehensive Infrastructure').split(' ')[0]}<br/>{t('Comprehensive Infrastructure').split(' ')[1]}</>,
+                title: <>{(t('Comprehensive Infrastructure') || '').split(' ')[0]}<br/>{(t('Comprehensive Infrastructure') || '').split(' ')[1]}</>,
                 description: t("A complete solution for online payments, including gateway, fraud prevention, and risk management."),
               },
               {
-                title: <>{t('Recognized Certifications').split(' ')[0]}<br/> {t('Recognized Certifications').split(' ')[1]}</>,
+                title: <>{(t('Recognized Certifications') || '').split(' ')[0]}<br/> {(t('Recognized Certifications') || '').split(' ')[1]}</>,
                 description: t("Commitment to security, quality, and international compliance across all our operations."),
               },
               {
-                title: <>{t('Fraud Prevention Security').split(' ').slice(0, 2).join(' ')}<br/> {t('Fraud Prevention Security').split(' ')[2]}</>,
+                title: <>{(t('Fraud Prevention Security') || '').split(' ').slice(0, 2).join(' ')}<br/> {(t('Fraud Prevention Security') || '').split(' ')[2]}</>,
                 description: t("Data and transactions protected with the best tools on the market."),
               },
             ].map((service, index) => (

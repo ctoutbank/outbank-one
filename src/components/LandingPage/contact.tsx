@@ -12,11 +12,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { contactFormSchema, type ContactFormData } from "@/lib/contact-form-schema"
 import { useState } from "react"
-import { toast } from "sonner"
 import InputMask from "react-input-mask"
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   
   const {
     register,
@@ -46,14 +46,16 @@ export default function ContactForm() {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(result.message || "Mensagem enviada com sucesso! Entraremos em contato em breve.");
+        setIsSuccess(true);
         reset();
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       } else {
-        toast.error(result.error || "Erro ao enviar mensagem. Tente novamente.");
+        console.error("Form submission error:", result.error);
       }
     } catch (error) {
       console.error("Erro ao enviar formulário:", error);
-      toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -236,6 +238,15 @@ export default function ContactForm() {
                 {!isSubmitting && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </form>
+            
+            {/* Success Message */}
+            {isSuccess && (
+              <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <p className="text-green-400 text-center">
+                  ✅ Mensagem enviada com sucesso! Entraremos em contato em breve.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
