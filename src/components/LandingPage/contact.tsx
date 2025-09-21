@@ -232,7 +232,7 @@ export default function ContactForm() {
                 disabled={isSubmitting}
                 className="w-full bg-white text-black hover:bg-white/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-md py-6 text-lg font-medium"
               >
-                {isSubmitting ? "Enviando..." : t('Agendar Consulta')} 
+                {isSubmitting ? "Enviando..." : t('Enviar')} 
                 {!isSubmitting && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </form>
