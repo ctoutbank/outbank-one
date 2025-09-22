@@ -1,31 +1,28 @@
 'use client';
 
 import React from 'react';
-// import { Globe } from '@/components/magicui/globe';
+import { Globe } from '@/components/magicui/globe';
 
-// Temporarily commented out due to cobe library error
-// const locations = [
-//   {
-//     id: 1,
-//     name: 'BRASIL',
-//     lat: -14.235004,
-//     long: -51.92528,
-//   },
-//   {
-//     id: 2,
-//     name: 'PORTUGAL',
-//     lat: 39.399872,
-//     long: -8.224454,
-//   },
-//   {
-//     id: 3,
-//     name: 'USA',
-//     lat: 36.966428,
-//     long: -95.844032,
-//   },
-//   
-//  
-// ];
+const locations = [
+  {
+    id: 1,
+    name: 'BRASIL',
+    lat: -14.235004,
+    long: -51.92528,
+  },
+  {
+    id: 2,
+    name: 'PORTUGAL',
+    lat: 39.399872,
+    long: -8.224454,
+  },
+  {
+    id: 3,
+    name: 'USA',
+    lat: 36.966428,
+    long: -95.844032,
+  },
+];
 
 export const Presence = () => {
   return (
@@ -41,12 +38,8 @@ export const Presence = () => {
           </h2>
         </div>
 
-        {/* Globe Container - Temporarily disabled due to cobe library error */}
+        {/* Globe Container */}
         <div className="relative w-full aspect-square max-w-2xl mx-auto flex items-center justify-center">
-          <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-full flex items-center justify-center">
-            <p className="text-white/60 text-sm">Globe temporarily disabled</p>
-          </div>
-          {/* Globe component temporarily disabled due to cobe library error
           <Globe
             config={{
               width: 800,
@@ -58,8 +51,8 @@ export const Presence = () => {
               diffuse: 1.2,
               mapSamples: 16000,
               mapBrightness: 6,
-              baseColor: [0.2, 0.2, 0.2], // neutral gray dots
-              markerColor: [0.13, 0.77, 0.37], // green (#22c55e)
+              baseColor: [0.2, 0.2, 0.2],
+              markerColor: [0.13, 0.77, 0.37],
               glowColor: [0.1, 0.1, 0.1],
               markers: locations.map((point) => ({
                 location: [point.lat, point.long],
@@ -69,7 +62,6 @@ export const Presence = () => {
             }}
             className="opacity-100"
           />
-          */}
         </div>
       </div>
     </section>

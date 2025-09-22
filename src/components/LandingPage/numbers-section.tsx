@@ -1,6 +1,6 @@
 "use client"
 
-import { CreditCard, Landmark, Wallet } from "lucide-react"
+import { CreditCard, Globe, Landmark, Wallet } from "lucide-react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { t } from "../../utils/i18n"
@@ -187,7 +187,13 @@ export default function NumbersSection() {
                 <Landmark className="w-5 h-5" />
                 <p className="font-light text-sm">BANKING</p>
               </div>
-              <div className="text-xl md:text-2xl font-light">Provider</div>
+              <div className="text-xl md:text-2xl font-light">Provider – Dock</div>
+              <p className="text-sm text-gray-400 mt-2">
+                Para maiores informações acesse o banco central do Brasil e digite Dock em Instituição. 
+                <a href="https://www.bcb.gov.br/meubc/encontreinstituicao" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 ml-1 text-blue-400 hover:text-blue-300">
+                  <Globe className="w-4 h-4" />
+                </a>
+              </p>
             </div>
             <div className="text-xs text-muted-foreground tracking-wide">FORNECEDOR DE INFRAESTRUTURA PARA PAGAMENTOS E BANKING</div>
           </motion.div>

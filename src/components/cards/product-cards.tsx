@@ -20,15 +20,15 @@ const ProductCards = () => {
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-light text-white mb-4 sm:mb-6 leading-tight">
-              Licenciamento de Bandeiras
+              Bandeiras e Autorizações
             </h1>
 
             <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 max-w-lg mx-auto lg:mx-0">
-              Foque no seu negócio enquanto cuidamos de todas as questões regulatórias.
+              Foque no crescimento da sua operação enquanto cuidamos das licenças de cartões e bandeiras.
             </p>
 
             <p className="text-gray-300 text-sm sm:text-base mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0">
-              Conte com a flexibilidade de contratar nossa solução conforme a sua estratégia.
+              Contrate nossa solução de forma flexível, de acordo com a sua estratégia de negócios.
             </p>
 
             <button 
