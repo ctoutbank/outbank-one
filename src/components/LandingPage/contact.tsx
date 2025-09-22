@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, CheckCircle } from "lucide-react"
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,6 +17,8 @@ import InputMask from "react-input-mask"
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   
   const {
     register,
@@ -27,12 +29,22 @@ export default function ContactForm() {
     watch,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      company: "",
+      phone: "",
+      industry: "",
+      message: "",
+    },
   });
 
   const watchedIndustry = watch("industry");
+  const watchedPhone = watch("phone");
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
+    setShowSuccess(false);
     
     try {
       const response = await fetch("/api/contact-form", {
@@ -46,8 +58,22 @@ export default function ContactForm() {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(result.message || "Mensagem enviada com sucesso! Entraremos em contato em breve.");
-        reset();
+        setSuccessMessage(result.message || "Mensagem enviada com sucesso! Entraremos em contato em breve.");
+        setShowSuccess(true);
+        
+        reset({
+          fullName: "",
+          email: "",
+          company: "",
+          phone: "",
+          industry: "",
+          message: "",
+        });
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+        
       } else {
         toast.error(result.error || "Erro ao enviar mensagem. Tente novamente.");
       }
@@ -192,7 +218,8 @@ export default function ContactForm() {
                   </Select>
                   <InputMask
                     mask="(99) 99999-9999"
-                    {...register("phone")}
+                    value={watchedPhone || ""}
+                    onChange={(e) => setValue("phone", e.target.value)}
                     disabled={isSubmitting}
                   >
                     {(inputProps: any) => (
@@ -235,6 +262,20 @@ export default function ContactForm() {
                 {isSubmitting ? "Enviando..." : t('Enviar')} 
                 {!isSubmitting && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
+
+              {/* Success message */}
+              {showSuccess && (
+                <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="h-6 w-6 text-green-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-green-400 font-medium">Sucesso!</p>
+                      <p className="text-green-300 text-sm mt-1">{successMessage}</p>
+                      <p className="text-green-300/70 text-xs mt-2">A página será atualizada em alguns segundos...</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
