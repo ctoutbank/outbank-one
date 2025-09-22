@@ -24,7 +24,7 @@ export default function CardsPage() {
         "Acesso às principais bandeiras do mercado"
       ],
       finalText: {
-        title: "Seu cliente, cada vez mais fiel e conectado ao seu negócio.",
+        title: "Seu cliente, cada vez mais conectado ao seu negócio.",
         description: "Conte com a experiência de quem emitiu mais de 100 milhões de cartões nos últimos 12 meses."
       },
       bottomIndicators: [
@@ -32,7 +32,7 @@ export default function CardsPage() {
         "Escopo regulatório e licenças",
         "Tecnologia por meio de APIs escaláveis", 
         "Segurança e Prevenção a Fraude",
-        "Suporte em tesouraria e conciliação"
+        "Tesouraria e conciliação"
       ],
       cardImage: "/black-card.svg", 
       dotColor: "bg-gray-600",
@@ -97,8 +97,8 @@ export default function CardsPage() {
         "Compra de moeda estrangeira",
         "Ampliação do portfólio e receita",
         "Fidelização de clientes Globais",
-        "Benefícios exclusivos ao portador",
-        "Cartão internacional aceito no mundo todo"
+        "Benefícios exclusivos",
+        "Cartão internacional aceito globalmente"
       ],
       cardImage: "/green-card.svg", 
       dotColor: "bg-green-600",

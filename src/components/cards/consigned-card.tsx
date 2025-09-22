@@ -44,7 +44,7 @@ export default function ConsignedCardSection() {
           {/* Right Column - Final Text */}
           <div className="lg:col-span-4 h-full flex">
             <div className="bg-[#020202] px-6 sm:px-8 py-8 sm:py-12 w-full h-[200px] flex flex-col justify-center">
-              <h3 className="text-2xl font-light text-white mb-6">Proporcione crédito acessível com simplicidade e segurança.</h3>
+              <h3 className="text-2xl font-light text-white mb-6">Proporcione crédito acessível com segurança.</h3>
               <p className="text-gray-400 text-md leading-relaxed">
                 Amplie sua base com soluções consignadas com praticidade e conveniência.
               </p>

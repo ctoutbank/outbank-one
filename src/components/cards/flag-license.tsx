@@ -24,11 +24,11 @@ export default function FlagLicense() {
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
             {t('PRODUCTS')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-light mb-6">{t('Flag License')}</h2>
+          <h2 className="text-4xl md:text-5xl font-light mb-6">Bandeiras e Autorizações</h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto">
             {t("Don't worry about regulatory issues, Dock takes care of it for you!")}
             <br />
-            {t('Enjoy the Flexibility in hiring our solution according to your business strategy')}
+            Contrate nossa solução de forma flexível, de acordo com a sua estratégia de negócios.
           </p>
         </div>
 
@@ -126,7 +126,7 @@ export default function FlagLicense() {
                         <Image src="/american-express.svg" alt="American Express" width={40} height={20} className="object-contain" />
                       </div>
                     </div>
-                    <span className="text-sm text-gray-400">{t('*CHECK FLAG AVAILABILITY BY SOLUTION.')}</span>
+                    <span className="text-sm text-gray-400">Confira a disponibilidade da bandeira por solução.</span>
                   </div>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function FlagLicense() {
                   </div>
                 </div>
                 <span className="text-sm text-gray-400 block mt-4 text-center">
-                  {t('*CHECK FLAG AVAILABILITY BY SOLUTION.')}
+                  Confira a disponibilidade da bandeira por solução.
                 </span>
               </div>
             </div>
