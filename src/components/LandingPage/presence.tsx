@@ -40,8 +40,12 @@ export const Presence = () => {
           </h2>
         </div>
 
-        {/* Globe Container */}
+        {/* Globe Container - Temporarily disabled due to cobe library error */}
         <div className="relative w-full aspect-square max-w-2xl mx-auto flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-full flex items-center justify-center">
+            <p className="text-white/60 text-sm">Globe temporarily disabled</p>
+          </div>
+          {/* Globe component temporarily disabled due to cobe library error
           <Globe
             config={{
               width: 800,
@@ -64,6 +68,7 @@ export const Presence = () => {
             }}
             className="opacity-100"
           />
+          */}
         </div>
       </div>
     </section>
