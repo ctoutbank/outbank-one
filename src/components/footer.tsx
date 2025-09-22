@@ -7,7 +7,7 @@ import { t } from '../utils/i18n'
 
 export default function Footer() {
   return (
-    <footer className="bg-[#CFC8B8] text-black py-6 sm:py-8 px-3 sm:px-4 md:px-8 rounded-md">
+    <footer className="bg-[#c79d61] text-black py-6 sm:py-8 px-3 sm:px-4 md:px-8 rounded-md">
       <div className="container mx-auto px-3 sm:px-4">
         {/* Main Footer Content */}
         <div className="mb-4">
