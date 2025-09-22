@@ -1,30 +1,31 @@
 'use client';
 
 import React from 'react';
-import { Globe } from '@/components/magicui/globe';
+// import { Globe } from '@/components/magicui/globe';
 
-const locations = [
-  {
-    id: 1,
-    name: 'BRASIL',
-    lat: -14.235004,
-    long: -51.92528,
-  },
-  {
-    id: 2,
-    name: 'PORTUGAL',
-    lat: 39.399872,
-    long: -8.224454,
-  },
-  {
-    id: 3,
-    name: 'USA',
-    lat: 36.966428,
-    long: -95.844032,
-  },
-  
- 
-];
+// Temporarily commented out due to cobe library error
+// const locations = [
+//   {
+//     id: 1,
+//     name: 'BRASIL',
+//     lat: -14.235004,
+//     long: -51.92528,
+//   },
+//   {
+//     id: 2,
+//     name: 'PORTUGAL',
+//     lat: 39.399872,
+//     long: -8.224454,
+//   },
+//   {
+//     id: 3,
+//     name: 'USA',
+//     lat: 36.966428,
+//     long: -95.844032,
+//   },
+//   
+//  
+// ];
 
 export const Presence = () => {
   return (
