@@ -45,7 +45,7 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
               
               <!-- Intro text -->
               <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                Você recebeu uma nova mensagem através do formulário de contato do site "Outbank Cloud".
+                Você recebeu uma nova mensagem através do formulário de contato do site Outbank Cloud.
               </p>
               
               <!-- Contact details -->
@@ -112,16 +112,10 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
                 </div>
               </div>
               
-              <!-- CTA Button -->
-              <div style="text-align: left; margin: 40px 0;">
-                <a href="mailto:${email}" style="display: inline-block; background-color: #000000; color: #ffffff; padding: 16px 32px; border-radius: 25px; text-decoration: none; font-weight: 500; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
-                  Responder por Email
-                </a>
-              </div>
               
               <!-- Footer note -->
               <p style="color: #999999; font-size: 14px; line-height: 1.5; margin: 40px 0 0 0;">
-                Esta mensagem foi enviada através do formulário de contato do site "Outbank Cloud" em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.
+                Esta mensagem foi enviada através do formulário de contato do site Outbank Cloud em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.
               </p>
             </td>
           </tr>

@@ -36,7 +36,7 @@ export default function WhyChooseSection() {
           <div
             key={index}
             className={`w-full transition-all duration-300 ease-in-out ${
-              hoveredItem === index ? "bg-[#CFC8B8]" : "bg-black"
+              hoveredItem === index ? "bg-[#c79d61]" : "bg-black"
             }`}
             onMouseEnter={() => setHoveredItem(index)}
             onMouseLeave={() => setHoveredItem(null)}
