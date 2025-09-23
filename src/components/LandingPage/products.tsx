@@ -126,7 +126,7 @@ export default function ProductsSection() {
                   description: t("Offer personalized cards with your brand from major networks, while we take care of the entire operation."),
                 },
                 {
-                  title: t("Acquiring"),
+                  title: t("Adquirência"),
                   description: t("Have your own white-label acquiring solution using our technology to ensure simplicity and speed in your go-to-market."),
                 },
                 {
@@ -136,7 +136,7 @@ export default function ProductsSection() {
               ].map((product, index) => {
                 const getProductLink = (title: string) => {
                   if (title.includes('Cards & Credit')) return '/cards';
-                  if (title.includes('Acquiring')) return '/acquiring';
+                  if (title.includes('Adquirência')) return '/acquiring';
                   if (title.includes('Fraud Prevention')) {
                     return () => {
                       const contactForm = document.getElementById('contact-form');
