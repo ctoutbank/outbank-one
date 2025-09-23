@@ -35,7 +35,7 @@ export default async function SignInPage({}: {
 
         {/* Full-size background image */}
         <Image
-          src="/bancoprisma_login.svg" // fallback se não tiver imagem principal
+          src="/bg_login.jpg"
           alt="Ilustração de autenticação"
           fill
           className="object-cover z-0"
