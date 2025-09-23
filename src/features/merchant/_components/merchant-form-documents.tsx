@@ -59,7 +59,7 @@ export default function MerchantFormDocuments({
                 <DocumentSection title="Documentos de Identificação">
                   <FileUpload
                     title="CNH DIGITAL"
-                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
+                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Adquirência e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                     entityType="merchant"
                     entityId={Number(merchantId)}
                     onUploadComplete={handleUploadComplete}
@@ -70,7 +70,7 @@ export default function MerchantFormDocuments({
 
                   <FileUpload
                     title="CNH FRENTE"
-                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
+                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Adquirência e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                     entityType="merchant"
                     entityId={Number(merchantId)}
                     onUploadComplete={handleUploadComplete}
@@ -81,7 +81,7 @@ export default function MerchantFormDocuments({
 
                   <FileUpload
                     title="CNH VERSO"
-                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Acquiring e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
+                    description="Documento de Identificação - O documento de identificação é obrigatório para o KYC de Adquirência e PIX. É obrigatória a inserção do documento de identificação de todos os sócios da empresa."
                     entityType="merchant"
                     entityId={Number(merchantId)}
                     onUploadComplete={handleUploadComplete}
