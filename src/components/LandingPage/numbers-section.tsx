@@ -47,7 +47,7 @@ export default function NumbersSection() {
           variants={cardVariants}
         >
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6 mx-auto md:mx-0">
-            NÚMEROS
+            NÚMEROS CUSTODIANTE
           </div>
           <p className="text-xl md:text-2xl lg:text-5xl font-light max-w-5xl leading-tight mx-auto md:mx-0">
             {t('Rely on over 20 years of experience from the true one-stop shop in financial services')}
@@ -189,7 +189,7 @@ export default function NumbersSection() {
               </div>
               <div className="text-xl md:text-2xl font-light">Provider – Dock</div>
               <p className="text-sm text-gray-400 mt-2">
-                Para maiores informações acesse o banco central do Brasil e digite Dock em Instituição. 
+                Acesse o BACEN e digite Dock em Instituição. 
                 <a href="https://www.bcb.gov.br/meubc/encontreinstituicao" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 ml-1 text-blue-400 hover:text-blue-300">
                   <Globe className="w-4 h-4" />
                 </a>

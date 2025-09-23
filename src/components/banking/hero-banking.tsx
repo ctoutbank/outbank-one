@@ -16,7 +16,7 @@ const HeroBanking = () => {
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/hero-banking.svg"
+          src="/header_banking.jpg"
           alt="Hero background"
           fill
           className="object-cover md:object-contain md:translate-x-[5%] "
