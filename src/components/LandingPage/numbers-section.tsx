@@ -47,7 +47,7 @@ export default function NumbersSection() {
           variants={cardVariants}
         >
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6 mx-auto md:mx-0">
-            NÚMEROS
+            NÚMEROS DO CUSTODIANTE
           </div>
           <p className="text-xl md:text-2xl lg:text-5xl font-light max-w-5xl leading-tight mx-auto md:mx-0">
             {t('Rely on over 20 years of experience from the true one-stop shop in financial services')}
@@ -161,7 +161,7 @@ export default function NumbersSection() {
                 <p className="font-light text-sm">ACQUIRING</p>
               </div>
               <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+30 REDES CERTIFICADAS</div>
-              <div className="flex flex-wrap items-center gap-3 md:gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
                 <motion.div whileHover={{ scale: 1.1 }}>
                   <Image src="/visa.svg" alt="Visa" width={36} quality={100} height={36} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
                 </motion.div>
@@ -187,7 +187,7 @@ export default function NumbersSection() {
                 <Landmark className="w-5 h-5" />
                 <p className="font-light text-sm">BANKING</p>
               </div>
-              <div className="text-xl md:text-2xl font-light">Provider – Dock</div>
+              <div className="text-xl md:text-2xl font-light">Consulte o Banco Central e digite Dock em Instituição.</div>
               <p className="text-sm text-gray-400 mt-2">
                 Para maiores informações acesse o banco central do Brasil e digite Dock em Instituição. 
                 <a href="https://www.bcb.gov.br/meubc/encontreinstituicao" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 ml-1 text-blue-400 hover:text-blue-300">

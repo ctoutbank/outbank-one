@@ -53,9 +53,9 @@ export default function CustomerCarousel() {
                       <Image
                         src={`/${logo.src}`}
                         alt={`${logo.name} logo`}
-                        width={160}
-                        height={80}
-                        className="w-auto h-12 object-contain opacity-80 hover:opacity-100 transition-opacity grayscale brightness-150 contrast-125 filter drop-shadow-sm"
+                        width={logo.name === "Visa" ? 320 : 160}
+                        height={logo.name === "Visa" ? 160 : 80}
+                        className={`w-auto object-contain opacity-80 hover:opacity-100 transition-opacity grayscale brightness-150 contrast-125 filter drop-shadow-sm ${logo.name === "Visa" ? "h-24" : "h-12"}`}
                       />
                     </div>
                   </div>

@@ -12,7 +12,7 @@ const HeroLandingPage = () => {
           src="/img-hero.webp"
           alt="Hero background"
           fill
-          className="object-cover md:object-contain md:translate-x-[5%] "
+          className="object-cover md:object-contain md:translate-x-[5%] transform scale-x-[-1]"
           style={{ pointerEvents: 'none' }}
           priority
           quality={85}
