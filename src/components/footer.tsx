@@ -22,8 +22,8 @@ export default function Footer() {
                 className="mb-4 sm:mb-6 brightness-0 mx-auto md:mx-0" 
               />
               <div className="space-y-1.5 sm:space-y-2 text-sm">
-                <p>42.244.879/0001-67</p>
-                <p>operacao@outbank.com.br</p>
+                <p>Trend Office salas 1212 e 1201</p>
+                <p>Av Ipiranga 40, Praia de Belas - Porto Alegre/RS</p>
                 {/* <p>+0 (123) 456-789</p> */}
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function Footer() {
             </div>
 
             {/* Copyright */}
-            <p className="text-sm text-black/70">© 2025 Outbank.</p>
+            <p className="text-sm text-black/70">© 2025 Outbank. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>
