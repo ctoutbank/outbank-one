@@ -79,7 +79,7 @@ export async function exportToExcel({
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
+  const blob = new Blob([Buffer.from(buffer)], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 

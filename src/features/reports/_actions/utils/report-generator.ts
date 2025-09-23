@@ -29,7 +29,7 @@ export async function generateSalesReport(
     filters.terminal
   );
 
-  let excelBytes: Uint8Array<ArrayBufferLike> | null = null;
+  let excelBytes: Uint8Array | null = null;
 
   if (report.formatCode === "PDF") {
     excelBytes = await reportsExecutionSalesGeneratePDF(

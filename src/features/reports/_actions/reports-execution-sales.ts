@@ -525,5 +525,5 @@ export async function reportsExecutionSalesGenerateXLSX(
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  return new Uint8Array(buffer);
+  return new Uint8Array(buffer as ArrayBuffer);
 }

@@ -135,7 +135,7 @@ export default function ExcelExport<T>({
       const buffer = await workbook.xlsx.writeBuffer();
       console.log("Buffer generated successfully");
 
-      const blob = new Blob([buffer], {
+      const blob = new Blob([Buffer.from(buffer)], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 

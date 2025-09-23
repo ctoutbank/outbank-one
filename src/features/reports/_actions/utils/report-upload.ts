@@ -5,11 +5,11 @@ import {
 } from "@/server/upload";
 
 export async function uploadReportFile(
-  excelBytes: Uint8Array<ArrayBufferLike>,
+  excelBytes: Uint8Array,
   fileName: string,
   fileType: string
 ): Promise<UploadFileResponse> {
-  const fileObject = new File([excelBytes], fileName, {
+  const fileObject = new File([Buffer.from(excelBytes)], fileName, {
     type: fileType,
   });
 

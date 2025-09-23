@@ -54,7 +54,7 @@ export async function reportExecutionsProcessing() {
 
       await updateReportExecutionStatus(execution.id, "PROCESSING", new Date());
 
-      let excelBytes: Uint8Array<ArrayBufferLike> | null = null;
+      let excelBytes: Uint8Array | null = null;
       const dateStart = DateTime.fromISO(execution.reportFilterStartDate!, {
         zone: "America/Sao_Paulo",
       })
