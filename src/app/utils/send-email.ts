@@ -5,7 +5,8 @@ import {headers} from "next/headers";
 
 
 export async function sendWelcomePasswordEmail(to: string, password: string) {
-    const host = headers().get("host") || "";
+    const headersList = await headers();
+    const host = headersList.get("host") || "";
     const subdomain = host.split(".")[0];
     const themeData = await getThemeByTenant(subdomain)
     if (!themeData) {

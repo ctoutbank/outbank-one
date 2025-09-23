@@ -12,10 +12,11 @@ export const revalidate = 300;
 export default async function PaymentLinkDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = await params;
   // Validar se o ID é um número válido (permitindo 0 para criação)
-  const id = parseInt(params.id);
+  const id = parseInt(resolvedParams.id);
   if (isNaN(id) || id < 0) {
     return <PaymentLinkNotFoundToast />;
   }

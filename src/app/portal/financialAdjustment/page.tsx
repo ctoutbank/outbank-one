@@ -32,23 +32,24 @@ type FinancialAdjustmentsProps = {
 export default async function FinancialAdjustmentsPage({
   searchParams,
 }: {
-  searchParams: FinancialAdjustmentsProps;
+  searchParams: Promise<FinancialAdjustmentsProps>;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const adjustments = await getFinancialAdjustments(
-    searchParams.search || "",
+    resolvedSearchParams.search || "",
     page,
     pageSize,
-    searchParams.type,
-    searchParams.reason,
-    searchParams.active,
+    resolvedSearchParams.type,
+    resolvedSearchParams.reason,
+    resolvedSearchParams.active,
     { sortBy, sortOrder }
   );
   console.log(adjustments);
@@ -92,11 +93,11 @@ export default async function FinancialAdjustmentsPage({
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
               <FinancialAdjustmentsClientWrapper
-                searchIn={searchParams.search}
-                typeIn={searchParams.type}
-                reasonIn={searchParams.reason}
-                activeIn={searchParams.active}
-                creationDateIn={searchParams.creationDate}
+                searchIn={resolvedSearchParams.search}
+                typeIn={resolvedSearchParams.type}
+                reasonIn={resolvedSearchParams.reason}
+                activeIn={resolvedSearchParams.active}
+                creationDateIn={resolvedSearchParams.creationDate}
               />
             </div>
             <Button asChild className="ml-2">

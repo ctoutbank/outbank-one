@@ -45,13 +45,14 @@ type MerchantProps = {
 export default async function MerchantsPage({
   searchParams,
 }: {
-  searchParams: MerchantProps;
+  searchParams: Promise<MerchantProps>;
 }) {
   await checkPagePermission("Estabelecimentos");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "20");
-  const search = searchParams.search || "";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "20");
+  const search = resolvedSearchParams.search || "";
 
   const userAccess = await getUserMerchantsAccess();
 
@@ -61,16 +62,16 @@ export default async function MerchantsPage({
     page,
     pageSize,
     userAccess,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.state,
-    searchParams.dateFrom,
-    searchParams.email,
-    searchParams.cnpj,
-    searchParams.active,
-    searchParams.salesAgent,
-    searchParams.sortBy,
-    searchParams.sortOrder
+    resolvedSearchParams.establishment,
+    resolvedSearchParams.status,
+    resolvedSearchParams.state,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.email,
+    resolvedSearchParams.cnpj,
+    resolvedSearchParams.active,
+    resolvedSearchParams.salesAgent,
+    resolvedSearchParams.sortBy,
+    resolvedSearchParams.sortOrder
   );
 
   // Buscar dados para exportação Excel
@@ -79,14 +80,14 @@ export default async function MerchantsPage({
     1,
     50,
     userAccess,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.state,
-    searchParams.dateFrom,
-    searchParams.email,
-    searchParams.cnpj,
-    searchParams.active,
-    searchParams.salesAgent
+    resolvedSearchParams.establishment,
+    resolvedSearchParams.status,
+    resolvedSearchParams.state,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.email,
+    resolvedSearchParams.cnpj,
+    resolvedSearchParams.active,
+    resolvedSearchParams.salesAgent
   );
 
   const totalRecords = merchants.totalCount;
@@ -94,40 +95,40 @@ export default async function MerchantsPage({
   const regionData = await getMerchantsGroupedByRegion(
     userAccess,
     search,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.state,
-    searchParams.dateFrom,
-    searchParams.email,
-    searchParams.cnpj,
-    searchParams.active,
-    searchParams.salesAgent
+    resolvedSearchParams.establishment,
+    resolvedSearchParams.status,
+    resolvedSearchParams.state,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.email,
+    resolvedSearchParams.cnpj,
+    resolvedSearchParams.active,
+    resolvedSearchParams.salesAgent
   );
 
   const shiftData = await getTransactionsGroupedByShift(
     userAccess,
     search,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.state,
-    searchParams.dateFrom,
-    searchParams.email,
-    searchParams.cnpj,
-    searchParams.active,
-    searchParams.salesAgent
+    resolvedSearchParams.establishment,
+    resolvedSearchParams.status,
+    resolvedSearchParams.state,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.email,
+    resolvedSearchParams.cnpj,
+    resolvedSearchParams.active,
+    resolvedSearchParams.salesAgent
   );
 
   const statusData = await getTransactionStatusData(
     userAccess,
     search,
-    searchParams.establishment,
-    searchParams.status,
-    searchParams.state,
-    searchParams.dateFrom,
-    searchParams.email,
-    searchParams.cnpj,
-    searchParams.active,
-    searchParams.salesAgent
+    resolvedSearchParams.establishment,
+    resolvedSearchParams.status,
+    resolvedSearchParams.state,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.email,
+    resolvedSearchParams.cnpj,
+    resolvedSearchParams.active,
+    resolvedSearchParams.salesAgent
   );
 
   // Transformar dados dos merchants para o formato de sugestões do autocomplete
@@ -188,14 +189,14 @@ export default async function MerchantsPage({
           <div className="flex items-center gap-2 justify-between mb-1">
             <div className="flex items-center gap-2">
               <MerchantFilter
-                establishmentIn={searchParams.establishment}
-                statusIn={searchParams.status}
-                stateIn={searchParams.state}
-                dateFromIn={searchParams.dateFrom}
-                emailIn={searchParams.email}
-                cnpjIn={searchParams.cnpj}
-                activeIn={searchParams.active}
-                salesAgentIn={searchParams.salesAgent}
+                establishmentIn={resolvedSearchParams.establishment}
+                statusIn={resolvedSearchParams.status}
+                stateIn={resolvedSearchParams.state}
+                dateFromIn={resolvedSearchParams.dateFrom}
+                emailIn={resolvedSearchParams.email}
+                cnpjIn={resolvedSearchParams.cnpj}
+                activeIn={resolvedSearchParams.active}
+                salesAgentIn={resolvedSearchParams.salesAgent}
               />
               <MerchantSearchInput suggestions={merchantSuggestions} />
             </div>

@@ -24,19 +24,20 @@ type PaymentLinkProps = {
 export default async function PaymentLinkPage({
   searchParams,
 }: {
-  searchParams: PaymentLinkProps;
+  searchParams: Promise<PaymentLinkProps>;
 }) {
   const permissions = await checkPagePermission("Link de Pagamentos");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const merchant = searchParams.merchant || "";
-  const identifier = searchParams.identifier || "";
-  const status = searchParams.status || "";
-  const sortBy = searchParams.sortBy || "dtinsert";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const merchant = resolvedSearchParams.merchant || "";
+  const identifier = resolvedSearchParams.identifier || "";
+  const status = resolvedSearchParams.status || "";
+  const sortBy = resolvedSearchParams.sortBy || "dtinsert";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const paymentLinks = await getPaymentLinks(

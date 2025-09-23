@@ -12,14 +12,15 @@ export const revalidate = 300;
 export default async function UserDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = await params;
   const permissions = await checkPagePermission(
     "Configurar Perfis e Usuários",
     "Gerenciador"
   );
 
-  const userId = params.id;
+  const userId = resolvedParams.id;
   const user = await getUserById(userId);
   const DDProfiles = await getDDProfiles();
 

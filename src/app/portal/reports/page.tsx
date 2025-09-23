@@ -29,26 +29,27 @@ type ReportsProps = {
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: ReportsProps;
+  searchParams: Promise<ReportsProps>;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const reports = await getReports(
-    searchParams.search || "",
+    resolvedSearchParams.search || "",
     page,
     pageSize,
-    searchParams.type,
-    searchParams.format,
-    searchParams.recurrence,
-    searchParams.period,
-    searchParams.email,
-    searchParams.creationDate,
+    resolvedSearchParams.type,
+    resolvedSearchParams.format,
+    resolvedSearchParams.recurrence,
+    resolvedSearchParams.period,
+    resolvedSearchParams.email,
+    resolvedSearchParams.creationDate,
     { sortBy, sortOrder }
   );
   const totalRecords = reports.totalCount;
@@ -70,13 +71,13 @@ export default async function ReportsPage({
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
               <ReportsFilter
-                searchIn={searchParams.search}
-                typeIn={searchParams.type}
-                formatIn={searchParams.format}
-                recurrenceIn={searchParams.recurrence}
-                periodIn={searchParams.period}
-                emailIn={searchParams.email}
-                creationDateIn={searchParams.creationDate}
+                searchIn={resolvedSearchParams.search}
+                typeIn={resolvedSearchParams.type}
+                formatIn={resolvedSearchParams.format}
+                recurrenceIn={resolvedSearchParams.recurrence}
+                periodIn={resolvedSearchParams.period}
+                emailIn={resolvedSearchParams.email}
+                creationDateIn={resolvedSearchParams.creationDate}
               />
             </div>
             <Button asChild className="ml-2">

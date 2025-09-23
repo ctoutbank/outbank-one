@@ -36,7 +36,7 @@ const getGroupFromUrl = (url: string): string => {
 };
 
 export async function Theme(): Promise<ThemeData | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const tenant = cookieStore.get("tenant")?.value;
   const themeData = tenant ? await getThemeByTenant(tenant) : null;
   return themeData;

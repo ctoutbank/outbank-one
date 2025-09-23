@@ -3,15 +3,16 @@ import { getConfigurationById } from "@/features/configuration/server/configurat
 import { notFound } from "next/navigation";
 
 interface EditConfigurationPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditConfigurationPage({
   params,
 }: EditConfigurationPageProps) {
-  const configuration = await getConfigurationById(Number(params.id));
+  const resolvedParams = await params;
+  const configuration = await getConfigurationById(Number(resolvedParams.id));
 
   if (!configuration) {
     notFound();

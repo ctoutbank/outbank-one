@@ -29,23 +29,24 @@ type SalesAgentProps = {
 export default async function SalesAgentsPage({
   searchParams,
 }: {
-  searchParams: SalesAgentProps;
+  searchParams: Promise<SalesAgentProps>;
 }) {
   await checkPagePermission("Configurar Consultor Comercial");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const sortBy = searchParams.sortBy;
-  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const sortBy = resolvedSearchParams.sortBy;
+  const sortOrder = resolvedSearchParams.sortOrder as "asc" | "desc" | undefined;
 
   const salesAgents = await getSalesAgentsWithDashboardData(
-    searchParams.name || "",
+    resolvedSearchParams.name || "",
     page,
     pageSize,
-    searchParams.status,
-    searchParams.dateFrom,
-    searchParams.dateTo,
-    searchParams.email,
+    resolvedSearchParams.status,
+    resolvedSearchParams.dateFrom,
+    resolvedSearchParams.dateTo,
+    resolvedSearchParams.email,
     {
       sortBy,
       sortOrder,
@@ -67,11 +68,11 @@ export default async function SalesAgentsPage({
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
               <SalesAgentsFilter
-                dateFromIn={searchParams.dateFrom}
-                dateToIn={searchParams.dateTo}
-                nameIn={searchParams.name}
-                statusIn={searchParams.status}
-                emailIn={searchParams.email}
+                dateFromIn={resolvedSearchParams.dateFrom}
+                dateToIn={resolvedSearchParams.dateTo}
+                nameIn={resolvedSearchParams.name}
+                statusIn={resolvedSearchParams.status}
+                emailIn={resolvedSearchParams.email}
               />
             </div>
             <Button asChild className="ml-2">

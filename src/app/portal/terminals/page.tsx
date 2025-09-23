@@ -30,22 +30,23 @@ type TerminalsProps = {
 export default async function TerminalsPage({
   searchParams,
 }: {
-  searchParams: TerminalsProps;
+  searchParams: Promise<TerminalsProps>;
 }) {
   await checkPagePermission("Terminais");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const dateTo = searchParams.dateTo;
-  const numeroLogico = searchParams.numeroLogico;
-  const numeroSerial = searchParams.numeroSerial;
-  const estabelecimento = searchParams.estabelecimento;
-  const modelo = searchParams.modelo;
-  const status = searchParams.status;
-  const provedor = searchParams.provedor;
-  const sortBy = searchParams.sortBy;
-  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const dateTo = resolvedSearchParams.dateTo;
+  const numeroLogico = resolvedSearchParams.numeroLogico;
+  const numeroSerial = resolvedSearchParams.numeroSerial;
+  const estabelecimento = resolvedSearchParams.estabelecimento;
+  const modelo = resolvedSearchParams.modelo;
+  const status = resolvedSearchParams.status;
+  const provedor = resolvedSearchParams.provedor;
+  const sortBy = resolvedSearchParams.sortBy;
+  const sortOrder = resolvedSearchParams.sortOrder as "asc" | "desc" | undefined;
 
   // Buscar dados de terminais com os filtros e ordenação
   const terminalsList = await getTerminals(

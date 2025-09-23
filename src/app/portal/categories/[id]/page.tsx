@@ -8,9 +8,10 @@ export const revalidate = 300;
 export default async function CategoryDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const category = await getCategoryById(parseInt(params.id));
+  const resolvedParams = await params;
+  const category = await getCategoryById(parseInt(resolvedParams.id));
 
   return (
     <>

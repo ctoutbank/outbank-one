@@ -29,20 +29,21 @@ type LegalNatureProps = {
 export default async function LegalNaturesPage({
   searchParams,
 }: {
-  searchParams: LegalNatureProps;
+  searchParams: Promise<LegalNatureProps>;
 }) {
   await checkPagePermission("Natureza Juridica");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const name = searchParams.name || "";
-  const code = searchParams.code || "";
-  const active = searchParams.active || "";
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const name = resolvedSearchParams.name || "";
+  const code = resolvedSearchParams.code || "";
+  const active = resolvedSearchParams.active || "";
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const legalNatures = await getLegalNatures(
@@ -73,9 +74,9 @@ export default async function LegalNaturesPage({
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
               <LegalNatureFilter
-                nameIn={searchParams.name}
-                codeIn={searchParams.code}
-                activeIn={searchParams.active}
+                nameIn={resolvedSearchParams.name}
+                codeIn={resolvedSearchParams.code}
+                activeIn={resolvedSearchParams.active}
               />
             </div>
             <Button asChild className="ml-2">

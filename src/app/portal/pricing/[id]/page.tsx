@@ -12,12 +12,13 @@ export const revalidate = 300;
 export default async function FeeDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  console.log("Renderizando página com ID:", params.id);
+  const resolvedParams = await params;
+  console.log("Renderizando página com ID:", resolvedParams.id);
 
   // Buscar dados da taxa pelo ID usando as actions
-  const feeById = await getFeeByIdAction(params.id);
+  const feeById = await getFeeByIdAction(resolvedParams.id);
   // Buscar categorias MCC/CNAE
   const categories = await getCategories();
   console.log("Dados da taxa:", feeById ? "Encontrados" : "Não encontrados");

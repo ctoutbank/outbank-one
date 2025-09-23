@@ -39,30 +39,31 @@ export const revalidate = 300;
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: ClosingSearchParams & {
+  searchParams: Promise<ClosingSearchParams & {
     viewMode: string;
     dateFrom: string;
     dateTo: string;
-  };
+  }>;
 }) {
-  const viewMode = searchParams.viewMode || "month";
+  const resolvedSearchParams = await searchParams;
+  const viewMode = resolvedSearchParams.viewMode || "month";
 
   const { period, previousPeriod } = gateDateByViewMode(viewMode);
   let previousRange: { from: string; to: string } = { from: "", to: "" };
-  if (searchParams.dateFrom || searchParams.dateTo) {
+  if (resolvedSearchParams.dateFrom || resolvedSearchParams.dateTo) {
     previousRange = getPreviousPeriodFromRange(
-      searchParams.dateFrom,
-      searchParams.dateTo
+      resolvedSearchParams.dateFrom,
+      resolvedSearchParams.dateTo
     );
   }
 
   const dateRange = await normalizeDateRange(
-    searchParams.dateFrom ? searchParams.dateFrom : period.from,
-    searchParams.dateTo ? searchParams.dateTo : period.to
+    resolvedSearchParams.dateFrom ? resolvedSearchParams.dateFrom : period.from,
+    resolvedSearchParams.dateTo ? resolvedSearchParams.dateTo : period.to
   );
   const dateRangePrevious = await normalizeDateRange(
-    searchParams.dateFrom ? previousRange.from : previousPeriod.from!,
-    searchParams.dateTo ? previousRange.to : previousPeriod.to!
+    resolvedSearchParams.dateFrom ? previousRange.from : previousPeriod.from!,
+    resolvedSearchParams.dateTo ? previousRange.to : previousPeriod.to!
   );
 
   const totalTransactions = await getTotalTransactions(
@@ -86,15 +87,15 @@ export default async function SalesDashboard({
   const transactionsGroupedReport = await getTransactionsGroupedReport(
     dateRange.start!,
     dateRange.end!,
-    searchParams.status,
-    searchParams.productType,
-    searchParams.brand,
-    searchParams.method,
-    searchParams.salesChannel,
-    searchParams.terminal,
-    searchParams.valueMin,
-    searchParams.valueMax,
-    searchParams.merchant
+    resolvedSearchParams.status,
+    resolvedSearchParams.productType,
+    resolvedSearchParams.brand,
+    resolvedSearchParams.method,
+    resolvedSearchParams.salesChannel,
+    resolvedSearchParams.terminal,
+    resolvedSearchParams.valueMin,
+    resolvedSearchParams.valueMax,
+    resolvedSearchParams.merchant
   );
 
   // 🔍 Função corrigida para exibir exportação apenas se o mês acabou ou hoje é o último dia do mês atual
@@ -119,7 +120,7 @@ export default async function SalesDashboard({
     return false;
   }
 
-  const showExport = canShowExport(searchParams.dateTo);
+  const showExport = canShowExport(resolvedSearchParams.dateTo);
 
   return (
     <>

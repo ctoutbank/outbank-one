@@ -28,25 +28,26 @@ type AntecipationsProps = {
 export default async function AntecipationsPage({
   searchParams,
 }: {
-  searchParams: AntecipationsProps;
+  searchParams: Promise<AntecipationsProps>;
 }) {
   // Verificar permissões primeiro
   await checkPagePermission("Antecipações de Recebíveis");
 
-  const search = searchParams.search || "";
-  const page = searchParams.page || "1";
-  const pageSize = searchParams.pageSize || "10";
-  const merchantSlug = searchParams.merchantSlug || "";
-  const type = searchParams.type || "";
-  const status = searchParams.status || "";
-  const startDate = searchParams.startDate || "";
-  const endDate = searchParams.endDate || "";
+  const resolvedSearchParams = await searchParams;
+  const search = resolvedSearchParams.search || "";
+  const page = resolvedSearchParams.page || "1";
+  const pageSize = resolvedSearchParams.pageSize || "10";
+  const merchantSlug = resolvedSearchParams.merchantSlug || "";
+  const type = resolvedSearchParams.type || "";
+  const status = resolvedSearchParams.status || "";
+  const startDate = resolvedSearchParams.startDate || "";
+  const endDate = resolvedSearchParams.endDate || "";
   const expectedSettlementStartDate =
-    searchParams.expectedSettlementStartDate || "";
+    resolvedSearchParams.expectedSettlementStartDate || "";
   const expectedSettlementEndDate =
-    searchParams.expectedSettlementEndDate || "";
-  const sortBy = searchParams.sortBy;
-  const sortOrder = searchParams.sortOrder as "asc" | "desc" | undefined;
+    resolvedSearchParams.expectedSettlementEndDate || "";
+  const sortBy = resolvedSearchParams.sortBy;
+  const sortOrder = resolvedSearchParams.sortOrder as "asc" | "desc" | undefined;
 
   const merchantDD = await getMerchantDD();
 

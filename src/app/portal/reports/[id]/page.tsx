@@ -37,11 +37,13 @@ export default async function ReportDetail({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { activeTab?: string; filterId?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ activeTab?: string; filterId?: string }>;
 }) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const permissions = await checkPagePermission("Relatórios", "Atualizar");
-  const activeTab = searchParams.activeTab || "step1";
+  const activeTab = resolvedSearchParams.activeTab || "step1";
 
   // Tenta buscar o relatório apenas se o ID não for "new" ou "0"
   let report = null;
@@ -55,8 +57,8 @@ export default async function ReportDetail({
 
   const reportFilterParams = await fetchReportFilterParams();
 
-  if (params.id !== "new" && params.id !== "0") {
-    const reportId = parseInt(params.id);
+  if (resolvedParams.id !== "new" && resolvedParams.id !== "0") {
+    const reportId = parseInt(resolvedParams.id);
     report = await getReportById(reportId);
 
     // Buscar os filtros do relatório
@@ -66,8 +68,8 @@ export default async function ReportDetail({
     preloadedFilterData.brands = await getAllBrands();
 
     // Se temos um ID de filtro específico, pré-carregar os dados do merchant ou terminal
-    if (searchParams.filterId) {
-      const filterId = parseInt(searchParams.filterId);
+    if (resolvedSearchParams.filterId) {
+      const filterId = parseInt(resolvedSearchParams.filterId);
       const filterToEdit = reportFilters.find(
         (filter) => filter.id === filterId
       );
@@ -262,7 +264,7 @@ export default async function ReportDetail({
           existingFilters={formattedFilters}
           preloadedFilterData={preloadedFilterData}
           editFilterId={
-            searchParams.filterId ? parseInt(searchParams.filterId) : undefined
+            resolvedSearchParams.filterId ? parseInt(resolvedSearchParams.filterId) : undefined
           }
         />
       </BaseBody>

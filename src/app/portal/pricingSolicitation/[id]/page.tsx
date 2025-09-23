@@ -17,10 +17,11 @@ export const revalidate = 300;
 export default async function PricingSolicitationDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = await params;
   const pricingSolicitationById = await getPricingSolicitationById(
-    parseInt(params.id)
+    parseInt(resolvedParams.id)
   );
   // Determine if we should show the form or read-only view
   // Aqui, estamos determinando se a solicitação deve ser exibida em modo somente leitura (read-only) ou editável.

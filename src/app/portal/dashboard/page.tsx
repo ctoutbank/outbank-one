@@ -132,12 +132,13 @@ async function ChartsSection({
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: { dateFrom?: string; dateTo?: string };
+  searchParams: Promise<{ dateFrom?: string; dateTo?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const defaultDateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00';
   const defaultDateTo = format(new Date(), "yyyy-MM-dd'T'HH:mm");
-  const dateFrom = searchParams.dateFrom || defaultDateFrom;
-  const dateTo = searchParams.dateTo || defaultDateTo;
+  const dateFrom = resolvedSearchParams.dateFrom || defaultDateFrom;
+  const dateTo = resolvedSearchParams.dateTo || defaultDateTo;
   const dateRange = await normalizeDateRange(dateFrom, dateTo);
 
   return (

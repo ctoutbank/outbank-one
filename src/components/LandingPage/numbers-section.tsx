@@ -158,7 +158,7 @@ export default function NumbersSection() {
             <div>
               <div className="mb-4 md:mb-6 flex flex-row gap-2">
                 <Wallet className="w-5 h-5" /> 
-                <p className="font-light text-sm">ACQUIRING</p>
+                <p className="font-light text-sm">ADQUIRÊNCIA</p>
               </div>
               <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+30 REDES CERTIFICADAS</div>
               <div className="flex flex-wrap items-center gap-3 md:gap-4">

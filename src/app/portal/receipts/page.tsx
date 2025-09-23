@@ -18,16 +18,17 @@ type ReceiptsProps = {
 export default async function ReceiptsPage({
   searchParams,
 }: {
-  searchParams: ReceiptsProps;
+  searchParams: Promise<ReceiptsProps>;
 }) {
-  const currentDate = searchParams.date
-    ? new Date(searchParams.date)
+  const resolvedSearchParams = await searchParams;
+  const currentDate = resolvedSearchParams.date
+    ? new Date(resolvedSearchParams.date)
     : new Date();
 
   await checkPagePermission("Agenda de Antecipações");
-  console.log(searchParams.search);
+  console.log(resolvedSearchParams.search);
   const merchantAgendaReceipts = await getMerchantAgendaReceipts(
-    searchParams.search || null,
+    resolvedSearchParams.search || null,
     currentDate
   );
 
@@ -45,8 +46,8 @@ export default async function ReceiptsPage({
     .filter((item) => item.amount > 0); // Remove dias sem valores
 
   const dailyData = await getGlobalSettlement(
-    searchParams.search || null,
-    searchParams.date || ""
+    resolvedSearchParams.search || null,
+    resolvedSearchParams.date || ""
   );
 
   return (

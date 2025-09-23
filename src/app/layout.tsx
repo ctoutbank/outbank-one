@@ -17,7 +17,8 @@ export default async function RootLayout({
   // contains three or more parts (e.g. `tenant.example.com`), treat the first
   // segment as the tenant slug.  Otherwise, leave `subdomain` undefined so
   // that the application will use the default theme.
-  const host = headers().get("host") || "";
+  const headersList = await headers();
+  const host = headersList.get("host") || "";
   const parts = host.split(".");
   const subdomain = parts.length >= 3 ? parts[0] : undefined;
 

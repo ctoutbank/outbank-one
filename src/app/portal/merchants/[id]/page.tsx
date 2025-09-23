@@ -27,14 +27,15 @@ import { getFilesByEntity } from "@/server/upload";
 export default async function MerchantDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = await params;
   const permissions = await checkPagePermission(
     "Estabelecimentos",
     "Atualizar"
   );
 
-  const merchantId = parseInt(params.id);
+  const merchantId = parseInt(resolvedParams.id);
   const userAccess = await getUserMerchantsAccess();
 
   const cnaeMccList = await getCnaeMccForDropdown();

@@ -5,10 +5,10 @@ import { getConfigurations } from "@/features/configuration/server/configuration
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 interface ConfigurationsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function ConfigurationsPage({
@@ -16,8 +16,9 @@ export default async function ConfigurationsPage({
 }: ConfigurationsPageProps) {
   const permissions = await checkPagePermission("Configurações");
 
-  const search = searchParams.search || "";
-  const page = Number(searchParams.page) || 1;
+  const resolvedSearchParams = await searchParams;
+  const search = resolvedSearchParams.search || "";
+  const page = Number(resolvedSearchParams.page) || 1;
   const pageSize = 10;
 
   const { configurations, totalCount } = await getConfigurations(
