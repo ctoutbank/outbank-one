@@ -20,7 +20,7 @@ const benefits = [
   },
   {
     icon: RefreshCw,
-    title: t("Acquiring management with BackOffice"),
+    title: t("Adquirência management with BackOffice"),
     description: t("Maximize results with MDR and anticipation rules, strengthening credibility and transparency of your brand."),
   },
   {
@@ -62,7 +62,7 @@ export default function BenefitsSection() {
             {t('Benefits of maximizing the efficiency of your payments')}
           </h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto md:mx-0">
-            {t('Customize your acquiring operation without sacrificing performance and fluidity throughout the entire cycle.')}
+            {t('Customize your adquirência operation without sacrificing performance and fluidity throughout the entire cycle.')}
           </p>
         </div>
 

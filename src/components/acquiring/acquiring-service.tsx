@@ -81,7 +81,7 @@ export default function AcquiringService() {
               <span className="text-sm text-gray-400/80">{t('PROVIDER')}</span>
             </div>
 
-            {/* Acquiring Box */}
+            {/* Adquirência Box */}
             <div className="bg-gradient-to-r from-[#2c2c2c] to-[#080808] p-8 rounded-lg">
               <p className="text-gray-300 text-lg mb-6">{t('Acquiring processing and transactions settlement')}</p>
               <div className="flex items-center gap-4">

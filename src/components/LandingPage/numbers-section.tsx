@@ -159,7 +159,7 @@ export default function NumbersSection() {
               <div className="text-xl md:text-2xl font-light mb-4 md:mb-6">+30 REDES CERTIFICADAS</div>
               <div className="flex flex-wrap items-center gap-3 md:gap-4">
                 <motion.div whileHover={{ scale: 1.1 }}>
-                  <Image src="/visa.svg" alt="Visa" width={36} quality={100} height={36} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
+                  <Image src="/visa.svg" alt="Visa" width={40} quality={100} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.1 }}>
                   <Image src="/mastercard.svg" alt="Mastercard" width={40} quality={100} height={40} className="h-7 w-7 md:h-8 md:w-8 border bg-white border-gray-600/40 rounded-md" />

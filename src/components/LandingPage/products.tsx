@@ -127,11 +127,11 @@ export default function ProductsSection() {
                 },
                 {
                   title: t("Adquirência"),
-                  description: t("Have your own white-label acquiring solution using our technology to ensure simplicity and speed in your go-to-market."),
+                  description: t("Have your own white-label adquirência solution using our technology to ensure simplicity and speed in your go-to-market."),
                 },
                 {
                   title: t("Fraud Prevention"),
-                  description: t("Reduce end-to-end risk in your banking, cards, or acquiring business model through solutions that cover everything."),
+                  description: t("Reduce end-to-end risk in your banking, cards, or adquirência business model through solutions that cover everything."),
                 },
               ].map((product, index) => {
                 const getProductLink = (title: string) => {

@@ -62,7 +62,7 @@ export default function CaptureModelsSection() {
                 className="opacity-75 brightness-0 sm:w-5 sm:h-5"
                 quality={100}
               />
-              <span className="font-medium">{t('In-Person Acquiring')}</span>
+              <span className="font-medium">{t('In-Person Adquirência')}</span>
             </button>
           </div>
         </div>
