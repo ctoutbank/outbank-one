@@ -17,7 +17,7 @@ export default function SuccessStories() {
   }
 
   return (
-    <section className="w-full bg-[#c79d61] py-8 md:py-16">
+    <section className="w-full bg-[#cfc8b8] py-8 md:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 md:mb-12 gap-6">
           <motion.h2 

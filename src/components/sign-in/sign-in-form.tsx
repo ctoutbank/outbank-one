@@ -139,7 +139,7 @@ export function SignInForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="seu@email.com"
           required
-          className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#c79d61]/50 pl-10"
+          className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#cfc8b8]/50 pl-10"
         />
       </div>
 
@@ -162,7 +162,7 @@ export function SignInForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Digite sua senha"
             required
-            className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#c79d61]/50 pl-10"
+            className="bg-[#1C1C1C] border-0 text-white focus:ring-1 focus:ring-[#cfc8b8]/50 pl-10"
           />
           <button
             type="button"
@@ -193,7 +193,7 @@ export function SignInForm() {
         </div>
         <Link
           href="/forgot-password"
-          className="text-sm text-gray-300/80 hover:text-[#c79d61]/80"
+          className="text-sm text-gray-300/80 hover:text-[#cfc8b8]/80"
         >
           Esqueceu a senha?
         </Link>

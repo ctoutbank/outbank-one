@@ -78,7 +78,7 @@ export default function ProductsSection() {
           <motion.div 
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
-            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#c79d61] md:hover:text-black"
+            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#cfc8b8] md:hover:text-black"
           >
             <h2 className="text-xl md:text-2xl font-semibold mb-4">{t("Dock One Platform")}</h2>
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
@@ -99,7 +99,7 @@ export default function ProductsSection() {
           <motion.div 
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
-            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#c79d61] md:hover:text-black"
+            className="bg-[#080808] text-white p-6 md:p-8 transition-all duration-300 group md:hover:bg-[#cfc8b8] md:hover:text-black"
           >
             <h2 className="text-xl md:text-2xl font-semibold mb-4">{t("Banking")}</h2>
             <p className="text-muted-foreground md:group-hover:text-black mb-8 text-sm md:text-base">
@@ -160,7 +160,7 @@ export default function ProductsSection() {
                     key={index}
                     variants={fadeInUp}
                     whileHover={{ scale: 1.02 }}
-                    className="bg-[#080808] text-white p-6 md:p-8 flex flex-col h-full transition-all duration-300 group md:hover:bg-[#c79d61] md:hover:text-black"
+                    className="bg-[#080808] text-white p-6 md:p-8 flex flex-col h-full transition-all duration-300 group md:hover:bg-[#cfc8b8] md:hover:text-black"
                   >
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">{product.title}</h2>
                     <p className="text-muted-foreground md:group-hover:text-black mb-8 flex-grow text-sm md:text-base">
