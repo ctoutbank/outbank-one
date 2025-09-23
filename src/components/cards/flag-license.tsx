@@ -24,7 +24,7 @@ export default function FlagLicense() {
           <div className="bg-gray-600/20 text-gray-300 px-4 py-2 border border-gray-600/40 text-sm rounded-2xl inline-block mb-6">
             {t('PRODUCTS')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-light mb-6">Licenciamento de Cartões</h2>
+          <h2 className="text-4xl md:text-5xl font-light mb-6">Bandeiras e Autorizações</h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto">
             {t("Don't worry about regulatory issues, Dock takes care of it for you!")}
             <br />
