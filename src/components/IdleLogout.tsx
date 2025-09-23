@@ -6,7 +6,7 @@ export default function IdleLogout() {
   const { signOut } = useClerk();
 
   useIdleTimer({
-    timeout: 5 * 60 * 1000,
+    timeout: 2 * 60 * 1000,
     onIdle: () => {
       signOut({ redirectUrl: "/auth/sign-in" });
     },
