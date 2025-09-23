@@ -46,7 +46,7 @@ export default function CardsPage() {
         "Acesso às principais bandeiras do mercado"
       ],
       finalText: {
-        title: "Conecte seus clientes à sua marca com benefícios únicos.",
+        title: "Conecte seus clientes à sua marca com benefícios.",
         description: "Ofereça cartões exclusivos que fortalecem sua marca e criam um vínculo direto com o consumidor."
       },
       bottomIndicators: [

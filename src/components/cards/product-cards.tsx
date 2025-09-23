@@ -20,7 +20,7 @@ const ProductCards = () => {
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-light text-white mb-4 sm:mb-6 leading-tight">
-              Bandeiras e Autorizações
+              Licenciamento de Cartões
             </h1>
 
             <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 max-w-lg mx-auto lg:mx-0">
