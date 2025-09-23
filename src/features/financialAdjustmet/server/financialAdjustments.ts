@@ -277,7 +277,7 @@ export async function insertFinancialAdjustment(
   adjustment: FinancialAdjustmentInsert
 ): Promise<number> {
   // Obter o customer ID usando a consulta especificada
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const tenant = cookieStore.get("tenant")?.value;
   const customer = await db
     .select({

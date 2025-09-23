@@ -71,24 +71,25 @@ async function ProfilesTabContent({
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: UsersPageProps;
+  searchParams: Promise<UsersPageProps>;
 }) {
   const permissions = await checkPagePermission("Configurar Perfis e Usuários");
 
-  const page = Number.parseInt(searchParams.page || "1");
-  const pageSize = Number.parseInt(searchParams.pageSize || "10");
-  const email = searchParams.email || "";
-  const firstName = searchParams.firstName || "";
-  const lastName = searchParams.lastName || "";
-  const activeTab = searchParams.tab || "users";
-  const profileId = searchParams.profile || "0";
-  const customerId = searchParams.customer || "0";
-  const merchantId = searchParams.merchant || "0";
-  const profileName = searchParams.profileName || "";
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = Number.parseInt(resolvedSearchParams.page || "1");
+  const pageSize = Number.parseInt(resolvedSearchParams.pageSize || "10");
+  const email = resolvedSearchParams.email || "";
+  const firstName = resolvedSearchParams.firstName || "";
+  const lastName = resolvedSearchParams.lastName || "";
+  const activeTab = resolvedSearchParams.tab || "users";
+  const profileId = resolvedSearchParams.profile || "0";
+  const customerId = resolvedSearchParams.customer || "0";
+  const merchantId = resolvedSearchParams.merchant || "0";
+  const profileName = resolvedSearchParams.profileName || "";
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   console.log(permissions);

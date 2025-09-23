@@ -24,18 +24,19 @@ type PricingSolicitationProps = {
 export default async function PricingSolicitationPage({
   searchParams,
 }: {
-  searchParams: PricingSolicitationProps;
+  searchParams: Promise<PricingSolicitationProps>;
 }) {
   const permissions = await checkPagePermission("Solicitação de Taxas");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const cnae = searchParams.cnae || "";
-  const status = searchParams.status || "";
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const cnae = resolvedSearchParams.cnae || "";
+  const status = resolvedSearchParams.status || "";
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const pricingSolicitations = await getPricingSolicitations(

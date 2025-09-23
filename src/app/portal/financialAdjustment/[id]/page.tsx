@@ -13,15 +13,16 @@ import { notFound } from "next/navigation";
 export const revalidate = 300;
 
 interface FinancialAdjustmentDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function FinancialAdjustmentDetailPage({
   params,
 }: FinancialAdjustmentDetailPageProps) {
-  const id = parseInt(params.id);
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id);
   const isNew = id === 0;
 
   let adjustment: FinancialAdjustmentSchema = {

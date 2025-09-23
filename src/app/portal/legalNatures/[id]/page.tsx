@@ -9,9 +9,10 @@ export const revalidate = 300;
 export default async function LegalNaturesDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const legalNature = await getLegalNatureById(parseInt(params.id));
+  const resolvedParams = await params;
+  const legalNature = await getLegalNatureById(parseInt(resolvedParams.id));
 
   return (
     <>

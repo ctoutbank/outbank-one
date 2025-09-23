@@ -10,11 +10,12 @@ export const revalidate = 300;
 export default async function TerminalDetail({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   await checkPagePermission("Terminais");
 
-  const terminal = await getTerminalById(params.slug);
+  const resolvedParams = await params;
+  const terminal = await getTerminalById(resolvedParams.slug);
 
   if (!terminal) {
     return <TerminalNotFoundToast />;

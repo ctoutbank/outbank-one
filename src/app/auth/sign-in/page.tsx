@@ -5,9 +5,9 @@ import Link from "next/link";
 import { SignInForm } from "../../../components/sign-in/sign-in-form";
 
 export default async function SignInPage({}: {
-  searchParams: { company?: string };
+  searchParams: Promise<{ company?: string }>;
 }) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const tenant = cookieStore.get("tenant")?.value;
 
   const nameTenant = tenant ? await getNameByTenant(tenant) : null;

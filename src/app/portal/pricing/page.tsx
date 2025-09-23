@@ -7,10 +7,11 @@ import { getFeesAction } from "@/features/newTax/server/fee-db";
 export default async function NewTaxPage({
   searchParams,
 }: {
-  searchParams: { page?: string; pageSize?: string };
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
 
   const {
     fees,

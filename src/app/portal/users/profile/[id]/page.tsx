@@ -12,9 +12,10 @@ export const revalidate = 300;
 export default async function PaymentLinkDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const profileId = parseInt(params.id);
+  const resolvedParams = await params;
+  const profileId = parseInt(resolvedParams.id);
   const profile = await getProfileById(profileId);
   const modules: ModuleSelect[] = await getModules(profileId || undefined);
 

@@ -24,17 +24,18 @@ type HistoryProps = {
 export default async function SettlementsPage({
   searchParams,
 }: {
-  searchParams: HistoryProps;
+  searchParams: Promise<HistoryProps>;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const status = searchParams.status;
-  const dateFrom = searchParams.dateFrom;
-  const dateTo = searchParams.dateTo;
-  const sortBy = searchParams.sortBy || "payment_date";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const status = resolvedSearchParams.status;
+  const dateFrom = resolvedSearchParams.dateFrom;
+  const dateTo = resolvedSearchParams.dateTo;
+  const sortBy = resolvedSearchParams.sortBy || "payment_date";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   // Buscar liquidações e totais de status

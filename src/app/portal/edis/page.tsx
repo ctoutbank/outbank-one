@@ -21,20 +21,21 @@ type EdisProps = {
 export default async function EdisPage({
   searchParams,
 }: {
-  searchParams: EdisProps;
+  searchParams: Promise<EdisProps>;
 }) {
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
 
   // Buscar dados EDIS usando a função de servidor
   const edis = await getEdis(
     search,
     page,
     pageSize,
-    searchParams.type,
-    searchParams.status,
-    searchParams.date
+    resolvedSearchParams.type,
+    resolvedSearchParams.status,
+    resolvedSearchParams.date
   );
 
   const totalRecords = edis.totalCount;
@@ -61,9 +62,9 @@ export default async function EdisPage({
         <div className="flex flex-col space-y-4">
           <div className="mb-1 flex justify-start">
             <EdisFilter
-              typeIn={searchParams.type}
-              statusIn={searchParams.status}
-              dateIn={searchParams.date}
+              typeIn={resolvedSearchParams.type}
+              statusIn={resolvedSearchParams.status}
+              dateIn={resolvedSearchParams.date}
             />
           </div>
 

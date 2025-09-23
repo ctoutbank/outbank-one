@@ -13,7 +13,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { contactFormSchema, type ContactFormData } from "@/lib/contact-form-schema"
 import { useState } from "react"
 import { toast } from "sonner"
-import InputMask from "react-input-mask"
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -216,22 +215,27 @@ export default function ContactForm() {
                       <SelectItem value="55">🇧🇷 +55</SelectItem>
                     </SelectContent>
                   </Select>
-                  <InputMask
-                    mask="(99) 99999-9999"
+                  <Input 
+                    id="phone" 
+                    type="tel" 
                     value={watchedPhone || ""}
-                    onChange={(e) => setValue("phone", e.target.value)}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 11) {
+                        if (value.length <= 2) {
+                          value = value;
+                        } else if (value.length <= 7) {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                        } else {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+                        }
+                        setValue("phone", value);
+                      }
+                    }}
+                    placeholder={t('Número de telefone')} 
+                    className="bg-[#1C1C1C] border-0"
                     disabled={isSubmitting}
-                  >
-                    {(inputProps: any) => (
-                      <Input 
-                        {...inputProps}
-                        id="phone" 
-                        type="tel" 
-                        placeholder={t('Número de telefone')} 
-                        className="bg-[#1C1C1C] border-0" 
-                      />
-                    )}
-                  </InputMask>
+                  />
                 </div>
                 {errors.phone && (
                   <p className="text-red-400 text-sm">{errors.phone.message}</p>

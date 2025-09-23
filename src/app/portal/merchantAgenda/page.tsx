@@ -22,19 +22,20 @@ import {
 export default async function MerchantAgendaPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
   await checkPagePermission("Agenda Lojista");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const transactionDateFrom = searchParams.transactionDateFrom || "";
-  const transactionDateTo = searchParams.transactionDateTo || "";
-  const establishmentIn = searchParams.establishment || undefined;
-  const nsuIn = searchParams.nsu || undefined;
-  const statusIn = searchParams.status || undefined;
-  const orderIdIn = searchParams.orderId || undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const transactionDateFrom = resolvedSearchParams.transactionDateFrom || "";
+  const transactionDateTo = resolvedSearchParams.transactionDateTo || "";
+  const establishmentIn = resolvedSearchParams.establishment || undefined;
+  const nsuIn = resolvedSearchParams.nsu || undefined;
+  const statusIn = resolvedSearchParams.status || undefined;
+  const orderIdIn = resolvedSearchParams.orderId || undefined;
 
   // Fetch data in parallel for better performance
   const [merchantAgenda, merchantAgendaAnticipation, merchantAgendaAdjustment] =
@@ -42,15 +43,15 @@ export default async function MerchantAgendaPage({
       getMerchantAgenda(
         page,
         pageSize,
-        searchParams.transactionDateFrom,
-        searchParams.transactionDateTo,
-        searchParams.establishment,
-        searchParams.status,
-        searchParams.cardBrand,
-        searchParams.settlementDateFrom,
-        searchParams.settlementDateTo,
-        searchParams.expectedSettlementDateFrom,
-        searchParams.expectedSettlementDateTo
+        resolvedSearchParams.transactionDateFrom,
+        resolvedSearchParams.transactionDateTo,
+        resolvedSearchParams.establishment,
+        resolvedSearchParams.status,
+        resolvedSearchParams.cardBrand,
+        resolvedSearchParams.settlementDateFrom,
+        resolvedSearchParams.settlementDateTo,
+        resolvedSearchParams.expectedSettlementDateFrom,
+        resolvedSearchParams.expectedSettlementDateTo
       ),
       getMerchantAgendaAnticipation(
         search,
@@ -60,13 +61,13 @@ export default async function MerchantAgendaPage({
         transactionDateTo,
         establishmentIn,
         statusIn,
-        searchParams.cardBrand,
-        searchParams.settlementDateFrom,
-        searchParams.settlementDateTo,
-        searchParams.expectedSettlementDateFrom,
-        searchParams.expectedSettlementDateTo,
-        searchParams.saleDateFrom,
-        searchParams.saleDateTo,
+        resolvedSearchParams.cardBrand,
+        resolvedSearchParams.settlementDateFrom,
+        resolvedSearchParams.settlementDateTo,
+        resolvedSearchParams.expectedSettlementDateFrom,
+        resolvedSearchParams.expectedSettlementDateTo,
+        resolvedSearchParams.saleDateFrom,
+        resolvedSearchParams.saleDateTo,
         nsuIn,
         orderIdIn
       ),
@@ -86,11 +87,11 @@ export default async function MerchantAgendaPage({
     transactionDateTo,
     establishmentIn,
     statusIn,
-    searchParams.cardBrand,
-    searchParams.settlementDateFrom,
-    searchParams.settlementDateTo,
-    searchParams.saleDateFrom,
-    searchParams.saleDateTo,
+    resolvedSearchParams.cardBrand,
+    resolvedSearchParams.settlementDateFrom,
+    resolvedSearchParams.settlementDateTo,
+    resolvedSearchParams.saleDateFrom,
+    resolvedSearchParams.saleDateTo,
     nsuIn,
     orderIdIn
   );
@@ -117,7 +118,7 @@ export default async function MerchantAgendaPage({
       >
         <MerchantAgendaTabs
           merchantAgendaTabsProps={{
-            searchParams,
+            searchParams: resolvedSearchParams,
             merchantAgenda: merchantAgenda,
             merchantAgendaAnticipation: merchantAgendaAnticipation,
             merchantAgendaAdjustment: merchantAgendaAdjustment,

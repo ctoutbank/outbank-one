@@ -63,7 +63,7 @@ export default function VoucherDownload({
 
         // Salva o PDF como um Blob
         const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const blob = new Blob([Buffer.from(pdfBytes)], { type: "application/pdf" });
 
         // Gera um link para download do PDF
         const link = document.createElement("a");

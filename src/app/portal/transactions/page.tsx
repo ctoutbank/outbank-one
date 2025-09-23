@@ -170,7 +170,7 @@ async function TransactionsContent({
 export default async function TransactionsPage({
                                                  searchParams,
                                                }: {
-  searchParams: TransactionsProps;
+  searchParams: Promise<TransactionsProps>;
 }) {
   await checkPagePermission("Lançamentos Financeiros");
 
@@ -219,7 +219,7 @@ export default async function TransactionsPage({
                 </div>
               }
           >
-            <TransactionsContent searchParams={searchParams} />
+            <TransactionsContent searchParams={await searchParams} />
           </Suspense>
         </BaseBody>
       </>

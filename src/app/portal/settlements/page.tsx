@@ -32,18 +32,19 @@ type CategoryProps = {
 export default async function SettlementsPage({
   searchParams,
 }: {
-  searchParams: CategoryProps;
+  searchParams: Promise<CategoryProps>;
 }) {
   await checkPagePermission("Liquidação");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const settlementSlug = searchParams.settlementSlug || "";
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const settlementSlug = resolvedSearchParams.settlementSlug || "";
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "asc";
 
   const merchantSettlements = await getMerchantSettlements(

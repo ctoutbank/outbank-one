@@ -797,7 +797,7 @@ export async function createSalesAgent(
 }
 
 export async function getCustomerByTentant() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const tenant = cookieStore.get("tenant")?.value;
   const customer = await db
     .select({
@@ -811,7 +811,7 @@ export async function getCustomerByTentant() {
 }
 
 export async function getCustomerIdByTentant() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const tenant = cookieStore.get("tenant")?.value;
   const customer = await db
     .select({

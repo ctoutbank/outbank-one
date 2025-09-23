@@ -30,15 +30,16 @@ type CategoryProps = {
 export default async function CategoriesPage({
   searchParams,
 }: {
-  searchParams: CategoryProps;
+  searchParams: Promise<CategoryProps>;
 }) {
   await checkPagePermission("Categorias");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const sortField = resolvedSearchParams.sortField || "id";
+  const sortOrder = (resolvedSearchParams.sortOrder || "desc") as "asc" | "desc";
 
   const categories = await getCategories(
     search,
@@ -46,10 +47,10 @@ export default async function CategoriesPage({
     pageSize,
     sortField,
     sortOrder,
-    searchParams.name,
-    searchParams.status,
-    searchParams.mcc,
-    searchParams.cnae
+    resolvedSearchParams.name,
+    resolvedSearchParams.status,
+    resolvedSearchParams.mcc,
+    resolvedSearchParams.cnae
   );
   const totalRecords = categories.totalCount;
 
@@ -64,10 +65,10 @@ export default async function CategoriesPage({
           <div className="mb-1 flex items-center justify-between">
             <div className="flex-1">
               <CategoriesFilter
-                nameIn={searchParams.name}
-                statusIn={searchParams.status}
-                mccIn={searchParams.mcc}
-                cnaeIn={searchParams.cnae}
+                nameIn={resolvedSearchParams.name}
+                statusIn={resolvedSearchParams.status}
+                mccIn={resolvedSearchParams.mcc}
+                cnaeIn={resolvedSearchParams.cnae}
               />
             </div>
             <Button asChild className="ml-2">
