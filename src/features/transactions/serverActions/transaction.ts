@@ -769,7 +769,7 @@ export async function getTotalMerchants() {
   const conditions = [];
   // If user has no access and no full access, return empty result
   if (!userAccess.fullAccess && userAccess.idMerchants.length === 0) {
-    return 0;
+    return [{ total: 0 }];
   }
   if (!userAccess.fullAccess) {
     conditions.push(inArray(merchants.id, userAccess.idMerchants));
