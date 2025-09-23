@@ -85,7 +85,7 @@ export function Navbar() {
           {/* Right Side Actions - Desktop */}
           <div className="hidden md:flex w-[120px] items-center justify-end">
             <SignedIn>
-              <Link href="/portal/dashboard">
+              <Link href="https://bancoprisma.outbank.cloud/auth/sign-in">
                 <Button className="bg-white text-black rounded-none hover:bg-white/90 hover:scale-105 transition-all duration-300">
                   Portal
                 </Button>
@@ -197,7 +197,7 @@ export function Navbar() {
                 >
                   <SignedIn>
                     <Link
-                      href="/portal/dashboard"
+                      href="https://bancoprisma.outbank.cloud/auth/sign-in"
                       onClick={() => setIsOpen(false)}
                       className="block w-full"
                     >
