@@ -90,13 +90,19 @@ print_status "Limpando cache do npm..."
 npm cache clean --force
 
 print_status "Instalando dependências do projeto..."
-npm install
+npm install --legacy-peer-deps
 
 if [ $? -eq 0 ]; then
     print_success "Dependências instaladas com sucesso!"
 else
-    print_error "Falha na instalação das dependências."
-    exit 1
+    print_warning "Instalação com --legacy-peer-deps falhou. Tentando instalação padrão..."
+    if npm install; then
+        print_success "Dependências instaladas com sucesso usando instalação padrão!"
+    else
+        print_error "Falha na instalação das dependências."
+        print_status "Tente executar manualmente: npm install --legacy-peer-deps"
+        exit 1
+    fi
 fi
 
 print_status "Configurando arquivo de ambiente..."
