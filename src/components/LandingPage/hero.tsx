@@ -9,7 +9,7 @@ const HeroLandingPage = () => {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/img-hero.webp"
+          src="/header_outbank.jpg"
           alt="Hero background"
           fill
           className="object-cover md:object-contain md:translate-x-[5%] "

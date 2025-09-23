@@ -31,7 +31,7 @@ const ContactEmailTemplate: React.FC<ContactEmailTemplateProps> = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #000000; padding: 40px 30px; text-align: left;">
-              <img src="https://outbank.cloud/box-logo.svg" alt="Outbank Cloud" width="160" height="44" style="display: block; height: auto;" />
+              <img src="https://outbank.cloud/outbank_logo_email.png" alt="Outbank Cloud" width="160" height="44" style="display: block; height: auto;" />
             </td>
           </tr>
           
