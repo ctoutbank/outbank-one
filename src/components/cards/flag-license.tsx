@@ -106,15 +106,19 @@ export default function FlagLicense() {
                 <div className="flex items-center gap-8">
                   <span className="text-xl font-light">{t('Flags')}</span>
                   <div className="flex items-center gap-4">
-                    <div className="h-[60px] w-auto relative bg-[#080808] p-2 flex items-center justify-center">
-                      <div className="h-[40px] w-auto bg-white rounded-md p-2 flex items-center justify-center">
-                        <Image 
-                          src="/logo_bandeiras.png" 
-                          alt="Bandeiras aceitas: Visa, Mastercard, Elo" 
-                          width={120} 
-                          height={40} 
-                          className="object-contain filter grayscale contrast-125 brightness-75" 
-                        />
+                    <div className="h-[60px] w-[80px] relative bg-[#080808] p-2 flex items-center justify-center">
+                      <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                        <Image src="/visa.svg" alt="Visa" width={40} height={20} className="object-contain" />
+                      </div>
+                    </div>
+                    <div className="h-[60px] w-[80px] relative bg-[#080808] p-2 flex items-center justify-center">
+                      <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                        <Image src="/mastercard.svg" alt="Mastercard" width={40} height={20} className="object-contain" />
+                      </div>
+                    </div>
+                    <div className="h-[60px] w-[80px] relative bg-[#080808] p-2 flex items-center justify-center">
+                      <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                        <Image src="/elo.svg" alt="Elo" width={40} height={20} className="object-contain" />
                       </div>
                     </div>
                     <div className="h-[60px] w-[80px] relative bg-[#080808] p-2 flex items-center justify-center">
@@ -130,16 +134,20 @@ export default function FlagLicense() {
               {/* Mobile Flags */}
               <div className="md:hidden">
                 <span className="text-xl font-light block mb-4">{t('Flags')}</span>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="h-[60px] relative bg-[#080808] p-2 flex items-center justify-center">
-                    <div className="h-[40px] w-auto bg-white rounded-md p-2 flex items-center justify-center">
-                      <Image 
-                        src="/logo_bandeiras.png" 
-                        alt="Bandeiras aceitas: Visa, Mastercard, Elo" 
-                        width={120} 
-                        height={40} 
-                        className="object-contain filter grayscale contrast-125 brightness-75" 
-                      />
+                    <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                      <Image src="/visa.svg" alt="Visa" width={40} height={20} className="object-contain" />
+                    </div>
+                  </div>
+                  <div className="h-[60px] relative bg-[#080808] p-2 flex items-center justify-center">
+                    <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                      <Image src="/mastercard.svg" alt="Mastercard" width={40} height={20} className="object-contain" />
+                    </div>
+                  </div>
+                  <div className="h-[60px] relative bg-[#080808] p-2 flex items-center justify-center">
+                    <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                      <Image src="/elo.svg" alt="Elo" width={40} height={20} className="object-contain" />
                     </div>
                   </div>
                   <div className="h-[60px] relative bg-[#080808] p-2 flex items-center justify-center">
