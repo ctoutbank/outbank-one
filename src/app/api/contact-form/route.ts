@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { contactFormSchema } from "@/lib/contact-form-schema";
 import { resend } from "@/lib/resend";
-import ContactEmailTemplate from "@/components/contact-email-template";
+import { getContactEmailHtml } from "@/components/contact-email-template";
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; timestamp: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       to: ["operacao@outbank.com.br"],
       cc: ["denisonzl@gmail.com"],
       subject: `Nova mensagem de contato - ${fullName} (${company})`,
-      react: ContactEmailTemplate({
+      html: getContactEmailHtml({
         fullName,
         email,
         company,
