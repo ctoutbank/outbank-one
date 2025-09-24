@@ -1,5 +1,5 @@
 import { resend } from "@/lib/resend"
-import {getThemeByTenant} from "@/lib/getThemeByTenant";
+import {getThemeByTenant} from "@/lib/cache/theme-cache";
 import {headers} from "next/headers";
 
 

@@ -1,4 +1,4 @@
-import { getThemeByTenant } from "@/lib/getThemeByTenant";
+import { getThemeByTenant } from "@/lib/cache/theme-cache";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { headers } from "next/headers";
