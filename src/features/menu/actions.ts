@@ -1,7 +1,7 @@
 "use server";
 
-import { getUserGroupPermissions } from "@/features/users/server/users";
-import { getThemeByTenant, type ThemeData } from "@/lib/getThemeByTenant";
+import { getUserGroupPermissions } from "@/lib/cache/permissions-cache";
+import { getThemeByTenant, type ThemeData } from "@/lib/cache/theme-cache";
 import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 

@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { getUserGroupPermissions } from "@/features/users/server/users";
+import { getUserGroupPermissions } from "@/lib/cache/permissions-cache";
 import { redirect } from "next/navigation";
 
 export async function checkPagePermission(
