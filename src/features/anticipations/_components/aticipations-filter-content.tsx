@@ -78,7 +78,7 @@ export function AnticipationsListFilterContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose]);
+  }, [onClose, handleClickOutside]);
 
   const statuses = [
     { value: "pending", label: "Pendente", color: "bg-orange-500 hover:bg-orange-600" },

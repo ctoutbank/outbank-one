@@ -2,6 +2,7 @@
 
 import { UploadCloud, X } from "lucide-react";
 import * as React from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progressUpload";
@@ -217,9 +218,10 @@ export function FileUpload({
             >
               {file.type.startsWith("image/") ? (
                 <div className="relative aspect-square">
-                  <img
+                  <Image
                     src={previews[index] || "/placeholder.svg"}
                     alt={file.name}
+                    fill
                     className="h-full w-full object-cover"
                   />
                 </div>
