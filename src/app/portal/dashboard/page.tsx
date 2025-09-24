@@ -1,3 +1,4 @@
+import { TransactionSummaryCards } from "@/app/portal/dashboard/_components/transaction-cards";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import {
@@ -5,18 +6,13 @@ import {
   getRawTransactionsByDate,
   getTotalMerchants,
   getTotalTransactions,
-  getPaymentMethodDistribution,
-  getTerminalTransactions,
+  getTransactionsDashboardTotals,
   normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction";
 import { format } from "date-fns";
 import { Suspense } from "react";
 import { BarChartCustom } from "./_components/barChart";
-import { MetricCard } from "./_components/metric-card";
-import { PaymentMethodPieChart } from "./_components/pie-chart";
-import { TerminalBarChart } from "./_components/terminal-bar-chart";
 import { CardsSkeleton, ChartSkeleton } from "./loading";
-import { CreditCard, Receipt, FileText } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -37,9 +33,8 @@ async function ChartSection({
     getCancelledTransactions(dateRange.start, dateRange.end),
     getTotalMerchants(),
   ]);
-  
   return (
-    <div className="w-full">
+    <div className="w-[99.5%]">
       <BarChartCustom
         transactionsData={totalTransactionsByDay}
         viewMode="custom"
@@ -54,80 +49,17 @@ async function ChartSection({
   );
 }
 
-async function MetricsSection() {
-  return (
-    <div className="space-y-6">
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <MetricCard
-          icon={CreditCard}
-          title="Vendas Débito"
-          value="R$ 24.172.838,40"
-          growth="18.5"
-          color="blue"
-        />
-        <MetricCard
-          icon={CreditCard}
-          title="Vendas Crédito"
-          value="R$ 3.672.131,80"
-          growth="12.3"
-          color="green"
-        />
-        <MetricCard
-          icon={CreditCard}
-          title="Vendas Pré Pago"
-          value="R$ 1.911.338,20"
-          growth="5.2"
-          color="purple"
-        />
-        <MetricCard
-          icon={Receipt}
-          title="Vendas Pix"
-          value="R$ 4.322.038,10"
-          growth="2.1"
-          color="orange"
-        />
-      </div>
-
-      {/* Secondary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <MetricCard
-          icon={Receipt}
-          title="Voucher"
-          value="R$ 1.125.331,90"
-          growth="18.5"
-          color="blue"
-        />
-        <MetricCard
-          icon={FileText}
-          title="Quantidade"
-          value="278.987"
-          growth="12.3"
-          color="green"
-        />
-      </div>
-    </div>
-  );
-}
-
-async function ChartsSection({
+async function CardsSection({
   dateRange,
 }: {
   dateRange: { start: string; end: string };
 }) {
-  const [paymentMethodData, terminalData] = await Promise.all([
-    getPaymentMethodDistribution(dateRange.start, dateRange.end),
-    getTerminalTransactions(dateRange.start, dateRange.end),
-  ]);
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <PaymentMethodPieChart data={paymentMethodData} />
-      <TerminalBarChart data={terminalData} />
-    </div>
+  const transactions = await getTransactionsDashboardTotals(
+    dateRange.start,
+    dateRange.end
   );
+  return <TransactionSummaryCards transactions={transactions} />;
 }
-
 
 export default async function SalesDashboard({
   searchParams,
@@ -147,20 +79,14 @@ export default async function SalesDashboard({
         breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
       />
       <BaseBody title="Dashboard" subtitle="Visão Geral das Vendas">
-        <div className="space-y-6">
-          {/* Line Chart Section */}
-          <Suspense fallback={<ChartSkeleton />}>
-            <ChartSection dateRange={dateRange} />
-          </Suspense>
-
-          {/* Metrics Cards */}
+        <Suspense fallback={<ChartSkeleton />}>
+          <ChartSection dateRange={dateRange} />
+        </Suspense>
+        <div className="mt-8">
           <Suspense fallback={<CardsSkeleton />}>
-            <MetricsSection />
-          </Suspense>
-
-          {/* Bottom Charts */}
-          <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><ChartSkeleton /><ChartSkeleton /></div>}>
-            <ChartsSection dateRange={dateRange} />
+            <div className="w-[99.5%]">
+              <CardsSection dateRange={dateRange} />
+            </div>
           </Suspense>
         </div>
       </BaseBody>
