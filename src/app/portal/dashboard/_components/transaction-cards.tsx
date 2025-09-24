@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { TransactionsDashboardTotals } from "@/features/transactions/serverActions/transaction";
 import { CreditCard } from "lucide-react";
+import Image from "next/image";
 import type React from "react";
 
 interface TransactionSummaryCardsProps {
@@ -121,7 +122,7 @@ export function TransactionSummaryCards({
       title: "Pix",
       value: pixData.totalAmount,
       count: pixData.count,
-      icon: <img src="/pix.png" alt="Ícone de PIX" className="h-6 w-6" />,
+      icon: <Image src="/pix.png" alt="Ícone de PIX" width={24} height={24} className="h-6 w-6" />,
     },
   ];
 

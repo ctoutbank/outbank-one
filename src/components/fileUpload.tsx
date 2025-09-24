@@ -127,7 +127,7 @@ export default function FileUpload({
       console.log(`ID da entidade atualizado: ${entityId}`);
       setLocalEntityId(entityId);
     }
-  }, [entityId]);
+  }, [entityId, localEntityId]);
 
   // 3. Upload de arquivos
   // Possíveis erros:

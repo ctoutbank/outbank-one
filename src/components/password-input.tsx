@@ -80,7 +80,7 @@ export function PasswordInput({
     if (externalValue !== undefined && externalValue !== password) {
       setPassword(externalValue);
     }
-  }, [externalValue]);
+  }, [externalValue, password]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);

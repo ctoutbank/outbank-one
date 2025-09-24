@@ -7,6 +7,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { ChevronUp, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,9 +56,11 @@ export function UserMenu() {
             <div className="mb-2 flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-full bg-gradient-to-r from-purple-500 to-indigo-600">
                 {user.imageUrl ? (
-                  <img
+                  <Image
                     src={user.imageUrl}
                     alt={user.fullName || "Avatar"}
+                    width={48}
+                    height={48}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -111,9 +114,11 @@ export function UserMenu() {
       >
         <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-r from-purple-500 to-indigo-600">
           {user.imageUrl ? (
-            <img
+            <Image
               src={user.imageUrl}
               alt={user.fullName || "Avatar"}
+              width={32}
+              height={32}
               className="h-full w-full object-cover"
             />
           ) : (

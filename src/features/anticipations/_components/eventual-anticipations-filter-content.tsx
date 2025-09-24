@@ -96,7 +96,7 @@ export function EventualAnticipationsListFilterContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose]);
+  }, [onClose, handleClickOutside]);
 
   const statuses = [
     {

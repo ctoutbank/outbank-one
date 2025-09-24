@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type FeeData } from "@/features/newTax/server/fee-db";
+import Image from "next/image";
 
 import { getCardImage } from "./card-image-utils";
 
@@ -182,7 +183,7 @@ export default function FeeSelectionView({
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           {getCardImage(group.name) && (
-                            <img
+                            <Image
                               src={getCardImage(group.name)}
                               alt={group.name}
                               width={40}
@@ -289,7 +290,7 @@ export default function FeeSelectionView({
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           {getCardImage(group.name) && (
-                            <img
+                            <Image
                               src={getCardImage(group.name)}
                               alt={group.name}
                               width={40}
@@ -399,7 +400,7 @@ export default function FeeSelectionView({
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           {getCardImage(group.name) && (
-                            <img
+                            <Image
                               src={getCardImage(group.name)}
                               alt={group.name}
                               width={40}
@@ -508,7 +509,7 @@ export default function FeeSelectionView({
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           {getCardImage(group.name) && (
-                            <img
+                            <Image
                               src={getCardImage(group.name)}
                               alt={group.name}
                               width={40}
