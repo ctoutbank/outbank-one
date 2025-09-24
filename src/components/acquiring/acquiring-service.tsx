@@ -85,14 +85,14 @@ export default function AcquiringService() {
             <div className="bg-gradient-to-r from-[#2c2c2c] to-[#080808] p-8 rounded-lg">
               <p className="text-gray-300 text-lg mb-6">{t('Acquiring processing and transactions settlement')}</p>
               <div className="flex items-center gap-4">
-                <div className="h-[40px] w-auto bg-white rounded-md p-2 flex items-center justify-center">
-                  <Image 
-                    src="/logo_bandeiras.png" 
-                    alt="Bandeiras aceitas: Visa, Mastercard, Elo" 
-                    width={120} 
-                    height={40} 
-                    className="object-contain filter grayscale contrast-125 brightness-75" 
-                  />
+                <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                  <Image src="/visa.svg" alt="Visa" width={40} height={20} className="object-contain" />
+                </div>
+                <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                  <Image src="/mastercard.svg" alt="Mastercard" width={40} height={20} className="object-contain" />
+                </div>
+                <div className="h-[40px] w-[50px] bg-white rounded-md p-2 flex items-center justify-center">
+                  <Image src="/elo.svg" alt="Elo" width={40} height={20} className="object-contain" />
                 </div>
                 <span className="text-sm text-gray-400/80">+27 networks</span>
               </div>
