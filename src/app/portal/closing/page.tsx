@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/empty-state";
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChartCustom } from "@/features/closing/components/barChart";
+import { LazyClosingChart } from "@/components/lazy/LazyClosingChart";
 import DashboardFilters from "@/features/closing/components/dashboard-filters";
 import TransactionsExport from "@/features/closing/components/export-excel";
 import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
@@ -229,7 +229,7 @@ export default async function SalesDashboard({
           )}
 
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
-            <BarChartCustom
+            <LazyClosingChart
               chartData={totalTransactionsByMonth}
               viewMode={viewMode}
             />

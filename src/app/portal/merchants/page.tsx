@@ -4,7 +4,7 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PaginationWithSizeSelector from "@/components/pagination-with-size-selector";
 import { Button } from "@/components/ui/button";
-import { MerchantDashboardContent } from "@/features/merchant/_components/merchant-dashboard-content";
+import { LazyMerchantDashboard } from "@/components/lazy/LazyMerchantDashboard";
 import { MerchantFilter } from "@/features/merchant/_components/merchant-filter";
 import ExcelImportButton from "@/features/merchant/_components/merchant-import";
 import { MerchantSearchInput } from "@/features/merchant/_components/merchant-search-input";
@@ -13,9 +13,7 @@ import {
   getMerchantsWithDashboardData,
 } from "@/features/merchant/server/merchant";
 import {
-  getMerchantsGroupedByRegion,
-  getTransactionsGroupedByShift,
-  getTransactionStatusData,
+  getAllMerchantDashboardData,
 } from "@/features/merchant/server/merchant-dashboard";
 import { getUserMerchantsAccess } from "@/features/users/server/users";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
@@ -92,33 +90,7 @@ export default async function MerchantsPage({
 
   const totalRecords = merchants.totalCount;
 
-  const regionData = await getMerchantsGroupedByRegion(
-    userAccess,
-    search,
-    resolvedSearchParams.establishment,
-    resolvedSearchParams.status,
-    resolvedSearchParams.state,
-    resolvedSearchParams.dateFrom,
-    resolvedSearchParams.email,
-    resolvedSearchParams.cnpj,
-    resolvedSearchParams.active,
-    resolvedSearchParams.salesAgent
-  );
-
-  const shiftData = await getTransactionsGroupedByShift(
-    userAccess,
-    search,
-    resolvedSearchParams.establishment,
-    resolvedSearchParams.status,
-    resolvedSearchParams.state,
-    resolvedSearchParams.dateFrom,
-    resolvedSearchParams.email,
-    resolvedSearchParams.cnpj,
-    resolvedSearchParams.active,
-    resolvedSearchParams.salesAgent
-  );
-
-  const statusData = await getTransactionStatusData(
+  const { regionData, shiftData, statusData } = await getAllMerchantDashboardData(
     userAccess,
     search,
     resolvedSearchParams.establishment,
@@ -248,7 +220,7 @@ export default async function MerchantsPage({
             </div>
           </div>
 
-          <MerchantDashboardContent {...merchantData} />
+          <LazyMerchantDashboard {...merchantData} />
 
           <div className="mt-2">
             {merchants.merchants.length === 0 ? (

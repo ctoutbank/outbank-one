@@ -3,7 +3,7 @@ import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
-import { TerminalsDashboardContent } from "@/features/terminals/_components/terminals-dashboard-content";
+import { LazyTerminalsDashboard } from "@/components/lazy/LazyTerminalsDashboard";
 import { TerminalsExcelExportButton } from "@/features/terminals/_components/terminals-excel-export-button";
 import { TerminalsFilter } from "@/features/terminals/_components/terminals-filter";
 import TerminalsList from "@/features/terminals/_components/terminals-list";
@@ -126,7 +126,7 @@ export default async function TerminalsPage({
             </div>
 
             <div className="w-full">
-              <TerminalsDashboardContent
+              <LazyTerminalsDashboard
                 totalTerminals={totalRecords}
                 ativosTerminals={ativosTerminals}
                 inativosTerminals={inativosTerminals}

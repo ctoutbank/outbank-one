@@ -899,3 +899,61 @@ export async function getTransactionStatusData(
   ];
 }
 
+export async function getAllMerchantDashboardData(
+  userAccess: any,
+  search: string,
+  establishment?: string,
+  status?: string,
+  state?: string,
+  dateFrom?: string,
+  email?: string,
+  cnpj?: string,
+  active?: string,
+  salesAgent?: string
+) {
+  const [regionData, shiftData, statusData] = await Promise.all([
+    getMerchantsGroupedByRegion(
+      userAccess,
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+    ),
+    getTransactionsGroupedByShift(
+      userAccess,
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+    ),
+    getTransactionStatusData(
+      userAccess,
+      search,
+      establishment,
+      status,
+      state,
+      dateFrom,
+      email,
+      cnpj,
+      active,
+      salesAgent
+    )
+  ]);
+
+  return {
+    regionData,
+    shiftData,
+    statusData
+  };
+}
+
