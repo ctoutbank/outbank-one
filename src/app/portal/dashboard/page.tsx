@@ -6,7 +6,6 @@ import {
   getRawTransactionsByDate,
   getTotalMerchants,
   getTotalTransactions,
-  getTotalTransactionsByMonth,
   getTransactionsDashboardTotals,
   normalizeDateRange,
 } from "@/features/transactions/serverActions/transaction";
@@ -27,19 +26,16 @@ async function ChartSection({
     totalTransactions,
     totalTransactionsByDay,
     canceledTransactions,
-    totalTransactionsByMonth,
     totalMerchants,
   ] = await Promise.all([
     getTotalTransactions(dateRange.start, dateRange.end),
     getRawTransactionsByDate(dateRange.start, dateRange.end),
     getCancelledTransactions(dateRange.start, dateRange.end),
-    getTotalTransactionsByMonth(dateRange.start, dateRange.end, "custom"),
     getTotalMerchants(),
   ]);
   return (
     <div className="w-[99.5%]">
       <BarChartCustom
-        chartData={totalTransactionsByMonth}
         transactionsData={totalTransactionsByDay}
         viewMode="custom"
         totalTransactions={totalTransactions[0]}
@@ -68,12 +64,13 @@ async function CardsSection({
 export default async function SalesDashboard({
   searchParams,
 }: {
-  searchParams: { dateFrom?: string; dateTo?: string };
+  searchParams: Promise<{ dateFrom?: string; dateTo?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const defaultDateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00';
   const defaultDateTo = format(new Date(), "yyyy-MM-dd'T'HH:mm");
-  const dateFrom = searchParams.dateFrom || defaultDateFrom;
-  const dateTo = searchParams.dateTo || defaultDateTo;
+  const dateFrom = resolvedSearchParams.dateFrom || defaultDateFrom;
+  const dateTo = resolvedSearchParams.dateTo || defaultDateTo;
   const dateRange = await normalizeDateRange(dateFrom, dateTo);
 
   return (
