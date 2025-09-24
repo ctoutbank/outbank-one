@@ -90,7 +90,7 @@ print_status "Limpando cache do npm..."
 npm cache clean --force
 
 print_status "Instalando dependências do projeto..."
-npm install
+npm install --legacy-peer-deps
 
 if [ $? -eq 0 ]; then
     print_success "Dependências instaladas com sucesso!"
