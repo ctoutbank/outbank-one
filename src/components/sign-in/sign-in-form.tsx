@@ -4,10 +4,11 @@ import { validateUserAccessBySubdomain } from "@/app/actions/validateSubdomain";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { clearAllSessions, clearClerkSession } from "@/lib/session-cleanup";
 import { useSignIn } from "@clerk/nextjs";
 import { Eye, EyeOff, LockIcon, Mail } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +17,23 @@ export function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, isLoaded } = useSignIn();
   const [error, setError] = useState("");
+  const [sessionCleared, setSessionCleared] = useState(false);
+
+  useEffect(() => {
+    const clearExistingSessions = async () => {
+      try {
+        await clearClerkSession();
+        setSessionCleared(true);
+      } catch (error) {
+        console.warn("Error clearing existing sessions:", error);
+        setSessionCleared(true);
+      }
+    };
+
+    if (!sessionCleared) {
+      clearExistingSessions();
+    }
+  }, [sessionCleared]);
 
   const getPortugueseErrorMessage = (error: any) => {
     if (error?.errors?.[0]) {
@@ -31,6 +49,8 @@ export function SignInForm() {
           return "Formato de e-mail inválido";
         case "network_error":
           return "Erro de conexão. Por favor, verifique sua internet";
+        case "session_exists":
+          return "Sessão já existe. Limpando cache...";
         default:
           return clerkError.message
             ? clerkError.message
@@ -112,8 +132,25 @@ export function SignInForm() {
       }
     } catch (err: any) {
       console.error("Erro no login:", err);
-      const portugueseError = getPortugueseErrorMessage(err);
-      setError(portugueseError);
+      
+      if (err?.errors?.[0]?.code === "session_exists" || 
+          err?.message?.includes("session") || 
+          err?.message?.includes("Session already exists")) {
+        console.log("Session exists error detected, clearing all sessions...");
+        try {
+          await clearAllSessions();
+          setError("Sessão limpa. Por favor, tente fazer login novamente.");
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (clearError) {
+          console.error("Error clearing sessions:", clearError);
+          setError("Erro ao limpar sessão. Por favor, limpe o cache do navegador e tente novamente.");
+        }
+      } else {
+        const portugueseError = getPortugueseErrorMessage(err);
+        setError(portugueseError);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -199,7 +236,24 @@ export function SignInForm() {
         </Link>
       </div>
 
-      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+      {error && (
+        <div className="text-red-500 text-sm mt-2">
+          {error}
+          {error.includes("Sessão limpa") && (
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+                className="text-xs"
+              >
+                Recarregar página
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <Button
         type="submit"
