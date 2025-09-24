@@ -68,8 +68,8 @@ async function TransactionsContent({
     valueMax: searchParams.valueMax,
   };
 
-  // Filtros para getTransactions (lista detalhada)
-  const transactionList = await getTransactions(
+  const [transactionList, transactionsGroupedReport] = await Promise.all([
+    getTransactions(
       page,
       pageSize,
       searchParams.status,
@@ -88,10 +88,8 @@ async function TransactionsContent({
         sortBy,
         sortOrder,
       }
-  );
-
-  // Filtros para getTransactionsGroupedReport (dados agrupados para dashboard)
-  const transactionsGroupedReport = await getTransactionsGroupedReport(
+    ),
+    getTransactionsGroupedReport(
       dateFrom,
       dateTo,
       searchParams.status,
@@ -103,7 +101,8 @@ async function TransactionsContent({
       searchParams.valueMin,
       searchParams.valueMax,
       searchParams.merchant
-  );
+    )
+  ]);
 
   return (
       <>
