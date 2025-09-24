@@ -4,21 +4,8 @@ import {headers} from "next/headers";
 
 
 
-export async function sendWelcomePasswordEmail(to: string, password: string) {
-    const headersList = await headers();
-    const host = headersList.get("host") || "";
-    const subdomain = host.split(".")[0];
-    const themeData = await getThemeByTenant(subdomain)
-    if (!themeData) {
-        return;
-    }
-
-    
-    await resend.emails.send({
-        from: "noreply@outbank.cloud",
-        to,
-        subject: `Bem-vindo ao ${themeData.name} - Sua conta foi criada!`,
-        html: `
+export function getWelcomeEmailHtml(themeData: any, password: string): string {
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -130,6 +117,23 @@ export async function sendWelcomePasswordEmail(to: string, password: string) {
           </table>
         </body>
       </html>
-    `,
+    `;
+}
+
+export async function sendWelcomePasswordEmail(to: string, password: string) {
+    const headersList = await headers();
+    const host = headersList.get("host") || "";
+    const subdomain = host.split(".")[0];
+    const themeData = await getThemeByTenant(subdomain)
+    if (!themeData) {
+        return;
+    }
+
+    
+    await resend.emails.send({
+        from: "noreply@outbank.cloud",
+        to,
+        subject: `Bem-vindo ao ${themeData.name} - Sua conta foi criada!`,
+        html: getWelcomeEmailHtml(themeData, password),
     })
 }

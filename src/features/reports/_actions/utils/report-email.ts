@@ -35,11 +35,11 @@ export async function sendReportEmail(
     from: "noreply@outbank.cloud",
     to: emailList,
     subject: `Relatório de Vendas Outbank One`,
-    html: generateEmailTemplate(uploadResult, execution, report),
+    html: generateReportEmailHtml(uploadResult, execution, report),
   });
 }
 
-function generateEmailTemplate(
+export function generateReportEmailHtml(
   uploadResult: UploadFileResponse,
   execution: any,
   report: any
