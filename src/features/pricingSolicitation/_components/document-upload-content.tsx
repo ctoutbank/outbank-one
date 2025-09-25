@@ -12,6 +12,16 @@ interface DocumentUploadContentProps {
   onSolicitationCreated?: (id: number) => void; // Callback quando a solicitação é criada
 }
 
+const documentTypes = [
+  {
+    title: "Documento Principal",
+    description: "Documento principal da solicitação (ex: contrato, proposta)",
+    fileType: "SOLICITATION",
+    acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
+    maxSizeMB: 5,
+  },
+];
+
 export function DocumentUploadContent({
   solicitationId,
   pricingSolicitationData,
@@ -24,18 +34,6 @@ export function DocumentUploadContent({
   const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const initialLoadComplete = useRef(false);
-
-  // Document types available for upload
-  const documentTypes = [
-    {
-      title: "Documento Principal",
-      description:
-        "Documento principal da solicitação (ex: contrato, proposta)",
-      fileType: "SOLICITATION",
-      acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
-      maxSizeMB: 5,
-    },
-  ];
 
   // Carregar documentos existentes apenas uma vez na montagem do componente
   useEffect(() => {
@@ -78,7 +76,7 @@ export function DocumentUploadContent({
       // Resetar o flag para permitir novo carregamento se o ID mudar
       initialLoadComplete.current = false;
     }
-  }, [solicitationId]);
+  }, [solicitationId, createdSolicitationId]);
 
   // Handle document upload completion
   const handleUploadComplete = (fileData: {

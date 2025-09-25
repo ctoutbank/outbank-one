@@ -27,7 +27,13 @@ import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 // Interface para os tipos de produtos de pagamento com informações adicionais
@@ -164,21 +170,9 @@ export const PaymentConfigFormCompulsory = forwardRef<
   console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO COMPULSORY:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
-  const [groups, setGroups] = useState<PaymentGroup[]>([
-    initializePaymentGroup("group-1"),
-  ]);
-
-  const [pixConfig, setPixConfig] = useState({
-    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
-    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
-    maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
-    maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
-  });
 
   // Inicializar um grupo de pagamento
-  function initializePaymentGroup(groupId: string): PaymentGroup {
+  const initializePaymentGroup = useCallback((groupId: string): PaymentGroup => {
     return {
       id: groupId,
       selectedCards: [],
@@ -199,7 +193,20 @@ export const PaymentConfigFormCompulsory = forwardRef<
         return acc;
       }, {} as any),
     };
-  }
+  }, []);
+
+  const [groups, setGroups] = useState<PaymentGroup[]>([
+    initializePaymentGroup("group-1"),
+  ]);
+
+  const [pixConfig, setPixConfig] = useState({
+    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
+    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
+    maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
+    maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
+  });
 
   // Criar objeto de parcelas para um modo
   function createInstallmentsObject(mode: ExtendedFeeProductType) {
@@ -364,7 +371,7 @@ export const PaymentConfigFormCompulsory = forwardRef<
         maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
       });
     }
-  }, [fee]);
+  }, [fee, initializePaymentGroup]);
 
   // Mapear tipo de produto para ID do modo e parcela
   function getModeMapping(

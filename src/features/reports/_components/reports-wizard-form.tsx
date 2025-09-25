@@ -200,7 +200,7 @@ export default function ReportsWizardForm({
         handleEditFilter(filterToEdit);
       }
     }
-  }, [editFilterId, existingFilters]);
+  }, [editFilterId, existingFilters, handleEditFilter]);
 
 
   return (

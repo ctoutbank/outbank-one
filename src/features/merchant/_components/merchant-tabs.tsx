@@ -14,6 +14,16 @@ import { MerchantTabsProps } from "@/features/merchant/server/types";
 import MerchantFormDocuments from "./merchant-form-documents";
 import MerchantFormTax2 from "./merchant-form-tax2";
 
+const listTabs = [
+  "company",
+  "contact",
+  "operation",
+  "bank",
+  "authorizers",
+  "rate",
+  "documents",
+];
+
 export default function MerchantTabs({
   merchant,
   address,
@@ -36,16 +46,6 @@ export default function MerchantTabs({
   const [visitedTabs, setVisitedTabs] = useState<Set<string>>(
     new Set(["company"])
   );
-
-  const listTabs = [
-    "company",
-    "contact",
-    "operation",
-    "bank",
-    "authorizers",
-    "rate",
-    "documents",
-  ];
 
   // Função para marcar uma tab como visitada e navegar para ela
   const handleTabChange = (newTab: string) => {

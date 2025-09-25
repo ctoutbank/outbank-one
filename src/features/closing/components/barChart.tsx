@@ -47,7 +47,7 @@ export function BarChartCustom({
   //Serve para mostrar todos os anos mesmo que estejam vazios.
   const normalizedData = React.useMemo(() => {
     return chartData;
-  }, [chartData, viewMode]);
+  }, [chartData]);
 
   const total = React.useMemo(
     () => ({
