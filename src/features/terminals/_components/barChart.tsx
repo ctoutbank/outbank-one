@@ -42,16 +42,17 @@ export default function BarChart({ data }: BarChartProps) {
   const [containerWidth, setContainerWidth] = useState(400);
 
   useEffect(() => {
+    const currentRef = containerRef.current;
     function updateWidth() {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth);
+      if (currentRef) {
+        setContainerWidth(currentRef.offsetWidth);
       }
     }
     updateWidth();
     const observer = new (window as any).ResizeObserver(updateWidth);
-    if (containerRef.current) observer.observe(containerRef.current);
+    if (currentRef) observer.observe(currentRef);
     return () => {
-      if (containerRef.current) observer.unobserve(containerRef.current);
+      if (currentRef) observer.unobserve(currentRef);
     };
   }, []);
 

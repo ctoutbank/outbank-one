@@ -25,8 +25,8 @@ Este documento é a fonte tática para o trabalho diário. Use-o para escolher s
   - *Comentário:*
 
 #### Frontend
-- [ ] **Tarefa 1.4 (Qualidade):** Corrigir todos os avisos de `react-hooks/exhaustive-deps` no projeto.
-  - *Comentário:*
+- [x] **Tarefa 1.4 (Qualidade):** Corrigir todos os avisos de `react-hooks/exhaustive-deps` no projeto.
+  - *Comentário: Concluído em 24/09/2025. Todos os avisos de dependências de hooks foram corrigidos usando `useCallback`, movendo constantes para fora dos componentes ou removendo dependências desnecessárias. Isso melhora a estabilidade e a performance do frontend.*
 - [ ] **Tarefa 1.5 (Qualidade):** Atualizar pacotes depreciados como `eslint`, `rimraf`, etc.
   - *Comentário:*
 

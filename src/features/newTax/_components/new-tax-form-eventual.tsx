@@ -27,7 +27,13 @@ import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface PaymentGroup {
@@ -100,29 +106,8 @@ export const PaymentConfigFormWithCard = forwardRef<
   const isEventualAnticipation = fee.anticipationType === "EVENTUAL";
   const onlyIntermediation = isNoAnticipation || isEventualAnticipation;
 
-  // Inicializar um grupo de pagamento
-  function initializePaymentGroup(groupId: string): PaymentGroup {
-    return {
-      id: groupId,
-      selectedCards: [],
-      modes: FeeProductTypeList.reduce((acc, mode) => {
-        acc[mode.value] = {
-          expanded: false,
-          presentIntermediation: "",
-          notPresentIntermediation: "",
-          presentTransaction: "",
-          notPresentTransaction: "",
-          ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
-            installments: createInstallmentsObject(mode),
-          }),
-        };
-        return acc;
-      }, {} as any),
-    };
-  }
-
   // Criar objeto de parcelas para um modo
-  function createInstallmentsObject(mode: any) {
+  const createInstallmentsObject = useCallback((mode: any) => {
     return Array.from(
       {
         length:
@@ -140,7 +125,31 @@ export const PaymentConfigFormWithCard = forwardRef<
       };
       return acc;
     }, {} as any);
-  }
+  }, []);
+
+  // Inicializar um grupo de pagamento
+  const initializePaymentGroup = useCallback(
+    (groupId: string): PaymentGroup => {
+      return {
+        id: groupId,
+        selectedCards: [],
+        modes: FeeProductTypeList.reduce((acc, mode) => {
+          acc[mode.value] = {
+            expanded: false,
+            presentIntermediation: "",
+            notPresentIntermediation: "",
+            presentTransaction: "",
+            notPresentTransaction: "",
+            ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
+              installments: createInstallmentsObject(mode),
+            }),
+          };
+          return acc;
+        }, {} as any),
+      };
+    },
+    [createInstallmentsObject]
+  );
 
   // Carregar dados das bandeiras e tipos de produto quando o componente é montado
   useEffect(() => {
@@ -268,7 +277,7 @@ export const PaymentConfigFormWithCard = forwardRef<
         anticipationRateNotPresent: fee.eventualAnticipationFee || "",
       });
     }
-  }, [fee]);
+  }, [fee, createInstallmentsObject, initializePaymentGroup]);
 
   // Mapear tipo de produto para ID do modo e parcela
   function getModeMapping(

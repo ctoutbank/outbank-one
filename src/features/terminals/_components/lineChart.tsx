@@ -16,9 +16,10 @@ export default function LineChart({ monthlyData }: LineChartProps) {
   const [dimensions, setDimensions] = useState({ width: 400, height: 200 });
 
   useEffect(() => {
+    const currentRef = containerRef.current;
     function updateDimensions() {
-      if (containerRef.current) {
-        const width = containerRef.current.offsetWidth;
+      if (currentRef) {
+        const width = currentRef.offsetWidth;
         let height = 200;
         if (width < 400) height = 150;
         if (width < 350) height = 120;
@@ -27,9 +28,9 @@ export default function LineChart({ monthlyData }: LineChartProps) {
     }
     updateDimensions();
     const observer = new (window as any).ResizeObserver(updateDimensions);
-    if (containerRef.current) observer.observe(containerRef.current);
+    if (currentRef) observer.observe(currentRef);
     return () => {
-      if (containerRef.current) observer.unobserve(containerRef.current);
+      if (currentRef) observer.unobserve(currentRef);
     };
   }, []);
 

@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { validateDateRange } from "@/lib/validations/date";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type EventualAnticipationsListFilterContentProps = {
   merchantDD?: MerchantDD[];
@@ -74,12 +74,15 @@ export function EventualAnticipationsListFilterContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-popover]")) return;
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
+  const handleClickOutside = useCallback(
+    (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("[data-popover]")) return;
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
