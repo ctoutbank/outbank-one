@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
@@ -26,17 +27,10 @@ export function FilterPricingSolicitationContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // Fecha se clicar fora do conteúdo
-  const handleClickOutside = (e: MouseEvent) => {
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
+  useClickOutside(filterRef, onClose);
 
   // Fecha ao apertar ESC
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-
     const handleKeyDownGlobal = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -45,7 +39,6 @@ export function FilterPricingSolicitationContent({
     document.addEventListener("keydown", handleKeyDownGlobal);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
   }, [onClose]);

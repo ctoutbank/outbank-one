@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { MerchantDD } from "@/features/anticipations/server/anticipation";
 
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { validateDateRange } from "@/lib/validations/date";
 import { format } from "date-fns";
@@ -74,16 +75,9 @@ export function EventualAnticipationsListFilterContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-popover]")) return;
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
+  useClickOutside(filterRef, onClose);
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-
     const handleKeyDownGlobal = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -93,10 +87,9 @@ export function EventualAnticipationsListFilterContent({
     document.addEventListener("keydown", handleKeyDownGlobal);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose, handleClickOutside]);
+  }, [onClose]);
 
   const statuses = [
     {
