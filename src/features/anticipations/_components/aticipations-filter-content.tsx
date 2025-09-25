@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 import { MerchantDD } from "@/features/anticipations/server/anticipation";
 
-import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
@@ -58,9 +57,15 @@ export function AnticipationsListFilterContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  useClickOutside(filterRef, onClose);
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose(); // Fecha o filtro se clicar fora
+    }
+  };
 
   useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+
     const handleKeyDownGlobal = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -70,9 +75,10 @@ export function AnticipationsListFilterContent({
     document.addEventListener("keydown", handleKeyDownGlobal);
 
     return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose]);
+  }, [onClose, handleClickOutside]);
 
   const statuses = [
     { value: "pending", label: "Pendente", color: "bg-orange-500 hover:bg-orange-600" },

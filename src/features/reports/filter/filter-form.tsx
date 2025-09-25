@@ -29,7 +29,6 @@ import {
   transactionProductTypeList,
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
-import { useClickOutside } from "@/hooks/use-click-outside";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -140,11 +139,6 @@ export default function FilterForm({
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLDivElement>(null);
   const terminalSearchInputRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(searchInputRef, () => setShowSuggestions(false));
-  useClickOutside(terminalSearchInputRef, () =>
-    setShowTerminalSuggestions(false)
-  );
 
   const form = useForm<ReportFilterSchema>({
     resolver: zodResolver(SchemaReportFilter),
@@ -912,6 +906,39 @@ export default function FilterForm({
     }
   };
 
+  // Fechar sugestões quando clicar fora do componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Fechar sugestões de terminal quando clicar fora do componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        terminalSearchInputRef.current &&
+        !terminalSearchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowTerminalSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const onSubmit = async (data: ReportFilterSchema) => {
     // Os estados já foram atualizados diretamente nos campos FormField,
