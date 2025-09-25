@@ -149,52 +149,6 @@ function shouldDisableMainModeInput(
   );
 }
 
-// Criar objeto de parcelas para um modo
-function createInstallmentsObject(mode: ExtendedFeeProductType) {
-  if (!mode.installmentRange) return {};
-
-  return Array.from(
-    {
-      length: mode.installmentRange[1] - mode.installmentRange[0] + 1,
-    },
-    (_, i) => i + mode.installmentRange![0]
-  ).reduce((acc, installment) => {
-    acc[installment] = {
-      presentIntermediation: "",
-      notPresentIntermediation: "",
-      presentAnticipation: "",
-      notPresentAnticipation: "",
-      presentTransaction: "",
-      notPresentTransaction: "",
-    };
-    return acc;
-  }, {} as any);
-}
-
-// Inicializar um grupo de pagamento
-function initializePaymentGroup(groupId: string): PaymentGroup {
-  return {
-    id: groupId,
-    selectedCards: [],
-    modes: FeeProductTypeList.reduce((acc, modeBase) => {
-      const mode = getExtendedProductType(modeBase);
-      acc[mode.value] = {
-        expanded: false,
-        presentIntermediation: "",
-        notPresentIntermediation: "",
-        presentAnticipation: "",
-        notPresentAnticipation: "",
-        presentTransaction: "",
-        notPresentTransaction: "",
-        ...(mode.hasInstallments && {
-          installments: createInstallmentsObject(mode),
-        }),
-      };
-      return acc;
-    }, {} as any),
-  };
-}
-
 export const PaymentConfigFormCompulsory = forwardRef<
   {
     getFormData: () => {
@@ -222,6 +176,52 @@ export const PaymentConfigFormCompulsory = forwardRef<
     maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
     maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
   });
+
+  // Inicializar um grupo de pagamento
+  function initializePaymentGroup(groupId: string): PaymentGroup {
+    return {
+      id: groupId,
+      selectedCards: [],
+      modes: FeeProductTypeList.reduce((acc, modeBase) => {
+        const mode = getExtendedProductType(modeBase);
+        acc[mode.value] = {
+          expanded: false,
+          presentIntermediation: "",
+          notPresentIntermediation: "",
+          presentAnticipation: "",
+          notPresentAnticipation: "",
+          presentTransaction: "",
+          notPresentTransaction: "",
+          ...(mode.hasInstallments && {
+            installments: createInstallmentsObject(mode),
+          }),
+        };
+        return acc;
+      }, {} as any),
+    };
+  }
+
+  // Criar objeto de parcelas para um modo
+  function createInstallmentsObject(mode: ExtendedFeeProductType) {
+    if (!mode.installmentRange) return {};
+
+    return Array.from(
+      {
+        length: mode.installmentRange[1] - mode.installmentRange[0] + 1,
+      },
+      (_, i) => i + mode.installmentRange![0]
+    ).reduce((acc, installment) => {
+      acc[installment] = {
+        presentIntermediation: "",
+        notPresentIntermediation: "",
+        presentAnticipation: "",
+        notPresentAnticipation: "",
+        presentTransaction: "",
+        notPresentTransaction: "",
+      };
+      return acc;
+    }, {} as any);
+  }
 
   // Carregar dados das bandeiras e tipos de produto quando o componente é montado
   useEffect(() => {

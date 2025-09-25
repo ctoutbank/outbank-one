@@ -118,9 +118,11 @@ export default function FinancialAdjustmentForm({
   }, [merchants, searchTerm]);
 
   // Obter merchants selecionados com detalhes
-  const selectedMerchantsDetails = merchants.filter((merchant) =>
-    selectedMerchants.includes(merchant.id)
-  );
+  const selectedMerchantsDetails = useMemo(() => {
+    return merchants.filter((merchant) =>
+      selectedMerchants.includes(merchant.id)
+    );
+  }, [merchants, selectedMerchants]);
 
   // Adicionar merchant
   const addMerchant = (merchantId: number) => {

@@ -69,7 +69,7 @@ export function DocumentUploadContent({
     };
 
     loadExistingDocuments();
-  }, [createdSolicitationId, solicitationId, documentTypes]);
+  }, [createdSolicitationId, solicitationId]);
 
   // Atualizar o ID da solicitação quando ele muda externamente
   useEffect(() => {
@@ -78,7 +78,7 @@ export function DocumentUploadContent({
       // Resetar o flag para permitir novo carregamento se o ID mudar
       initialLoadComplete.current = false;
     }
-  }, [solicitationId, createdSolicitationId]);
+  }, [solicitationId]);
 
   // Handle document upload completion
   const handleUploadComplete = (fileData: {

@@ -19,7 +19,7 @@ import { adjustmentTypes } from "@/lib/lookuptables/lookuptables-adjustment";
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type FinancialAdjustmentsFilterContentProps = {
   searchIn?: string;
@@ -56,14 +56,11 @@ export function FinancialAdjustmentsFilterContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = useCallback(
-    (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -77,7 +74,7 @@ export function FinancialAdjustmentsFilterContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose, handleClickOutside]);
+  }, [onClose]);
 
   // Função para aplicar os filtros e fechar o modal
   const applyFilters = () => {

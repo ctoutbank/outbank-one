@@ -134,16 +134,15 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
       "NOANTECIPATION"
   );
 
-  const mccValue = form.watch("mcc");
-  const cnaeValue = form.watch("cnae");
-
   // Buscar os valores mínimos ao carregar o formulário ou quando MCC/CNAE mudarem
   useEffect(() => {
     async function fetchMinValues() {
-      if (mccValue && cnaeValue) {
+      const mcc = form.getValues("mcc");
+      const cnae = form.getValues("cnae");
+      if (mcc && cnae) {
         const feeAdminMap = await getFeeAdminByCnaeMccAction(
-          String(cnaeValue),
-          String(mccValue)
+          String(cnae),
+          String(mcc)
         );
         setMinValuesMap(feeAdminMap);
       } else {
@@ -151,7 +150,7 @@ export function NewTaxForm1({ fee, categories }: FeeFormProps) {
       }
     }
     fetchMinValues();
-  }, [mccValue, cnaeValue]);
+  }, [form, form.watch("mcc"), form.watch("cnae")]);
 
   // Sincroniza CNAE quando MCC muda
   useEffect(() => {

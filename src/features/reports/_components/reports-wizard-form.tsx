@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreloadedFilterData } from "@/features/reports/filter/filter-Actions";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   deleteReportFilter,
@@ -135,28 +135,25 @@ export default function ReportsWizardForm({
   };
 
   // Função para editar um filtro existente
-  const handleEditFilter = useCallback(
-    (filter: FormattedFilter) => {
-      // Caso o typeName não esteja definido no filtro, usar o tipo do relatório atual
-      const reportTypeCode = report.reportType || "VN";
-      const reportTypeName =
-        filter.typeName ||
-        reportType.find((type) => type.code === reportTypeCode)?.name ||
-        "Vendas";
+  const handleEditFilter = (filter: FormattedFilter) => {
+    // Caso o typeName não esteja definido no filtro, usar o tipo do relatório atual
+    const reportTypeCode = report.reportType || "VN";
+    const reportTypeName =
+      filter.typeName ||
+      reportType.find((type) => type.code === reportTypeCode)?.name ||
+      "Vendas";
 
-      setEditingFilter({
-        id: filter.id,
-        idReport: filter.idReport,
-        idReportFilterParam: filter.idReportFilterParam,
-        value: filter.value,
-        dtinsert: filter.dtinsert ? new Date(filter.dtinsert) : undefined,
-        dtupdate: filter.dtupdate ? new Date(filter.dtupdate) : undefined,
-        typeName: reportTypeName, // Garantir que o typeName esteja sempre definido
-      });
-      setOpen(true);
-    },
-    [report.reportType, reportType]
-  );
+    setEditingFilter({
+      id: filter.id,
+      idReport: filter.idReport,
+      idReportFilterParam: filter.idReportFilterParam,
+      value: filter.value,
+      dtinsert: filter.dtinsert ? new Date(filter.dtinsert) : undefined,
+      dtupdate: filter.dtupdate ? new Date(filter.dtupdate) : undefined,
+      typeName: reportTypeName, // Garantir que o typeName esteja sempre definido
+    });
+    setOpen(true);
+  };
 
   // Função para excluir um filtro
   const handleDeleteFilter = async (id: number) => {
@@ -203,7 +200,7 @@ export default function ReportsWizardForm({
         handleEditFilter(filterToEdit);
       }
     }
-  }, [editFilterId, existingFilters, handleEditFilter]);
+  }, [editFilterId, existingFilters]);
 
 
   return (

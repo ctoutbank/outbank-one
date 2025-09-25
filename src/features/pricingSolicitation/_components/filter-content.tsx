@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { PricingSolicitationStatus } from "@/lib/lookuptables/lookuptables";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
 type FilterPricingSolicitationContentProps = {
   cnaeIn?: string;
@@ -27,14 +27,11 @@ export function FilterPricingSolicitationContent({
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Fecha se clicar fora do conteúdo
-  const handleClickOutside = useCallback(
-    (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   // Fecha ao apertar ESC
   useEffect(() => {
@@ -51,7 +48,7 @@ export function FilterPricingSolicitationContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose, handleClickOutside]);
+  }, [onClose]);
 
   const applyFilters = () => {
     onFilter({

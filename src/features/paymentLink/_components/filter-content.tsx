@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type FilterPaymentLinkContentProps = {
   identifierIn?: string;
@@ -32,14 +32,11 @@ export function FilterPaymentLinkContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = useCallback(
-    (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -56,7 +53,7 @@ export function FilterPaymentLinkContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose, handleClickOutside]);
+  }, [onClose]);
 
   const statuses = [
     {
