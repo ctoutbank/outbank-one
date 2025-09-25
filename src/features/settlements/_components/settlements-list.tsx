@@ -26,7 +26,6 @@ import {
   translateStatus,
 } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { MerchantSettlementList } from "../server/settlements";
 import VoucherDownload from "./exportfile";
@@ -266,7 +265,7 @@ export default function MerchantSettlementsList({
                                           {getCardImage(
                                             order.receivableUnit
                                           ) && (
-                                            <Image
+                                            <img
                                               src={getCardImage(
                                                 order.receivableUnit
                                               )}

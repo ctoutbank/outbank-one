@@ -26,7 +26,6 @@ import { FeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
@@ -556,15 +555,13 @@ export const PaymentConfigFormWithCard = forwardRef<
                                       className="opacity-50"
                                     >
                                       <div className="flex items-center">
-                                        <Image
+                                        <img
                                           src={
                                             getCardImage(card.value) ||
                                             "/placeholder.svg"
                                           }
                                           alt={card.label}
-                                          width={20}
-                                          height={20}
-                                          className="mr-2 grayscale rounded"
+                                          className="h-5 w-5 mr-2 grayscale rounded"
                                         />
                                         {card.label}
                                       </div>
@@ -587,15 +584,13 @@ export const PaymentConfigFormWithCard = forwardRef<
                                     }}
                                   >
                                     <div className="flex items-center">
-                                      <Image
+                                      <img
                                         src={
                                           getCardImage(card.value) ||
                                           "/placeholder.svg"
                                         }
                                         alt={card.label}
-                                        width={20}
-                                        height={20}
-                                        className="mr-2 rounded"
+                                        className="h-5 w-5 mr-2 rounded"
                                       />
                                       {card.label}
                                     </div>
@@ -624,12 +619,10 @@ export const PaymentConfigFormWithCard = forwardRef<
                             variant="secondary"
                             className="flex items-center gap-1"
                           >
-                            <Image
+                            <img
                               src={getCardImage(cardId) || "/placeholder.svg"}
                               alt={card?.label || cardId}
-                              width={16}
-                              height={16}
-                              className="rounded"
+                              className="h-4 w-4 rounded"
                             />
                             {card?.label || cardId}
                             <button

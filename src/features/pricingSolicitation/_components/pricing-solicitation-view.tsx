@@ -36,7 +36,6 @@ import { type PricingSolicitationForm } from "@/features/pricingSolicitation/ser
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { ArrowLeft, FileIcon, UploadIcon, User } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -618,7 +617,7 @@ export function PricingSolicitationView({
                         >
                           <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                             {getCardImage(item.brand.value) && (
-                              <Image
+                              <img
                                 src={getCardImage(item.brand.value)}
                                 alt={item.brand.label}
                                 width={40}
@@ -858,7 +857,7 @@ export function PricingSolicitationView({
                         >
                           <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                             {getCardImage(item.brand.value) && (
-                              <Image
+                              <img
                                 src={getCardImage(item.brand.value)}
                                 alt={item.brand.label}
                                 width={40}

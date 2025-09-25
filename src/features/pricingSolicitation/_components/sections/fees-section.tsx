@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import { SolicitationFeeProductTypeList } from "@/lib/lookuptables/lookuptables";
 import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
-import Image from "next/image";
 import { CSSProperties } from "react";
 import { useWatch } from "react-hook-form";
 
@@ -189,7 +188,7 @@ function POSBrandTable({
               <TableCell className="font-medium sticky left-0 z-10 bg-white">
                 <div className="flex items-center gap-2">
                   {getCardImage(brand.value) && (
-                    <Image
+                    <img
                       src={getCardImage(brand.value)}
                       alt={brand.label}
                       width={40}
@@ -330,7 +329,7 @@ function OnlineBrandTable({
               <TableCell className="font-medium sticky left-0 z-10 bg-white">
                 <div className="flex items-center gap-2">
                   {getCardImage(brand.value) && (
-                    <Image
+                    <img
                       src={getCardImage(brand.value)}
                       alt={brand.label}
                       width={40}

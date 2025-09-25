@@ -26,16 +26,13 @@
         "./src/*"
       ]
     },
-    "target": "ES2017",
-    "types": ["jest", "node"]
+    "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "jest.config.ts",
-    "jest.setup.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

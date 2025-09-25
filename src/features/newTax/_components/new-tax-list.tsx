@@ -27,7 +27,6 @@ import {
 } from "@/features/newTax/server/fee-db";
 import { FeeType } from "@/lib/lookuptables/lookuptables";
 import { Edit, Plus } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -179,7 +178,7 @@ export default function FeeList({ fees }: FeeListProps) {
                                 <div className="px-4 py-3 border-b border-gray-200">
                                   <div className="flex items-center gap-2 mb-2">
                                     {getCardImage(brand.brand) && (
-                                      <Image
+                                      <img
                                         src={getCardImage(brand.brand)}
                                         alt={brand.brand}
                                         width={40}
