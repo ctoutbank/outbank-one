@@ -5,6 +5,7 @@ import type { DailyAmount } from "@/features/merchantAgenda/server/merchantAgend
 import { DatesSetArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import Image from "next/image";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import { useEffect, useRef } from "react";
@@ -119,7 +120,7 @@ export function Calendar({
                   {eventInfo.event.extendedProps.is_anticipation ? (
                     <div className="text-xs font-medium text-muted-foreground flex items-center ">
                       Recebíveis
-                      <img
+                      <Image
                         src="/eventual-anticipation.png"
                         alt="icon"
                         width={18}
