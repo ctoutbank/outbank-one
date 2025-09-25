@@ -602,7 +602,7 @@ export default function FilterForm({
   }, [filter.id, filter.idReportFilterParam, form]);
 
   // Função para lidar com a alteração de parâmetro
-  const handleParamChange = async (paramId: number) => {
+  const handleParamChange = useCallback(async (paramId: number) => {
     console.log("Parâmetro selecionado ID:", paramId);
     const param = reportFilterParams.find((p) => p.id === paramId);
     console.log("Parâmetro encontrado:", param);
@@ -846,7 +846,7 @@ export default function FilterForm({
     } else {
       setSelectorType("none");
     }
-  };
+  }, [reportFilterParams, filter.id, filter.value, form, preloadedData?.merchant, preloadedData?.terminal, selectedType]);
 
   // Função para buscar estabelecimentos quando o botão é clicado
   const searchMerchantsByTerm = useCallback(async () => {

@@ -101,8 +101,6 @@ export default function FinancialAdjustmentForm({
     [isNew, router]
   );
 
-  const selectedMerchants = form.watch("merchants") || [];
-
   // Filtrar merchants baseado na busca
   const filteredMerchants = useMemo(() => {
     if (!searchTerm) return merchants;
@@ -117,12 +115,12 @@ export default function FinancialAdjustmentForm({
     });
   }, [merchants, searchTerm]);
 
+  const selectedIds = form.watch("merchants") || [];
+
   // Obter merchants selecionados com detalhes
   const selectedMerchantsDetails = useMemo(() => {
-    return merchants.filter((merchant) =>
-      selectedMerchants.includes(merchant.id)
-    );
-  }, [merchants, selectedMerchants]);
+    return merchants.filter((merchant) => selectedIds.includes(merchant.id));
+  }, [merchants, selectedIds]);
 
   // Adicionar merchant
   const addMerchant = (merchantId: number) => {
@@ -417,7 +415,7 @@ export default function FinancialAdjustmentForm({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Estabelecimentos</h3>
                 <Badge variant="secondary" className="text-sm">
-                  {selectedMerchants.length} selecionados
+                  {selectedMerchantsDetails.length} selecionados
                 </Badge>
               </div>
 
@@ -462,7 +460,7 @@ export default function FinancialAdjustmentForm({
                               {filteredMerchants
                                 .filter(
                                   (merchant) =>
-                                    !selectedMerchants.includes(merchant.id)
+                                    !selectedIds.includes(merchant.id)
                                 )
                                 .slice(0, 10)
                                 .map((merchant) => (

@@ -27,7 +27,13 @@ import { brandList } from "@/lib/lookuptables/lookuptables-transactions";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface PaymentGroup {
@@ -80,20 +86,6 @@ export const PaymentConfigFormWithCard = forwardRef<
   console.log("DADOS RECEBIDOS NO SUBFORMULÁRIO EVENTUAL:", fee);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
-  const [groups, setGroups] = useState<PaymentGroup[]>([
-    initializePaymentGroup("group-1"),
-  ]);
-
-  const [pixConfig, setPixConfig] = useState({
-    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
-    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
-    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
-    maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
-    maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
-    anticipationRatePresent: fee.eventualAnticipationFee || "",
-    anticipationRateNotPresent: fee.eventualAnticipationFee || "",
-  });
 
   // Ajustar a constante de controle:
   const isNoAnticipation = fee.anticipationType === "NOANTECIPATION";
@@ -101,7 +93,7 @@ export const PaymentConfigFormWithCard = forwardRef<
   const onlyIntermediation = isNoAnticipation || isEventualAnticipation;
 
   // Inicializar um grupo de pagamento
-  function initializePaymentGroup(groupId: string): PaymentGroup {
+  const initializePaymentGroup = useCallback((groupId: string): PaymentGroup => {
     return {
       id: groupId,
       selectedCards: [],
@@ -119,7 +111,22 @@ export const PaymentConfigFormWithCard = forwardRef<
         return acc;
       }, {} as any),
     };
-  }
+  }, []);
+
+  const [groups, setGroups] = useState<PaymentGroup[]>([
+    initializePaymentGroup("group-1"),
+  ]);
+
+  const [pixConfig, setPixConfig] = useState({
+    mdrPresent: fee.cardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    mdrNotPresent: fee.nonCardPixMdr?.replace(" %", "").replace(",", ".") || "",
+    minCostPresent: fee.cardPixMinimumCostFee?.replace(",", ".") || "",
+    minCostNotPresent: fee.nonCardPixMinimumCostFee?.replace(",", ".") || "",
+    maxCostPresent: fee.cardPixCeilingFee?.replace(",", ".") || "",
+    maxCostNotPresent: fee.nonCardPixCeilingFee?.replace(",", ".") || "",
+    anticipationRatePresent: fee.eventualAnticipationFee || "",
+    anticipationRateNotPresent: fee.eventualAnticipationFee || "",
+  });
 
   // Criar objeto de parcelas para um modo
   function createInstallmentsObject(mode: any) {
@@ -268,7 +275,7 @@ export const PaymentConfigFormWithCard = forwardRef<
         anticipationRateNotPresent: fee.eventualAnticipationFee || "",
       });
     }
-  }, [fee]);
+  }, [fee, initializePaymentGroup]);
 
   // Mapear tipo de produto para ID do modo e parcela
   function getModeMapping(

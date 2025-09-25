@@ -49,9 +49,10 @@ export default function BarChart({ data }: BarChartProps) {
     }
     updateWidth();
     const observer = new (window as any).ResizeObserver(updateWidth);
-    if (containerRef.current) observer.observe(containerRef.current);
+    const currentRef = containerRef.current;
+    if (currentRef) observer.observe(currentRef);
     return () => {
-      if (containerRef.current) observer.unobserve(containerRef.current);
+      if (currentRef) observer.unobserve(currentRef);
     };
   }, []);
 
