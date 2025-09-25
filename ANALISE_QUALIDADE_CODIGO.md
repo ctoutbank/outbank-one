@@ -1,9 +1,9 @@
 # Análise Minuciosa de Qualidade do Código - Portal de Adquirência
 
-**Data da Análise:** 17 de Setembro de 2025  
-**Repositório:** ctoutbank/outbank-one  
-**Escopo:** Portal de Adquirência (Fullstack)  
-**Analista:** Devin AI  
+**Data da Análise:** 17 de Setembro de 2025
+**Repositório:** ctoutbank/outbank-one
+**Escopo:** Portal de Adquirência (Fullstack)
+**Analista:** Devin AI
 
 ---
 
@@ -259,5 +259,5 @@ A aplicação tem uma **base sólida** com arquitetura Next.js bem estruturada e
 
 ---
 
-*Análise realizada em 17/09/2025 por Devin AI*  
+*Análise realizada em 17/09/2025 por Devin AI*
 *Versão do documento: 1.0*

@@ -65,6 +65,48 @@ type ModeField =
   | "notPresentTransaction";
 type ModeId = string;
 
+// Criar objeto de parcelas para um modo
+function createInstallmentsObject(mode: any) {
+  return Array.from(
+    {
+      length:
+        Number.parseInt(mode.transactionFeeEnd) -
+        Number.parseInt(mode.transactionFeeStart) +
+        1,
+    },
+    (_, i) => i + Number.parseInt(mode.transactionFeeStart)
+  ).reduce((acc, installment) => {
+    acc[installment] = {
+      presentIntermediation: "",
+      notPresentIntermediation: "",
+      presentTransaction: "",
+      notPresentTransaction: "",
+    };
+    return acc;
+  }, {} as any);
+}
+
+// Inicializar um grupo de pagamento
+function initializePaymentGroup(groupId: string): PaymentGroup {
+  return {
+    id: groupId,
+    selectedCards: [],
+    modes: FeeProductTypeList.reduce((acc, mode) => {
+      acc[mode.value] = {
+        expanded: false,
+        presentIntermediation: "",
+        notPresentIntermediation: "",
+        presentTransaction: "",
+        notPresentTransaction: "",
+        ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
+          installments: createInstallmentsObject(mode),
+        }),
+      };
+      return acc;
+    }, {} as any),
+  };
+}
+
 export const PaymentConfigFormWithCard = forwardRef<
   {
     getFormData: () => {
@@ -99,48 +141,6 @@ export const PaymentConfigFormWithCard = forwardRef<
   const isNoAnticipation = fee.anticipationType === "NOANTECIPATION";
   const isEventualAnticipation = fee.anticipationType === "EVENTUAL";
   const onlyIntermediation = isNoAnticipation || isEventualAnticipation;
-
-  // Inicializar um grupo de pagamento
-  function initializePaymentGroup(groupId: string): PaymentGroup {
-    return {
-      id: groupId,
-      selectedCards: [],
-      modes: FeeProductTypeList.reduce((acc, mode) => {
-        acc[mode.value] = {
-          expanded: false,
-          presentIntermediation: "",
-          notPresentIntermediation: "",
-          presentTransaction: "",
-          notPresentTransaction: "",
-          ...(Number.parseInt(mode.transactionFeeStart) > 0 && {
-            installments: createInstallmentsObject(mode),
-          }),
-        };
-        return acc;
-      }, {} as any),
-    };
-  }
-
-  // Criar objeto de parcelas para um modo
-  function createInstallmentsObject(mode: any) {
-    return Array.from(
-      {
-        length:
-          Number.parseInt(mode.transactionFeeEnd) -
-          Number.parseInt(mode.transactionFeeStart) +
-          1,
-      },
-      (_, i) => i + Number.parseInt(mode.transactionFeeStart)
-    ).reduce((acc, installment) => {
-      acc[installment] = {
-        presentIntermediation: "",
-        notPresentIntermediation: "",
-        presentTransaction: "",
-        notPresentTransaction: "",
-      };
-      return acc;
-    }, {} as any);
-  }
 
   // Carregar dados das bandeiras e tipos de produto quando o componente é montado
   useEffect(() => {

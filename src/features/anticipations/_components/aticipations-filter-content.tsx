@@ -20,7 +20,7 @@ import { MerchantDD } from "@/features/anticipations/server/anticipation";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type AnticipationsListFilterContentProps = {
   merchantDD?: MerchantDD[];
@@ -57,11 +57,14 @@ export function AnticipationsListFilterContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose(); // Fecha o filtro se clicar fora
-    }
-  };
+  const handleClickOutside = useCallback(
+    (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        onClose(); // Fecha o filtro se clicar fora
+      }
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
