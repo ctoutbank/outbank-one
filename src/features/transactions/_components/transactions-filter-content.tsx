@@ -20,7 +20,7 @@ import {
 } from "@/lib/lookuptables/lookuptables-transactions";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Search } from "lucide-react";
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
 type FilterTransactionsContentProps = {
   statusIn?: string;
@@ -89,14 +89,11 @@ export function FilterTransactionsContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = useCallback(
-    (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -112,7 +109,7 @@ export function FilterTransactionsContent({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
-  }, [onClose, handleClickOutside]);
+  }, [onClose]);
 
   const handleSubmitFilter = () => {
     onFilter({

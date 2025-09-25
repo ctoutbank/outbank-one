@@ -1,34 +1,49 @@
 # Plano de Melhorias Estratégicas - Outbank One
 
-Este documento descreve o plano de alto nível para evoluir a plataforma Outbank One, com foco em estabilidade, segurança, performance e manutenibilidade.
+## 1. Fundamentos e Estabilidade (Curto Prazo)
 
-## Fases do Projeto
+**Objetivo:** Eliminar riscos imediatos, resolver instabilidades e garantir que o ambiente de desenvolvimento seja confiável.
 
-O trabalho será dividido em três fases distintas, permitindo entregas de valor incrementais e focadas.
+-   **1.1. Correção de Vulnerabilidades de Segurança:**
+    -   **Ação:** Auditar e corrigir todas as dependências com vulnerabilidades críticas e altas conhecidas (`npm audit`).
+    -   **Justificativa:** Proteger a aplicação contra ataques conhecidos e garantir a segurança dos dados.
 
-### Fase 1: Fundação e Correções Críticas (Curto Prazo)
+-   **1.2. Resolução de Erros de Build e Linting:**
+    -   **Ação:** Corrigir todos os erros que impedem o build (`npm run build`) e os warnings críticos de linting (`npm run lint`), especialmente os de `exhaustive-deps`.
+    -   **Justificativa:** Garantir um processo de CI/CD estável e um código mais previsível e livre de bugs.
 
-**Objetivo:** Estabilizar a base de código, eliminar as vulnerabilidades de segurança mais críticas e corrigir os principais focos de bugs. Esta fase é essencial para garantir que o desenvolvimento futuro seja construído sobre uma fundação sólida e segura.
+-   **1.3. Implantação de Testes Unitários e de Integração:**
+    -   **Ação:** Configurar um framework de testes (Jest/React Testing Library) e criar testes para componentes críticos e lógica de negócio.
+    -   **Justificativa:** Aumentar a confiabilidade do código, prevenir regressões e permitir refatorações seguras.
 
-**Principais Entregas:**
--   Dependências de produção livres de vulnerabilidades conhecidas.
--   Código-fonte em conformidade com as regras do linter para React Hooks.
--   Estrutura inicial de documentação de progresso estabelecida.
+## 2. Otimização e Performance (Médio Prazo)
 
-### Fase 2: Performance e Cultura de Testes (Médio Prazo)
+**Objetivo:** Melhorar a experiência do usuário e a eficiência da aplicação.
 
-**Objetivo:** Melhorar a experiência do usuário através de otimizações de performance e introduzir uma cultura de qualidade com a implementação de testes automatizados.
+-   **2.1. Otimização de Imagens:**
+    -   **Ação:** Substituir todas as tags `<img>` por `<Image>` do Next.js para otimização automática.
+    -   **Justificativa:** Reduzir o tempo de carregamento das páginas (LCP) e o consumo de banda.
 
-**Principais Entregas:**
--   Otimização de imagens em toda a aplicação.
--   Estrutura de testes unitários e de ponta-a-ponta (E2E) configurada.
--   Cobertura de testes inicial para os componentes e fluxos mais críticos.
+-   **2.2. Refatoração de Componentes e Hooks:**
+    -   **Ação:** Analisar e refatorar componentes com renderizações desnecessárias e uso incorreto de hooks.
+    -   **Justificativa:** Melhorar a performance de renderização e a manutenibilidade do código.
 
-### Fase 3: Refatoração e Excelência Técnica (Longo Prazo)
+-   **2.3. Análise de Performance de Queries:**
+    -   **Ação:** (Se aplicável) Revisar queries lentas e otimizar o acesso ao banco de dados.
+    -   **Justificativa:** Reduzir a latência e melhorar a responsividade da aplicação.
 
-**Objetivo:** Aumentar a qualidade interna do código, reduzir a dívida técnica e melhorar a experiência de desenvolvimento (DX) através de refatorações e aplicação de padrões de projeto.
+## 3. Arquitetura e Manutenibilidade (Longo Prazo)
 
-**Principais Entregas:**
--   Redução de código duplicado através da criação de hooks e componentes reutilizáveis.
--   Aplicação consistente de componentes de UI otimizados.
--   Expansão da cobertura de testes.
+**Objetivo:** Garantir que a base de código seja escalável, organizada e fácil de manter.
+
+-   **3.1. Melhoria na Organização de Pastas:**
+    -   **Ação:** Avaliar e reestruturar pastas para seguir um padrão mais coeso (ex: `feature-based`).
+    -   **Justificativa:** Facilitar a localização de código e a compreensão da arquitetura.
+
+-   **3.2. Padronização de Configurações de Ambiente:**
+    -   **Ação:** Garantir que as variáveis de ambiente e secrets sigam as melhores práticas de segurança.
+    -   **Justificativa:** Prevenir vazamento de informações sensíveis.
+
+-   **3.3. Documentação e Boas Práticas:**
+    -   **Ação:** Criar ou atualizar a documentação (`README.md`, `CONTRIBUTING.md`) e definir guias de estilo.
+    -   **Justificativa:** Facilitar a integração de novos desenvolvedores e manter a consistência do código.

@@ -6,16 +6,6 @@ import { insertPricingSolicitation } from "@/features/pricingSolicitation/server
 import { getFilesByFileType } from "@/server/upload";
 import { useEffect, useRef, useState } from "react";
 
-const documentTypes = [
-  {
-    title: "Documento Principal",
-    description: "Documento principal da solicitação (ex: contrato, proposta)",
-    fileType: "SOLICITATION",
-    acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
-    maxSizeMB: 5,
-  },
-];
-
 interface DocumentUploadContentProps {
   solicitationId?: number | null;
   pricingSolicitationData?: any;
@@ -34,6 +24,18 @@ export function DocumentUploadContent({
   const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const initialLoadComplete = useRef(false);
+
+  // Document types available for upload
+  const documentTypes = [
+    {
+      title: "Documento Principal",
+      description:
+        "Documento principal da solicitação (ex: contrato, proposta)",
+      fileType: "SOLICITATION",
+      acceptedFileTypes: "pdf,PDF,jpeg,JPEG,jpg,JPG,png,PNG,XLS,xlsx",
+      maxSizeMB: 5,
+    },
+  ];
 
   // Carregar documentos existentes apenas uma vez na montagem do componente
   useEffect(() => {
@@ -67,7 +69,7 @@ export function DocumentUploadContent({
     };
 
     loadExistingDocuments();
-  }, [createdSolicitationId, solicitationId]);
+  }, [createdSolicitationId, solicitationId, documentTypes]);
 
   // Atualizar o ID da solicitação quando ele muda externamente
   useEffect(() => {

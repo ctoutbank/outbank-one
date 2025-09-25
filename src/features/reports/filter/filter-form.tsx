@@ -149,6 +149,261 @@ export default function FilterForm({
     },
   });
 
+  const handleParamChange = useCallback(async (paramId: number) => {
+    console.log("Parâmetro selecionado ID:", paramId);
+    const param = reportFilterParams.find((p) => p.id === paramId);
+    console.log("Parâmetro encontrado:", param);
+
+    if (!param) {
+      console.log("Parâmetro não encontrado!");
+      return;
+    }
+
+    setParamSelected(true);
+
+    // Reset all selector states
+    setSelectedBrands([]);
+    setStartDate("");
+    setEndDate("");
+    setMinValue("");
+    setMaxValue("");
+    setSelectedStatusList([]);
+    setSelectedMerchant(null);
+    setSelectedPaymentTypes([]);
+    setSelectedCycleTypes([]);
+    setSelectedSplitTypes([]);
+    setSelectedCaptureModes([]);
+    setSelectedEntryModes([]);
+    setSelectedTerminal(null);
+    setTerminalSearchTerm("");
+    setTerminals([]);
+
+    // Verificar se estamos em modo de edição
+    const isEditing = !!filter.id;
+    console.log("Modo de edição:", isEditing);
+
+    // Se estiver em modo de edição, inicializar os valores baseados no tipo do parâmetro
+    if (isEditing && filter.value) {
+      console.log("Inicializando valores do filtro para edição:", filter.value);
+    }
+
+    // Determinar qual tipo de seletor deve ser exibido com base no nome do parâmetro
+    if (param.name === "Bandeira") {
+      setSelectorType("brand");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Carregar bandeiras iniciais
+      try {
+        const brandsData = await getAllBrands();
+        setBrands(brandsData);
+
+        // Se estiver editando, inicializar as bandeiras selecionadas
+        if (isEditing && filter.value) {
+          if (filter.value.includes(",")) {
+            const brandValues = filter.value.split(",").map((b) => b.trim());
+            setSelectedBrands(brandValues);
+          } else {
+            setSelectedBrands([filter.value]);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar bandeiras:", error);
+        setBrands([]);
+      }
+    } else if (param.name === "Data" || param.name === "totalAmount") {
+      setSelectorType("dateRange");
+
+      // Se estiver editando, inicializar as datas
+      if (isEditing && filter.value && filter.value.includes(",")) {
+        const [start, end] = filter.value.split(",").map((d) => d.trim());
+        setStartDate(start);
+        setEndDate(end);
+      }
+    } else if (param.name === "Valor" || param.name.toLowerCase() === "valor") {
+      setSelectorType("valueRange");
+
+      // Se estiver editando, inicializar os valores
+      if (isEditing && filter.value && filter.value.includes(",")) {
+        const [min, max] = filter.value.split(",").map((v) => v.trim());
+        setMinValue(min);
+        setMaxValue(max);
+      }
+    } else if (param.name === "Status") {
+      setSelectorType("status");
+
+      // Se estiver editando, inicializar os status
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const statusValues = filter.value.split(",").map((s) => s.trim());
+          setSelectedStatusList(statusValues);
+        } else {
+          setSelectedStatusList([filter.value]);
+        }
+      }
+    } else if (
+      param.name === "NSU" &&
+      (selectedType === "AL" || filter.typeName === "Agenda dos logistas")
+    ) {
+      setSelectorType("nsu");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, garantir que o valor do NSU seja definido no formulário
+      if (filter.id && filter.value) {
+        form.setValue("value", filter.value);
+      }
+    } else if (param.name === "Estabelecimento") {
+      setSelectorType("merchant");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se temos merchant pré-carregado e estamos em modo de edição, usar ele
+      if (isEditing && filter.value && preloadedData?.merchant) {
+        setSelectedMerchant(preloadedData.merchant);
+        setSearchTerm(preloadedData.merchant.name || "");
+        return;
+      }
+
+      // Carregar estabelecimentos iniciais
+      setLoading(true);
+      try {
+        // Se estiver editando, buscar com o valor atual para encontrar o estabelecimento
+        const searchValue = isEditing && filter.value ? filter.value : "";
+        const merchantsData = await searchMerchants(searchValue);
+        setMerchants(merchantsData);
+
+        // Se estiver editando, buscar e definir o estabelecimento
+        if (isEditing && filter.value) {
+          // Tentar encontrar o estabelecimento pelo nome
+          const merchant = merchantsData.find((m) => m.name === filter.value);
+          if (merchant) {
+            setSelectedMerchant(merchant);
+            setSearchTerm(merchant.name || "");
+          } else {
+            // Se não encontrar, apenas definir o termo de busca
+            setSearchTerm(filter.value);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar estabelecimentos:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else if (param.name === "Tipo de Pagamento") {
+      setSelectorType("paymentType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os tipos de pagamento
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const paymentValues = filter.value.split(",").map((p) => p.trim());
+          setSelectedPaymentTypes(paymentValues);
+        } else {
+          setSelectedPaymentTypes([filter.value]);
+        }
+      }
+    } else if (param.name === "Terminal") {
+      setSelectorType("terminal");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se temos terminal pré-carregado e estamos em modo de edição, usar ele
+      if (isEditing && filter.value && preloadedData?.terminal) {
+        setSelectedTerminal(preloadedData.terminal);
+        setTerminalSearchTerm(preloadedData.terminal.logical_number || "");
+        return;
+      }
+
+      // Carregar terminais iniciais
+      setLoading(true);
+      try {
+        // Se estiver editando, buscar com o valor atual para encontrar o terminal
+        const searchValue = isEditing && filter.value ? filter.value : "";
+        const terminalsData = await searchTerminals(searchValue);
+        setTerminals(terminalsData);
+
+        // Se estiver editando, buscar e definir o terminal
+        if (isEditing && filter.value) {
+          // Tentar encontrar o terminal pelo logical_number
+          const terminal = terminalsData.find(
+            (t) => t.logical_number === filter.value
+          );
+          if (terminal) {
+            setSelectedTerminal(terminal);
+            setTerminalSearchTerm(terminal.logical_number || "");
+          } else {
+            // Se não encontrar, apenas definir o termo de busca
+            setTerminalSearchTerm(filter.value);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar terminais:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else if (param.name === "Ciclo da Transação") {
+      setSelectorType("cycleType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os ciclos
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const cycleValues = filter.value.split(",").map((c) => c.trim());
+          setSelectedCycleTypes(cycleValues);
+        } else {
+          setSelectedCycleTypes([filter.value]);
+        }
+      }
+    } else if (param.name === "Repasse da Transação") {
+      setSelectorType("splitType");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os tipos de repasse
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const splitValues = filter.value.split(",").map((s) => s.trim());
+          setSelectedSplitTypes(splitValues);
+        } else {
+          setSelectedSplitTypes([filter.value]);
+        }
+      }
+    } else if (param.name === "Modo de Captura") {
+      setSelectorType("captureMode");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os modos de captura
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const captureValues = filter.value.split(",").map((c) => c.trim());
+          setSelectedCaptureModes(captureValues);
+        } else {
+          setSelectedCaptureModes([filter.value]);
+        }
+      }
+    } else if (param.name === "Modo de Entrada") {
+      setSelectorType("entryMode");
+      setParamSelected(true); // Garantir que o parâmetro esteja selecionado
+
+      // Se estiver editando, inicializar os modos de entrada
+      if (isEditing && filter.value) {
+        if (filter.value.includes(",")) {
+          const entryValues = filter.value.split(",").map((e) => e.trim());
+          setSelectedEntryModes(entryValues);
+        } else {
+          setSelectedEntryModes([filter.value]);
+        }
+      }
+    } else {
+      setSelectorType("none");
+    }
+  }, [
+    reportFilterParams,
+    filter.id,
+    filter.value,
+    filter.typeName,
+    selectedType,
+    form,
+    preloadedData?.merchant,
+    preloadedData?.terminal,
+  ]);
+
   // Inicializar o componente
   useEffect(() => {
     const initialize = async () => {
@@ -603,271 +858,6 @@ export default function FilterForm({
       handleParamChange(filter.idReportFilterParam);
     }
   }, [filter.id, filter.idReportFilterParam, form, handleParamChange]);
-
-  // Função para lidar com a alteração de parâmetro
-  const handleParamChange = useCallback(
-    async (paramId: number) => {
-      console.log("Parâmetro selecionado ID:", paramId);
-      const param = reportFilterParams.find((p) => p.id === paramId);
-      console.log("Parâmetro encontrado:", param);
-
-      if (!param) {
-        console.log("Parâmetro não encontrado!");
-        return;
-      }
-
-      setParamSelected(true);
-
-      // Reset all selector states
-      setSelectedBrands([]);
-      setStartDate("");
-      setEndDate("");
-      setMinValue("");
-      setMaxValue("");
-      setSelectedStatusList([]);
-      setSelectedMerchant(null);
-      setSelectedPaymentTypes([]);
-      setSelectedCycleTypes([]);
-      setSelectedSplitTypes([]);
-      setSelectedCaptureModes([]);
-      setSelectedEntryModes([]);
-      setSelectedTerminal(null);
-      setTerminalSearchTerm("");
-      setTerminals([]);
-
-      // Verificar se estamos em modo de edição
-      const isEditing = !!filter.id;
-      console.log("Modo de edição:", isEditing);
-
-      // Se estiver em modo de edição, inicializar os valores baseados no tipo do parâmetro
-      if (isEditing && filter.value) {
-        console.log(
-          "Inicializando valores do filtro para edição:",
-          filter.value
-        );
-      }
-
-      // Determinar qual tipo de seletor deve ser exibido com base no nome do parâmetro
-      if (param.name === "Bandeira") {
-        setSelectorType("brand");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Carregar bandeiras iniciais
-        try {
-          const brandsData = await getAllBrands();
-          setBrands(brandsData);
-
-          // Se estiver editando, inicializar as bandeiras selecionadas
-          if (isEditing && filter.value) {
-            if (filter.value.includes(",")) {
-              const brandValues = filter.value.split(",").map((b) => b.trim());
-              setSelectedBrands(brandValues);
-            } else {
-              setSelectedBrands([filter.value]);
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao carregar bandeiras:", error);
-          setBrands([]);
-        }
-      } else if (param.name === "Data" || param.name === "totalAmount") {
-        setSelectorType("dateRange");
-
-        // Se estiver editando, inicializar as datas
-        if (isEditing && filter.value && filter.value.includes(",")) {
-          const [start, end] = filter.value.split(",").map((d) => d.trim());
-          setStartDate(start);
-          setEndDate(end);
-        }
-      } else if (
-        param.name === "Valor" ||
-        param.name.toLowerCase() === "valor"
-      ) {
-        setSelectorType("valueRange");
-
-        // Se estiver editando, inicializar os valores
-        if (isEditing && filter.value && filter.value.includes(",")) {
-          const [min, max] = filter.value.split(",").map((v) => v.trim());
-          setMinValue(min);
-          setMaxValue(max);
-        }
-      } else if (param.name === "Status") {
-        setSelectorType("status");
-
-        // Se estiver editando, inicializar os status
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const statusValues = filter.value.split(",").map((s) => s.trim());
-            setSelectedStatusList(statusValues);
-          } else {
-            setSelectedStatusList([filter.value]);
-          }
-        }
-      } else if (
-        param.name === "NSU" &&
-        (selectedType === "AL" || filter.typeName === "Agenda dos logistas")
-      ) {
-        setSelectorType("nsu");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, garantir que o valor do NSU seja definido no formulário
-        if (filter.id && filter.value) {
-          form.setValue("value", filter.value);
-        }
-      } else if (param.name === "Estabelecimento") {
-        setSelectorType("merchant");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se temos merchant pré-carregado e estamos em modo de edição, usar ele
-        if (isEditing && filter.value && preloadedData?.merchant) {
-          setSelectedMerchant(preloadedData.merchant);
-          setSearchTerm(preloadedData.merchant.name || "");
-          return;
-        }
-
-        // Carregar estabelecimentos iniciais
-        setLoading(true);
-        try {
-          // Se estiver editando, buscar com o valor atual para encontrar o estabelecimento
-          const searchValue = isEditing && filter.value ? filter.value : "";
-          const merchantsData = await searchMerchants(searchValue);
-          setMerchants(merchantsData);
-
-          // Se estiver editando, buscar e definir o estabelecimento
-          if (isEditing && filter.value) {
-            // Tentar encontrar o estabelecimento pelo nome
-            const merchant = merchantsData.find((m) => m.name === filter.value);
-            if (merchant) {
-              setSelectedMerchant(merchant);
-              setSearchTerm(merchant.name || "");
-            } else {
-              // Se não encontrar, apenas definir o termo de busca
-              setSearchTerm(filter.value);
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao carregar estabelecimentos:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else if (param.name === "Tipo de Pagamento") {
-        setSelectorType("paymentType");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, inicializar os tipos de pagamento
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const paymentValues = filter.value.split(",").map((p) => p.trim());
-            setSelectedPaymentTypes(paymentValues);
-          } else {
-            setSelectedPaymentTypes([filter.value]);
-          }
-        }
-      } else if (param.name === "Terminal") {
-        setSelectorType("terminal");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se temos terminal pré-carregado e estamos em modo de edição, usar ele
-        if (isEditing && filter.value && preloadedData?.terminal) {
-          setSelectedTerminal(preloadedData.terminal);
-          setTerminalSearchTerm(preloadedData.terminal.logical_number || "");
-          return;
-        }
-
-        // Carregar terminais iniciais
-        setLoading(true);
-        try {
-          // Se estiver editando, buscar com o valor atual para encontrar o terminal
-          const searchValue = isEditing && filter.value ? filter.value : "";
-          const terminalsData = await searchTerminals(searchValue);
-          setTerminals(terminalsData);
-
-          // Se estiver editando, buscar e definir o terminal
-          if (isEditing && filter.value) {
-            // Tentar encontrar o terminal pelo logical_number
-            const terminal = terminalsData.find(
-              (t) => t.logical_number === filter.value
-            );
-            if (terminal) {
-              setSelectedTerminal(terminal);
-              setTerminalSearchTerm(terminal.logical_number || "");
-            } else {
-              // Se não encontrar, apenas definir o termo de busca
-              setTerminalSearchTerm(filter.value);
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao carregar terminais:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else if (param.name === "Ciclo da Transação") {
-        setSelectorType("cycleType");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, inicializar os ciclos
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const cycleValues = filter.value.split(",").map((c) => c.trim());
-            setSelectedCycleTypes(cycleValues);
-          } else {
-            setSelectedCycleTypes([filter.value]);
-          }
-        }
-      } else if (param.name === "Repasse da Transação") {
-        setSelectorType("splitType");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, inicializar os tipos de repasse
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const splitValues = filter.value.split(",").map((s) => s.trim());
-            setSelectedSplitTypes(splitValues);
-          } else {
-            setSelectedSplitTypes([filter.value]);
-          }
-        }
-      } else if (param.name === "Modo de Captura") {
-        setSelectorType("captureMode");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, inicializar os modos de captura
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const captureValues = filter.value.split(",").map((c) => c.trim());
-            setSelectedCaptureModes(captureValues);
-          } else {
-            setSelectedCaptureModes([filter.value]);
-          }
-        }
-      } else if (param.name === "Modo de Entrada") {
-        setSelectorType("entryMode");
-        setParamSelected(true); // Garantir que o parâmetro esteja selecionado
-
-        // Se estiver editando, inicializar os modos de entrada
-        if (isEditing && filter.value) {
-          if (filter.value.includes(",")) {
-            const entryValues = filter.value.split(",").map((e) => e.trim());
-            setSelectedEntryModes(entryValues);
-          } else {
-            setSelectedEntryModes([filter.value]);
-          }
-        }
-      } else {
-        setSelectorType("none");
-      }
-    },
-    [
-      reportFilterParams,
-      filter.id,
-      filter.value,
-      filter.typeName,
-      selectedType,
-      form,
-      preloadedData?.merchant,
-      preloadedData?.terminal,
-    ]
-  );
 
   // Função para buscar estabelecimentos quando o botão é clicado
   const searchMerchantsByTerm = useCallback(async () => {
