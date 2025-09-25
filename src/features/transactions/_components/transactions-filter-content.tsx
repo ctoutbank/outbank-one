@@ -18,6 +18,7 @@ import {
   transactionProductTypeList,
   transactionStatusList,
 } from "@/lib/lookuptables/lookuptables-transactions";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Search } from "lucide-react";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
@@ -89,15 +90,9 @@ export function FilterTransactionsContent({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
+  useClickOutside(filterRef, onClose);
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-
     const handleKeyDownGlobal = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -106,7 +101,6 @@ export function FilterTransactionsContent({
     document.addEventListener("keydown", handleKeyDownGlobal);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDownGlobal);
     };
   }, [onClose]);
