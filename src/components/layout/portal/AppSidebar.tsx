@@ -120,7 +120,7 @@ export function AppSidebar() {
         const transformedData = {
           teams: data.teams.map((team: any) => ({
             ...team,
-            name: team.name || "Portal", // Fallback for name
+            name: team.name || "Portal",
           })),
           navSections: data.navSections.map((section: any) => ({
             ...section,

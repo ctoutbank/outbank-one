@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import type { TransactionsDashboardTotals } from "@/features/transactions/serverActions/transaction";
 import { CreditCard } from "lucide-react";
 import Image from "next/image";
@@ -24,6 +19,7 @@ interface CardData {
 export function TransactionSummaryCards({
   transactions,
 }: TransactionSummaryCardsProps) {
+  // Função para formatar valores monetários
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -31,91 +27,137 @@ export function TransactionSummaryCards({
     }).format(value);
   };
 
+  // Função para formatar número de transações
   const formatTransactions = (count: number) => {
     return new Intl.NumberFormat("pt-BR").format(count) + " transações";
   };
 
-  const processDataByType = (type: string) =>
-    transactions
-      .filter((t) => t.product_type === type)
-      .reduce(
-        (acc, curr) => ({
-          count: acc.count + Number(curr.count),
-          totalAmount: acc.totalAmount + Number(curr.total_amount),
-        }),
-        { count: 0, totalAmount: 0 }
-      );
+  // Processar dados de Débito
+  const debitData = transactions
+    .filter((t) => t.product_type === "DEBIT")
+    .reduce(
+      (acc, curr) => ({
+        count: acc.count + Number(curr.count),
+        totalAmount: acc.totalAmount + Number(curr.total_amount),
+      }),
+      { count: 0, totalAmount: 0 }
+    );
 
-  const debitData = processDataByType("DEBIT");
-  const creditData = processDataByType("CREDIT");
-  const prepaidDebitData = processDataByType("PREPAID_DEBIT");
-  const prepaidCreditData = processDataByType("PREPAID_CREDIT");
-  const pixData = processDataByType("PIX");
+  // Processar dados de Crédito
+  const creditData = transactions
+    .filter((t) => t.product_type === "CREDIT")
+    .reduce(
+      (acc, curr) => ({
+        count: acc.count + Number(curr.count),
+        totalAmount: acc.totalAmount + Number(curr.total_amount),
+      }),
+      { count: 0, totalAmount: 0 }
+    );
 
+  // Processar dados de Débito Pré-pago
+  const prepaidDebitData = transactions
+    .filter((t) => t.product_type === "PREPAID_DEBIT")
+    .reduce(
+      (acc, curr) => ({
+        count: acc.count + Number(curr.count),
+        totalAmount: acc.totalAmount + Number(curr.total_amount),
+      }),
+      { count: 0, totalAmount: 0 }
+    );
+
+  // Processar dados de Crédito Pré-pago
+  const prepaidCreditData = transactions
+    .filter((t) => t.product_type === "PREPAID_CREDIT")
+    .reduce(
+      (acc, curr) => ({
+        count: acc.count + Number(curr.count),
+        totalAmount: acc.totalAmount + Number(curr.total_amount),
+      }),
+      { count: 0, totalAmount: 0 }
+    );
+
+  // Processar dados de PIX (assumindo que existe um tipo PIX)
+  const pixData = transactions
+    .filter((t) => t.product_type === "PIX")
+    .reduce(
+      (acc, curr) => ({
+        count: acc.count + Number(curr.count),
+        totalAmount: acc.totalAmount + Number(curr.total_amount),
+      }),
+      { count: 0, totalAmount: 0 }
+    );
+
+  // Criar array de cards
   const cardsData: CardData[] = [
     {
       id: "debit",
       title: "Débito",
       value: debitData.totalAmount,
       count: debitData.count,
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
+      icon: <CreditCard className="h-6 w-6 text-black" />,
     },
     {
       id: "credit",
       title: "Crédito",
       value: creditData.totalAmount,
       count: creditData.count,
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
+      icon: <CreditCard className="h-6 w-6 text-black" />,
     },
     {
       id: "prepaid-debit",
       title: "Débito Pré-pago",
       value: prepaidDebitData.totalAmount,
       count: prepaidDebitData.count,
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
+      icon: <CreditCard className="h-6 w-6 text-black" />,
     },
     {
       id: "prepaid-credit",
       title: "Crédito Pré-pago",
       value: prepaidCreditData.totalAmount,
       count: prepaidCreditData.count,
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
+      icon: <CreditCard className="h-6 w-6 text-black" />,
     },
     {
       id: "pix",
       title: "Pix",
       value: pixData.totalAmount,
       count: pixData.count,
-      icon: (
-        <Image
-          src="/pix.png"
-          alt="Ícone de PIX"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      icon: <Image src="/pix.png" alt="Ícone de PIX" width={24} height={24} className="h-6 w-6" />,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-      {cardsData.map((card) => (
-        <Card key={card.id}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-            {card.icon}
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(card.value)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {formatTransactions(card.count)}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {cardsData.map((card) => (
+          <Card
+            key={card.id}
+            className="bg-white border border-gray-200 hover:shadow-md transition-shadow"
+          >
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-3">
+                {/* Ícone */}
+                <div className="flex justify-start">{card.icon}</div>
+
+                {/* Título */}
+                <div className="text-sm font-medium text-gray-600">
+                  {card.title}
+                </div>
+
+                {/* Valor */}
+                <div className="text-sm font-bold text-gray-900">
+                  {formatCurrency(card.value)}
+                </div>
+
+                {/* Número de transações */}
+                <div className="text-xs text-gray-500">
+                  {formatTransactions(card.count)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

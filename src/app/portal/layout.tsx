@@ -1,7 +1,7 @@
 import IdleLogout from "@/components/IdleLogout";
 import { AppSidebar } from "@/components/layout/portal/AppSidebar";
-
 import { SidebarProvider } from "@/hooks/use-sidebar-context";
+import IdleLogout from "@/components/IdleLogout";
 
 export default function PortalLayout({
   children,

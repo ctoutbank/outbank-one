@@ -1,48 +1,45 @@
+import BaseBody from "@/components/layout/base-body";
+import BaseHeader from "@/components/layout/base-header";
+
 import { EmptyState } from "@/components/empty-state";
-import { PageHeader } from "@/components/layout/portal/PageHeader";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { CategoriesDashboardContent } from "@/features/categories/_components/categories-dashboard-content";
 import { CategoriesFilter } from "@/features/categories/_components/categories-filter";
-import Categorylist from "@/features/categories/_components/categories-list";
 import { getCategories } from "@/features/categories/server/category";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
+import Categorylist from "../../../features/categories/_components/categories-list";
 
 export const revalidate = 300;
 
 type CategoryProps = {
-  searchParams: {
-    page?: string;
-    pageSize?: string;
-    search?: string;
-    sortField?: string;
-    sortOrder?: string;
-    name?: string;
-    status?: string;
-    mcc?: string;
-    cnae?: string;
-  };
+  page?: string;
+  pageSize?: string;
+  search?: string;
+  sortField?: string;
+  sortOrder?: string;
+  name?: string;
+  status?: string;
+  mcc?: string;
+  cnae?: string;
 };
 
-export default async function CategoriesPage({ searchParams }: CategoryProps) {
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<CategoryProps>;
+}) {
   await checkPagePermission("Categorias");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const sortField = searchParams.sortField || "id";
-  const sortOrder = (searchParams.sortOrder || "desc") as "asc" | "desc";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const sortField = resolvedSearchParams.sortField || "id";
+  const sortOrder = (resolvedSearchParams.sortOrder || "desc") as "asc" | "desc";
 
   const categories = await getCategories(
     search,
@@ -50,58 +47,61 @@ export default async function CategoriesPage({ searchParams }: CategoryProps) {
     pageSize,
     sortField,
     sortOrder,
-    searchParams.name,
-    searchParams.status,
-    searchParams.mcc,
-    searchParams.cnae
+    resolvedSearchParams.name,
+    resolvedSearchParams.status,
+    resolvedSearchParams.mcc,
+    resolvedSearchParams.cnae
   );
   const totalRecords = categories.totalCount;
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Categorias (CNAE)"
-        description="Gerencie as categorias de negócio (CNAE) do sistema."
-      >
-        <Button asChild>
-          <Link href="/portal/categories/0">
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Categoria
-          </Link>
-        </Button>
-      </PageHeader>
-
-      <CategoriesDashboardContent
-        totalCategories={totalRecords}
-        activeCategories={categories.activeCount}
-        inactiveCategories={categories.inactiveCount}
-        avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
-        avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
-        avgAnticipationRiskFactorCp={categories.avgAnticipationRiskFactorCp}
-        avgAnticipationRiskFactorCnp={categories.avgAnticipationRiskFactorCnp}
+    <>
+      <BaseHeader
+        breadcrumbItems={[{ title: "CNAE", url: "/portal/categories" }]}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Categorias</CardTitle>
-          <CardDescription>
-            Filtre e visualize todas as categorias cadastradas.
-          </CardDescription>
-          <div className="pt-4">
-            <CategoriesFilter
-              nameIn={searchParams.name}
-              statusIn={searchParams.status}
-              mccIn={searchParams.mcc}
-              cnaeIn={searchParams.cnae}
-            />
+      <BaseBody title="CNAE" subtitle={`Visualização de Todos os CNAE`}>
+        <div className="flex flex-col space-y-4">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <CategoriesFilter
+                nameIn={resolvedSearchParams.name}
+                statusIn={resolvedSearchParams.status}
+                mccIn={resolvedSearchParams.mcc}
+                cnaeIn={resolvedSearchParams.cnae}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/categories/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo CNAE
+              </Link>
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex-grow">
+              <CategoriesDashboardContent
+                totalCategories={totalRecords}
+                activeCategories={categories.activeCount}
+                inactiveCategories={categories.inactiveCount}
+                avgWaitingPeriodCp={categories.avgWaitingPeriodCp}
+                avgWaitingPeriodCnp={categories.avgWaitingPeriodCnp}
+                avgAnticipationRiskFactorCp={
+                  categories.avgAnticipationRiskFactorCp
+                }
+                avgAnticipationRiskFactorCnp={
+                  categories.avgAnticipationRiskFactorCnp
+                }
+              />
+            </div>
+          </div>
+
           {categories.categories.length === 0 ? (
             <EmptyState
               icon={Search}
-              title="Nenhuma categoria encontrada"
-              description="Tente ajustar seus filtros para encontrar o que procura."
+              title="Nenhum resultado encontrado"
+              description=""
             />
           ) : (
             <Categorylist
@@ -110,22 +110,23 @@ export default async function CategoriesPage({ searchParams }: CategoryProps) {
               sortOrder={sortOrder}
             />
           )}
-        </CardContent>
-        {totalRecords > 0 && (
-          <CardFooter className="flex items-center justify-between">
-            <PageSizeSelector
-              currentPageSize={pageSize}
-              pageName="portal/categories"
-            />
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/categories"
-            />
-          </CardFooter>
-        )}
-      </Card>
-    </div>
+
+          {totalRecords > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/categories"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/categories"
+              />
+            </div>
+          )}
+        </div>
+      </BaseBody>
+    </>
   );
 }

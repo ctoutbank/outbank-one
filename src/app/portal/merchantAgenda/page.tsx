@@ -1,6 +1,5 @@
-import { PageHeader } from "@/components/layout/portal/PageHeader";
-import { MerchantAgendaTabs } from "@/features/merchantAgenda/_components/merchantAgenda-tabs";
-import type { SearchParams } from "@/features/merchantAgenda/_components/merchantAgenda-tabs";
+import BaseBody from "@/components/layout/base-body";
+import BaseHeader from "@/components/layout/base-header";
 import { getMerchantAgenda } from "@/features/merchantAgenda/server/merchantAgenda";
 import {
   getMerchantAgendaAdjustment,
@@ -14,105 +13,120 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 
 export const revalidate = 300;
 
+// Create TabChangeHandler in a separate file
+import {
+  MerchantAgendaTabs,
+  SearchParams,
+} from "@/features/merchantAgenda/_components/merchantAgenda- tabs";
+
 export default async function MerchantAgendaPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
   await checkPagePermission("Agenda Lojista");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const transactionDateFrom = searchParams.transactionDateFrom || "";
-  const transactionDateTo = searchParams.transactionDateTo || "";
-  const establishmentIn = searchParams.establishment || undefined;
-  const nsuIn = searchParams.nsu || undefined;
-  const statusIn = searchParams.status || undefined;
-  const orderIdIn = searchParams.orderId || undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const transactionDateFrom = resolvedSearchParams.transactionDateFrom || "";
+  const transactionDateTo = resolvedSearchParams.transactionDateTo || "";
+  const establishmentIn = resolvedSearchParams.establishment || undefined;
+  const nsuIn = resolvedSearchParams.nsu || undefined;
+  const statusIn = resolvedSearchParams.status || undefined;
+  const orderIdIn = resolvedSearchParams.orderId || undefined;
 
-  const [
-    merchantAgenda,
-    merchantAgendaAnticipation,
-    merchantAgendaAdjustment,
-    anticipationDashboardStats,
-    adjustmentDashboardStats,
-  ] = await Promise.all([
-    getMerchantAgenda(
-      page,
-      pageSize,
-      searchParams.transactionDateFrom,
-      searchParams.transactionDateTo,
-      searchParams.establishment,
-      searchParams.status,
-      searchParams.cardBrand,
-      searchParams.settlementDateFrom,
-      searchParams.settlementDateTo,
-      searchParams.expectedSettlementDateFrom,
-      searchParams.expectedSettlementDateTo
-    ),
-    getMerchantAgendaAnticipation(
-      search,
-      page,
-      pageSize,
-      transactionDateFrom,
-      transactionDateTo,
-      establishmentIn,
-      statusIn,
-      searchParams.cardBrand,
-      searchParams.settlementDateFrom,
-      searchParams.settlementDateTo,
-      searchParams.expectedSettlementDateFrom,
-      searchParams.expectedSettlementDateTo,
-      searchParams.saleDateFrom,
-      searchParams.saleDateTo,
-      nsuIn,
-      orderIdIn
-    ),
-    getMerchantAgendaAdjustment(
-      search,
-      page,
-      pageSize,
-      transactionDateFrom,
-      transactionDateTo,
-      establishmentIn
-    ),
-    getMerchantAgendaAnticipationStats(
-      transactionDateFrom,
-      transactionDateTo,
-      establishmentIn,
-      statusIn,
-      searchParams.cardBrand,
-      searchParams.settlementDateFrom,
-      searchParams.settlementDateTo,
-      searchParams.saleDateFrom,
-      searchParams.saleDateTo,
-      nsuIn,
-      orderIdIn
-    ),
-    getMerchantAgendaAdjustmentStats(
-      transactionDateFrom,
-      transactionDateTo,
-      establishmentIn
-    ),
-  ]);
+  // Fetch data in parallel for better performance
+  const [merchantAgenda, merchantAgendaAnticipation, merchantAgendaAdjustment] =
+    await Promise.all([
+      getMerchantAgenda(
+        page,
+        pageSize,
+        resolvedSearchParams.transactionDateFrom,
+        resolvedSearchParams.transactionDateTo,
+        resolvedSearchParams.establishment,
+        resolvedSearchParams.status,
+        resolvedSearchParams.cardBrand,
+        resolvedSearchParams.settlementDateFrom,
+        resolvedSearchParams.settlementDateTo,
+        resolvedSearchParams.expectedSettlementDateFrom,
+        resolvedSearchParams.expectedSettlementDateTo
+      ),
+      getMerchantAgendaAnticipation(
+        search,
+        page,
+        pageSize,
+        transactionDateFrom,
+        transactionDateTo,
+        establishmentIn,
+        statusIn,
+        resolvedSearchParams.cardBrand,
+        resolvedSearchParams.settlementDateFrom,
+        resolvedSearchParams.settlementDateTo,
+        resolvedSearchParams.expectedSettlementDateFrom,
+        resolvedSearchParams.expectedSettlementDateTo,
+        resolvedSearchParams.saleDateFrom,
+        resolvedSearchParams.saleDateTo,
+        nsuIn,
+        orderIdIn
+      ),
+      getMerchantAgendaAdjustment(
+        search,
+        page,
+        pageSize,
+        transactionDateFrom,
+        transactionDateTo,
+        establishmentIn
+      ),
+    ]);
+
+  // Buscar dados para o dashboard
+  const anticipationDashboardStats = await getMerchantAgendaAnticipationStats(
+    transactionDateFrom,
+    transactionDateTo,
+    establishmentIn,
+    statusIn,
+    resolvedSearchParams.cardBrand,
+    resolvedSearchParams.settlementDateFrom,
+    resolvedSearchParams.settlementDateTo,
+    resolvedSearchParams.saleDateFrom,
+    resolvedSearchParams.saleDateTo,
+    nsuIn,
+    orderIdIn
+  );
+
+  // Buscar dados para o dashboard de ajustes
+  const adjustmentDashboardStats = await getMerchantAgendaAdjustmentStats(
+    transactionDateFrom,
+    transactionDateTo,
+    establishmentIn
+  );
 
   return (
-    <div className="space-y-8">
-      <PageHeader
+    <>
+      <BaseHeader
+        breadcrumbItems={[
+          { title: "Agenda dos Lojistas", url: "/portal/merchantAgenda" },
+        ]}
+      />
+
+      <BaseBody
         title="Agenda dos Lojistas"
-        description="Visualize sua agenda de pagamentos, antecipações e ajustes."
-      />
-      <MerchantAgendaTabs
-        merchantAgendaTabsProps={{
-          searchParams,
-          merchantAgenda,
-          merchantAgendaAnticipation,
-          merchantAgendaAdjustment,
-          anticipationDashboardStats,
-          adjustmentDashboardStats,
-        }}
-      />
-    </div>
+        subtitle={`Visualização da Agenda dos Lojistas`}
+        className="overflow-x-visible"
+      >
+        <MerchantAgendaTabs
+          merchantAgendaTabsProps={{
+            searchParams: resolvedSearchParams,
+            merchantAgenda: merchantAgenda,
+            merchantAgendaAnticipation: merchantAgendaAnticipation,
+            merchantAgendaAdjustment: merchantAgendaAdjustment,
+            anticipationDashboardStats: anticipationDashboardStats,
+            adjustmentDashboardStats: adjustmentDashboardStats,
+          }}
+        />
+      </BaseBody>
+    </>
   );
 }

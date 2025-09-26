@@ -1,14 +1,8 @@
-import { PageHeader } from "@/components/layout/portal/PageHeader";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import BaseBody from "@/components/layout/base-body";
+import BaseHeader from "@/components/layout/base-header";
 import MerchantAgendaReceipts from "@/features/merchantAgenda/_components/merchantAgendaReceipts";
 import {
-  type DailyAmount,
+  DailyAmount,
   getGlobalSettlement,
   getMerchantAgendaReceipts,
 } from "@/features/merchantAgenda/server/merchantAgenda";
@@ -17,52 +11,63 @@ import { checkPagePermission } from "@/lib/auth/check-permissions";
 export const revalidate = 300;
 
 type ReceiptsProps = {
-  searchParams: {
-    search?: string;
-    date?: string;
-  };
+  search?: string;
+  date?: string;
 };
 
-export default async function ReceiptsPage({ searchParams }: ReceiptsProps) {
+export default async function ReceiptsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ReceiptsProps>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const currentDate = resolvedSearchParams.date
+    ? new Date(resolvedSearchParams.date)
+    : new Date();
+
   await checkPagePermission("Agenda de Antecipações");
+  console.log(resolvedSearchParams.search);
+  const merchantAgendaReceipts = await getMerchantAgendaReceipts(
+    resolvedSearchParams.search || null,
+    currentDate
+  );
 
-  const currentDate = searchParams.date ? new Date(searchParams.date) : new Date();
 
-  const [merchantAgendaReceipts, dailyData] = await Promise.all([
-    getMerchantAgendaReceipts(searchParams.search || null, currentDate),
-    getGlobalSettlement(searchParams.search || null, searchParams.date || ""),
-  ]);
-
+  // Garante que os dados estão no formato correto para o calendário
   const dailyAmounts: DailyAmount[] = merchantAgendaReceipts
-    .map((receipt) => ({
-      date: String(receipt.day),
-      amount: Number(receipt.totalAmount) || 0,
-      status: receipt.status,
-      is_anticipation: receipt.is_anticipation,
-    }))
-    .filter((item) => item.amount > 0);
+    .map((receipt) => {
+      return {
+        date: String(receipt.day),
+        amount: Number(receipt.totalAmount) || 0,
+        status: receipt.status,
+        is_anticipation: receipt.is_anticipation,
+      };
+    })
+    .filter((item) => item.amount > 0); // Remove dias sem valores
+
+  const dailyData = await getGlobalSettlement(
+    resolvedSearchParams.search || null,
+    resolvedSearchParams.date || ""
+  );
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Recebimentos"
-        description="Acompanhe sua agenda de pagamentos futuros."
+    <>
+      <BaseHeader
+        breadcrumbItems={[{ title: "Recebimentos", url: "/portal/receipts" }]}
       />
-      <Card>
-        <CardHeader>
-          <CardTitle>Agenda de Recebimentos</CardTitle>
-          <CardDescription>
-            Navegue pelo calendário para ver os valores programados para cada
-            dia.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+
+      <BaseBody
+        title="Recebimentos"
+        subtitle={`Visualização dos Recebimentos`}
+        //actions={<SyncButton syncType="payout" />}
+      >
+
           <MerchantAgendaReceipts
             monthlyData={dailyAmounts}
             dailyData={dailyData}
           />
-        </CardContent>
-      </Card>
-    </div>
+
+      </BaseBody>
+    </>
   );
 }

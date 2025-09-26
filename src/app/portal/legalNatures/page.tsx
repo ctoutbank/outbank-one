@@ -1,16 +1,10 @@
-import { EmptyState } from "@/components/empty-state";
-import { PageHeader } from "@/components/layout/portal/PageHeader";
+import BaseBody from "@/components/layout/base-body";
+import BaseHeader from "@/components/layout/base-header";
 import PageSizeSelector from "@/components/page-size-selector";
+
+import { EmptyState } from "@/components/empty-state";
 import PaginationRecords from "@/components/pagination-Records";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { LegalNatureDashboardContent } from "@/features/legalNature/_components/legalNature-dashboard-content";
 import { LegalNatureFilter } from "@/features/legalNature/_components/legalNature-filter";
 import LegalNaturelist from "@/features/legalNature/_components/legalNatures-list";
@@ -22,33 +16,34 @@ import Link from "next/link";
 export const revalidate = 300;
 
 type LegalNatureProps = {
-  searchParams: {
-    page?: string;
-    pageSize?: string;
-    search?: string;
-    name?: string;
-    code?: string;
-    active?: string;
-    sortBy?: string;
-    sortOrder?: string;
-  };
+  page: string;
+  pageSize: string;
+  search: string;
+  name: string;
+  code: string;
+  active: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function LegalNaturesPage({
   searchParams,
-}: LegalNatureProps) {
+}: {
+  searchParams: Promise<LegalNatureProps>;
+}) {
   await checkPagePermission("Natureza Juridica");
 
-  const page = parseInt(searchParams.page || "1");
-  const pageSize = parseInt(searchParams.pageSize || "10");
-  const search = searchParams.search || "";
-  const name = searchParams.name || "";
-  const code = searchParams.code || "";
-  const active = searchParams.active || "";
-  const sortBy = searchParams.sortBy || "id";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
+  const search = resolvedSearchParams.search || "";
+  const name = resolvedSearchParams.name || "";
+  const code = resolvedSearchParams.code || "";
+  const active = resolvedSearchParams.active || "";
+  const sortBy = resolvedSearchParams.sortBy || "id";
   const sortOrder =
-    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
-      ? searchParams.sortOrder
+    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
+      ? resolvedSearchParams.sortOrder
       : "desc";
 
   const legalNatures = await getLegalNatures(
@@ -64,65 +59,69 @@ export default async function LegalNaturesPage({
   const totalRecords = legalNatures.totalCount;
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Formatos Jurídicos"
-        description="Gerencie as naturezas legais utilizadas no sistema."
-      >
-        <Button asChild>
-          <Link href="/portal/legalNatures/0">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Formato Jurídico
-          </Link>
-        </Button>
-      </PageHeader>
-
-      <LegalNatureDashboardContent
-        totalLegalNatures={legalNatures.totalCount}
-        activeLegalNatures={legalNatures.activeCount}
-        inactiveLegalNatures={legalNatures.inactiveCount}
+    <>
+      <BaseHeader
+        breadcrumbItems={[
+          { title: "Formato Jurídico", url: "/portal/legalNatures" },
+        ]}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Formatos Jurídicos</CardTitle>
-          <CardDescription>
-            Filtre e visualize todos os formatos jurídicos cadastrados.
-          </CardDescription>
-          <div className="pt-4">
-            <LegalNatureFilter
-              nameIn={searchParams.name}
-              codeIn={searchParams.code}
-              activeIn={searchParams.active}
-            />
+      <BaseBody
+        title="Formato Jurídico"
+        subtitle={`Visualização de Todos Formatos Jurídicos`}
+      >
+        <div className="flex flex-col space-y-4">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex-1">
+              <LegalNatureFilter
+                nameIn={resolvedSearchParams.name}
+                codeIn={resolvedSearchParams.code}
+                activeIn={resolvedSearchParams.active}
+              />
+            </div>
+            <Button asChild className="ml-2">
+              <Link href="/portal/legalNatures/0">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo Formato Jurídico
+              </Link>
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex-grow">
+              <LegalNatureDashboardContent
+                totalLegalNatures={legalNatures.totalCount}
+                activeLegalNatures={legalNatures.activeCount}
+                inactiveLegalNatures={legalNatures.inactiveCount}
+              />
+            </div>
+          </div>
           {legalNatures.legalNatures.length === 0 ? (
             <EmptyState
               icon={Search}
               title="Nenhum resultado encontrado"
-              description="Tente ajustar seus filtros para encontrar o que procura."
+              description=""
             />
           ) : (
             <LegalNaturelist LegalNatures={legalNatures} />
           )}
-        </CardContent>
-        {totalRecords > 0 && (
-          <CardFooter className="flex items-center justify-between">
-            <PageSizeSelector
-              currentPageSize={pageSize}
-              pageName="portal/legalNatures"
-            />
-            <PaginationRecords
-              totalRecords={totalRecords}
-              currentPage={page}
-              pageSize={pageSize}
-              pageName="portal/legalNatures"
-            />
-          </CardFooter>
-        )}
-      </Card>
-    </div>
+
+          {totalRecords > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <PageSizeSelector
+                currentPageSize={pageSize}
+                pageName="portal/legalNatures"
+              />
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/legalNatures"
+              />
+            </div>
+          )}
+        </div>
+      </BaseBody>
+    </>
   );
 }
