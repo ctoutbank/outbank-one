@@ -1,8 +1,15 @@
 import { EmptyState } from "@/components/empty-state";
-import BaseBody from "@/components/layout/base-body";
-import BaseHeader from "@/components/layout/base-header";
+import { PageHeader } from "@/components/layout/portal/PageHeader";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { EdisDashboardContent } from "@/features/edis/_components/edis-dashboard-content";
 import { EdisFilter } from "@/features/edis/_components/edis-filter";
 import EdisList from "@/features/edis/_components/edis-list";
@@ -10,32 +17,28 @@ import { getEdis } from "@/features/edis/server/edis";
 import { Search } from "lucide-react";
 
 type EdisProps = {
-  page?: string;
-  pageSize?: string;
-  search?: string;
-  status?: string;
-  type?: string;
-  date?: string;
+  searchParams: {
+    page?: string;
+    pageSize?: string;
+    search?: string;
+    status?: string;
+    type?: string;
+    date?: string;
+  };
 };
 
-export default async function EdisPage({
-  searchParams,
-}: {
-  searchParams: Promise<EdisProps>;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const page = parseInt(resolvedSearchParams.page || "1");
-  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
-  const search = resolvedSearchParams.search || "";
+export default async function EdisPage({ searchParams }: EdisProps) {
+  const page = parseInt(searchParams.page || "1");
+  const pageSize = parseInt(searchParams.pageSize || "10");
+  const search = searchParams.search || "";
 
-  // Buscar dados EDIS usando a função de servidor
   const edis = await getEdis(
     search,
     page,
     pageSize,
-    resolvedSearchParams.type,
-    resolvedSearchParams.status,
-    resolvedSearchParams.date
+    searchParams.type,
+    searchParams.status,
+    searchParams.date
   );
 
   const totalRecords = edis.totalCount;
@@ -50,56 +53,54 @@ export default async function EdisPage({
   };
 
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[{ title: "Arquivos EDIS", url: "/portal/edis" }]}
+    <div className="space-y-8">
+      <PageHeader
+        title="Arquivos EDI"
+        description="Gerencie e visualize os arquivos de Intercâmbio Eletrônico de Dados."
       />
 
-      <BaseBody
-        title="Arquivos EDI"
-        subtitle={`Visualização de Todos os Arquivos EDI`}
-      >
-        <div className="flex flex-col space-y-4">
-          <div className="mb-1 flex justify-start">
+      <EdisDashboardContent {...edisData} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Arquivos</CardTitle>
+          <CardDescription>
+            Filtre e visualize todos os arquivos EDI processados.
+          </CardDescription>
+          <div className="pt-4">
             <EdisFilter
-              typeIn={resolvedSearchParams.type}
-              statusIn={resolvedSearchParams.status}
-              dateIn={resolvedSearchParams.date}
+              typeIn={searchParams.type}
+              statusIn={searchParams.status}
+              dateIn={searchParams.date}
             />
           </div>
-
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-grow">
-              <EdisDashboardContent {...edisData} />
-            </div>
-          </div>
-
+        </CardHeader>
+        <CardContent>
           {edis.data.length === 0 ? (
             <EmptyState
               icon={Search}
-              title="Nenhum resultado encontrado"
-              description=""
+              title="Nenhum arquivo EDI encontrado"
+              description="Tente ajustar seus filtros para encontrar o que procura."
             />
           ) : (
             <EdisList list={edis} />
           )}
-
-          {totalRecords > 0 && (
-            <div className="flex items-center justify-between mt-4">
-              <PageSizeSelector
-                currentPageSize={pageSize}
-                pageName="portal/edis"
-              />
-              <PaginationRecords
-                totalRecords={totalRecords}
-                currentPage={page}
-                pageSize={pageSize}
-                pageName="portal/edis"
-              />
-            </div>
-          )}
-        </div>
-      </BaseBody>
-    </>
+        </CardContent>
+        {totalRecords > 0 && (
+          <CardFooter className="flex items-center justify-between">
+            <PageSizeSelector
+              currentPageSize={pageSize}
+              pageName="portal/edis"
+            />
+            <PaginationRecords
+              totalRecords={totalRecords}
+              currentPage={page}
+              pageSize={pageSize}
+              pageName="portal/edis"
+            />
+          </CardFooter>
+        )}
+      </Card>
+    </div>
   );
 }

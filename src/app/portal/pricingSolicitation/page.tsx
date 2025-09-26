@@ -1,8 +1,15 @@
 import { EmptyState } from "@/components/empty-state";
-import BaseBody from "@/components/layout/base-body";
-import BaseHeader from "@/components/layout/base-header";
+import { PageHeader } from "@/components/layout/portal/PageHeader";
 import PageSizeSelector from "@/components/page-size-selector";
 import PaginationRecords from "@/components/pagination-Records";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PricingSolicitationFilter } from "@/features/pricingSolicitation/_components/pricing-solicitation-filter";
 import PricingSolicitationList from "@/features/pricingSolicitation/_components/pricing-solicitation-list";
 import { getPricingSolicitations } from "@/features/pricingSolicitation/server/pricing-solicitation";
@@ -12,31 +19,30 @@ import { Search } from "lucide-react";
 export const revalidate = 300;
 
 type PricingSolicitationProps = {
-  page: string;
-  pageSize: string;
-  merchant: string;
-  cnae: string;
-  status: string;
-  sortBy?: string;
-  sortOrder?: string;
+  searchParams: {
+    page?: string;
+    pageSize?: string;
+    merchant?: string;
+    cnae?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  };
 };
 
 export default async function PricingSolicitationPage({
   searchParams,
-}: {
-  searchParams: Promise<PricingSolicitationProps>;
-}) {
+}: PricingSolicitationProps) {
   const permissions = await checkPagePermission("Solicitação de Taxas");
 
-  const resolvedSearchParams = await searchParams;
-  const page = parseInt(resolvedSearchParams.page || "1");
-  const pageSize = parseInt(resolvedSearchParams.pageSize || "10");
-  const cnae = resolvedSearchParams.cnae || "";
-  const status = resolvedSearchParams.status || "";
-  const sortBy = resolvedSearchParams.sortBy || "id";
+  const page = parseInt(searchParams.page || "1");
+  const pageSize = parseInt(searchParams.pageSize || "10");
+  const cnae = searchParams.cnae || "";
+  const status = searchParams.status || "";
+  const sortBy = searchParams.sortBy || "id";
   const sortOrder =
-    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
-      ? resolvedSearchParams.sortOrder
+    searchParams.sortOrder === "asc" || searchParams.sortOrder === "desc"
+      ? searchParams.sortOrder
       : "desc";
 
   const pricingSolicitations = await getPricingSolicitations(
@@ -49,63 +55,40 @@ export default async function PricingSolicitationPage({
 
   const totalRecords = pricingSolicitations?.totalCount || 0;
 
-  if (
-    !pricingSolicitations ||
-    pricingSolicitations.pricingSolicitations.length === 0
-  ) {
-    return (
-      <>
-        <BaseHeader
-          breadcrumbItems={[
-            {
-              title: "Solicitação de Taxas",
-              url: "/portal/pricingSolicitation",
-            },
-          ]}
-        />
-        <BaseBody
-          title="Solicitação de Taxa"
-          subtitle={`Visualização de Todas as Solicitações de Taxas`}
-        >
-          <div className="mb-4">
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Solicitação de Taxas"
+        description="Analise e gerencie as solicitações de precificação pendentes."
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Solicitações</CardTitle>
+          <CardDescription>
+            Filtre e visualize todas as solicitações de taxas.
+          </CardDescription>
+          <div className="pt-4">
             <PricingSolicitationFilter
               cnae={cnae}
               status={status}
               permissions={permissions}
             />
           </div>
-          <EmptyState
-            icon={Search}
-            title="Nenhum resultado encontrado"
-            description=""
-          />
-        </BaseBody>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[
-          { title: "Solicitação de Taxas", url: "/portal/pricingSolicitation" },
-        ]}
-      />
-
-      <BaseBody
-        title="Solicitação de Taxa"
-        subtitle={`Visualização de Todas as Solicitações de Taxas`}
-      >
-        <div className="mb-4">
-          <PricingSolicitationFilter
-            cnae={cnae}
-            status={status}
-            permissions={permissions}
-          />
-        </div>
-        <PricingSolicitationList solicitations={pricingSolicitations} />
+        </CardHeader>
+        <CardContent>
+          {!pricingSolicitations ||
+          pricingSolicitations.pricingSolicitations.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhuma solicitação encontrada"
+              description="Tente ajustar seus filtros para encontrar o que procura."
+            />
+          ) : (
+            <PricingSolicitationList solicitations={pricingSolicitations} />
+          )}
+        </CardContent>
         {totalRecords > 0 && (
-          <div className="flex items-center justify-between mt-4">
+          <CardFooter className="flex items-center justify-between">
             <PageSizeSelector
               currentPageSize={pageSize}
               pageName="portal/pricingSolicitation"
@@ -116,9 +99,9 @@ export default async function PricingSolicitationPage({
               pageSize={pageSize}
               pageName="portal/pricingSolicitation"
             />
-          </div>
+          </CardFooter>
         )}
-      </BaseBody>
-    </>
+      </Card>
+    </div>
   );
 }
