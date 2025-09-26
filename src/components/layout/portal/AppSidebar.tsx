@@ -227,7 +227,11 @@ export function AppSidebar() {
 
         <div className="mt-auto border-t p-4">
           <SignOutButton>
-            <a className="group flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+            <div
+              role="button"
+              tabIndex={0}
+              className="group flex cursor-pointer items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
               {user && (
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user.imageUrl} alt={user.fullName || ""} />
@@ -237,11 +241,13 @@ export function AppSidebar() {
               {isOpen && (
                 <div className="flex flex-col text-left">
                   <span className="font-medium">{user?.fullName}</span>
-                  <span className="text-xs text-sidebar-foreground/60">{user?.primaryEmailAddress?.emailAddress}</span>
+                  <span className="text-xs text-sidebar-foreground/60">
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </span>
                 </div>
               )}
               {isOpen && <LogOut className="ml-auto h-5 w-5" />}
-            </a>
+            </div>
           </SignOutButton>
         </div>
       </div>
