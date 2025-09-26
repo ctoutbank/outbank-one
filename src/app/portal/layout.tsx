@@ -1,7 +1,6 @@
 import IdleLogout from "@/components/IdleLogout";
 import { AppSidebar } from "@/components/layout/portal/AppSidebar";
 import { SidebarProvider } from "@/hooks/use-sidebar-context";
-import IdleLogout from "@/components/IdleLogout";
 
 export default function PortalLayout({
   children,
@@ -13,9 +12,7 @@ export default function PortalLayout({
       <div className="flex w-full min-h-screen">
         <AppSidebar />
         <IdleLogout />
-        <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col">{children}</div>
       </div>
     </SidebarProvider>
   );
