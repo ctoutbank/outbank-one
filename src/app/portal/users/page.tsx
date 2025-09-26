@@ -1,5 +1,4 @@
-import BaseBody from "@/components/layout/base-body";
-import BaseHeader from "@/components/layout/base-header";
+import { PageHeader } from "@/components/layout/portal/PageHeader";
 import UserTabs from "@/features/users/_components/user-tabs";
 import { getProfiles } from "@/features/users/server/profiles";
 import {
@@ -32,7 +31,6 @@ const getCachedProfiles = cache(getProfiles);
 const getCachedDDProfiles = cache(getDDProfiles);
 const getCachedDDMerchants = cache(getDDMerchants);
 
-// Componentes separados para cada tab
 async function UsersTabContent({
   email,
   firstName,
@@ -40,7 +38,10 @@ async function UsersTabContent({
   profile,
   page,
   pageSize,
-}: UsersPageProps) {
+}: Pick<
+  UsersPageProps,
+  "email" | "firstName" | "lastName" | "profile" | "page" | "pageSize"
+>) {
   const users = await getCachedUsers(
     email,
     firstName,
@@ -71,28 +72,19 @@ async function ProfilesTabContent({
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: Promise<UsersPageProps>;
+  searchParams: UsersPageProps;
 }) {
   const permissions = await checkPagePermission("Configurar Perfis e Usuários");
 
-  const resolvedSearchParams = await searchParams;
-  const page = Number.parseInt(resolvedSearchParams.page || "1");
-  const pageSize = Number.parseInt(resolvedSearchParams.pageSize || "10");
-  const email = resolvedSearchParams.email || "";
-  const firstName = resolvedSearchParams.firstName || "";
-  const lastName = resolvedSearchParams.lastName || "";
-  const activeTab = resolvedSearchParams.tab || "users";
-  const profileId = resolvedSearchParams.profile || "0";
-  const customerId = resolvedSearchParams.customer || "0";
-  const merchantId = resolvedSearchParams.merchant || "0";
-  const profileName = resolvedSearchParams.profileName || "";
-  const sortBy = resolvedSearchParams.sortBy || "id";
-  const sortOrder =
-    resolvedSearchParams.sortOrder === "asc" || resolvedSearchParams.sortOrder === "desc"
-      ? resolvedSearchParams.sortOrder
-      : "desc";
-
-  console.log(permissions);
+  const page = Number.parseInt(searchParams.page || "1");
+  const pageSize = Number.parseInt(searchParams.pageSize || "10");
+  const email = searchParams.email || "";
+  const firstName = searchParams.firstName || "";
+  const lastName = searchParams.lastName || "";
+  const activeTab = searchParams.tab || "users";
+  const profileId = searchParams.profile || "0";
+  const merchantId = searchParams.merchant || "0";
+  const profileName = searchParams.profileName || "";
 
   let usersData, profilesData;
 
@@ -102,65 +94,47 @@ export default async function UsersPage({
       firstName,
       lastName,
       profile: profileId,
-      customer: customerId,
-      merchant: merchantId,
       page: page.toString(),
       pageSize: pageSize.toString(),
-      tab: activeTab,
-      profileName: profileName,
-      sortBy,
-      sortOrder,
     });
-    profilesData = { profiles: { items: [], totalCount: 0 } }; // dados vazios
+    profilesData = { profiles: { items: [], totalCount: 0 } };
   } else {
     profilesData = await ProfilesTabContent({ profileName, page, pageSize });
     usersData = {
       users: { items: [], totalCount: 0 },
-      DDCustomer: [],
       DDProfile: [],
       DDMerchant: [],
-    }; // dados vazios
+    };
   }
 
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[
-          {
-            title:
-              activeTab == "users" ? "Gestão de Usuários" : "Gestão de Perfis",
-            url: "/portal/users",
-          },
-        ]}
-      />
-
-      <BaseBody
-        title={activeTab == "users" ? "Gestão de Usuários" : "Gestão de Perfis"}
-        subtitle={
-          activeTab == "users"
-            ? "Visualização de Todos os Usuários"
-            : "Visualização de Todos os Perfis"
+    <div className="space-y-8">
+      <PageHeader
+        title={activeTab === "users" ? "Gestão de Usuários" : "Gestão de Perfis"}
+        description={
+          activeTab === "users"
+            ? "Adicione, edite e gerencie os usuários do sistema."
+            : "Crie e configure os perfis de permissão."
         }
-      >
-        <UserTabs
-          users={usersData.users}
-          profiles={profilesData.profiles}
-          DDProfile={usersData.DDProfile || []}
-          DDMerchant={usersData.DDMerchant || []}
-          totalUsersRecords={usersData.users?.totalCount || 0}
-          totalProfilesRecords={profilesData.profiles?.totalCount || 0}
-          page={page}
-          pageSize={pageSize}
-          email={email}
-          firstName={firstName}
-          lastName={lastName}
-          activeTab={activeTab}
-          profileId={profileId}
-          merchantId={merchantId}
-          profileName={profileName}
-          permissions={permissions}
-        />
-      </BaseBody>
-    </>
+      />
+      <UserTabs
+        users={usersData.users}
+        profiles={profilesData.profiles}
+        DDProfile={usersData.DDProfile || []}
+        DDMerchant={usersData.DDMerchant || []}
+        totalUsersRecords={usersData.users?.totalCount || 0}
+        totalProfilesRecords={profilesData.profiles?.totalCount || 0}
+        page={page}
+        pageSize={pageSize}
+        email={email}
+        firstName={firstName}
+        lastName={lastName}
+        activeTab={activeTab}
+        profileId={profileId}
+        merchantId={merchantId}
+        profileName={profileName}
+        permissions={permissions}
+      />
+    </div>
   );
 }

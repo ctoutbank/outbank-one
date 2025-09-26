@@ -1,6 +1,4 @@
-import { TransactionSummaryCards } from "@/app/portal/dashboard/_components/transaction-cards";
-import BaseBody from "@/components/layout/base-body";
-import BaseHeader from "@/components/layout/base-header";
+import { PageHeader } from "@/components/layout/portal/PageHeader";
 import {
   getCancelledTransactions,
   getRawTransactionsByDate,
@@ -12,6 +10,7 @@ import {
 import { format } from "date-fns";
 import { Suspense } from "react";
 import { BarChartCustom } from "./_components/barChart";
+import { TransactionSummaryCards } from "./_components/transaction-cards";
 import { CardsSkeleton, ChartSkeleton } from "./loading";
 
 export const dynamic = "force-dynamic";
@@ -34,18 +33,19 @@ async function ChartSection({
     getTotalMerchants(),
   ]);
   return (
-    <div className="w-[99.5%]">
-      <BarChartCustom
-        transactionsData={totalTransactionsByDay}
-        viewMode="custom"
-        totalTransactions={totalTransactions[0]}
-        totalMerchants={
-          Array.isArray(totalMerchants) ? totalMerchants[0]?.total || 0 : 0
-        }
-        dateRange={{ start: dateRange.start, end: dateRange.end }}
-        canceledTransactions={canceledTransactions[0]?.count || 0}
-      />
-    </div>
+    <BarChartCustom
+      transactionsData={totalTransactionsByDay}
+      viewMode="custom"
+      totalTransactions={{
+        sum: totalTransactions[0]?.sum ?? 0,
+        count: totalTransactions[0]?.count ?? 0,
+      }}
+      totalMerchants={
+        Array.isArray(totalMerchants) ? totalMerchants[0]?.total || 0 : 0
+      }
+      dateRange={{ start: dateRange.start, end: dateRange.end }}
+      canceledTransactions={canceledTransactions[0]?.count || 0}
+    />
   );
 }
 
@@ -67,29 +67,30 @@ export default async function SalesDashboard({
   searchParams: Promise<{ dateFrom?: string; dateTo?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const defaultDateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00';
+  const defaultDateFrom =
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] +
+    "T00:00:00";
   const defaultDateTo = format(new Date(), "yyyy-MM-dd'T'HH:mm");
   const dateFrom = resolvedSearchParams.dateFrom || defaultDateFrom;
   const dateTo = resolvedSearchParams.dateTo || defaultDateTo;
   const dateRange = await normalizeDateRange(dateFrom, dateTo);
 
   return (
-    <>
-      <BaseHeader
-        breadcrumbItems={[{ title: "Dashboard", url: "/portal/dashboard" }]}
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="Dashboard"
+        description="Visão geral das suas vendas e transações."
       />
-      <BaseBody title="Dashboard" subtitle="Visão Geral das Vendas">
+
+      <Suspense fallback={<CardsSkeleton />}>
+        <CardsSection dateRange={dateRange} />
+      </Suspense>
+
+      <div className="grid grid-cols-1 gap-8">
         <Suspense fallback={<ChartSkeleton />}>
           <ChartSection dateRange={dateRange} />
         </Suspense>
-        <div className="mt-8">
-          <Suspense fallback={<CardsSkeleton />}>
-            <div className="w-[99.5%]">
-              <CardsSection dateRange={dateRange} />
-            </div>
-          </Suspense>
-        </div>
-      </BaseBody>
-    </>
+      </div>
+    </div>
   );
 }
