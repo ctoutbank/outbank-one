@@ -21,6 +21,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isOutbankDomain, setIsOutbankDomain] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +30,13 @@ export function Navbar() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      setIsOutbankDomain(hostname === 'outbank.cloud' || hostname === 'www.outbank.cloud');
+    }
   }, []);
 
   useEffect(() => {
@@ -92,11 +100,13 @@ export function Navbar() {
               </Link>
             </SignedIn>
             <SignedOut>
-              <Link href="/auth/sign-in">
-                <Button className=" text-black rounded-none bg-gray-100 hover:bg-gray-300  hover:scale-105 transition-all duration-300">
-                  Entrar
-                </Button>
-              </Link>
+              {!isOutbankDomain && (
+                <Link href="/auth/sign-in">
+                  <Button className=" text-black rounded-none bg-gray-100 hover:bg-gray-300  hover:scale-105 transition-all duration-300">
+                    Entrar
+                  </Button>
+                </Link>
+              )}
             </SignedOut>
           </div>
 
@@ -211,19 +221,21 @@ export function Navbar() {
                     </Link>
                   </SignedIn>
                   <SignedOut>
-                    <Link
-                      href="/auth/sign-in"
-                      onClick={() => setIsOpen(false)}
-                      className="block w-full"
-                    >
-                      <Button
-                        className="w-full bg-white text-black hover:bg-white/90 
-                                 text-lg py-6 rounded-lg font-medium
-                                 transition-all duration-200 hover:scale-[0.98]"
+                    {!isOutbankDomain && (
+                      <Link
+                        href="/auth/sign-in"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full"
                       >
-                        Entrar
-                      </Button>
-                    </Link>
+                        <Button
+                          className="w-full bg-white text-black hover:bg-white/90 
+                                   text-lg py-6 rounded-lg font-medium
+                                   transition-all duration-200 hover:scale-[0.98]"
+                        >
+                          Entrar
+                        </Button>
+                      </Link>
+                    )}
                   </SignedOut>
                 </motion.div>
               </div>
