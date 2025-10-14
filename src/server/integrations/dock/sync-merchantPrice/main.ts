@@ -9,7 +9,7 @@ async function fetchMerchants() {
     "https://merchant.acquiring.dock.tech/v1/merchants?limit=40",
     {
       headers: {
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
       },
     }
   );
@@ -25,7 +25,7 @@ async function fetchMerchantPrices(slugMerchant: string) {
     {
       headers: {
         Accept: "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IjUwQUYxMDdFMTRERDQ2RTJCQjg5RkE5OEYxNTI2M0RBIn0.2urCljTPGjtwk6oSlGoOBfM16igLfFUNRqDg63WvzSFpB79gYf3lw1jEgVr4RCH_NU6A-5XKbuzIJtAXyETvzw`,
+        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
       },
     }
   );
