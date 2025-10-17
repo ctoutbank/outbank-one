@@ -1020,7 +1020,7 @@ export async function createUpdateAPImerchantOnboarding(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
         body: JSON.stringify(payload),
       });
@@ -1293,7 +1293,7 @@ export async function verificarStatusMerchantPorSlug(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -1703,7 +1703,7 @@ export async function criarFilialMerchant(
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+            Authorization: `${process.env.DOCK_API_KEY}`,
           },
           body: JSON.stringify(payload),
         }
@@ -2681,7 +2681,7 @@ export async function softDeleteMerchant(
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
-              Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+              Authorization: `${process.env.DOCK_API_KEY}`,
             },
             body: JSON.stringify(payload),
           }
@@ -3568,7 +3568,7 @@ export async function sendMerchantToAPIV2(
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+          Authorization: `${process.env.DOCK_API_KEY}`,
         },
         body: JSON.stringify(payload),
       }
@@ -3776,7 +3776,7 @@ async function InsertAPIMerchant(data: InsertMerchantAPI) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+        Authorization: `${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(data),
     }

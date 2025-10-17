@@ -8,6 +8,7 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'file-upload-outbank.s3.amazonaws.com',
+        hostname: "img.clerk.com",
       },
     ],
   },

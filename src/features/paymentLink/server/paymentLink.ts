@@ -122,7 +122,7 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+        Authorization: `${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(formattedData),
     }
@@ -517,7 +517,7 @@ export async function updateAPIPaymentLink(
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+        Authorization: `${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(formattedData),
     }
@@ -706,7 +706,7 @@ export async function verificarLinksExcluidos(): Promise<number> {
               method: "GET",
               headers: {
                 Accept: "application/json",
-                Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+                Authorization: `${process.env.DOCK_API_KEY}`,
               },
             }
           );
@@ -837,7 +837,7 @@ async function fetchAllPaymentLinks(): Promise<PaymentLinkAPI[]> {
       `https://serviceorder.acquiring.dock.tech/v1/external_payment_links?limit=${limit}&offset=${offset}`,
       {
         headers: {
-        Authorization: `eyJraWQiOiJJTlRFR1JBVElPTiIsInR5cCI6IkpXVCIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJGNDBFQTZCRTQxMUM0RkQwODVDQTBBMzJCQUVFMTlBNSIsInNpcCI6IkQyN0M0OTMwNDE0ODRFQzk4NEZDREZDRTMwOTI5M0FGIn0.g8X1ICrhlFWJSX-egpxAm55VQ1N-uN2Z_NRklWo_nspESArzcR2eU8AqZ1pj9SfO8NaEu0zbOE4GRt5TXqaS-g`,
+        Authorization: `${process.env.DOCK_API_KEY}`,
         },
       }
     );
