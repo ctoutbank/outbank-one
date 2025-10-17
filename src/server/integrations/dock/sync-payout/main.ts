@@ -23,7 +23,7 @@ async function fetchPayout(offset: number, startDate: string, endDate: string) {
       `https://settlement.acquiring.dock.tech/v1/payouts/statement?transactionDate__goe=${from}&transactionDate__loe=${to}&limit=1000&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
           "X-Customer": "B68046D590EB402288F90E1147B6BC9F",
         },
       }

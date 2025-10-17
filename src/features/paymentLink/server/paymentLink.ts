@@ -122,7 +122,7 @@ async function InsertAPIPaymentLink(data: InsertPaymentLinkAPI) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(formattedData),
     }
@@ -517,7 +517,7 @@ export async function updateAPIPaymentLink(
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(formattedData),
     }
@@ -706,7 +706,7 @@ export async function verificarLinksExcluidos(): Promise<number> {
               method: "GET",
               headers: {
                 Accept: "application/json",
-                Authorization: `${process.env.DOCK_API_KEY}`,
+                Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
               },
             }
           );
@@ -837,7 +837,7 @@ async function fetchAllPaymentLinks(): Promise<PaymentLinkAPI[]> {
       `https://serviceorder.acquiring.dock.tech/v1/external_payment_links?limit=${limit}&offset=${offset}`,
       {
         headers: {
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );

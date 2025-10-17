@@ -27,7 +27,7 @@ async function fetchSettlements() {
       `https://settlement.acquiring.dock.tech/v1/settlements?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -60,7 +60,7 @@ async function fetchMerchantSettlements() {
       `https://settlement.acquiring.dock.tech/v1/merchant_settlements/order?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -93,7 +93,7 @@ async function fetchMerchantSettlementsOrders() {
       `https://settlement.acquiring.dock.tech/v1/merchant_settlement_orders?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -126,7 +126,7 @@ async function fetchPixMerchantSettlementsOrders() {
       `https://settlement.acquiring.dock.tech/v1/pix_merchant_settlement_orders?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
