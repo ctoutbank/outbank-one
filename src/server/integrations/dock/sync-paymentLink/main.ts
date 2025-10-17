@@ -13,7 +13,7 @@ async function fetchPaymentLink() {
       `https://serviceorder.acquiring.dock.tech/v1/external_payment_links?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -307,7 +307,7 @@ async function updateAPIPaymentLink(slug: string, data: any): Promise<any> {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(data),
     }

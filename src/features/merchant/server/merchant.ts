@@ -1020,7 +1020,7 @@ export async function createUpdateAPImerchantOnboarding(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
         body: JSON.stringify(payload),
       });
@@ -1293,7 +1293,7 @@ export async function verificarStatusMerchantPorSlug(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
@@ -1703,7 +1703,7 @@ export async function criarFilialMerchant(
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `${process.env.DOCK_API_KEY}`,
+            Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
           },
           body: JSON.stringify(payload),
         }
@@ -2681,7 +2681,7 @@ export async function softDeleteMerchant(
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
-              Authorization: `${process.env.DOCK_API_KEY}`,
+              Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
             },
             body: JSON.stringify(payload),
           }
@@ -3568,7 +3568,7 @@ export async function sendMerchantToAPIV2(
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
         body: JSON.stringify(payload),
       }
@@ -3776,7 +3776,7 @@ async function InsertAPIMerchant(data: InsertMerchantAPI) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
       },
       body: JSON.stringify(data),
     }

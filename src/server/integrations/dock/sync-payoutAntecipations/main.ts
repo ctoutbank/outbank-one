@@ -15,7 +15,7 @@ async function fetchAntecipations() {
       `https://settlement.acquiring.dock.tech/v1/payout_anticipations/statement?limit=${limit}&offset=${offset}`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
           "X-Customer": "B68046D590EB402288F90E1147B6BC9F",
         },
       }

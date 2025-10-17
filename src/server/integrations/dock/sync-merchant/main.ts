@@ -9,7 +9,7 @@ async function fetchMerchants() {
     "https://merchant.acquiring.dock.tech/v1/merchants?limit=40",
     {
       headers: {
-        Authorization: `${process.env.DOCK_API_KEY}`,
+        Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
       },
     }
   );

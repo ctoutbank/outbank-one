@@ -11,7 +11,7 @@ export async function fetchMerchantPriceGroups(
       `https://merchant.acquiring.dock.tech/v1/merchants/${slugMerchant}/merchant_prices/${slugMerchantPrice}/merchant_price_groups`,
       {
         headers: {
-          Authorization: `${process.env.DOCK_API_KEY}`,
+          Authorization: `Bearer ${process.env.DOCK_API_KEY}`,
         },
       }
     );
