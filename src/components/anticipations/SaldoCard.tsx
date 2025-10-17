@@ -36,7 +36,7 @@ export default function SaldoCard({
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Caixa 1  */}
         <div className="rounded-md bg-indigo-50 p-4">
-          <p className="text-xs text-gray-600">Em Caixa (hoje)</p>
+          <p className="text-xs text-gray-600">Cartão presente</p>
           <p className="mt-1 text-2xl font-semibold text-indigo-700 tabular-nums">
             {formatBRL(available)}
           </p>
@@ -44,7 +44,7 @@ export default function SaldoCard({
 
         {/* Caixa 2 */}
         <div className="rounded-md bg-sky-50 p-4">
-          <p className="text-xs text-gray-600">Em Captura / Processando</p>
+          <p className="text-xs text-gray-600">Cartão não presente</p>
           <p className="mt-1 text-2xl font-semibold text-sky-700 tabular-nums">
             {formatBRL(processing)}
           </p>
