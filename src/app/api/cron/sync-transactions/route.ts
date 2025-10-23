@@ -21,6 +21,7 @@ export async function GET() {
   });
   try {
     await syncTransactions();
+    console.log("lendo a syncTransactions")
 
     const successResponse = NextResponse.json({
       message: "Sincronização de transações concluída com sucesso",
@@ -31,6 +32,7 @@ export async function GET() {
     );
     successResponse.headers.set("Pragma", "no-cache");
     successResponse.headers.set("Expires", "0");
+    console.log("retornando o successResponse", successResponse)
     return successResponse;
   } catch (error: any) {
     const errorResponse = NextResponse.json(
