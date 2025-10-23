@@ -179,7 +179,7 @@ export default async function TransactionsPage({
    
 
   await checkPagePermission("Lançamentos Financeiros");
-  await syncTransactions();
+  await syncTransactions()
   
  
   return (
