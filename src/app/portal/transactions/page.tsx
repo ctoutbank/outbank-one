@@ -7,15 +7,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionsDashboardTable } from "@/features/transactions/_components/transactions-dashboard-table";
 import { TransactionsFilter } from "@/features/transactions/_components/transactions-filter";
 import TransactionsList from "@/features/transactions/_components/transactions-list";
+import { TransactionsExport } from "@/features/transactions/reports/transactions-export-excel";
 import {
   getTransactions,
   getTransactionsGroupedReport,
 } from "@/features/transactions/serverActions/transaction";
 import { checkPagePermission } from "@/lib/auth/check-permissions";
 import { getEndOfDay } from "@/lib/datetime-utils";
+import { syncTransactions } from "@/server/integrations/dock/sync-transactions/main";
 import { Search } from "lucide-react";
 import { Suspense } from "react";
-import { TransactionsExport } from "@/features/transactions/reports/transactions-export-excel";
 
 type TransactionsProps = {
   page?: string;
@@ -42,6 +43,7 @@ async function TransactionsContent({
                                    }: {
   searchParams: TransactionsProps;
 }) {
+  
   const page = parseInt(searchParams.page || "1");
   const pageSize = parseInt(searchParams.pageSize || "10");
 
@@ -69,6 +71,7 @@ async function TransactionsContent({
   };
 
   const [transactionList, transactionsGroupedReport] = await Promise.all([
+    syncTransactions().then(() => 
     getTransactions(
       page,
       pageSize,
@@ -88,7 +91,7 @@ async function TransactionsContent({
         sortBy,
         sortOrder,
       }
-    ),
+    )),
     getTransactionsGroupedReport(
       dateFrom,
       dateTo,
@@ -102,6 +105,7 @@ async function TransactionsContent({
       searchParams.valueMax,
       searchParams.merchant
     )
+  
   ]);
 
   return (
@@ -171,8 +175,13 @@ export default async function TransactionsPage({
                                                }: {
   searchParams: Promise<TransactionsProps>;
 }) {
-  await checkPagePermission("Lançamentos Financeiros");
 
+   
+
+  await checkPagePermission("Lançamentos Financeiros");
+  await syncTransactions();
+  
+ 
   return (
       <>
         <BaseHeader

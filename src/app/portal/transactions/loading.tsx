@@ -1,8 +1,10 @@
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { syncTransactions } from "@/server/integrations/dock/sync-transactions/main";
 
 export default function TransactionsLoading() {
+  syncTransactions()
   return (
     <>
       <BaseHeader

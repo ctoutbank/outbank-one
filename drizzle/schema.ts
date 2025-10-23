@@ -1602,3 +1602,29 @@ export const financialAdjustments = pgTable("financial_adjustments", {
 		}),
 	}
 });
+
+
+
+
+export const fornecedores = pgTable("fornecedores", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  nome: text("nome").notNull(),
+  documento: text("documento").notNull(),
+  email: text("email"),
+  telefone: text("telefone"),
+  endereco: text("endereco"),
+  cidade: text("cidade"),
+  estado: text("estado"),
+  cep: text("cep"),
+  status: text("status").default("ativo"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const fornecedorDocuments = pgTable("fornecedor_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  fornecedorId: uuid("fornecedor_id").references(() => fornecedores.id),
+  url: text("url").notNull(),
+  size: integer("size").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
