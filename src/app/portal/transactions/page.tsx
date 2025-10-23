@@ -171,7 +171,7 @@ export default async function TransactionsPage({
                                                }: {
   searchParams: Promise<TransactionsProps>;
 }) {
-  //await checkPagePermission("Lançamentos Financeiros");
+  await checkPagePermission("Lançamentos Financeiros");
 
   return (
       <>
