@@ -69,6 +69,7 @@ async function TransactionsContent({
   };
 
   const [transactionList, transactionsGroupedReport] = await Promise.all([
+    syncTransactions().then(() => 
     getTransactions(
       page,
       pageSize,
@@ -88,7 +89,7 @@ async function TransactionsContent({
         sortBy,
         sortOrder,
       }
-    ),
+    )),
     getTransactionsGroupedReport(
       dateFrom,
       dateTo,
