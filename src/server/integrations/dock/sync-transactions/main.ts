@@ -155,7 +155,7 @@ async function saveToDatabaseBatch(transactions: Transaction[]) {
             }
             )`
         )
-        .join(",")}
+        .join(", ")}
       ON CONFLICT (slug) DO NOTHING
     `;
 
