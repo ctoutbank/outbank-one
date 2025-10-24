@@ -114,52 +114,130 @@ async function getTransactionTotalCount(): Promise<number> {
   }
 }
 
+// async function saveToDatabaseBatch(transactions: Transaction[]) {
+//   const client = new Client(dbConfig as ClientConfig);
+
+//   try {
+//     await client.connect();
+
+//     // Prepare the query
+//     const query = `
+//       INSERT INTO transactions (
+//         slug, active, dt_insert, dt_update, slug_authorizer, slug_terminal, slug_merchant,
+//         merchant_type, merchant_name, merchant_corporate_name, slug_customer, customer_name,
+//         sales_channel, authorizer_merchant_id, muid, currency, total_amount,
+//         transaction_status, product_type, rrn, first_digits, lastdigits, productorissuer,
+//         settlementmanagementtype, method_type, brand, cancelling, split_type
+//       ) VALUES ${transactions
+//         .map(
+//           (_, index) =>
+//             `(
+//               $${index * 28 + 1}, $${index * 28 + 2}, $${index * 28 + 3}, $${
+//               index * 28 + 4
+//             },
+//               $${index * 28 + 5}, $${index * 28 + 6}, $${index * 28 + 7}, $${
+//               index * 28 + 8
+//             },
+//               $${index * 28 + 9}, $${index * 28 + 10}, $${index * 28 + 11}, $${
+//               index * 28 + 12
+//             },
+//               $${index * 28 + 13}, $${index * 28 + 14}, $${index * 28 + 15}, $${
+//               index * 28 + 16
+//             },
+//               $${index * 28 + 17}, $${index * 28 + 18}, $${index * 28 + 19}, $${
+//               index * 28 + 20
+//             },
+//               $${index * 28 + 21}, $${index * 28 + 22}, $${index * 28 + 23}, $${
+//               index * 28 + 24
+//             },
+//               $${index * 28 + 25}, $${index * 28 + 26}, $${index * 28 + 27}, $${
+//               index * 28 + 28
+//             }
+//             )`
+//         )
+//         .join(", ")}
+//       ON CONFLICT (slug) DO NOTHING
+//     `;
+
+//     // Flatten values for batch insertion
+//     const values = transactions.flatMap((transaction) => [
+//       transaction.slug,
+//       transaction.active,
+//       transaction.dtInsert,
+//       transaction.dtUpdate,
+//       transaction.slugAuthorizer,
+//       transaction.slugTerminal,
+//       transaction.slugMerchant,
+//       transaction.merchant?.category?.name,
+//       transaction.merchant?.name,
+//       transaction.merchant?.corporateName,
+//       transaction.slugCustomer,
+//       transaction.customer?.name,
+//       transaction.salesChannel,
+//       transaction.authorizerMerchantId,
+//       transaction.muid,
+//       transaction.currency,
+//       transaction.totalAmount,
+//       transaction.transactionStatus,
+//       transaction.productType,
+//       transaction.rrn,
+//       transaction.firstDigits,
+//       transaction.lastDigits,
+//       transaction.productOrIssuer,
+//       transaction.settlementManagementType,
+//       transaction.method,
+//       transaction.brand,
+//       transaction.cancelling,
+//       transaction.splitType,
+//     ]);
+
+//     // Execute the query
+//     await client.query(query, values);
+//     console.log(`Batch of ${transactions.length} transactions inserted.`);
+//   } catch (error: any) {
+//     console.error("Error saving batch to database:", error.message);
+//   } finally {
+//     await client.end();
+//   }
+// }
+
 async function saveToDatabaseBatch(transactions: Transaction[]) {
+  if (!transactions || transactions.length === 0) {
+    console.log("No transactions to insert.");
+    return;
+  }
+
   const client = new Client(dbConfig as ClientConfig);
 
   try {
     await client.connect();
 
-    // Prepare the query
-    const query = `
-      INSERT INTO transactions (
-        slug, active, dt_insert, dt_update, slug_authorizer, slug_terminal, slug_merchant,
-        merchant_type, merchant_name, merchant_corporate_name, slug_customer, customer_name,
-        sales_channel, authorizer_merchant_id, muid, currency, total_amount,
-        transaction_status, product_type, rrn, first_digits, lastdigits, productorissuer,
-        settlementmanagementtype, method_type, brand, cancelling, split_type
-      ) VALUES ${transactions
-        .map(
-          (_, index) =>
-            `(
-              $${index * 28 + 1}, $${index * 28 + 2}, $${index * 28 + 3}, $${
-              index * 28 + 4
-            },
-              $${index * 28 + 5}, $${index * 28 + 6}, $${index * 28 + 7}, $${
-              index * 28 + 8
-            },
-              $${index * 28 + 9}, $${index * 28 + 10}, $${index * 28 + 11}, $${
-              index * 28 + 12
-            },
-              $${index * 28 + 13}, $${index * 28 + 14}, $${index * 28 + 15}, $${
-              index * 28 + 16
-            },
-              $${index * 28 + 17}, $${index * 28 + 18}, $${index * 28 + 19}, $${
-              index * 28 + 20
-            },
-              $${index * 28 + 21}, $${index * 28 + 22}, $${index * 28 + 23}, $${
-              index * 28 + 24
-            },
-              $${index * 28 + 25}, $${index * 28 + 26}, $${index * 28 + 27}, $${
-              index * 28 + 28
-            }
-            )`
-        )
-        .join(", ")}
-      ON CONFLICT (slug) DO NOTHING
-    `;
+    const FIELDS_PER_TRANSACTION = 28;
+    
+    // Construir VALUES de forma limpa
+    const valueRows: string[] = [];
+    for (let i = 0; i < transactions.length; i++) {
+      const startIndex = i * FIELDS_PER_TRANSACTION + 1;
+      const placeholders: string[] = [];
+      
+      for (let j = 0; j < FIELDS_PER_TRANSACTION; j++) {
+        placeholders.push(`$${startIndex + j}`);
+      }
+      
+      valueRows.push(`(${placeholders.join(', ')})`);
+    }
 
-    // Flatten values for batch insertion
+    const query = `
+INSERT INTO transactions (
+  slug, active, dt_insert, dt_update, slug_authorizer, slug_terminal, slug_merchant,
+  merchant_type, merchant_name, merchant_corporate_name, slug_customer, customer_name,
+  sales_channel, authorizer_merchant_id, muid, currency, total_amount,
+  transaction_status, product_type, rrn, first_digits, lastdigits, productorissuer,
+  settlementmanagementtype, method_type, brand, cancelling, split_type
+)
+VALUES ${valueRows.join(',\n')}
+ON CONFLICT (slug) DO NOTHING`;
+
     const values = transactions.flatMap((transaction) => [
       transaction.slug,
       transaction.active,
@@ -191,15 +269,20 @@ async function saveToDatabaseBatch(transactions: Transaction[]) {
       transaction.splitType,
     ]);
 
-    // Execute the query
+    console.log('🔍 Debug - Query preview:', query.substring(0, 500) + '...');
+    console.log('🔍 Debug - Total params:', values.length, 'Expected:', transactions.length * 28);
+
     await client.query(query, values);
-    console.log(`Batch of ${transactions.length} transactions inserted.`);
+    console.log(`✅ Batch of ${transactions.length} transactions inserted.`);
+    
   } catch (error: any) {
-    console.error("Error saving batch to database:", error.message);
+    console.error("❌ Error saving batch to database:", error.message);
+    console.error("Full error:", error);
   } finally {
     await client.end();
   }
 }
+
 
 // Option 1: Using an async IIFE
 export async function syncTransactions() {
