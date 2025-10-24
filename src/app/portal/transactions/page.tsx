@@ -16,6 +16,7 @@ import { getEndOfDay } from "@/lib/datetime-utils";
 import { Search } from "lucide-react";
 import { Suspense } from "react";
 import { TransactionsExport } from "@/features/transactions/reports/transactions-export-excel";
+import { syncTransactions } from "@/server/integrations/dock/sync-transactions/main";
 
 type TransactionsProps = {
   page?: string;
