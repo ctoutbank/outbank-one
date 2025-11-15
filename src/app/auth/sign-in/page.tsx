@@ -34,14 +34,17 @@ export default async function SignInPage({}: {
         </Link>
 
         {/* Full-size background image */}
-        <Image
-          src={themeData.loginImageUrl}
-          alt="Ilustração de autenticação"
-          fill
-          className="object-cover z-0"
-          priority
-          sizes="66vw"
-        />
+        {themeData.loginImageUrl && (
+          <Image
+            src={themeData.loginImageUrl}
+            alt="Ilustração de autenticação"
+            fill
+            className="object-cover z-0"
+            priority
+            sizes="66vw"
+            unoptimized={themeData.loginImageUrl.includes('.s3.')}
+          />
+        )}
       </div>
 
       {/* Right Section - Form */}
