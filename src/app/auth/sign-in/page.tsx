@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { SignInForm } from "../../../components/sign-in/sign-in-form";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SignInPage({}: {
   searchParams: Promise<{ company?: string }>;
 }) {
