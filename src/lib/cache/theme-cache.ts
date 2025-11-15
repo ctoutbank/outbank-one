@@ -1,27 +1,27 @@
 import { unstable_cache } from 'next/cache';
 import { getThemeByTenant as _getThemeByTenant, getNameByTenant as _getNameByTenant, type ThemeData } from '@/lib/getThemeByTenant';
 
-export const getThemeByTenant = unstable_cache(
-  async (slug: string) => {
+export const getThemeByTenant = (slug: string) => unstable_cache(
+  async () => {
     return await _getThemeByTenant(slug);
   },
-  ['theme-data'],
+  ['theme-data', slug],
   {
-    revalidate: 3600, // 1 hour
-    tags: ['theme']
+    revalidate: 3600,
+    tags: [`tenant-${slug}`, 'theme']
   }
-);
+)();
 
-export const getNameByTenant = unstable_cache(
-  async (slug: string) => {
+export const getNameByTenant = (slug: string) => unstable_cache(
+  async () => {
     return await _getNameByTenant(slug);
   },
-  ['name-data'],
+  ['name-data', slug],
   {
-    revalidate: 3600, // 1 hour
-    tags: ['theme']
+    revalidate: 3600,
+    tags: [`tenant-${slug}`, 'theme']
   }
-);
+)();
 
 export type { ThemeData };
 
