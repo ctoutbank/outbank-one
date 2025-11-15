@@ -6,6 +6,7 @@ export type ThemeData = {
   primary: string;
   secondary: string;
   imageUrl: string;
+  loginImageUrl: string;
   slug: string;
   name: string;
 };
@@ -29,6 +30,7 @@ export async function getThemeByTenant(slug: string) {
     primary: tenant.primaryColor || "0 84% 60%",
     secondary: tenant.secondaryColor || "0 0% 10%",
     imageUrl: tenant.fileUrl || "",
+    loginImageUrl: tenant.fileUrl || "/bg_login.jpg",
     slug: tenant.slug || "",
     name: tenant.name || "",
   };

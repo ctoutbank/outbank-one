@@ -35,7 +35,7 @@ export default async function SignInPage({}: {
 
         {/* Full-size background image */}
         <Image
-          src="/bg_login.jpg"
+          src={themeData.loginImageUrl}
           alt="Ilustração de autenticação"
           fill
           className="object-cover z-0"
