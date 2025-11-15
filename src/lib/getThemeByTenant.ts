@@ -7,6 +7,7 @@ export type ThemeData = {
   secondary: string;
   imageUrl: string;
   loginImageUrl: string;
+  faviconUrl: string;
   slug: string;
   name: string;
 };
@@ -16,6 +17,9 @@ export async function getThemeByTenant(slug: string) {
     .select({
       primaryColor: customerCustomization.primaryColor,
       secondaryColor: customerCustomization.secondaryColor,
+      imageUrl: customerCustomization.imageUrl,
+      loginImageUrl: customerCustomization.loginImageUrl,
+      faviconUrl: customerCustomization.faviconUrl,
       fileUrl: file.fileUrl,
       slug: customerCustomization.slug,
       name: customers.name,
@@ -29,8 +33,9 @@ export async function getThemeByTenant(slug: string) {
   return {
     primary: tenant.primaryColor || "0 84% 60%",
     secondary: tenant.secondaryColor || "0 0% 10%",
-    imageUrl: tenant.fileUrl || "",
-    loginImageUrl: tenant.fileUrl || "/bg_login.jpg",
+    imageUrl: tenant.imageUrl || tenant.fileUrl || "",
+    loginImageUrl: tenant.loginImageUrl || tenant.imageUrl || "/bg_login.jpg",
+    faviconUrl: tenant.faviconUrl || "",
     slug: tenant.slug || "",
     name: tenant.name || "",
   };
