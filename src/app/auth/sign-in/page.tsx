@@ -25,7 +25,7 @@ export default async function SignInPage({}: {
       <div
         className="hidden lg:block w-2/3 relative overflow-hidden"
         style={{
-          background: `linear-gradient(to right, ${themeData.primary}, ${themeData.secondary})`,
+          background: `linear-gradient(to right, hsl(${themeData.primary}), hsl(${themeData.secondary}))`,
         }}
       >
         {/* Logo */}

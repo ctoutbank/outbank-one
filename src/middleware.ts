@@ -28,11 +28,28 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request: NextRequest) => {
-  const hostname = request.headers.get("host") || "";
+  const hostname = request.nextUrl.hostname;
+  const pathname = request.nextUrl.pathname;
 
   // Pega subdomínio, ex: tenant2.lvh.me → tenant2
   const parts = hostname.split(".");
   const subdomain = parts.length >= 3 ? parts[0] : null;
+  const isTenantHost = subdomain && !["www", "lvh", "localhost"].includes(subdomain);
+
+  if (isTenantHost) {
+    const { userId } = await auth();
+    
+    const marketingRoutes = ["/", "/banking", "/acquiring", "/cards"];
+    
+    if (marketingRoutes.includes(pathname)) {
+      if (userId) {
+        const portalUrl = new URL("/portal", request.url);
+        return NextResponse.redirect(portalUrl);
+      }
+      const signInUrl = new URL("/auth/sign-in", request.url);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
 
   if (!isPublicRoute(request)) {
     await auth.protect();
@@ -41,7 +58,7 @@ export default clerkMiddleware(async (auth, request: NextRequest) => {
   const response = NextResponse.next();
 
   // Define cookie "tenant" se tiver subdomínio válido
-  if (subdomain && !["www", "lvh", "localhost"].includes(subdomain)) {
+  if (isTenantHost) {
     response.cookies.set("tenant", subdomain, {
       path: "/",
       httpOnly: false,

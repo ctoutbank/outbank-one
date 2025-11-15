@@ -21,7 +21,7 @@ export async function getThemeByTenant(slug: string) {
       name: customers.name,
     })
     .from(customerCustomization)
-    .innerJoin(file, eq(customerCustomization.fileId, file.id))
+    .leftJoin(file, eq(customerCustomization.fileId, file.id))
     .innerJoin(customers, eq(customerCustomization.customerId, customers.id))
     .where(eq(customerCustomization.slug, slug));
   if (!tenant) return null;
