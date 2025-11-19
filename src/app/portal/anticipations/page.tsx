@@ -1,29 +1,20 @@
-// app/(portal)/anticipations/page.tsx
 import BaseBody from "@/components/layout/base-body";
 import BaseHeader from "@/components/layout/base-header";
-
-// --- NOVOS COMPONENTES DE LAYOUT (renomeie se já existirem) ---
-import SaldoCard from "@/components/anticipations/SaldoCard";
-import AutoAnticipationCard from "@/components/anticipations/AutoAnticipationCard";
-import MonthlyHistoryChart from "@/components/anticipations/MonthlyHistoryChart";
-import RequestHistoryTable from "@/components/anticipations/RequestHistoryTable";
-import SimulatorCard from "@/components/anticipations/SimulatorCard";
-// --------------------------------------------------------------
-
-// ... imports de server actions
+import PageSizeSelector from "@/components/page-size-selector";
+import PaginationRecords from "@/components/pagination-Records";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnticipationListComponent from "@/features/anticipations/_components/anticipation-list";
+import { AnticipationsListFilter } from "@/features/anticipations/_components/anticipations-filter";
+import EventualAnticipationListComponent from "@/features/anticipations/_components/eventual-anticipation-list";
+import { EventualAnticipationsListFilter } from "@/features/anticipations/_components/eventual-anticipations-filter";
 import {
   getAnticipations,
   getEventualAnticipations,
   getMerchantDD,
 } from "@/features/anticipations/server/anticipation";
-
 import { checkPagePermission } from "@/lib/auth/check-permissions";
-import HeaderActions from "@/components/anticipations/header-actions";
 
-
-export const revalidate = 300;
-
-
+export const revalidate = 0;
 
 type AntecipationsProps = {
   page: string;
@@ -36,55 +27,40 @@ type AntecipationsProps = {
   endDate: string;
   expectedSettlementStartDate: string;
   expectedSettlementEndDate: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
 };
 
 export default async function AntecipationsPage({
   searchParams,
 }: {
-  searchParams: Promise<AntecipationsProps>;
+  searchParams: AntecipationsProps;
 }) {
-  // 1. Permissões
-  await checkPagePermission("Antecipações de Recebíveis");
-
-  // 2. Resolução de query-string
-  const resolvedSearchParams = await searchParams;
-
-  const search = resolvedSearchParams.search || "";
-  const page = resolvedSearchParams.page || "1";
-  const pageSize = resolvedSearchParams.pageSize || "10";
-  const merchantSlug = resolvedSearchParams.merchantSlug || "";
-  const type = resolvedSearchParams.type || "";
-  const status = resolvedSearchParams.status || "";
-  const startDate = resolvedSearchParams.startDate || "";
-  const endDate = resolvedSearchParams.endDate || "";
+  const search = searchParams.search || "";
+  const page = searchParams.page || "1";
+  const pageSize = searchParams.pageSize || "10";
+  const merchantSlug = searchParams.merchantSlug || "";
+  const type = searchParams.type || "";
+  const status = searchParams.status || "";
+  const startDate = searchParams.startDate || "";
+  const endDate = searchParams.endDate || "";
   const expectedSettlementStartDate =
-    resolvedSearchParams.expectedSettlementStartDate || "";
+    searchParams.expectedSettlementStartDate || "";
   const expectedSettlementEndDate =
-    resolvedSearchParams.expectedSettlementEndDate || "";
-  const sortBy = resolvedSearchParams.sortBy;
-  const sortOrder = resolvedSearchParams.sortOrder;
+    searchParams.expectedSettlementEndDate || "";
 
-  // 3. Dados
-  const [merchantDD, anticipationList] = await Promise.all([
-    getMerchantDD(),
-    getAnticipations(
-      search,
-      
-      Number(page),
-      Number(pageSize),
-      startDate,
-      endDate,
-      merchantSlug,
-      type,
-      status,
-      {sortBy, sortOrder}
-    )
-  ]);
+  const merchantDD = await getMerchantDD();
 
+  const anticipations = await getAnticipations(
+    search,
+    Number(page),
+    Number(pageSize),
+    startDate,
+    endDate,
+    merchantSlug,
+    type,
+    status
+  );
 
-  const eventualList = await getEventualAnticipations(
+  const eventualAnticipations = await getEventualAnticipations(
     search,
     Number(page),
     Number(pageSize),
@@ -94,109 +70,116 @@ export default async function AntecipationsPage({
     type,
     status,
     expectedSettlementStartDate,
-    expectedSettlementEndDate,
-    { sortBy, sortOrder }
+    expectedSettlementEndDate
   );
 
-  const rows = anticipationList.anticipations || [];
-  const todayISO = new Date().toISOString().slice(0, 10);
+  await checkPagePermission("Antecipações de Recebíveis");
 
-  const available = rows
-    .filter((a: any) => a.settledAt && a.settledAt.startsWith(todayISO))
-    .reduce((s: number, a: any) => s + a.amount, 0);
-
-  const processing = rows
-    .filter((a: any) => a.status === "approved" && a.expectedSettleDate > todayISO) 
-    .reduce((s, a) => s + a.amount, 0);
-
-  const nextPayout = rows
-      .filter((a: any) => a.status === "approved" && a.expectedSettleDate > todayISO)
-      .map((a: any) => a.expectedSettleDate)
-      .sort()[0] ?? "-";
-
-  const monthlyTotals = Array.from({ length: 12 }, (_, m) => rows
-      .filter((a: any) => a.settledAt && new Date(a.settledAt).getMonth() === m)
-      .reduce((s, a) => s + a.amount, 0)
-)
-
-  const lastestRequest = [...rows]
-      .sort((a: any, b: any) => 
-        new Date(b.requestedAt).getTime() -
-        new Date(a.requestedAt).getTime()  
-      )
-      .slice(0, 6);
-
-  const autoRule = {
-    dailyLimit: 1_000_000,
-    creditTermDays: 1,
-    enabled: rows.some((a: any) => a.type === "automatic"),
-  };
-
-  
   return (
     <>
-      {/* Cabeçalho superior com breadcrumb */}
       <BaseHeader
         breadcrumbItems={[
           { title: "Antecipações", url: "/portal/anticipations" },
         ]}
+        
       />
 
-      {/* Conteúdo principal */}
       <BaseBody
         title="Antecipações"
-        subtitle="Visualização das Antecipações"
+        subtitle={`visualização das antecipações`}
         className="overflow-x-hidden"
       >
-        {/* Ações do cabeçalho: filtros, nova solicitação */}
-        <HeaderActions
-          search={search}
-          merchantSlug={merchantSlug}
-          merchantDD={merchantDD}
-          type={type}
-          status={status}
-          startDate={startDate}
-          endDate={endDate}
-
-        />
-       
-
-        {/* NOVA ÁREA DE DASHBOARD ─ estrutura no estilo da imagem */}
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Coluna esquerda (largura ~ 2/3 em telas ≥1024px)  */}
-          <div className="flex flex-col gap-6 lg:col-span-8">
-            <SaldoCard 
-              available={available}
-              processing={processing}
-              nextPayout={nextPayout}
-              />               
-            {/* Disponível / Processando */}
-            <AutoAnticipationCard 
-              limit={autoRule.dailyLimit}
-              daysToSettle={autoRule.creditTermDays}
-              enabled={autoRule.enabled}
-            />      
-            {/* Antecipação Automática */}
-            <MonthlyHistoryChart totals={monthlyTotals}/>       
-            {/* Gráfico barras: Jan → Dez */}
-            <RequestHistoryTable 
-            rows={lastestRequest}
-            page={Number(page)}
-            pageSize={Number(pageSize)}
-            totalCount={anticipationList.totalCount}
-            />       
-            {/* Tabela de solicitações */}
-          </div>
-
-          {/* Coluna direita (simulador) */}
-          <div className="flex flex-col gap-6 lg:col-span-4">
-            <SimulatorCard
-              merchantSlug={merchantSlug}
-              eventualAnticipations={eventualList} // (exemplo de parâmetro)
+        <Tabs defaultValue="compulsory" className="w-full">
+          <TabsList>
+            <TabsTrigger value="compulsory">COMPULSÓRIA</TabsTrigger>
+            <TabsTrigger value="eventual">EVENTUAL</TabsTrigger>
+          </TabsList>
+          <TabsContent value="compulsory" className="mt-6">
+            <AnticipationsListFilter
+              merchantDD={merchantDD}
+              dateFromIn={startDate ? new Date(startDate) : undefined}
+              dateToIn={endDate ? new Date(endDate) : undefined}
+              merchantSlugIn={merchantSlug}
+              typeIn={type}
+              statusIn={status}
             />
-          </div>
-        </div>
+            <div className="mb-4"></div>
+
+            <div className="w-full overflow-x-auto">
+              <AnticipationListComponent
+                anticipations={anticipations}
+              ></AnticipationListComponent>
+
+              {anticipations.totalCount > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                    <PaginationRecords
+                        totalRecords={anticipations.totalCount}
+                        currentPage={Number(page)}
+                        pageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                  </div>
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="eventual" className="mt-6 ">
+            <EventualAnticipationsListFilter
+              merchantDD={merchantDD}
+              dateFromIn={startDate ? new Date(startDate) : undefined}
+              dateToIn={endDate ? new Date(endDate) : undefined}
+              expectedSettlementDateFromIn={
+                expectedSettlementStartDate
+                  ? new Date(expectedSettlementStartDate)
+                  : undefined
+              }
+              expectedSettlementDateToIn={
+                expectedSettlementEndDate
+                  ? new Date(expectedSettlementEndDate)
+                  : undefined
+              }
+              merchantSlugIn={merchantSlug}
+              typeIn={type}
+              statusIn={status}
+            />
+            <div className="mb-4"></div>
+
+            <div className="w-full overflow-x-auto">
+              <EventualAnticipationListComponent
+                anticipations={eventualAnticipations}
+              >
+
+              </EventualAnticipationListComponent>
+
+              {eventualAnticipations.totalCount > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <PageSizeSelector
+                        currentPageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                    <PaginationRecords
+                        totalRecords={eventualAnticipations.totalCount}
+                        currentPage={Number(page)}
+                        pageSize={Number(pageSize)}
+                        pageName="portal/anticipations"
+                    />
+                  </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </BaseBody>
     </>
   );
 }
+/*   {totalRecords > 0 && (
+              <PaginationRecords
+                totalRecords={totalRecords}
+                currentPage={page}
+                pageSize={pageSize}
+                pageName="portal/merchantAgenda"
+              />
+            )}*/
